@@ -197,6 +197,8 @@
             localStorage.removeItem('pcoded-manual-open-menus-v2');
         } catch (e) {}
 
+        var userOpenedMenu = false;
+
         function collapseAllMenus($) {
             $('.pcoded-navbar .pcoded-hasmenu')
                 .removeClass('pcoded-trigger pcoded-item-open active');
@@ -214,6 +216,7 @@
                 e.stopPropagation();
                 e.stopImmediatePropagation();
 
+                userOpenedMenu = true;
                 var $menu = $(this).closest('.pcoded-hasmenu');
                 $menu.toggleClass('pcoded-trigger pcoded-item-open');
 
@@ -225,13 +228,13 @@
             collapseAllMenus($);
             bindManualToggle($);
 
-            // Theme scripts bind late — keep forcing collapse until they settle
-            [200, 500, 1000, 2000].forEach(function (delay) {
-                setTimeout(function () {
+            // One delayed pass after theme scripts bind — never collapse after the user opens a menu.
+            setTimeout(function () {
+                if (!userOpenedMenu) {
                     collapseAllMenus($);
-                    bindManualToggle($);
-                }, delay);
-            });
+                }
+                bindManualToggle($);
+            }, 400);
         }
 
         function waitForJQuery(attempt) {
