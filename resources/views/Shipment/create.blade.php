@@ -723,6 +723,13 @@
             border: 1px solid #008080;
             color: #008080;
         }
+        .supplier-add-link {
+            display: block;
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+        }
     </style>
 @endsection
 

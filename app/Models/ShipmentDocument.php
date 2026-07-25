@@ -12,7 +12,15 @@ class ShipmentDocument extends Model
         'file_name',
         'file_path',
         'file_type',
+        'is_internal',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_internal' => 'boolean',
+        ];
+    }
 
     public function shipment(): BelongsTo
     {

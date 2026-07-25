@@ -495,6 +495,55 @@
             display: none !important;
         }
 
+        .supplier-add-link {
+            display: block;
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .supplier-add-link:hover {
+            text-decoration: underline;
+        }
+
+        .add-supplier-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+        }
+
+        .add-supplier-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1b5e6f;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #1b5e6f;
+            margin-bottom: 10px;
+        }
+
+        #add-supplier-modal .crr-input {
+            width: 100%;
+        }
+
+        #add-supplier-modal .select2-container {
+            width: 100% !important;
+        }
+
+        #add-supplier-modal .flag-icon {
+            width: 18px;
+            height: 12px;
+            margin-right: 8px;
+            vertical-align: middle;
+            border: 1px solid #eee;
+        }
+
+        @media (max-width: 992px) {
+            .add-supplier-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* DGR Sub-row styles */
         .dgr-sub-row td,
         .irregularity-sub-row td {
@@ -687,6 +736,7 @@
                                                                 <option></option>
                                                                 @foreach($suppliers as $s)
                                                                     <option value="{{ $s->supplier_name }}"
+                                                                        data-known="1"
                                                                         data-address="{{ $s->supplier_address }}"
                                                                         data-city="{{ $s->city }}"
                                                                         data-country="{{ optional($s->country)->name }}">
@@ -1070,6 +1120,164 @@
         </div>
     </div>
     </div>
+
+    {{-- Quick-add supplier modal --}}
+    <div class="modal fade" id="add-supplier-modal" tabindex="-1" role="dialog" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document" style="max-width: 1100px;">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h5 class="modal-title" id="addSupplierModalLabel" style="font-size: 14px; font-weight: 600;">Add supplier</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="add-supplier-form">
+                    <div class="modal-body" style="padding: 16px 20px; max-height: 70vh; overflow-y: auto;">
+                        <div class="add-supplier-grid">
+                            {{-- Column 1: Supplier information --}}
+                            <div class="add-supplier-col">
+                                <div class="add-supplier-section-title">Supplier information</div>
+
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Supplier name <span class="text-danger">*</span></label>
+                                    <input type="text" class="crr-input" name="supplier_name" id="modal-supplier-name" required>
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Phone number (with country code)</label>
+                                    <input type="text" class="crr-input" name="phone_number" id="modal-supplier-phone">
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Email</label>
+                                    <input type="text" class="crr-input" name="email" id="modal-supplier-email"
+                                        placeholder="email@example.com; email2@example.com">
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Remarks</label>
+                                    <textarea class="crr-input" name="remarks" id="modal-supplier-remarks" rows="3" style="height: auto; min-height: 70px;"></textarea>
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Special considerations for destination</label>
+                                    <textarea class="crr-input" name="special_considerations" id="modal-supplier-special" rows="3" style="height: auto; min-height: 70px;"></textarea>
+                                </div>
+                            </div>
+
+                            {{-- Column 2: Address --}}
+                            <div class="add-supplier-col">
+                                <div class="add-supplier-section-title">Supplier address</div>
+
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Supplier address</label>
+                                    <textarea class="crr-input" name="supplier_address" id="modal-supplier-address" rows="2" style="height: auto; min-height: 50px;"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="crr-field-group">
+                                            <label class="crr-label">City</label>
+                                            <input type="text" class="crr-input" name="city" id="modal-supplier-city">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="crr-field-group">
+                                            <label class="crr-label">District/state</label>
+                                            <input type="text" class="crr-input" name="district_state" id="modal-supplier-district">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="crr-field-group">
+                                            <label class="crr-label">Zip code</label>
+                                            <input type="text" class="crr-input" name="zip_code" id="modal-supplier-zip">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Country</label>
+                                    <select class="crr-input modal-supplier-country" name="country_id" id="modal-supplier-country">
+                                        <option value="">Select an option</option>
+                                        @foreach($countries as $country)
+                                            <option value="{{ $country->id }}" data-flag-url="{{ $country->flag_url }}">{{ $country->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Port code</label>
+                                    <input type="text" class="crr-input" name="port_code" id="modal-supplier-port">
+                                </div>
+
+                                <div class="add-supplier-section-title" style="margin-top: 12px;">Office address (optional)</div>
+
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Office address</label>
+                                    <textarea class="crr-input" name="office_address" id="modal-office-address" rows="2" style="height: auto; min-height: 50px;"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="crr-field-group">
+                                            <label class="crr-label">City</label>
+                                            <input type="text" class="crr-input" name="office_city" id="modal-office-city">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="crr-field-group">
+                                            <label class="crr-label">District/state</label>
+                                            <input type="text" class="crr-input" name="office_district_state" id="modal-office-district">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="crr-field-group">
+                                            <label class="crr-label">Zip code</label>
+                                            <input type="text" class="crr-input" name="office_zip_code" id="modal-office-zip">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Country</label>
+                                    <select class="crr-input modal-supplier-country" name="office_country_id" id="modal-office-country">
+                                        <option value="">Select an option</option>
+                                        @foreach($countries as $country)
+                                            <option value="{{ $country->id }}" data-flag-url="{{ $country->flag_url }}">{{ $country->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Column 3: Supplier details --}}
+                            <div class="add-supplier-col">
+                                <div class="add-supplier-section-title">Supplier details</div>
+
+                                <div class="crr-field-group">
+                                    <label class="crr-label">VAT number</label>
+                                    <input type="text" class="crr-input" name="vat_number" id="modal-supplier-vat">
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">EORI number</label>
+                                    <input type="text" class="crr-input" name="eori_number" id="modal-supplier-eori">
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">Currency</label>
+                                    <select class="crr-input modal-supplier-currency" name="currency" id="modal-supplier-currency">
+                                        <option value="">Select an option</option>
+                                        @foreach($currencies as $curr)
+                                            <option value="{{ $curr }}">{{ $curr }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="crr-field-group">
+                                    <label class="crr-label">UN/LOCODE</label>
+                                    <input type="text" class="crr-input" name="un_locode" id="modal-supplier-unlocode">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="add-supplier-error" class="text-danger mt-2" style="font-size: 11px; display: none;"></div>
+                    </div>
+                    <div class="modal-footer py-2">
+                        <button type="button" class="btn btn-sm btn-light" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-teal" id="add-supplier-save-btn" style="background:#008080;border-color:#008080;color:#fff;">Save supplier</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -1424,32 +1632,8 @@
                 }
             });
 
-            // Supplier Select2 with 2-line display
-            function formatSupplier(supplier) {
-                if (!supplier.id || !supplier.element) {
-                    return supplier.text;
-                }
-                var address = $(supplier.element).data('address') || '';
-                var city = $(supplier.element).data('city') || '';
-                var country = $(supplier.element).data('country') || '';
-                var locationText = [address, city, country].filter(Boolean).join(', ');
-                var res = '<div class="select2-result-supplier">' +
-                    '<div class="select2-result-supplier__title">' + supplier.text + '</div>' +
-                    '<div class="select2-result-supplier__location">' + locationText + '</div>' +
-                    '</div>';
-                return $(res);
-            }
+            // Supplier Select2 (with quick-add) is initialized in its own script below.
 
-            $('.select2-supplier').select2({
-                placeholder: "Select supplier",
-                tags: true,
-                allowClear: false,
-                width: '100%',
-                templateResult: formatSupplier,
-                templateSelection: function (supplier) {
-                    return supplier.text;
-                }
-            });
             // Initialize Bootstrap Datepicker
             $('.datepicker').datetimepicker({
                 format: 'YYYY-MM-DD',
@@ -1730,6 +1914,340 @@
             if ($('#landed-goods').is(':checked')) {
                 $('#landed-goods').trigger('change');
             }
+        });
+    </script>
+
+    <script>
+        // Supplier quick-add: Add "name" option opens modal (never saves free-text into the select).
+        jQuery(function ($) {
+            var $supplierSelect = $('#supplier-select');
+            var $modal = $('#add-supplier-modal');
+            if (!$supplierSelect.length || !$modal.length) {
+                return;
+            }
+
+            if (!$modal.parent().is('body')) {
+                $modal.appendTo('body');
+            }
+
+            // Drop any free-text options left behind by Select2 tagging.
+            $supplierSelect.find('option').each(function () {
+                var $opt = $(this);
+                if ($.trim($opt.val() || '') !== '' && $opt.attr('data-known') !== '1') {
+                    $opt.remove();
+                }
+            });
+
+            var knownNames = {};
+            $supplierSelect.find('option').each(function () {
+                var val = $.trim($(this).val() || '');
+                if (val) {
+                    knownNames[val.toLowerCase()] = true;
+                }
+            });
+
+            var previousValue = $supplierSelect.val();
+            if (previousValue && !knownNames[String(previousValue).toLowerCase()]) {
+                previousValue = null;
+                $supplierSelect.val(null);
+            }
+
+            var modalOpenScheduled = false;
+
+            if ($supplierSelect.hasClass('select2-hidden-accessible')) {
+                $supplierSelect.select2('destroy');
+            }
+
+            function isNewSupplierData(data) {
+                if (!data) {
+                    return false;
+                }
+                if (data.newTag === true) {
+                    return true;
+                }
+                var id = String(data.id || '');
+                if (id.indexOf('__new__:') === 0) {
+                    return true;
+                }
+                if (!id) {
+                    return false;
+                }
+                return !knownNames[id.toLowerCase()];
+            }
+
+            function getNewTerm(data) {
+                if (!data) {
+                    return '';
+                }
+                if (data.term) {
+                    return String(data.term);
+                }
+                var id = String(data.id || '');
+                if (id.indexOf('__new__:') === 0) {
+                    return id.slice(8);
+                }
+                var text = String(data.text || '');
+                var match = text.match(/^Add\s+"(.+)"$/);
+                return match ? match[1] : (id || text);
+            }
+
+            function clearTempOptions() {
+                $supplierSelect.find('option').each(function () {
+                    var $opt = $(this);
+                    var val = String($opt.val() || '');
+                    if (val !== '' && (val.indexOf('__new__:') === 0 || $opt.attr('data-select2-tag') || $opt.attr('data-known') !== '1')) {
+                        $opt.remove();
+                    }
+                });
+            }
+
+            function restorePreviousSelection() {
+                clearTempOptions();
+                $supplierSelect.val(previousValue || null).trigger('change.select2');
+            }
+
+            function openAddSupplierModal(name) {
+                if (modalOpenScheduled) {
+                    return;
+                }
+                modalOpenScheduled = true;
+
+                try { $supplierSelect.select2('close'); } catch (e) {}
+                restorePreviousSelection();
+
+                var form = document.getElementById('add-supplier-form');
+                if (form) {
+                    form.reset();
+                }
+                $('.modal-supplier-country, .modal-supplier-currency').val(null).trigger('change');
+                $('#add-supplier-error').hide().text('');
+                $('#modal-supplier-name').val($.trim(name || ''));
+
+                // Defer past the current click so Bootstrap does not treat it as a backdrop dismiss.
+                setTimeout(function () {
+                    $modal.modal('show');
+                    modalOpenScheduled = false;
+                    setTimeout(function () {
+                        $('#modal-supplier-name').trigger('focus');
+                    }, 200);
+                }, 50);
+            }
+
+            function formatModalCountry(state) {
+                if (!state.id) {
+                    return state.text;
+                }
+                var flagUrl = $(state.element).data('flag-url');
+                if (!flagUrl) {
+                    return state.text;
+                }
+                return $('<span><img src="' + flagUrl + '" class="flag-icon" alt="" /> ' +
+                    $('<div>').text(state.text).html() + '</span>');
+            }
+
+            function initModalSupplierSelect2() {
+                $('.modal-supplier-country').each(function () {
+                    var $el = $(this);
+                    if ($el.hasClass('select2-hidden-accessible')) {
+                        $el.select2('destroy');
+                    }
+                    $el.select2({
+                        placeholder: 'Select an option',
+                        allowClear: true,
+                        width: '100%',
+                        dropdownParent: $modal,
+                        templateResult: formatModalCountry,
+                        templateSelection: formatModalCountry
+                    });
+                });
+
+                $('.modal-supplier-currency').each(function () {
+                    var $el = $(this);
+                    if ($el.hasClass('select2-hidden-accessible')) {
+                        $el.select2('destroy');
+                    }
+                    $el.select2({
+                        placeholder: 'Select an option',
+                        allowClear: true,
+                        width: '100%',
+                        dropdownParent: $modal
+                    });
+                });
+            }
+
+            initModalSupplierSelect2();
+            $modal.off('shown.bs.modal.supplierSelect2').on('shown.bs.modal.supplierSelect2', function () {
+                initModalSupplierSelect2();
+            });
+
+            $supplierSelect.select2({
+                placeholder: 'Select supplier',
+                tags: true,
+                allowClear: false,
+                width: '100%',
+                createTag: function (params) {
+                    var term = $.trim(params.term || '');
+                    if (term === '' || knownNames[term.toLowerCase()]) {
+                        return null;
+                    }
+                    return {
+                        id: '__new__:' + term,
+                        text: 'Add "' + term + '"',
+                        newTag: true,
+                        term: term
+                    };
+                },
+                insertTag: function (data, tag) {
+                    data.push(tag);
+                },
+                templateResult: function (s) {
+                    if (s.loading) {
+                        return s.text;
+                    }
+                    if (isNewSupplierData(s)) {
+                        return $('<span class="supplier-add-link"></span>').text('Add "' + getNewTerm(s) + '"');
+                    }
+                    if (!s.id || !s.element) {
+                        return $('<span></span>').text(s.text || '');
+                    }
+                    var address = $(s.element).data('address') || '';
+                    var city = $(s.element).data('city') || '';
+                    var country = $(s.element).data('country') || '';
+                    var locationText = [address, city, country].filter(Boolean).join(', ');
+                    var $res = $('<div class="select2-result-supplier"></div>');
+                    $res.append($('<div class="select2-result-supplier__title"></div>').text(s.text));
+                    $res.append($('<div class="select2-result-supplier__location"></div>').text(locationText));
+                    return $res;
+                },
+                templateSelection: function (s) {
+                    if (isNewSupplierData(s)) {
+                        return '';
+                    }
+                    return s.text || '';
+                }
+            });
+
+            $supplierSelect
+                .off('.supplierAdd')
+                .on('select2:opening.supplierAdd', function () {
+                    previousValue = $supplierSelect.val();
+                    clearTempOptions();
+                })
+                .on('select2:select.supplierAdd', function (e) {
+                    var data = (e.params && e.params.data) || {};
+                    if (!isNewSupplierData(data)) {
+                        previousValue = $supplierSelect.val();
+                        return;
+                    }
+                    openAddSupplierModal(getNewTerm(data));
+                });
+
+            // Capture-phase click on Add "..." while the supplier dropdown is open.
+            document.addEventListener('click', function (e) {
+                if (!$supplierSelect.next('.select2-container').hasClass('select2-container--open')) {
+                    return;
+                }
+
+                var optionEl = e.target && e.target.closest
+                    ? e.target.closest('.select2-results__option')
+                    : null;
+                if (!optionEl) {
+                    return;
+                }
+
+                var data = $(optionEl).data('data');
+                var optionText = $.trim($(optionEl).text() || '');
+                var isAdd = isNewSupplierData(data) ||
+                    /^Add\s+".+"$/.test(optionText) ||
+                    $(optionEl).find('.supplier-add-link').length > 0;
+                if (!isAdd) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof e.stopImmediatePropagation === 'function') {
+                    e.stopImmediatePropagation();
+                }
+
+                var term = isNewSupplierData(data)
+                    ? getNewTerm(data)
+                    : ((optionText.match(/^Add\s+"(.+)"$/) || [])[1] || optionText);
+                openAddSupplierModal(term);
+            }, true);
+
+            $('#add-supplier-form').off('submit.supplierAdd').on('submit.supplierAdd', function (e) {
+                e.preventDefault();
+                var $btn = $('#add-supplier-save-btn');
+                var $error = $('#add-supplier-error');
+                $error.hide().text('');
+                $btn.prop('disabled', true).text('Saving...');
+
+                var payload = $(this).serializeArray();
+                payload.push({ name: '_token', value: @json(csrf_token()) });
+
+                $.ajax({
+                    url: @json(route('suppliers.store')),
+                    type: 'POST',
+                    dataType: 'json',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    data: payload,
+                    success: function (response) {
+                        var supplier = (response && response.supplier) || {};
+                        var name = $.trim(supplier.supplier_name || $('#modal-supplier-name').val());
+
+                        if (name) {
+                            clearTempOptions();
+                            knownNames[name.toLowerCase()] = true;
+
+                            if ($supplierSelect.find('option').filter(function () {
+                                return $(this).val() === name;
+                            }).length === 0) {
+                                $supplierSelect.append(
+                                    $('<option></option>')
+                                        .val(name)
+                                        .text(name)
+                                        .attr('data-known', '1')
+                                        .attr('data-address', supplier.supplier_address || '')
+                                        .attr('data-city', supplier.city || '')
+                                        .attr('data-country', supplier.country || '')
+                                );
+                            }
+
+                            previousValue = name;
+                            $supplierSelect.val(name).trigger('change');
+                        }
+
+                        $modal.modal('hide');
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success((response && response.message) || 'Supplier created successfully');
+                        }
+                    },
+                    error: function (xhr) {
+                        var message = 'Could not create supplier.';
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            var firstKey = Object.keys(xhr.responseJSON.errors)[0];
+                            message = xhr.responseJSON.errors[firstKey][0];
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        }
+                        $error.text(message).show();
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false).text('Save supplier');
+                    }
+                });
+            });
+
+            $modal.off('hidden.bs.modal.supplierAdd').on('hidden.bs.modal.supplierAdd', function () {
+                if (String($supplierSelect.val() || '').indexOf('__new__:') === 0 ||
+                    ($supplierSelect.val() && !knownNames[String($supplierSelect.val()).toLowerCase()])) {
+                    restorePreviousSelection();
+                }
+            });
         });
     </script>
 @endsection

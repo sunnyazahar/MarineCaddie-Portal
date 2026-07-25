@@ -220,6 +220,33 @@ class AgentController extends Controller
             'is_active' => $isActive,
         ]);
 
+        if (! $isActive) {
+            $actor = auth()->user()?->name ?? 'System';
+            $message = 'Agent ' . $agent->agent_name . ' has been blocked by ' . $actor . '. Shipments can be created, but it is not possible to send manifests, pre-alerts or finalize shipments until the blocking is removed.';
+            $linkUrl = route('agents.edit', $agent->id);
+
+            $recipientIds = \App\Models\User::query()
+                ->where(function ($q) use ($agent) {
+                    $q->where('role', 'Admin')
+                        ->orWhereHas('agents', fn ($aq) => $aq->where('agents.id', $agent->id));
+                })
+                ->when(auth()->id(), fn ($q) => $q->where('id', '!=', auth()->id()))
+                ->pluck('id');
+
+            $notifier = app(\App\Services\UserNotificationService::class);
+            foreach ($recipientIds as $userId) {
+                $notifier->notify(
+                    (int) $userId,
+                    $message,
+                    \App\Models\UserNotification::CATEGORY_OTHER,
+                    $agent->agent_name,
+                    $linkUrl,
+                    'other',
+                    $agent
+                );
+            }
+        }
+
         return response()->json([
             'success' => true,
             'status' => $isActive ? 'Active' : 'Inactive',

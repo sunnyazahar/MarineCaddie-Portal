@@ -69,6 +69,8 @@ class LoginController extends Controller
             'login_otp_hash',
             'login_otp_expires_at',
             'login_otp_last_sent_at',
+            'login_otp_local',
+            'login_otp_mail_failed',
             'login_client_context',
         ]);
 

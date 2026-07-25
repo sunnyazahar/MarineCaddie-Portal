@@ -599,59 +599,237 @@
         }
         .doc-tabs {
             display: flex;
-            border-bottom: 1px solid #f3f4f6;
+            border-bottom: 1px solid #e8edf2;
         }
         .doc-tab {
             flex: 1;
             text-align: center;
-            padding: 8px;
-            font-size: 9px;
+            padding: 10px 8px;
+            font-size: 11px;
             font-weight: 600;
-            color: #9ca3af;
+            color: #94a3b8;
             cursor: pointer;
         }
         .doc-tab.active {
-            color: #008080;
-            border-bottom: 2px solid #008080;
+            color: #002d5b;
+            border-bottom: 2px solid #002d5b;
         }
-        .drag-drop-zone {
-            margin: 15px;
-            border: 1px dashed #e5e7eb;
-            border-radius: 4px;
-            padding: 20px;
-            text-align: center;
+
+        #doc-panel-docs .shipment-docs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            padding-right: 4px;
+        }
+
+        #doc-panel-docs .shipment-docs-header span {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        #doc-panel-docs .shipment-docs-internal-label {
+            width: 100px;
+            text-align: left;
+            margin-right: 26px;
+        }
+
+        #shipment-docs-scroll {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        #shipment-log-scroll,
+        #shipment-comments-scroll {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        #doc-panel-docs .doc-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            margin: 0;
+            border-bottom: 1px solid #e8edf2;
+        }
+
+        #doc-panel-docs .doc-item:last-child {
+            border-bottom: 0;
+        }
+
+        #doc-panel-docs .doc-main {
+            flex: 1;
+            max-width: 60%;
+            min-width: 50%;
+            padding-top: 1px;
+        }
+        
+
+        #doc-panel-docs .doc-name,
+        #doc-panel-docs a.doc-name {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            color: #008080 !important;
+            line-height: 16px;
+            text-decoration: none;
+            word-break: break-word;
             cursor: pointer;
         }
-        .drag-drop-zone i {
-            font-size: 20px;
-            color: #008080;
+
+        #doc-panel-docs .doc-name:hover {
+            text-decoration: underline;
+        }
+
+        #doc-panel-docs .doc-name-muted {
+            color: #94a3b8 !important;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        #doc-panel-docs .doc-type-select,
+        #doc-panel-docs .shipment-doc-type-select {
+            display: block;
+            margin-top: 4px;
+            border: 0;
+            background: transparent;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 0;
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            cursor: pointer;
+            appearance: auto;
+        }
+
+        #doc-panel-docs .doc-type-label {
+            display: block;
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        #doc-panel-docs .doc-side {
+            flex: 0 0 auto;
+            width: 86px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        #doc-panel-docs .doc-side-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            height: 18px;
+            width: 100%;
+        }
+
+        #doc-panel-docs .doc-internal {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        #doc-panel-docs .doc-internal.checkbox-fade {
+            display: inline-block;
+            line-height: 0;
+        }
+
+        #doc-panel-docs .doc-internal.checkbox-fade label {
+            margin: 0;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            line-height: 0;
+        }
+
+        #doc-panel-docs .doc-internal.checkbox-fade .cr {
+            width: 13px;
+            height: 13px;
+            margin: 0;
+            margin-top: 0;
+        }
+
+        #doc-panel-docs .doc-internal.checkbox-fade input[type="checkbox"]:disabled + .cr {
+            opacity: 0.45;
+            cursor: not-allowed;
+            background: #f8fafc;
+        }
+
+        #doc-panel-docs .doc-trash {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        #doc-panel-docs .doc-trash:hover {
+            color: #ef4444;
+        }
+
+        #doc-panel-docs .doc-date {
+            font-size: 10px;
+            color: #94a3b8;
+            line-height: 1.2;
+            white-space: nowrap;
+            text-align: right;
+            min-height: 12px;
+        }
+
+        #doc-panel-docs .dropzone-placeholder,
+        #doc-panel-docs .drag-drop-zone {
+            border: 1px dashed #cbd5e1;
+            border-radius: 4px;
+            padding: 22px 16px;
+            text-align: center;
+            margin-top: 14px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #doc-panel-docs .dropzone-placeholder:hover,
+        #doc-panel-docs .drag-drop-zone:hover {
+            border-color: #94a3b8;
+            background: #f8fafc;
+        }
+
+        #doc-panel-docs .dropzone-text,
+        #doc-panel-docs .drag-drop-text {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 500;
             margin-bottom: 8px;
         }
-        .drag-drop-text {
-            font-size: 10px;
-            color: #6b7280;
-        }
-        #shipment-documents-list .shipment-doc-type-select {
-            width: 100%;
-            max-width: 170px;
-            font-size: 8px;
-            height: 24px;
-            padding: 0;
-        }
-        #shipment-documents-list .select2-container--default .select2-selection--single {
-            height: 24px !important;
-            min-height: 24px !important;
-            border: 1px solid #e5e7eb !important;
-            background: #fff !important;
-        }
-        #shipment-documents-list .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 22px !important;
-            font-size: 8px !important;
-            color: #6b7280 !important;
-            padding-left: 6px !important;
-        }
-        #shipment-documents-list .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 22px !important;
+
+        #doc-panel-docs .dropzone-placeholder .dropzone-icon,
+        #doc-panel-docs .drag-drop-zone i {
+            font-size: 18px;
+            color: #94a3b8;
+            display: block;
+            margin: 0;
         }
 
         /* Buttons */
@@ -879,10 +1057,10 @@
             border: 2px solid #d1d5db; /* Thicker border */
             cursor: pointer;
             display: inline-block;
-            height: 18px; /* Slightly larger */
+            height: 14px; /* Slightly larger */
             margin-right: 10px;
             position: relative;
-            width: 18px;
+            width: 14px;
             background: #fff;
             border-radius: 3px;
             transition: all 0.2s ease;
@@ -1598,7 +1776,7 @@
                                                         data-eml-filename="manifest-mail-{{ $shipment->shipment_number }}.eml">Send manifest</button>
                                                     <button type="button" id="send-prealert-btn" class="btn btn-premium btn-outline-custom">Send pre-alert</button>
                                                     <button type="button" id="finalize-shipment-btn" class="btn btn-premium btn-outline-custom">Finalize shipment</button>
-                                                    <div class="dropdown-more-container">
+                                                    <div class="dropdown-more-container d-none">
                                                         <button type="button" class="btn btn-premium btn-teal" id="btn-more-actions"><i class="ti-more-alt"></i></button>
                                                         <div class="dropdown-more-menu" id="more-actions-menu">
                                                             <a class="dropdown-more-item">Cancel shipment</a>
@@ -2196,110 +2374,104 @@
                                                 </div>
                                                 <div class="p-3">
                                                     <div id="doc-panel-docs" class="doc-panel active">
-                                                        <div class="d-flex flex-column gap-3">
+                                                        <div class="shipment-docs-header">
+                                                            <span>Filename</span>
+                                                            <span class="shipment-docs-internal-label">Internal</span>
+                                                        </div>
+                                                        <div id="shipment-docs-scroll">
                                                         @if ($combinedPoDocuments->count() > 0)
                                                         <div class="doc-item">
-                                                            <div class="d-flex justify-content-between">
+                                                            <div class="doc-main">
                                                                 <a href="#"
-                                                                   class="po-document-link"
-                                                                   style="font-size: 9px; font-weight: 700; color: #008080; text-decoration: none; cursor: pointer;"
+                                                                   class="doc-name po-document-link"
                                                                    data-pdf-url="{{ route('shipments.combined-po-documents', $shipment->id) }}"
                                                                    data-title="Combined PO documents">
                                                                     Combined PO documents
                                                                 </a>
-                                                                <div class="d-flex gap-2">
-                                                                    <input type="checkbox">
-                                                                    <i class="ti-trash text-muted" style="font-size: 10px;"></i>
+                                                                <span class="doc-type-label">PO · {{ $combinedPoDocuments->unique('file_path')->count() }} PDF(s) merged</span>
+                                                            </div>
+                                                            <div class="doc-side">
+                                                                <div class="doc-side-row">
+                                                                    <div class="doc-internal checkbox-fade fade-in-primary">
+                                                                        <label>
+                                                                            <input type="checkbox" class="doc-internal-check" >
+                                                                            <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
+                                                                        </label>
+                                                                    </div>
+                                                                    <i class="ti-trash doc-trash" style="visibility: hidden;"></i>
                                                                 </div>
-                                                            </div>
-                                                            <div class="d-flex justify-content-between align-items-center mt-1">
-                                                                <span style="font-size: 8px; color: #6b7280;">
-                                                                    PO · {{ $combinedPoDocuments->unique('file_path')->count() }} PDF(s) merged
-                                                                </span>
-                                                                <span style="font-size: 8px; color: #9ca3af;">{{ $combinedPoDocuments->max('created_at')?->format('d.m.Y') }}</span>
-                                                            </div>
-                                                        </div>
-                                                        @else
-                                                        <div class="doc-item">
-                                                            <div class="d-flex justify-content-between">
-                                                                <span style="font-size: 9px; font-weight: 700; color: #9ca3af;">Combined PO documents</span>
-                                                            </div>
-                                                            <div class="mt-1">
-                                                                <span style="font-size: 8px; color: #9ca3af;">No PO PDFs found for this shipment.</span>
+                                                                <span class="doc-date">{{ $combinedPoDocuments->max('created_at')?->format('d.m.Y') }}</span>
                                                             </div>
                                                         </div>
                                                         @endif
                                                         <div id="shipment-manifests-list">
                                                         @foreach ($shipment->manifests as $manifest)
-                                                        <div class="doc-item mt-2 shipment-manifest-doc" data-id="{{ $manifest->id }}">
-                                                            <div class="d-flex justify-content-between">
+                                                        <div class="doc-item shipment-manifest-doc" data-id="{{ $manifest->id }}">
+                                                            <div class="doc-main">
                                                                 <a href="#"
-                                                                   class="po-document-link"
-                                                                   style="font-size: 9px; font-weight: 700; color: #008080; text-decoration: none; cursor: pointer;"
+                                                                   class="doc-name po-document-link"
                                                                    data-pdf-url="{{ route('shipments.manifests.show', [$shipment->id, $manifest->id]) }}"
                                                                    data-title="{{ $manifest->displayLabel() }}">
                                                                     {{ $manifest->displayLabel() }}
                                                                 </a>
-                                                                <div class="d-flex gap-2">
-                                                                    <input type="checkbox">
-                                                                    <i class="ti-trash text-muted delete-shipment-manifest" style="font-size: 10px; cursor: pointer;" data-id="{{ $manifest->id }}"></i>
-                                                                </div>
+                                                                <span class="doc-type-label">Manifest</span>
                                                             </div>
-                                                            <div class="d-flex justify-content-between align-items-center mt-1">
-                                                                <span style="font-size: 8px; color: #6b7280;">
-                                                                    Manifest · Generated from shipment data
-                                                                </span>
-                                                                <span style="font-size: 8px; color: #9ca3af;">{{ $manifest->created_at->format('d.m.Y H:i') }}</span>
+                                                            <div class="doc-side">
+                                                                <div class="doc-side-row">
+                                                                    <div class="doc-internal checkbox-fade fade-in-primary">
+                                                                        <label>
+                                                                            <input type="checkbox" class="doc-internal-check">
+                                                                            <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
+                                                                        </label>
+                                                                    </div>
+                                                                    <i class="ti-trash doc-trash delete-shipment-manifest" data-id="{{ $manifest->id }}" title="Delete"></i>
+                                                                </div>
+                                                                <span class="doc-date">{{ $manifest->created_at->format('d.m.Y') }}</span>
                                                             </div>
                                                         </div>
                                                         @endforeach
                                                         </div>
                                                         <div id="shipment-pre-alerts-list">
                                                         @foreach ($shipment->preAlerts as $preAlert)
-                                                        <div class="doc-item mt-2 shipment-prealert-doc" data-id="{{ $preAlert->id }}">
-                                                            <div class="d-flex justify-content-between">
+                                                        <div class="doc-item shipment-prealert-doc" data-id="{{ $preAlert->id }}">
+                                                            <div class="doc-main">
                                                                 <a href="#"
-                                                                   class="po-document-link"
-                                                                   style="font-size: 9px; font-weight: 700; color: #008080; text-decoration: none; cursor: pointer;"
+                                                                   class="doc-name po-document-link"
                                                                    data-pdf-url="{{ route('shipments.pre-alerts.show', [$shipment->id, $preAlert->id]) }}"
                                                                    data-title="{{ $preAlert->displayLabel() }}">
                                                                     {{ $preAlert->displayLabel() }}
                                                                 </a>
-                                                                <div class="d-flex gap-2">
-                                                                    <input type="checkbox">
-                                                                    <i class="ti-trash text-muted delete-shipment-prealert" style="font-size: 10px; cursor: pointer;" data-id="{{ $preAlert->id }}"></i>
-                                                                </div>
+                                                                <span class="doc-type-label">Pre-alert</span>
                                                             </div>
-                                                            <div class="d-flex justify-content-between align-items-center mt-1">
-                                                                <span style="font-size: 8px; color: #6b7280;">
-                                                                    Pre-alert · Generated from service details
-                                                                </span>
-                                                                <span style="font-size: 8px; color: #9ca3af;">{{ $preAlert->created_at->format('d.m.Y H:i') }}</span>
+                                                            <div class="doc-side">
+                                                                <div class="doc-side-row">
+                                                                    <div class="doc-internal checkbox-fade fade-in-primary">
+                                                                        <label>
+                                                                            <input type="checkbox" class="doc-internal-check" disabled title="Generated document">
+                                                                            <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
+                                                                        </label>
+                                                                    </div>
+                                                                    <i class="ti-trash doc-trash delete-shipment-prealert" data-id="{{ $preAlert->id }}" title="Delete"></i>
+                                                                </div>
+                                                                <span class="doc-date">{{ $preAlert->created_at->format('d.m.Y') }}</span>
                                                             </div>
                                                         </div>
                                                         @endforeach
                                                         </div>
                                                         <div id="shipment-documents-list">
                                                         @foreach ($shipment->documents as $uploadedDocument)
-                                                        <div class="doc-item mt-2 shipment-uploaded-doc" data-id="{{ $uploadedDocument->id }}">
-                                                            <div class="d-flex justify-content-between">
+                                                            @php
+                                                                $selectedDocType = $uploadedDocument->file_type ?: 'Unspecified';
+                                                            @endphp
+                                                        <div class="doc-item shipment-uploaded-doc" data-id="{{ $uploadedDocument->id }}">
+                                                            <div class="doc-main">
                                                                 <a href="#"
-                                                                   class="po-document-link"
-                                                                   style="font-size: 9px; font-weight: 700; color: #008080; text-decoration: none; cursor: pointer;"
+                                                                   class="doc-name po-document-link"
                                                                    data-pdf-url="{{ $uploadedDocument->fileUrl() }}"
                                                                    data-title="{{ $uploadedDocument->file_name }}">
                                                                     {{ $uploadedDocument->file_name }}
                                                                 </a>
-                                                                <div class="d-flex gap-2">
-                                                                    <input type="checkbox" class="shipment-doc-attach-checkbox" data-doc-id="{{ $uploadedDocument->id }}">
-                                                                    <i class="ti-trash text-muted delete-shipment-document" style="font-size: 10px; cursor: pointer;" data-id="{{ $uploadedDocument->id }}"></i>
-                                                                </div>
-                                                            </div>
-                                                            <div class="d-flex justify-content-between align-items-center mt-1">
-                                                                <select class="shipment-doc-type-select" data-doc-id="{{ $uploadedDocument->id }}" style="width: 100%;">
-                                                                    @php
-                                                                        $selectedDocType = $uploadedDocument->file_type ?: 'Unspecified';
-                                                                    @endphp
+                                                                <select class="doc-type-select shipment-doc-type-select" data-doc-id="{{ $uploadedDocument->id }}">
                                                                     @foreach ($shipmentDocumentTypeOptions as $documentTypeOption)
                                                                         <option value="{{ $documentTypeOption }}" {{ $selectedDocType === $documentTypeOption ? 'selected' : '' }}>{{ $documentTypeOption }}</option>
                                                                     @endforeach
@@ -2307,19 +2479,35 @@
                                                                         <option value="{{ $selectedDocType }}" selected>{{ $selectedDocType }}</option>
                                                                     @endif
                                                                 </select>
-                                                                <span style="font-size: 8px; color: #9ca3af; margin-left: 8px; white-space: nowrap;">{{ $uploadedDocument->created_at->format('d.m.Y') }}</span>
+                                                            </div>
+                                                            <div class="doc-side">
+                                                                <div class="doc-side-row">
+                                                                    <div class="doc-internal checkbox-fade fade-in-primary">
+                                                                        <label>
+                                                                            <input type="checkbox"
+                                                                                   class="doc-internal-check shipment-doc-attach-checkbox shipment-doc-internal-check"
+                                                                                   data-doc-id="{{ $uploadedDocument->id }}"
+                                                                                   {{ $uploadedDocument->is_internal ? 'checked' : '' }}>
+                                                                            <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
+                                                                        </label>
+                                                                    </div>
+                                                                    <i class="ti-trash doc-trash delete-shipment-document" data-id="{{ $uploadedDocument->id }}" title="Delete"></i>
+                                                                </div>
+                                                                <span class="doc-date">{{ $uploadedDocument->created_at->format('d.m.Y') }}</span>
                                                             </div>
                                                         </div>
                                                         @endforeach
                                                         </div>
-                                                    </div>
-                                                    <div class="drag-drop-zone" id="shipment-doc-dropzone">
-                                                        <i class="ti-upload"></i>
-                                                        <div class="drag-drop-text">Drag files here or click to browse</div>
+                                                        </div>
+
+                                                    <div class="dropzone-placeholder drag-drop-zone" id="shipment-doc-dropzone">
+                                                        <div class="dropzone-text drag-drop-text">Drag files here or click to browse</div>
+                                                        <i class="ti-upload dropzone-icon"></i>
                                                     </div>
                                                     <input type="file" id="shipment-doc-file-input" accept="application/pdf,.pdf" multiple style="display: none;">
                                                     </div>
                                                     <div id="doc-panel-log" class="doc-panel">
+                                                        <div id="shipment-log-scroll">
                                                         @forelse ($shipment->changeLogs as $changeLog)
                                                             <div class="log-item">
                                                                 <div class="log-left">
@@ -2336,14 +2524,17 @@
                                                         @empty
                                                             <div class="text-center py-4 text-muted" style="font-size: 12px;">No changes recorded yet.</div>
                                                         @endforelse
+                                                        </div>
                                                     </div>
                                                     <div id="doc-panel-comments" class="doc-panel">
+                                                        <div id="shipment-comments-scroll">
                                                         <div class="comment-item">
                                                             <div class="comment-header">
                                                                 <span class="comment-user">Helena Kaya</span>
                                                                 <span class="comment-time">13.03.2026 21:57</span>
                                                             </div>
                                                             <div class="comment-body">WEEK 12 CHECKEN</div>
+                                                        </div>
                                                         </div>
                                                         
                                                         <!-- Comment Input Footer -->
@@ -2746,6 +2937,33 @@
                 .join('&');
         }
 
+        function prependShipmentChangeLog(log) {
+            if (!log) {
+                return;
+            }
+
+            var $scroll = $('#shipment-log-scroll');
+            $scroll.find('.text-muted').filter(function() {
+                return $.trim($(this).text()) === 'No changes recorded yet.';
+            }).remove();
+
+            var html =
+                '<div class="log-item">' +
+                    '<div class="log-left">' +
+                        '<span class="log-title">' + $('<div>').text(log.title || '').html() + '</span>' +
+                        (log.description
+                            ? '<span class="log-desc">' + $('<div>').text(log.description).html() + '</span>'
+                            : '') +
+                    '</div>' +
+                    '<div class="log-right">' +
+                        '<span class="log-user">' + $('<div>').text(log.user || 'System').html() + '</span>' +
+                        '<span class="log-timestamp">' + $('<div>').text(log.timestamp || '').html() + '</span>' +
+                    '</div>' +
+                '</div>';
+
+            $scroll.prepend(html);
+        }
+
         $(document).on('click', '.delete-shipment-manifest', function() {
             var manifestId = $(this).data('id');
             if (!manifestId || !confirm('Delete this manifest version?')) {
@@ -2758,14 +2976,10 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
-            }).done(function() {
+            }).done(function(response) {
                 $('.shipment-manifest-doc[data-id="' + manifestId + '"]').remove();
-                updateDocumentsTabCount(
-                    combinedPoDocumentCount
-                    + $('.shipment-manifest-doc').length
-                    + $('.shipment-prealert-doc').length
-                    + uploadedDocumentCount
-                );
+                updateShipmentDocumentTabCount();
+                prependShipmentChangeLog(response && response.change_log);
             });
         });
 
@@ -2781,15 +2995,11 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
-            }).done(function() {
+            }).done(function(response) {
                 $('.shipment-prealert-doc[data-id="' + preAlertId + '"]').remove();
                 preAlertDocumentCount = $('.shipment-prealert-doc').length;
-                updateDocumentsTabCount(
-                    combinedPoDocumentCount
-                    + $('.shipment-manifest-doc').length
-                    + preAlertDocumentCount
-                    + uploadedDocumentCount
-                );
+                updateShipmentDocumentTabCount();
+                prependShipmentChangeLog(response && response.change_log);
             });
         });
 
@@ -4575,53 +4785,33 @@
         var shipmentDocumentTypeOptions = @json($shipmentDocumentTypeOptions);
 
         function updateShipmentDocumentTabCount() {
-            var count = $('#doc-panel-docs .doc-item').length;
+            var count = $('#shipment-docs-scroll .doc-item').length;
             $('.doc-tab[data-target="docs"]').text('Documents (' + count + ')');
         }
 
-        function buildDocTypeSelectHtml(docId, selectedType) {
-            var $select = $('<select class="shipment-doc-type-select" data-doc-id="' + docId + '" style="width: 100%;"></select>');
-            shipmentDocumentTypeOptions.forEach(function(option) {
-                var $option = $('<option></option>').val(option).text(option);
-                if (option === selectedType) {
-                    $option.prop('selected', true);
-                }
-                $select.append($option);
-            });
-            if (selectedType && shipmentDocumentTypeOptions.indexOf(selectedType) === -1) {
-                $select.append($('<option></option>').val(selectedType).text(selectedType).prop('selected', true));
-            }
-            return $select.prop('outerHTML');
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
-        function initShipmentDocTypeSelect($select) {
-            if (!$select.length || $select.hasClass('select2-hidden-accessible')) {
-                return;
-            }
-            $select.select2({
-                width: '100%',
-                tags: true,
-                minimumResultsForSearch: 0,
-                dropdownParent: $('body'),
-                placeholder: 'Select or type document type',
-                createTag: function(params) {
-                    var term = $.trim(params.term);
-                    if (term === '') {
-                        return null;
-                    }
-                    var exists = false;
-                    $(params.element).find('option').each(function() {
-                        if ($(this).val().toLowerCase() === term.toLowerCase()) {
-                            exists = true;
-                            return false;
-                        }
-                    });
-                    if (exists) {
-                        return null;
-                    }
-                    return { id: term, text: term, newTag: true };
-                }
+        function buildDocTypeSelectHtml(docId, selectedType) {
+            var options = shipmentDocumentTypeOptions.slice();
+            var html = '<select class="doc-type-select shipment-doc-type-select" data-doc-id="' + docId + '">';
+            var hasSelected = false;
+            options.forEach(function(option) {
+                var selected = option === selectedType ? ' selected' : '';
+                if (selected) hasSelected = true;
+                html += '<option value="' + escapeHtml(option) + '"' + selected + '>' + escapeHtml(option) + '</option>';
             });
+            if (selectedType && !hasSelected) {
+                html += '<option value="' + escapeHtml(selectedType) + '" selected>' + escapeHtml(selectedType) + '</option>';
+            }
+            html += '</select>';
+            return html;
         }
 
         function appendShipmentDocumentItem(doc) {
@@ -4629,24 +4819,31 @@
             if (selectedType && shipmentDocumentTypeOptions.indexOf(selectedType) === -1) {
                 shipmentDocumentTypeOptions.push(selectedType);
             }
-            var docHtml = '<div class="doc-item mt-2 shipment-uploaded-doc" data-id="' + doc.id + '">' +
-                '<div class="d-flex justify-content-between">' +
-                '<a href="#" class="po-document-link" style="font-size: 9px; font-weight: 700; color: #008080; text-decoration: none; cursor: pointer;" data-pdf-url="' + doc.file_url + '" data-title="' + doc.file_name + '">' + doc.file_name + '</a>' +
-                '<div class="d-flex gap-2"><input type="checkbox" class="shipment-doc-attach-checkbox" data-doc-id="' + doc.id + '"><i class="ti-trash text-muted delete-shipment-document" style="font-size: 10px; cursor: pointer;" data-id="' + doc.id + '"></i></div>' +
-                '</div>' +
-                '<div class="d-flex justify-content-between align-items-center mt-1">' +
-                buildDocTypeSelectHtml(doc.id, selectedType) +
-                '<span style="font-size: 8px; color: #9ca3af; margin-left: 8px; white-space: nowrap;">' + doc.date + '</span>' +
-                '</div></div>';
-            var $item = $(docHtml);
-            shipmentDocList.append($item);
-            initShipmentDocTypeSelect($item.find('.shipment-doc-type-select'));
+            var checked = doc.is_internal ? ' checked' : '';
+            var docHtml =
+                '<div class="doc-item shipment-uploaded-doc" data-id="' + doc.id + '">' +
+                    '<div class="doc-main">' +
+                        '<a href="#" class="doc-name po-document-link" data-pdf-url="' + escapeHtml(doc.file_url) + '" data-title="' + escapeHtml(doc.file_name) + '">' +
+                            escapeHtml(doc.file_name) +
+                        '</a>' +
+                        buildDocTypeSelectHtml(doc.id, selectedType) +
+                    '</div>' +
+                    '<div class="doc-side">' +
+                        '<div class="doc-side-row">' +
+                            '<div class="doc-internal checkbox-fade fade-in-primary">' +
+                                '<label>' +
+                                    '<input type="checkbox" class="doc-internal-check shipment-doc-attach-checkbox shipment-doc-internal-check" data-doc-id="' + doc.id + '"' + checked + '>' +
+                                    '<span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>' +
+                                '</label>' +
+                            '</div>' +
+                            '<i class="ti-trash doc-trash delete-shipment-document" data-id="' + doc.id + '" title="Delete"></i>' +
+                        '</div>' +
+                        '<span class="doc-date">' + escapeHtml(doc.date) + '</span>' +
+                    '</div>' +
+                '</div>';
+            shipmentDocList.append(docHtml);
             updateShipmentDocumentTabCount();
         }
-
-        $('#shipment-documents-list .shipment-doc-type-select').each(function() {
-            initShipmentDocTypeSelect($(this));
-        });
 
         $(document).on('change', '.shipment-doc-type-select', function() {
             var docId = $(this).data('doc-id');
@@ -4663,6 +4860,28 @@
                 data: {
                     _token: '{{ csrf_token() }}',
                     file_type: fileType
+                },
+                error: function() {
+                    alert('Could not update document type');
+                }
+            });
+        });
+
+        $(document).on('change', '.shipment-doc-internal-check', function() {
+            var docId = $(this).data('doc-id');
+            var isInternal = $(this).is(':checked') ? 1 : 0;
+            if (!docId) {
+                return;
+            }
+            $.ajax({
+                url: '{{ route('shipments.documents.update-internal', ':docId') }}'.replace(':docId', docId),
+                type: 'PATCH',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    is_internal: isInternal
+                },
+                error: function() {
+                    alert('Could not update internal flag');
                 }
             });
         });
@@ -4680,17 +4899,17 @@
 
         shipmentDocDropzone.on('dragover', function(e) {
             e.preventDefault();
-            $(this).css({ 'border-color': '#008080', 'background': '#f0fdfa' });
+            $(this).css({ 'border-color': '#94a3b8', 'background': '#f8fafc' });
         });
 
         shipmentDocDropzone.on('dragleave', function(e) {
             e.preventDefault();
-            $(this).css({ 'border-color': '#e5e7eb', 'background': 'transparent' });
+            $(this).css({ 'border-color': '#cbd5e1', 'background': '#fff' });
         });
 
         shipmentDocDropzone.on('drop', function(e) {
             e.preventDefault();
-            $(this).css({ 'border-color': '#e5e7eb', 'background': 'transparent' });
+            $(this).css({ 'border-color': '#cbd5e1', 'background': '#fff' });
             handleShipmentDocFiles(e.originalEvent.dataTransfer.files);
         });
 

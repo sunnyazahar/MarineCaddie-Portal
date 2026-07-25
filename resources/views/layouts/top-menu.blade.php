@@ -39,93 +39,70 @@
                 </li>
             </ul>
             <ul class="nav-right">
-                <li class="header-notification">
+                <li class="header-notification mc-notif-wrap">
                     <div class="dropdown-primary dropdown">
-                        <div class="dropdown-toggle" data-toggle="dropdown">
+                        @php
+                            $notifService = app(\App\Services\UserNotificationService::class);
+                            $notifUser = Auth::user();
+                            $notifCounts = $notifUser
+                                ? $notifService->countsForUser($notifUser)
+                                : ['all' => 0, 'comments' => 0, 'pickups' => 0, 'costs' => 0, 'other' => 0];
+                            $notifUnread = (int) ($notifCounts['all'] ?? 0);
+                        @endphp
+                        <div class="dropdown-toggle" data-toggle="dropdown" id="mc-notif-toggle">
                             <i class="feather icon-bell"></i>
-                            <span class="badge bg-c-pink">5</span>
+                            <span class="badge bg-c-pink mc-notif-badge" @if($notifUnread < 1) style="display:none" @endif>{{ $notifUnread > 99 ? '99+' : $notifUnread }}</span>
                         </div>
-                        <ul class="show-notification notification-view dropdown-menu" data-dropdown-in="fadeIn"
-                            data-dropdown-out="fadeOut">
-                            <li>
+                        <div class="dropdown-menu mc-notif-panel" data-dropdown-in="fadeIn" data-dropdown-out="fadeOut">
+                            <div class="mc-notif-header">
                                 <h6>Notifications</h6>
-                                <label class="label label-danger">New</label>
-                            </li>
-                            <li>
-                                <div class="media">
-                                    <img class="d-flex align-self-center img-radius"
-                                        src="../files/assets/images/avatar-4.jpg" alt="Generic placeholder image">
-                                    <div class="media-body">
-                                        <h5 class="notification-user">John Doe</h5>
-                                        <p class="notification-msg">Lorem ipsum dolor sit amet, consectetuer
-                                            elit.</p>
-                                        <span class="notification-time">30 minutes ago</span>
-                                    </div>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="media">
-                                    <img class="d-flex align-self-center img-radius"
-                                        src="../files/assets/images/avatar-3.jpg" alt="Generic placeholder image">
-                                    <div class="media-body">
-                                        <h5 class="notification-user">Joseph William</h5>
-                                        <p class="notification-msg">Lorem ipsum dolor sit amet, consectetuer
-                                            elit.</p>
-                                        <span class="notification-time">30 minutes ago</span>
-                                    </div>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="media">
-                                    <img class="d-flex align-self-center img-radius"
-                                        src="../files/assets/images/avatar-4.jpg" alt="Generic placeholder image">
-                                    <div class="media-body">
-                                        <h5 class="notification-user">Sara Soudein</h5>
-                                        <p class="notification-msg">Lorem ipsum dolor sit amet, consectetuer
-                                            elit.</p>
-                                        <span class="notification-time">30 minutes ago</span>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="header-notification">
-                    <div class="dropdown-primary dropdown">
-                        <div class="displayChatbox dropdown-toggle" data-toggle="dropdown">
-                            <i class="feather icon-message-square"></i>
-                            <span class="badge bg-c-green">3</span>
+                                <button type="button" class="mc-notif-mark-all" id="mc-notif-mark-all">Mark all as read</button>
+                            </div>
+                            <div class="mc-notif-tabs" role="tablist">
+                                <button type="button" class="mc-notif-tab active" data-category="all">
+                                    All <span class="mc-notif-tab-count" data-count-for="all">{{ $notifCounts['all'] }}</span>
+                                </button>
+                                <button type="button" class="mc-notif-tab" data-category="comments">
+                                    Comments <span class="mc-notif-tab-count" data-count-for="comments">{{ $notifCounts['comments'] }}</span>
+                                </button>
+                                <button type="button" class="mc-notif-tab" data-category="pickups">
+                                    Pick ups <span class="mc-notif-tab-count" data-count-for="pickups">{{ $notifCounts['pickups'] }}</span>
+                                </button>
+                                <button type="button" class="mc-notif-tab" data-category="other">
+                                    Other <span class="mc-notif-tab-count" data-count-for="other">{{ $notifCounts['other'] + ($notifCounts['costs'] ?? 0) }}</span>
+                                </button>
+                            </div>
+                            <div class="mc-notif-list" id="mc-notif-list">
+                                <div class="mc-notif-empty">Loading notifications…</div>
+                            </div>
+                            <div class="mc-notif-footer">
+                                <button type="button" class="mc-notif-load-more" id="mc-notif-load-more">Load more</button>
+                            </div>
                         </div>
                     </div>
                 </li>
                 <li class="user-profile header-notification">
                     <div class="dropdown-primary dropdown">
-                        <div class="dropdown-toggle" data-toggle="dropdown">
-                            <span>{{ Auth::user()->name ?? 'User' }}</span>
+                        <div class="dropdown-toggle" data-toggle="dropdown" style="display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-flex; flex-direction: column; line-height: 1.15; text-align: left;">
+                                <span style="font-weight: 600;">{{ Auth::user()->name ?? 'User' }}</span>
+                                @if(!empty(Auth::user()?->role))
+                                    <span style="font-size: 11px; font-weight: 500; opacity: 0.75;">({{ Auth::user()->role }})</span>
+                                @endif
+                            </span>
                             <i class="feather icon-chevron-down"></i>
                         </div>
                         <ul class="show-notification profile-notification dropdown-menu" data-dropdown-in="fadeIn"
                             data-dropdown-out="fadeOut">
                             <li>
                                 <a href="#!">
-                                    <i class="feather icon-settings"></i> Settings
+                                    <span style="font-size: 12px; font-weight: 600;">
+                                    {{ Auth::user()->name ?? '' }}
+                                    <hr style="margin: 0; padding: 0;">
+                                    {{ Auth::user()->email ?? '' }} </span>
                                 </a>
                             </li>
-                            <li>
-                                <a href="user-profile.html">
-                                    <i class="feather icon-user"></i> Profile
-                                </a>
-                            </li>
-                            <li>
-                                <a href="email-inbox.html">
-                                    <i class="feather icon-mail"></i> My Messages
-                                </a>
-                            </li>
-                            <li>
-                                <a href="auth-lock-screen.html">
-                                    <i class="feather icon-lock"></i> Lock Screen
-                                </a>
-                            </li>
+                           
                             <li>
                                 <a href="{{ route('logout') }}" onclick="event.preventDefault();
                                                              document.getElementById('logout-form').submit();">
@@ -144,3 +121,4 @@
         </div>
     </div>
 </nav>
+@include('partials.notifications-panel-assets')

@@ -30,7 +30,22 @@ class SupplierController extends Controller
             'phone_number' => 'nullable|string|max:255',
         ]);
 
-        Supplier::create($request->all());
+        $supplier = Supplier::create($request->all());
+        $supplier->load('country');
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Supplier created successfully.',
+                'supplier' => [
+                    'id' => $supplier->id,
+                    'supplier_name' => $supplier->supplier_name,
+                    'supplier_address' => $supplier->supplier_address,
+                    'city' => $supplier->city,
+                    'country' => $supplier->country?->name,
+                ],
+            ]);
+        }
 
         return redirect()->route('suppliers.index')->with('success', 'Supplier created successfully.');
     }

@@ -642,7 +642,7 @@
 
         /* 3. Right Panel Sidebar */
         .stock-right-panel {
-            width: 350px;
+            width: 400px;
             background: #f8fafc;
             border-left: 1px solid #e2e8f0;
             padding: 20px;
@@ -661,51 +661,223 @@
         }
 
         .panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #002d5b;
+            margin-bottom: 10px;
+        }
+
+        #crr-doc-list {
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .crr-docs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            padding: 0 2px 0 0;
+        }
+
+        .crr-docs-header span {
             font-size: 11px;
             font-weight: 600;
             color: #64748b;
-            margin-bottom: 12px;
+        }
+
+        .crr-docs-header .crr-docs-internal-label {
+            width: 56px;
+            text-align: center;
+            margin-right: 26px;
         }
 
         .doc-item {
             display: flex;
-            align-items: start;
-            gap: 8px;
-            margin-bottom: 10px;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e8edf2;
         }
 
-        .doc-icon {
-            color: #0ea5e9;
-            font-size: 14px;
+        .doc-item:last-child {
+            border-bottom: 0;
+        }
+
+        .doc-main {
+            flex: 1;
+            min-width: 0;
+            padding-top: 1px;
         }
 
         .doc-name {
-            font-size: 11px;
-            color: #334155;
-            line-height: 1.3;
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            color: #008080 !important;
+            line-height: 16px;
+            text-decoration: none;
+            word-break: break-word;
         }
 
-        .doc-meta {
+        .doc-name:hover {
+            text-decoration: underline;
+        }
+
+        .doc-type-select {
+            display: block;
+            margin-top: 4px;
+            border: 0;
+            background: transparent;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 0;
+            max-width: 100%;
+            cursor: pointer;
+            appearance: auto;
+        }
+
+        .doc-side {
+            flex: 0 0 auto;
+            width: 82px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .doc-side-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            height: 18px;
+            width: 100%;
+        }
+
+        .doc-internal {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        #crr-documents-panel .doc-internal.checkbox-fade {
+            display: inline-block;
+            line-height: 0;
+        }
+
+        #crr-documents-panel .doc-internal.checkbox-fade label {
+            margin: 0;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            line-height: 0;
+            cursor: pointer;
+        }
+
+        #crr-documents-panel .doc-internal.checkbox-fade input[type="checkbox"] {
+            display: none;
+        }
+
+        #crr-documents-panel .doc-internal.checkbox-fade .cr {
+            border: 2px solid #d1d5db;
+            cursor: pointer;
+            display: inline-block;
+            height: 18px;
+            width: 18px;
+            margin: 0;
+            position: relative;
+            background: #fff;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        #crr-documents-panel .doc-internal.checkbox-fade .cr .cr-icon {
+            color: #fff !important;
+            font-size: 11px !important;
+            font-weight: 900 !important;
+            left: 50%;
+            position: absolute;
+            top: 50%;
+            margin-left: -5.5px;
+            margin-top: -5.5px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0);
+            opacity: 0;
+            line-height: normal;
+        }
+
+        #crr-documents-panel .doc-internal.checkbox-fade input[type="checkbox"]:checked + .cr {
+            border-color: #008080 !important;
+            background: #008080 !important;
+        }
+
+        #crr-documents-panel .doc-internal.checkbox-fade input[type="checkbox"]:checked + .cr .cr-icon {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .doc-trash {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .doc-trash:hover {
+            color: #ef4444;
+        }
+
+        .doc-date {
             font-size: 10px;
             color: #94a3b8;
-            display: flex;
-            gap: 10px;
-            margin-top: 4px;
+            line-height: 1.2;
+            white-space: nowrap;
+            text-align: right;
+            min-height: 12px;
         }
 
         /* Drag & Drop Placeholder */
         .dropzone-placeholder {
             border: 1px dashed #cbd5e1;
-            border-radius: 6px;
-            padding: 20px;
+            border-radius: 4px;
+            padding: 22px 16px;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 14px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dropzone-placeholder:hover {
+            border-color: #94a3b8;
+            background: #f8fafc;
         }
 
         .dropzone-text {
-            font-size: 11px;
+            font-size: 12px;
             color: #94a3b8;
-            margin-bottom: 10px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .dropzone-placeholder .dropzone-icon {
+            font-size: 18px;
+            color: #94a3b8;
+            display: block;
         }
 
         /* Select2 Overrides matches previous ones */
@@ -941,6 +1113,57 @@
             color: #fff !important;
         }
 
+        .select2-result-supplier-add {
+            color: #008080;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .select2-container--default .select2-results__option--highlighted .select2-result-supplier-add {
+            color: #fff !important;
+        }
+
+        .supplier-add-link {
+            display: block;
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .supplier-add-link:hover {
+            text-decoration: underline;
+        }
+
+        .add-supplier-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+        }
+
+        .add-supplier-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1b5e6f;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #1b5e6f;
+            margin-bottom: 10px;
+        }
+
+        #add-supplier-modal .field-input {
+            width: 100%;
+        }
+
+        #add-supplier-modal .select2-container {
+            width: 100% !important;
+        }
+
+        @media (max-width: 992px) {
+            .add-supplier-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Hub Select2 Styles */
         .select2-result-hub {
             padding: 4px;
@@ -1112,27 +1335,7 @@
                                                 class="btn btn-header-outline js-print-with-location"
                                                 style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Print
                                                 labels</a>
-                                            <a href="{{ route('stocks.print-crr', $crr->id) }}" target="_blank"
-                                                class="btn btn-header-outline js-print-with-location"
-                                                style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Print
-                                                CRR</a>
-                                            <button type="button" class="btn-more-circle">
-                                                <i class="ti-more-alt"></i>
-                                            </button>
-                                            <div class="more-dropdown">
-                                                <div class="dropdown-item-custom">Send missing commercial invoice email
-                                                </div>
-                                                <div class="dropdown-item-custom">Send documents</div>
-                                                <div class="dropdown-item-custom">Send first mile follow up email</div>
-                                                <div class="dropdown-item-custom">Send email about stock item changes</div>
-                                                <div class="dropdown-item-custom">Send stock received confirmation email
-                                                </div>
-                                                <div class="dropdown-item-custom">Request removal of stock item</div>
-                                                <div class="dropdown-item-custom">Change prefix of stock item</div>
-                                                <div class="dropdown-item-custom">Copy stock item</div>
-                                                <div class="dropdown-item-custom">Send free storage period reminder</div>
-                                                <div class="dropdown-item-custom">Mark as landed goods</div>
-                                            </div>
+                                            
                                         </div>
                                     </div>
 
@@ -1266,6 +1469,7 @@
                                                                 <option></option>
                                                                 @foreach($suppliers as $s)
                                                                     <option value="{{ $s->supplier_name }}"
+                                                                        data-known="1"
                                                                         data-address="{{ $s->supplier_address }}"
                                                                         data-city="{{ $s->city }}"
                                                                         data-country="{{ optional($s->country)->name }}" {{ $crr->supplier == $s->supplier_name ? 'selected' : '' }}>
@@ -2214,53 +2418,59 @@
                             <div class="stock-right-panel">
                                 <!-- Documents Panel -->
                                 <div class="panel-card" id="crr-documents-panel">
-                                    <div class="panel-title">Documents (<span
-                                            class="doc-count">{{ $crr->documents->count() }}</span>)</div>
+                                    @php
+                                        $crrDocTypeOptions = \App\Models\CrrDocument::fileTypeOptions();
+                                    @endphp
+                                    <div class="panel-title">Documents (<span class="doc-count">{{ $crr->documents->count() }}</span>)</div>
+                                    <div class="crr-docs-header">
+                                        <span>Filename</span>
+                                        <span class="crr-docs-internal-label">Internal</span>
+                                    </div>
                                     <div id="crr-doc-list">
                                         @forelse($crr->documents as $doc)
+                                            @php
+                                                $selectedDocType = $doc->file_type ?: 'Unspecified';
+                                                if (strtolower($selectedDocType) === 'unspecified') {
+                                                    $selectedDocType = 'Unspecified';
+                                                }
+                                            @endphp
                                             <div class="doc-item" data-id="{{ $doc->id }}">
-                                                <i class="fa fa-file-pdf-o doc-icon" style="color: #0ea5e9;"></i>
-                                                <div style="flex: 1;">
-                                                    <div
-                                                        style="display: flex; justify-content: space-between; align-items: start;">
-                                                        <a href="{{ $doc->fileUrl() }}" target="_blank"
-                                                            class="doc-name"
-                                                            style="font-weight: 500; font-size: 10px; color: inherit; text-decoration: none;">
-                                                            {{ Str::limit($doc->file_name, 35) }}
-                                                        </a>
-                                                        <input type="checkbox">
-                                                    </div>
-                                                    <div class="doc-meta" style="margin-top: 2px;">
-                                                        <span
-                                                            style="color: #64748b; font-size: 9px;">{{ ucfirst($doc->file_type) }}
-                                                            <i class="fa fa-chevron-down" style="font-size: 8px;"></i></span>
-                                                        <div
-                                                            style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
-                                                            <span
-                                                                style="font-size: 9px; color: #94a3b8;">{{ $doc->created_at->format('d.m.Y') }}</span>
-                                                            <i class="ti-trash delete-doc"
-                                                                style="color: #94a3b8; cursor: pointer; font-size: 14px;"
-                                                                data-id="{{ $doc->id }}"></i>
+                                                <div class="doc-main">
+                                                    <a href="{{ $doc->fileUrl() }}" target="_blank" class="doc-name" title="{{ $doc->file_name }}">
+                                                        {{ $doc->file_name }}
+                                                    </a>
+                                                    <select class="doc-type-select" data-id="{{ $doc->id }}">
+                                                        @foreach ($crrDocTypeOptions as $typeOption)
+                                                            <option value="{{ $typeOption }}" {{ $selectedDocType === $typeOption ? 'selected' : '' }}>{{ $typeOption }}</option>
+                                                        @endforeach
+                                                        @if (! in_array($selectedDocType, $crrDocTypeOptions, true))
+                                                            <option value="{{ $selectedDocType }}" selected>{{ $selectedDocType }}</option>
+                                                        @endif
+                                                    </select>
+                                                </div>
+                                                <div class="doc-side">
+                                                    <div class="doc-side-row">
+                                                        <div class="doc-internal checkbox-fade fade-in-primary">
+                                                            <label>
+                                                                <input type="checkbox" class="doc-internal-check" data-id="{{ $doc->id }}" {{ $doc->is_internal ? 'checked' : '' }}>
+                                                                <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
+                                                            </label>
                                                         </div>
+                                                        <i class="ti-trash doc-trash delete-doc" data-id="{{ $doc->id }}" title="Delete"></i>
                                                     </div>
+                                                    <span class="doc-date">{{ $doc->created_at->format('d.m.Y') }}</span>
                                                 </div>
                                             </div>
                                         @empty
                                             <div class="no-docs-msg"
-                                                style="text-align: center; padding: 20px; color: #94a3b8; font-size: 10px;">No
+                                                style="text-align: center; padding: 20px; color: #94a3b8; font-size: 11px;">No
                                                 documents uploaded yet.</div>
                                         @endforelse
                                     </div>
 
-                                    <div class="dropzone-placeholder" id="crr-dropzone"
-                                        style="border: 1px dashed #e2e8f0; padding: 25px; margin-top: 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: #f8fafc; border-radius: 8px;">
-                                        <i class="fa fa-cloud-upload"
-                                            style="font-size: 24px; color: #94a3b8; marginBottom: 10px; display: block;"></i>
-                                        <div class="dropzone-text"
-                                            style="font-size: 11px; color: #64748b; font-weight: 500;">Drag files here or
-                                            click to browse</div>
-                                        <div style="font-size: 9px; color: #94a3b8; margin-top: 4px;">Supports PDF, JPG, PNG
-                                        </div>
+                                    <div class="dropzone-placeholder" id="crr-dropzone">
+                                        <div class="dropzone-text">Drag files here or click to browse</div>
+                                        <i class="ti-upload dropzone-icon"></i>
                                     </div>
                                     <input type="file" id="crr-file-input" style="display: none;" multiple>
                                 </div>
@@ -2285,7 +2495,7 @@
                                                 <div style="border-bottom: 1px solid #f8fafc; padding-bottom: 5px;">
                                                     <div style="display: flex; justify-content: space-between; align-items: start;">
                                                         <div style="flex: 1;">
-                                                            <span style="font-size: 10px; font-weight: 600; color: #0ea5e9;">{{ $changeLog->title }}</span>
+                                                            <span style="font-size: 10px; font-weight: 600; color: #008080;">{{ $changeLog->title }}</span>
                                                             @if ($changeLog->description)
                                                                 <div style="font-size: 9px; color: #64748b; margin-top: 2px;">
                                                                     {{ $changeLog->description }}
@@ -2322,6 +2532,163 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Quick-add supplier modal --}}
+    <div class="modal fade" id="add-supplier-modal" tabindex="-1" role="dialog" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document" style="max-width: 1100px;">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h5 class="modal-title" id="addSupplierModalLabel" style="font-size: 14px; font-weight: 600;">Add supplier</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="add-supplier-form">
+                    <div class="modal-body" style="padding: 16px 20px; max-height: 70vh; overflow-y: auto;">
+                        <div class="add-supplier-grid">
+                            {{-- Column 1: Supplier information --}}
+                            <div class="add-supplier-col">
+                                <div class="add-supplier-section-title">Supplier information</div>
+
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Supplier name <span class="text-danger">*</span></label>
+                                    <input type="text" class="field-input" name="supplier_name" id="modal-supplier-name" required>
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Phone number (with country code)</label>
+                                    <input type="text" class="field-input" name="phone_number" id="modal-supplier-phone">
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Email</label>
+                                    <input type="text" class="field-input" name="email" id="modal-supplier-email"
+                                        placeholder="email@example.com; email2@example.com">
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Remarks</label>
+                                    <textarea class="field-input" name="remarks" id="modal-supplier-remarks" rows="3" style="height: auto; min-height: 70px;"></textarea>
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Special considerations for destination</label>
+                                    <textarea class="field-input" name="special_considerations" id="modal-supplier-special" rows="3" style="height: auto; min-height: 70px;"></textarea>
+                                </div>
+                            </div>
+
+                            {{-- Column 2: Address --}}
+                            <div class="add-supplier-col">
+                                <div class="add-supplier-section-title">Supplier address</div>
+
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Supplier address</label>
+                                    <textarea class="field-input" name="supplier_address" id="modal-supplier-address" rows="2" style="height: auto; min-height: 50px;"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="field-group mb-2">
+                                            <label class="field-label">City</label>
+                                            <input type="text" class="field-input" name="city" id="modal-supplier-city">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="field-group mb-2">
+                                            <label class="field-label">District/state</label>
+                                            <input type="text" class="field-input" name="district_state" id="modal-supplier-district">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="field-group mb-2">
+                                            <label class="field-label">Zip code</label>
+                                            <input type="text" class="field-input" name="zip_code" id="modal-supplier-zip">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Country</label>
+                                    <select class="field-input modal-supplier-country" name="country_id" id="modal-supplier-country">
+                                        <option value="">Select an option</option>
+                                        @foreach($countries as $country)
+                                            <option value="{{ $country->id }}" data-flag-url="{{ $country->flag_url }}">{{ $country->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Port code</label>
+                                    <input type="text" class="field-input" name="port_code" id="modal-supplier-port">
+                                </div>
+
+                                <div class="add-supplier-section-title" style="margin-top: 12px;">Office address (optional)</div>
+
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Office address</label>
+                                    <textarea class="field-input" name="office_address" id="modal-office-address" rows="2" style="height: auto; min-height: 50px;"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="field-group mb-2">
+                                            <label class="field-label">City</label>
+                                            <input type="text" class="field-input" name="office_city" id="modal-office-city">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="field-group mb-2">
+                                            <label class="field-label">District/state</label>
+                                            <input type="text" class="field-input" name="office_district_state" id="modal-office-district">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="field-group mb-2">
+                                            <label class="field-label">Zip code</label>
+                                            <input type="text" class="field-input" name="office_zip_code" id="modal-office-zip">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Country</label>
+                                    <select class="field-input modal-supplier-country" name="office_country_id" id="modal-office-country">
+                                        <option value="">Select an option</option>
+                                        @foreach($countries as $country)
+                                            <option value="{{ $country->id }}" data-flag-url="{{ $country->flag_url }}">{{ $country->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Column 3: Supplier details --}}
+                            <div class="add-supplier-col">
+                                <div class="add-supplier-section-title">Supplier details</div>
+
+                                <div class="field-group mb-2">
+                                    <label class="field-label">VAT number</label>
+                                    <input type="text" class="field-input" name="vat_number" id="modal-supplier-vat">
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">EORI number</label>
+                                    <input type="text" class="field-input" name="eori_number" id="modal-supplier-eori">
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">Currency</label>
+                                    <select class="field-input modal-supplier-currency" name="currency" id="modal-supplier-currency">
+                                        <option value="">Select an option</option>
+                                        @foreach($currencies as $curr)
+                                            <option value="{{ $curr }}">{{ $curr }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="field-group mb-2">
+                                    <label class="field-label">UN/LOCODE</label>
+                                    <input type="text" class="field-input" name="un_locode" id="modal-supplier-unlocode">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="add-supplier-error" class="text-danger mt-2" style="font-size: 11px; display: none;"></div>
+                    </div>
+                    <div class="modal-footer py-2">
+                        <button type="button" class="btn btn-sm btn-light" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-teal" id="add-supplier-save-btn" style="background:#008080;border-color:#008080;color:#fff;">Save supplier</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -2476,24 +2843,7 @@
                 width: '100%'
             });
 
-            $('.select2-supplier').select2({
-                placeholder: "Select supplier",
-                tags: true,
-                allowClear: false,
-                width: '100%',
-                templateResult: function (s) {
-                    if (!s.id || !s.element) return s.text;
-                    var address = $(s.element).data('address') || '';
-                    var city = $(s.element).data('city') || '';
-                    var country = $(s.element).data('country') || '';
-                    var locationText = [address, city, country].filter(Boolean).join(', ');
-                    var res = '<div class="select2-result-supplier">' +
-                        '<div class="select2-result-supplier__title">' + s.text + '</div>' +
-                        '<div class="select2-result-supplier__location">' + locationText + '</div>' +
-                        '</div>';
-                    return $(res);
-                }
-            });
+            // Supplier Select2 is initialized in the quick-add script below.
 
             // --- Package Logic ---
             var packageIndex = {{ count($crr->packages) }};
@@ -2828,17 +3178,17 @@ function updatePackageSummary() {
             // Drag and drop events
             dropzone.on('dragover', function (e) {
                 e.preventDefault();
-                $(this).css('border-color', '#008080').css('background', '#f0fdfa');
+                $(this).css('border-color', '#94a3b8').css('background', '#f8fafc');
             });
 
             dropzone.on('dragleave', function (e) {
                 e.preventDefault();
-                $(this).css('border-color', '#e2e8f0').css('background', 'transparent');
+                $(this).css('border-color', '#cbd5e1').css('background', '#fff');
             });
 
             dropzone.on('drop', function (e) {
                 e.preventDefault();
-                $(this).css('border-color', '#e2e8f0').css('background', 'transparent');
+                $(this).css('border-color', '#cbd5e1').css('background', '#fff');
                 const files = e.originalEvent.dataTransfer.files;
                 handleFiles(files);
             });
@@ -2853,13 +3203,64 @@ function updatePackageSummary() {
                 fileInput.val('');
             }
 
+            function escapeHtml(str) {
+                return String(str || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function buildDocTypeOptionsHtml(selectedType, typeOptions) {
+                const options = Array.isArray(typeOptions) && typeOptions.length
+                    ? typeOptions
+                    : @json(\App\Models\CrrDocument::fileTypeOptions());
+                let html = '';
+                let hasSelected = false;
+                options.forEach(function (opt) {
+                    const selected = opt === selectedType ? ' selected' : '';
+                    if (selected) hasSelected = true;
+                    html += `<option value="${escapeHtml(opt)}"${selected}>${escapeHtml(opt)}</option>`;
+                });
+                if (selectedType && !hasSelected) {
+                    html += `<option value="${escapeHtml(selectedType)}" selected>${escapeHtml(selectedType)}</option>`;
+                }
+                return html;
+            }
+
+            function buildDocItemHtml(doc) {
+                const selectedType = doc.file_type || 'Unspecified';
+                return `
+                    <div class="doc-item" data-id="${doc.id}">
+                        <div class="doc-main">
+                            <a href="${escapeHtml(doc.file_url)}" target="_blank" class="doc-name" title="${escapeHtml(doc.file_name)}">
+                                ${escapeHtml(doc.file_name)}
+                            </a>
+                            <select class="doc-type-select" data-id="${doc.id}">
+                                ${buildDocTypeOptionsHtml(selectedType, doc.type_options)}
+                            </select>
+                        </div>
+                        <div class="doc-side">
+                            <div class="doc-side-row">
+                                <div class="doc-internal checkbox-fade fade-in-primary">
+                                    <label>
+                                        <input type="checkbox" class="doc-internal-check" data-id="${doc.id}" ${doc.is_internal ? 'checked' : ''}>
+                                        <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
+                                    </label>
+                                </div>
+                                <i class="ti-trash doc-trash delete-doc" data-id="${doc.id}" title="Delete"></i>
+                            </div>
+                            <span class="doc-date">${escapeHtml(doc.date)}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
             function uploadFile(file) {
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('_token', '{{ csrf_token() }}');
-
-                // Show a temporary "uploading" state icon or loader if possible
-                // For now, we'll just wait for the AJAX response
 
                 $.ajax({
                     url: "{{ route('stocks.documents.upload', $crr->id) }}",
@@ -2869,29 +3270,7 @@ function updatePackageSummary() {
                     contentType: false,
                     success: function (response) {
                         $('.no-docs-msg').remove();
-
-                        const docHtml = `
-                            <div class="doc-item" data-id="${response.id}">
-                                <i class="fa fa-file-pdf-o doc-icon" style="color: #0ea5e9;"></i>
-                                <div style="flex: 1;">
-                                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                                        <a href="${response.file_url}" target="_blank" class="doc-name"
-                                           style="font-weight: 500; font-size: 10px; color: inherit; text-decoration: none;">
-                                            ${response.file_name}
-                                        </a>
-                                        <input type="checkbox">
-                                    </div>
-                                    <div class="doc-meta" style="margin-top: 2px;">
-                                        <span style="color: #64748b; font-size: 9px;">Unspecified <i class="fa fa-chevron-down" style="font-size: 8px;"></i></span>
-                                        <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
-                                            <span style="font-size: 9px; color: #94a3b8;">${response.date}</span>
-                                            <i class="ti-trash delete-doc" style="color: #94a3b8; cursor: pointer; font-size: 14px;" data-id="${response.id}"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        docList.append(docHtml);
+                        docList.append(buildDocItemHtml(response));
                         updateDocCount(1);
                         toastr.success('File uploaded successfully');
                     },
@@ -2901,6 +3280,46 @@ function updatePackageSummary() {
                     }
                 });
             }
+
+            $(document).on('change', '#crr-documents-panel .doc-type-select', function () {
+                const $select = $(this);
+                const docId = $select.data('id');
+                const fileType = $.trim($select.val());
+                if (!docId) return;
+
+                $.ajax({
+                    url: '{{ route('stocks.documents.update-type', ':docId') }}'.replace(':docId', docId),
+                    type: 'PATCH',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        file_type: fileType
+                    },
+                    success: function () {
+                        toastr.success('Document type saved');
+                    },
+                    error: function () {
+                        toastr.error('Could not update document type');
+                    }
+                });
+            });
+
+            $(document).on('change', '#crr-documents-panel .doc-internal-check', function () {
+                const docId = $(this).data('id');
+                const isInternal = $(this).is(':checked') ? 1 : 0;
+                if (!docId) return;
+
+                $.ajax({
+                    url: '{{ route('stocks.documents.update-internal', ':docId') }}'.replace(':docId', docId),
+                    type: 'PATCH',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        is_internal: isInternal
+                    },
+                    error: function () {
+                        toastr.error('Could not update internal flag');
+                    }
+                });
+            });
 
             // Delete document
             $(document).on('click', '.delete-doc', function () {
@@ -2922,7 +3341,7 @@ function updatePackageSummary() {
                                 $(this).remove();
                                 updateDocCount(-1);
                                 if (docList.children('.doc-item').length === 0) {
-                                    docList.append('<div class="no-docs-msg" style="text-align: center; padding: 20px; color: #94a3b8; font-size: 10px;">No documents uploaded yet.</div>');
+                                    docList.append('<div class="no-docs-msg" style="text-align: center; padding: 20px; color: #94a3b8; font-size: 11px;">No documents uploaded yet.</div>');
                                 }
                             });
                             toastr.success('Document deleted');
@@ -3358,5 +3777,349 @@ function updatePackageSummary() {
             }
         });
     </script>
+<script>
+    // Supplier quick-add: Add "name" option opens modal (never saves free-text into the select).
+    jQuery(function ($) {
+        var $supplierSelect = $('#supplier-select');
+        var $modal = $('#add-supplier-modal');
+        if (!$supplierSelect.length || !$modal.length) {
+            return;
+        }
+
+        if (!$modal.parent().is('body')) {
+            $modal.appendTo('body');
+        }
+
+        // Remove junk free-text options left by earlier Select2 tags (keep only server-known suppliers).
+        $supplierSelect.find('option').each(function () {
+            var $opt = $(this);
+            var val = $.trim($opt.val() || '');
+            if (val === '') {
+                return;
+            }
+            if ($opt.attr('data-known') !== '1') {
+                $opt.remove();
+            }
+        });
+
+        var knownNames = {};
+        $supplierSelect.find('option').each(function () {
+            var val = $.trim($(this).val() || '');
+            if (val) {
+                knownNames[val.toLowerCase()] = true;
+            }
+        });
+
+        var previousValue = $supplierSelect.val();
+        if (previousValue && !knownNames[String(previousValue).toLowerCase()]) {
+            previousValue = null;
+            $supplierSelect.val(null);
+        }
+
+        var modalOpenScheduled = false;
+
+        if ($supplierSelect.hasClass('select2-hidden-accessible')) {
+            $supplierSelect.select2('destroy');
+        }
+
+        function isNewSupplierData(data) {
+            if (!data) {
+                return false;
+            }
+            if (data.newTag === true) {
+                return true;
+            }
+            var id = String(data.id || '');
+            if (id.indexOf('__new__:') === 0) {
+                return true;
+            }
+            if (!id) {
+                return false;
+            }
+            return !knownNames[id.toLowerCase()];
+        }
+
+        function getNewTerm(data) {
+            if (!data) {
+                return '';
+            }
+            if (data.term) {
+                return String(data.term);
+            }
+            var id = String(data.id || '');
+            if (id.indexOf('__new__:') === 0) {
+                return id.slice(8);
+            }
+            var text = String(data.text || '');
+            var match = text.match(/^Add\s+"(.+)"$/);
+            if (match) {
+                return match[1];
+            }
+            return id || text;
+        }
+
+        function clearTempOptions() {
+            $supplierSelect.find('option').each(function () {
+                var $opt = $(this);
+                var val = String($opt.val() || '');
+                if (val.indexOf('__new__:') === 0 || $opt.attr('data-select2-tag') || $opt.attr('data-known') !== '1') {
+                    if (val !== '') {
+                        $opt.remove();
+                    }
+                }
+            });
+        }
+
+        function restorePreviousSelection() {
+            clearTempOptions();
+            $supplierSelect.val(previousValue || null).trigger('change.select2');
+        }
+
+        function openAddSupplierModal(name) {
+            if (modalOpenScheduled) {
+                return;
+            }
+            modalOpenScheduled = true;
+
+            try { $supplierSelect.select2('close'); } catch (e) {}
+            restorePreviousSelection();
+
+            var form = document.getElementById('add-supplier-form');
+            if (form) {
+                form.reset();
+            }
+            $('.modal-supplier-country, .modal-supplier-currency').val(null).trigger('change');
+            $('#add-supplier-error').hide().text('');
+            $('#modal-supplier-name').val($.trim(name || ''));
+
+            setTimeout(function () {
+                $modal.modal('show');
+                modalOpenScheduled = false;
+                setTimeout(function () {
+                    $('#modal-supplier-name').trigger('focus');
+                }, 200);
+            }, 50);
+        }
+
+        function formatModalCountry(state) {
+            if (!state.id) {
+                return state.text;
+            }
+            var flagUrl = $(state.element).data('flag-url');
+            if (!flagUrl) {
+                return state.text;
+            }
+            return $('<span><img src="' + flagUrl + '" class="flag-icon" alt="" /> ' +
+                $('<div>').text(state.text).html() + '</span>');
+        }
+
+        function initModalSupplierSelect2() {
+            $('.modal-supplier-country').each(function () {
+                var $el = $(this);
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                $el.select2({
+                    placeholder: 'Select an option',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $modal,
+                    templateResult: formatModalCountry,
+                    templateSelection: formatModalCountry
+                });
+            });
+
+            $('.modal-supplier-currency').each(function () {
+                var $el = $(this);
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                $el.select2({
+                    placeholder: 'Select an option',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $modal
+                });
+            });
+        }
+
+        initModalSupplierSelect2();
+        $modal.off('shown.bs.modal.supplierSelect2').on('shown.bs.modal.supplierSelect2', function () {
+            initModalSupplierSelect2();
+        });
+
+        $supplierSelect.select2({
+            placeholder: 'Select supplier',
+            tags: true,
+            allowClear: false,
+            width: '100%',
+            createTag: function (params) {
+                var term = $.trim(params.term || '');
+                if (term === '') {
+                    return null;
+                }
+                if (knownNames[term.toLowerCase()]) {
+                    return null;
+                }
+                return {
+                    id: '__new__:' + term,
+                    text: 'Add "' + term + '"',
+                    newTag: true,
+                    term: term
+                };
+            },
+            insertTag: function (data, tag) {
+                data.push(tag);
+            },
+            templateResult: function (s) {
+                if (s.loading) {
+                    return s.text;
+                }
+                if (isNewSupplierData(s)) {
+                    return $('<span class="supplier-add-link"></span>').text('Add "' + getNewTerm(s) + '"');
+                }
+                if (!s.id || !s.element) {
+                    return $('<span></span>').text(s.text || '');
+                }
+                var address = $(s.element).data('address') || '';
+                var city = $(s.element).data('city') || '';
+                var country = $(s.element).data('country') || '';
+                var locationText = [address, city, country].filter(Boolean).join(', ');
+                var $res = $('<div class="select2-result-supplier"></div>');
+                $res.append($('<div class="select2-result-supplier__title"></div>').text(s.text));
+                $res.append($('<div class="select2-result-supplier__location"></div>').text(locationText));
+                return $res;
+            },
+            templateSelection: function (s) {
+                if (isNewSupplierData(s)) {
+                    return '';
+                }
+                return s.text || '';
+            }
+        });
+
+        $supplierSelect
+            .off('.supplierAdd')
+            .on('select2:opening.supplierAdd', function () {
+                previousValue = $supplierSelect.val();
+                clearTempOptions();
+            })
+            .on('select2:select.supplierAdd', function (e) {
+                var data = (e.params && e.params.data) || {};
+                if (!isNewSupplierData(data)) {
+                    previousValue = $supplierSelect.val();
+                    return;
+                }
+                openAddSupplierModal(getNewTerm(data));
+            });
+
+        // Capture-phase click on Add "..." / unknown option while supplier dropdown is open.
+        document.addEventListener('click', function (e) {
+            if (!$supplierSelect.next('.select2-container').hasClass('select2-container--open')) {
+                return;
+            }
+
+            var optionEl = e.target && e.target.closest
+                ? e.target.closest('.select2-results__option')
+                : null;
+            if (!optionEl) {
+                return;
+            }
+
+            var data = $(optionEl).data('data');
+            var optionText = $.trim($(optionEl).text() || '');
+            var isAdd = isNewSupplierData(data) ||
+                /^Add\s+".+"$/.test(optionText) ||
+                $(optionEl).find('.supplier-add-link').length > 0;
+            if (!isAdd) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof e.stopImmediatePropagation === 'function') {
+                e.stopImmediatePropagation();
+            }
+
+            var term = isNewSupplierData(data)
+                ? getNewTerm(data)
+                : ((optionText.match(/^Add\s+"(.+)"$/) || [])[1] || optionText);
+            openAddSupplierModal(term);
+        }, true);
+
+        $('#add-supplier-form').off('submit.supplierAdd').on('submit.supplierAdd', function (e) {
+            e.preventDefault();
+            var $btn = $('#add-supplier-save-btn');
+            var $error = $('#add-supplier-error');
+            $error.hide().text('');
+            $btn.prop('disabled', true).text('Saving...');
+
+            var payload = $(this).serializeArray();
+            payload.push({ name: '_token', value: @json(csrf_token()) });
+
+            $.ajax({
+                url: @json(route('suppliers.store')),
+                type: 'POST',
+                dataType: 'json',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                data: payload,
+                success: function (response) {
+                    var supplier = (response && response.supplier) || {};
+                    var name = $.trim(supplier.supplier_name || $('#modal-supplier-name').val());
+
+                    if (name) {
+                        clearTempOptions();
+                        knownNames[name.toLowerCase()] = true;
+
+                        if ($supplierSelect.find('option').filter(function () {
+                            return $(this).val() === name;
+                        }).length === 0) {
+                            $supplierSelect.append(
+                                $('<option></option>')
+                                    .val(name)
+                                    .text(name)
+                                    .attr('data-known', '1')
+                                    .attr('data-address', supplier.supplier_address || '')
+                                    .attr('data-city', supplier.city || '')
+                                    .attr('data-country', supplier.country || '')
+                            );
+                        }
+
+                        previousValue = name;
+                        $supplierSelect.val(name).trigger('change');
+                    }
+
+                    $modal.modal('hide');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success((response && response.message) || 'Supplier created successfully');
+                    }
+                },
+                error: function (xhr) {
+                    var message = 'Could not create supplier.';
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        var firstKey = Object.keys(xhr.responseJSON.errors)[0];
+                        message = xhr.responseJSON.errors[firstKey][0];
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    $error.text(message).show();
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).text('Save supplier');
+                }
+            });
+        });
+
+        $modal.off('hidden.bs.modal.supplierAdd').on('hidden.bs.modal.supplierAdd', function () {
+            if (String($supplierSelect.val() || '').indexOf('__new__:') === 0 ||
+                ($supplierSelect.val() && !knownNames[String($supplierSelect.val()).toLowerCase()])) {
+                restorePreviousSelection();
+            }
+        });
+    });
+</script>
 @include('partials.unsaved-changes-guard', ['formSelector' => '#crrEditForm', 'fallbackUrl' => route('stocks'), 'includeSweetAlert' => false])
 @endsection

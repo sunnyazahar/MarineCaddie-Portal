@@ -13,6 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class CrrController extends Controller
 {
@@ -596,7 +597,8 @@ class CrrController extends Controller
             'crr_id'    => $crr->id,
             'file_name' => $file->getClientOriginalName(),
             'file_path' => $path,
-            'file_type' => 'unspecified',
+            'file_type' => 'Unspecified',
+            'is_internal' => false,
         ]);
 
         $changeLogService->log($crr, 'Document added', $doc->file_name);
@@ -605,7 +607,10 @@ class CrrController extends Controller
             'id'        => $doc->id,
             'file_name' => $doc->file_name,
             'file_url'  => $doc->fileUrl(),
+            'file_type' => $doc->file_type,
+            'is_internal' => (bool) $doc->is_internal,
             'date'      => $doc->created_at->format('d.m.Y'),
+            'type_options' => CrrDocument::fileTypeOptions(),
         ]);
     }
 
@@ -627,6 +632,57 @@ class CrrController extends Controller
         return response()->file($path, [
             'Content-Type' => $mime,
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
+    }
+
+    public function updateDocumentType(Request $request, $docId, CrrChangeLogService $changeLogService)
+    {
+        $doc = CrrDocument::findOrFail($docId);
+
+        $validated = $request->validate([
+            'file_type' => ['required', 'string', 'max:100', Rule::in(CrrDocument::fileTypeOptions())],
+        ]);
+
+        $fileType = trim($validated['file_type']);
+        $previousType = $doc->file_type;
+        $doc->update(['file_type' => $fileType]);
+
+        if ($previousType !== $fileType && $doc->crr) {
+            $changeLogService->log(
+                $doc->crr,
+                'Document type edited',
+                $doc->file_name . ': From ' . ($previousType ?: 'empty') . ' to ' . $fileType
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'file_type' => $doc->file_type,
+        ]);
+    }
+
+    public function updateDocumentInternal(Request $request, $docId, CrrChangeLogService $changeLogService)
+    {
+        $doc = CrrDocument::findOrFail($docId);
+
+        $validated = $request->validate([
+            'is_internal' => ['required', 'boolean'],
+        ]);
+
+        $previous = (bool) $doc->is_internal;
+        $doc->update(['is_internal' => $validated['is_internal']]);
+
+        if ($previous !== (bool) $doc->is_internal && $doc->crr) {
+            $changeLogService->log(
+                $doc->crr,
+                'Document internal flag edited',
+                $doc->file_name . ': From ' . ($previous ? 'Internal' : 'Not internal') . ' to ' . ($doc->is_internal ? 'Internal' : 'Not internal')
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'is_internal' => (bool) $doc->is_internal,
         ]);
     }
 

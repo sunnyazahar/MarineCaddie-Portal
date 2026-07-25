@@ -13,6 +13,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('otp.verified')->group(function () {
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard.home');
+Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.mark-read');
 Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
 Route::post('/users', [App\Http\Controllers\UserController::class, 'store'])->name('users.store');
 Route::put('/users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
@@ -89,6 +92,7 @@ Route::post('/shipments/{id}/documents', [App\Http\Controllers\ShipmentControlle
 Route::get('/shipments/{shipmentId}/documents/{docId}', [App\Http\Controllers\ShipmentController::class, 'showDocument'])->name('shipments.documents.show');
 Route::delete('/shipments/documents/{docId}', [App\Http\Controllers\ShipmentController::class, 'deleteDocument'])->name('shipments.documents.delete');
 Route::patch('/shipments/documents/{docId}/type', [App\Http\Controllers\ShipmentController::class, 'updateDocumentType'])->name('shipments.documents.update-type');
+Route::patch('/shipments/documents/{docId}/internal', [App\Http\Controllers\ShipmentController::class, 'updateDocumentInternal'])->name('shipments.documents.update-internal');
 Route::put('/shipments/{id}', [App\Http\Controllers\ShipmentController::class, 'update'])->name('shipments.update');
 Route::post('/shipments/{id}/finalize', [App\Http\Controllers\ShipmentController::class, 'finalize'])->name('shipments.finalize');
 Route::post('/shipments/{id}/mark-as-arrived', [App\Http\Controllers\ShipmentController::class, 'markAsArrived'])->name('shipments.mark-as-arrived');
@@ -572,6 +576,8 @@ Route::get('/stocks/print-labels/{id}', [App\Http\Controllers\CrrController::cla
 Route::get('/stocks/addPackages/{id}', [App\Http\Controllers\CrrController::class, 'addPackages'])->name('stocks.addPackages');
 Route::post('/stocks/{id}/documents', [App\Http\Controllers\CrrController::class, 'uploadDocument'])->name('stocks.documents.upload');
 Route::get('/stocks/{crrId}/documents/{docId}', [App\Http\Controllers\CrrController::class, 'showDocument'])->name('stocks.documents.show');
+Route::patch('/stocks/documents/{docId}/type', [App\Http\Controllers\CrrController::class, 'updateDocumentType'])->name('stocks.documents.update-type');
+Route::patch('/stocks/documents/{docId}/internal', [App\Http\Controllers\CrrController::class, 'updateDocumentInternal'])->name('stocks.documents.update-internal');
 Route::delete('/stocks/documents/{docId}', [App\Http\Controllers\CrrController::class, 'deleteDocument'])->name('stocks.documents.delete');
 Route::post('/stocks/{id}/status', [App\Http\Controllers\CrrController::class, 'updateStatus'])->name('stocks.crr.update-status');
 Route::post('/stocks/{id}/flags', [App\Http\Controllers\CrrController::class, 'updateFlags'])->name('stocks.crr.update-flags');

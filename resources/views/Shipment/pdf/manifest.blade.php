@@ -72,6 +72,33 @@
             right: 0;
             bottom: 0;
         }
+        .page {
+            position: relative;
+        }
+        .revision-watermark {
+            position: absolute;
+            right: -55mm;
+            top: 50%;
+            margin-top: -20px;
+            width: 180mm;
+            text-align: center;
+            transform: rotate(-90deg);
+            transform-origin: center center;
+            z-index: 0;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .revision-watermark h1 {
+            margin: 0;
+            padding: 0;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 72px;
+            font-weight: bold;
+            color: #90c0c0;
+            opacity: 0.55;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -83,7 +110,7 @@
             <tr>
                 <td style="width:62%;">
                     <div class="doc-title">' . e($docTitle) . '</div>
-                    <div class="doc-subtitle">' . e($titleLine) . '</div>
+                    <div class="doc-subtitle">' . e($titleLine) . '</div> <br>
                     <div class="company">' . e($companyName) . '</div>
                     <div class="muted">' . e($companyAddress) . '</div>
                 </td>
@@ -100,6 +127,9 @@
 
 {{-- Shipment Instructions (single page) --}}
 <div class="page">
+    @if (!empty($revisionWatermark))
+        <div class="revision-watermark"><h1>{{ $revisionWatermark }}</h1></div>
+    @endif
     {!! $header('Shipment Instructions') !!}
     <table class="field-table">
         <tr><td class="field-label">Shipped through</td><td>{{ $shippedThrough }}</td></tr>

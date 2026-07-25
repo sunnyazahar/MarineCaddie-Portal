@@ -35,6 +35,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'login_otp_hash',
     ];
 
     /**
@@ -48,6 +49,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
             'password' => 'hashed',
+            'login_otp_expires_at' => 'datetime',
+            'login_otp_sent_at' => 'datetime',
         ];
     }
 
@@ -74,5 +77,10 @@ class User extends Authenticatable
     public function suppliers(): BelongsToMany
     {
         return $this->belongsToMany(Supplier::class, 'user_supplier_assignments');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(UserNotification::class)->orderByDesc('occurred_at')->orderByDesc('id');
     }
 }

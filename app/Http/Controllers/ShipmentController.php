@@ -639,6 +639,41 @@ class ShipmentController extends Controller
             }
         });
 
+        if ($previousStatus !== $shipment->status) {
+            $actor = auth()->user()?->name ?? 'System';
+            $when = now()->timezone(config('app.timezone', 'UTC'))->format('d.m.Y H:i');
+            $message = 'Shipment [' . $shipment->shipment_number . '] status changed from '
+                . ($previousStatus ?: 'empty') . ' to ' . $shipment->status
+                . ' at ' . $when . ' by ' . $actor . '.';
+            $linkUrl = route('shipments.edit', $shipment->id);
+
+            $recipientIds = collect([$shipment->created_by])
+                ->merge(
+                    \App\Models\User::query()->where('role', 'Admin')->pluck('id')
+                )
+                ->filter()
+                ->unique()
+                ->reject(fn ($id) => (int) $id === (int) auth()->id())
+                ->values();
+
+            $notifier = app(\App\Services\UserNotificationService::class);
+            $category = str_contains(strtolower($shipment->status), 'pickup')
+                ? \App\Models\UserNotification::CATEGORY_PICKUPS
+                : \App\Models\UserNotification::CATEGORY_OTHER;
+
+            foreach ($recipientIds as $userId) {
+                $notifier->notify(
+                    (int) $userId,
+                    $message,
+                    $category,
+                    $shipment->shipment_number,
+                    $linkUrl,
+                    null,
+                    $shipment
+                );
+            }
+        }
+
         return response()->json([
             'success' => true,
             'status' => $shipment->status,
@@ -1038,14 +1073,30 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function deleteManifest($shipmentId, $manifestId)
+    public function deleteManifest($shipmentId, $manifestId, ShipmentChangeLogService $changeLogService)
     {
         $manifest = ShipmentManifest::where('shipment_id', $shipmentId)->findOrFail($manifestId);
+        $shipment = $manifest->shipment;
+        $label = $manifest->displayLabel();
 
         \App\Support\PrivateDisk::delete($manifest->file_path);
         $manifest->delete();
 
-        return response()->json(['success' => true]);
+        $changeLog = null;
+        if ($shipment) {
+            $changeLog = $changeLogService->log($shipment, 'Manifest removed', $label);
+            $changeLog->load('user');
+        }
+
+        return response()->json([
+            'success' => true,
+            'change_log' => $changeLog ? [
+                'title' => $changeLog->title,
+                'description' => $changeLog->description,
+                'user' => $changeLog->user?->name ?? 'System',
+                'timestamp' => $changeLog->created_at->format('d.m.Y H:i'),
+            ] : null,
+        ]);
     }
 
     public function showPreAlert($shipmentId, $preAlertId, ShipmentPreAlertService $preAlertService)
@@ -1065,14 +1116,30 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function deletePreAlert($shipmentId, $preAlertId)
+    public function deletePreAlert($shipmentId, $preAlertId, ShipmentChangeLogService $changeLogService)
     {
         $preAlert = ShipmentPreAlert::where('shipment_id', $shipmentId)->findOrFail($preAlertId);
+        $shipment = $preAlert->shipment;
+        $label = $preAlert->displayLabel();
 
         \App\Support\PrivateDisk::delete($preAlert->file_path);
         $preAlert->delete();
 
-        return response()->json(['success' => true]);
+        $changeLog = null;
+        if ($shipment) {
+            $changeLog = $changeLogService->log($shipment, 'Pre-alert removed', $label);
+            $changeLog->load('user');
+        }
+
+        return response()->json([
+            'success' => true,
+            'change_log' => $changeLog ? [
+                'title' => $changeLog->title,
+                'description' => $changeLog->description,
+                'user' => $changeLog->user?->name ?? 'System',
+                'timestamp' => $changeLog->created_at->format('d.m.Y H:i'),
+            ] : null,
+        ]);
     }
 
     public function combinedPoDocuments($id, CombinedPoPdfService $combinedPoPdfService)
@@ -1452,6 +1519,7 @@ class ShipmentController extends Controller
             'file_name' => $file->getClientOriginalName(),
             'file_path' => $path,
             'file_type' => 'Unspecified',
+            'is_internal' => false,
         ]);
 
         $changeLogService->log($shipment, 'Document added', $document->file_name);
@@ -1461,7 +1529,9 @@ class ShipmentController extends Controller
             'file_name' => $document->file_name,
             'file_url' => $document->fileUrl(),
             'file_type' => $document->file_type,
+            'is_internal' => (bool) $document->is_internal,
             'date' => $document->created_at->format('d.m.Y'),
+            'type_options' => ShipmentDocument::fileTypeOptionsWithCustom(),
         ]);
     }
 
@@ -1523,13 +1593,38 @@ class ShipmentController extends Controller
             $changeLogService->log(
                 $document->shipment,
                 'Document type edited',
-                'From ' . ($previousType ?: 'empty') . ' to ' . $fileType
+                $document->file_name . ': From ' . ($previousType ?: 'empty') . ' to ' . $fileType
             );
         }
 
         return response()->json([
             'success' => true,
             'file_type' => $document->file_type,
+        ]);
+    }
+
+    public function updateDocumentInternal(Request $request, $docId, ShipmentChangeLogService $changeLogService)
+    {
+        $document = ShipmentDocument::findOrFail($docId);
+
+        $validated = $request->validate([
+            'is_internal' => ['required', 'boolean'],
+        ]);
+
+        $previous = (bool) $document->is_internal;
+        $document->update(['is_internal' => $validated['is_internal']]);
+
+        if ($previous !== (bool) $document->is_internal && $document->shipment) {
+            $changeLogService->log(
+                $document->shipment,
+                'Document internal flag edited',
+                $document->file_name . ': From ' . ($previous ? 'Internal' : 'Not internal') . ' to ' . ($document->is_internal ? 'Internal' : 'Not internal')
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'is_internal' => (bool) $document->is_internal,
         ]);
     }
 

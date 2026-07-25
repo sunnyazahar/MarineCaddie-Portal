@@ -39,7 +39,7 @@ class ShipmentManifestService
             $label = ShipmentManifest::labelForVersion($version);
             $fileName = $label . '-' . $shipment->shipment_number . '.pdf';
             $relativePath = 'shipment_manifests/' . $shipment->id . '/' . str_replace(' ', '-', $fileName);
-            $pdfContent = $this->buildPdfContent($shipment);
+            $pdfContent = $this->buildPdfContent($shipment, $version);
 
             $this->storePdf($relativePath, $pdfContent);
 
@@ -68,7 +68,7 @@ class ShipmentManifestService
             return $path;
         }
 
-        $pdfContent = $this->buildPdfContent($manifest->shipment);
+        $pdfContent = $this->buildPdfContent($manifest->shipment, (int) $manifest->version);
         $this->storePdf($manifest->file_path, $pdfContent);
 
         if (!is_file($path) || filesize($path) < 100) {
@@ -83,9 +83,13 @@ class ShipmentManifestService
         return $shipment->manifests()->latest('version')->first();
     }
 
-    private function buildPdfContent(Shipment $shipment): string
+    private function buildPdfContent(Shipment $shipment, ?int $version = null): string
     {
         $data = $this->pdfBuilder->build($shipment);
+        $revisionNumber = ($version !== null && $version > 1) ? ($version - 1) : null;
+        $data['revisionNumber'] = $revisionNumber;
+        $data['revisionWatermark'] = $revisionNumber ? ('Revision ' . $revisionNumber) : null;
+
         $pdf = Pdf::loadView('Shipment.pdf.manifest', $data)
             ->setPaper('a4', 'portrait');
 

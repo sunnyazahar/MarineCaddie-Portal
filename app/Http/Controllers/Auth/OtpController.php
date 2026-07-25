@@ -29,21 +29,31 @@ class OtpController extends Controller
             return redirect()->intended('/dashboard');
         }
 
-        if (! $request->session()->has('login_otp_hash')) {
-            $this->issueOtp($request);
-        } elseif (
-            app()->environment(['local', 'development', 'testing'])
-            && ! $request->session()->has('login_otp_local')
-        ) {
-            // Older local sessions may have a hash but no on-screen debug code.
-            $this->issueOtp($request);
+        $user = $request->user();
+
+        if (! $user) {
+            return redirect()->route('login');
         }
 
-        $user = $request->user();
+        $needsNewOtp = blank($user->login_otp_hash)
+            || blank($user->login_otp_expires_at)
+            || now()->greaterThan($user->login_otp_expires_at);
+
+        if ($needsNewOtp) {
+            $this->issueOtp($request);
+            $user->refresh();
+        } elseif (
+            $this->shouldExposeLocalOtp()
+            && ! $request->session()->has('login_otp_local')
+        ) {
+            // Local/dev: re-issue so the on-screen debug code is available.
+            $this->issueOtp($request);
+            $user->refresh();
+        }
 
         return view('auth.otp', [
             'maskedEmail' => $this->maskEmail((string) $user->email),
-            'resendAvailableIn' => $this->resendAvailableIn($request),
+            'resendAvailableIn' => $this->resendAvailableIn($user),
             'localOtp' => $this->localDebugOtp($request),
             'otpMailFailed' => (bool) $request->session()->get('login_otp_mail_failed'),
         ]);
@@ -59,8 +69,14 @@ class OtpController extends Controller
             'otp.regex' => 'The verification code must contain only numbers.',
         ]);
 
-        $hash = $request->session()->get('login_otp_hash');
-        $expiresAt = $request->session()->get('login_otp_expires_at');
+        $user = $request->user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $hash = $user->login_otp_hash;
+        $expiresAt = $user->login_otp_expires_at;
 
         if (! $hash || ! $expiresAt || now()->greaterThan($expiresAt)) {
             throw ValidationException::withMessages([
@@ -68,22 +84,28 @@ class OtpController extends Controller
             ]);
         }
 
-        if (! hash_equals($hash, hash('sha256', $request->input('otp')))) {
+        if (! hash_equals((string) $hash, hash('sha256', $request->input('otp')))) {
             throw ValidationException::withMessages([
                 'otp' => 'Invalid verification code. Please try again.',
             ]);
         }
 
+        $user->forceFill([
+            'login_otp_hash' => null,
+            'login_otp_expires_at' => null,
+            'login_otp_sent_at' => null,
+        ])->saveQuietly();
+
         $request->session()->forget([
+            'login_otp_local',
+            'login_otp_mail_failed',
             'login_otp_hash',
             'login_otp_expires_at',
             'login_otp_last_sent_at',
-            'login_otp_local',
-            'login_otp_mail_failed',
         ]);
         $request->session()->put('otp_verified', true);
         $this->terminateOtherSessions($request);
-        $loginActivityService->record($request, $request->user());
+        $loginActivityService->record($request, $user);
 
         return redirect()->intended('/dashboard');
     }
@@ -111,12 +133,22 @@ class OtpController extends Controller
         $otp = str_pad((string) random_int(0, 999999), self::OTP_LENGTH, '0', STR_PAD_LEFT);
         $user = $request->user();
 
-        $request->session()->put('login_otp_hash', hash('sha256', $otp));
-        $request->session()->put('login_otp_expires_at', now()->addMinutes(self::OTP_TTL_MINUTES));
-        $request->session()->put('login_otp_last_sent_at', now()->timestamp);
+        if (! $user) {
+            return $otp;
+        }
+
+        $sentAt = now();
+
+        // Save / update OTP against the logged-in user record.
+        $user->forceFill([
+            'login_otp_hash' => hash('sha256', $otp),
+            'login_otp_expires_at' => $sentAt->copy()->addMinutes(self::OTP_TTL_MINUTES),
+            'login_otp_sent_at' => $sentAt,
+        ])->saveQuietly();
+
         $request->session()->forget('otp_verified');
 
-        $this->deliverOtp($user?->email, $otp);
+        $this->deliverOtp($user->email, $otp);
 
         return $otp;
     }
@@ -146,7 +178,7 @@ class OtpController extends Controller
         }
 
         // Local/dev only: surface the code when SMTP is unreachable (common on local networks).
-        if (app()->environment(['local', 'development', 'testing'])) {
+        if ($this->shouldExposeLocalOtp()) {
             session([
                 'login_otp_local' => $otp,
                 'login_otp_mail_failed' => ! $delivered,
@@ -161,13 +193,26 @@ class OtpController extends Controller
 
     private function localDebugOtp(Request $request): ?string
     {
-        if (! app()->environment(['local', 'development', 'testing'])) {
+        if (! $this->shouldExposeLocalOtp()) {
             return null;
         }
 
         $otp = $request->session()->get('login_otp_local');
 
         return is_string($otp) && $otp !== '' ? $otp : null;
+    }
+
+    /**
+     * Show the OTP on-screen only outside production (local XAMPP, etc.).
+     */
+    private function shouldExposeLocalOtp(): bool
+    {
+        if (app()->environment('production')) {
+            return false;
+        }
+
+        return app()->environment(['local', 'localhost', 'development', 'testing'])
+            || (bool) config('app.debug');
     }
 
     private function maskEmail(string $email): string
@@ -183,14 +228,13 @@ class OtpController extends Controller
         return $maskedLocal . '@' . $domain;
     }
 
-    private function resendAvailableIn(Request $request): int
+    private function resendAvailableIn($user): int
     {
-        $lastSent = (int) $request->session()->get('login_otp_last_sent_at', 0);
-        if ($lastSent <= 0) {
+        if (! $user || ! $user->login_otp_sent_at) {
             return 0;
         }
 
-        $elapsed = time() - $lastSent;
+        $elapsed = max(0, now()->getTimestamp() - $user->login_otp_sent_at->getTimestamp());
 
         return max(0, self::RESEND_COOLDOWN_SECONDS - $elapsed);
     }
