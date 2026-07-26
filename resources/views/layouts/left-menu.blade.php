@@ -9,7 +9,7 @@
                 </a>
             </li>
 
-            <li class="pcoded-hasmenu" data-menu-key="stocks">
+            <li class="pcoded-hasmenu {{ request()->routeIs('stocks', 'stocks.edit', 'stock-follow-up', 'pickup-work-list', 'create-crr') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="stocks">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span>
                     <span class="pcoded-mtext">Stocks</span>
@@ -44,13 +44,13 @@
             </li>
         </ul>
         <ul class="pcoded-item pcoded-left-item">
-            <li class="pcoded-hasmenu" data-menu-key="shipments">
+            <li class="pcoded-hasmenu {{ request()->routeIs('shipments', 'shipments.edit', 'pre-alert-reminders', 'shipment-follow-up', 'cost-follow-up', 'create-shipment') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="shipments">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="icofont icofont-ship" style="font-size: 24px;"></i></span>
                     <span class="pcoded-mtext">Shipments</span>
                 </a>
                 <ul class="pcoded-submenu">
-                    <li class="{{ request()->routeIs('shipments') ? 'active' : '' }}">
+                    <li class="{{ request()->routeIs('shipments', 'shipments.edit') ? 'active' : '' }}">
                         <a href="{{route('shipments')}}">
                             <span class="pcoded-mtext">All shipments</span>
                         </a>
@@ -102,7 +102,7 @@
 
                 </ul>
             </li>
-            <li class="pcoded-hasmenu" data-menu-key="administration">
+            <li class="pcoded-hasmenu {{ request()->routeIs('offices.*', 'hub.*', 'agents.*', 'other-companies.*', 'suppliers.*', 'customers.*', 'contacts.*', 'vessels.*', 'administration.change-logs') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="administration">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="feather icon-command"></i></span>
                     <span class="pcoded-mtext">Administration</span>
@@ -150,7 +150,7 @@
                     </li>
                 </ul>
             </li>
-            <li class="pcoded-hasmenu" data-menu-key="users">
+            <li class="pcoded-hasmenu {{ request()->routeIs('users.*') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="users">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="feather icon-users"></i></span>
                     <span class="pcoded-mtext">Users</span>
@@ -169,7 +169,7 @@
 </nav>
 
 <style>
-    /* Force collapsed submenus unless the user opens them */
+    /* Collapse closed submenus; multiple sections may stay open together */
     .pcoded-navbar .pcoded-hasmenu:not(.pcoded-trigger) > .pcoded-submenu {
         display: none !important;
         opacity: 0 !important;
@@ -191,23 +191,71 @@
 
 <script>
     (function () {
-        // Always start collapsed. Do not restore previously opened menus.
-        try {
-            localStorage.removeItem('pcoded-manual-open-menus');
-            localStorage.removeItem('pcoded-manual-open-menus-v2');
-        } catch (e) {}
+        var STORAGE_KEY = 'pcoded-open-menus-v3';
 
-        var userOpenedMenu = false;
+        function getSavedOpenKeys() {
+            try {
+                var raw = localStorage.getItem(STORAGE_KEY);
+                var parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed.map(String) : [];
+            } catch (e) {
+                return [];
+            }
+        }
 
-        function collapseAllMenus($) {
-            $('.pcoded-navbar .pcoded-hasmenu')
-                .removeClass('pcoded-trigger pcoded-item-open active');
+        function saveOpenMenus($) {
+            var keys = [];
+            $('.pcoded-navbar .pcoded-hasmenu.pcoded-trigger').each(function () {
+                var key = $(this).attr('data-menu-key');
+                if (key) {
+                    keys.push(String(key));
+                }
+            });
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+            } catch (e) {}
+        }
+
+        function isActiveSection($menu) {
+            return $menu.hasClass('active') || $menu.find('> .pcoded-submenu > li.active').length > 0;
+        }
+
+        function applyOpenState($) {
+            var saved = getSavedOpenKeys();
+
+            $('.pcoded-navbar .pcoded-hasmenu').each(function () {
+                var $menu = $(this);
+                var key = String($menu.attr('data-menu-key') || '');
+                var shouldOpen = isActiveSection($menu) || (key !== '' && saved.indexOf(key) !== -1);
+
+                if (shouldOpen) {
+                    $menu.addClass('pcoded-trigger pcoded-item-open');
+                    if (isActiveSection($menu)) {
+                        $menu.addClass('active');
+                    }
+                } else {
+                    $menu.removeClass('pcoded-trigger pcoded-item-open');
+                    if (!isActiveSection($menu)) {
+                        $menu.removeClass('active');
+                    }
+                }
+            });
+
+            // Keep current page section remembered as open
+            $('.pcoded-navbar .pcoded-hasmenu').each(function () {
+                var $menu = $(this);
+                if (isActiveSection($menu)) {
+                    $menu.addClass('pcoded-trigger pcoded-item-open active');
+                }
+            });
+
+            saveOpenMenus($);
         }
 
         function bindManualToggle($) {
             var $menus = $('.pcoded-navbar .pcoded-hasmenu');
 
-            // Strip theme accordion / hover handlers that open menus automatically
+            // Strip theme accordion / hover handlers that close sibling menus
             $menus.off('click mouseenter mouseleave');
             $menus.children('a').off('click mouseenter mouseleave');
 
@@ -216,23 +264,22 @@
                 e.stopPropagation();
                 e.stopImmediatePropagation();
 
-                userOpenedMenu = true;
                 var $menu = $(this).closest('.pcoded-hasmenu');
+                // Toggle only this menu — do not collapse other open sections
                 $menu.toggleClass('pcoded-trigger pcoded-item-open');
+                saveOpenMenus($);
 
                 return false;
             });
         }
 
         function init($) {
-            collapseAllMenus($);
+            applyOpenState($);
             bindManualToggle($);
 
-            // One delayed pass after theme scripts bind — never collapse after the user opens a menu.
+            // Re-apply after theme scripts bind so siblings are not forced closed
             setTimeout(function () {
-                if (!userOpenedMenu) {
-                    collapseAllMenus($);
-                }
+                applyOpenState($);
                 bindManualToggle($);
             }, 400);
         }

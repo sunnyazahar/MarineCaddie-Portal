@@ -226,6 +226,47 @@ Route::get('/create-shipment', function (\Illuminate\Http\Request $request) {
     ));
 })->name('create-shipment');
 
+// API: port code search for Select2 (ports table, mapped to countries)
+Route::get('/api/ports', function (\Illuminate\Http\Request $request) {
+    $q = trim((string) $request->query('q', ''));
+    $limit = $q === '' ? 10 : 30;
+
+    $portsQuery = \App\Models\Port::query()
+        ->with('country')
+        ->active()
+        ->when($q !== '', function ($query) use ($q) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('iata_code', 'like', "%{$q}%")
+                    ->orWhere('port_name', 'like', "%{$q}%")
+                    ->orWhere('city', 'like', "%{$q}%")
+                    ->orWhere('country_name', 'like', "%{$q}%");
+            });
+        });
+
+    if ($q !== '') {
+        $portsQuery->orderByRaw('CASE WHEN iata_code = ? THEN 0 ELSE 1 END', [strtoupper($q)]);
+    }
+
+    $ports = $portsQuery
+        ->orderBy('iata_code')
+        ->limit($limit)
+        ->get()
+        ->map(function (\App\Models\Port $port) {
+            $code = $port->iata_code ?? '';
+            return [
+                'id' => $code,
+                'text' => trim($code . ($port->city ? ', ' . $port->city : '')),
+                'code' => $code,
+                'city' => $port->city,
+                'port_name' => $port->port_name,
+                'country' => $port->country?->name ?? $port->country_name,
+            ];
+        })
+        ->values();
+
+    return response()->json(['results' => $ports]);
+})->name('api.ports');
+
 // API: combined parties search for Departure select2 (hubs, agents, customers)
 Route::get('/api/parties', function (\Illuminate\Http\Request $request) {
     $q = $request->query('q');

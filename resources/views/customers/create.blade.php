@@ -568,7 +568,12 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <label>Port code</label>
-                                                        <input type="text" name="port_code" class="form-control" value="{{ old('port_code') }}">
+                                                        <select name="port_code" class="select2-port-code" style="width: 100%;">
+                                                            <option value=""></option>
+                                                            @if (old('port_code'))
+                                                                <option value="{{ old('port_code') }}" selected>{{ old('port_code') }}</option>
+                                                            @endif
+                                                        </select>
                                                     </div>
 
                                                     <div class="form-section-title" style="margin-top: 30px;">Postal address
@@ -921,6 +926,55 @@
                 width: '100%',
                 templateResult: formatCountry,
                 templateSelection: formatCountry
+            });
+
+            function formatPortResult(port) {
+                if (port.loading || !port.id) {
+                    return port.text;
+                }
+
+                var title = port.code + (port.city ? ', ' + port.city : '');
+                var $option = $(
+                    '<div class="port-option">' +
+                        '<div style="font-weight: 600; font-size: 13px; color: #111827;"></div>' +
+                        '<div style="font-size: 12px; color: #6b7280;"></div>' +
+                    '</div>'
+                );
+                $option.find('div').eq(0).text(title);
+                $option.find('div').eq(1).text(port.country || '');
+
+                return $option;
+            }
+
+            function formatPortSelection(port) {
+                if (!port.id) {
+                    return port.text;
+                }
+
+                return port.code
+                    ? port.code + (port.city ? ', ' + port.city : '')
+                    : port.text;
+            }
+
+            $('.select2-port-code').select2({
+                placeholder: 'Search port code',
+                allowClear: false,
+                width: '100%',
+                minimumInputLength: 0,
+                ajax: {
+                    url: '{{ route('api.ports') }}',
+                    dataType: 'json',
+                    delay: 200,
+                    data: function (params) {
+                        return { q: params.term || '' };
+                    },
+                    processResults: function (data) {
+                        return { results: data.results || [] };
+                    },
+                    cache: true
+                },
+                templateResult: formatPortResult,
+                templateSelection: formatPortSelection
             });
 
             // Trigger validation on Select2 change

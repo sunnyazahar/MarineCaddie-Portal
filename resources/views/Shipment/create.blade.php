@@ -824,8 +824,12 @@
                                                         </div>
                                                         <div class="form-group col-md-12 mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Port code</label>
-                                                            <input type="text" id="departure-port-code" name="departure_port_code" class="form-control filter-input"
-                                                                placeholder="" value="{{ old('departure_port_code') }}">
+                                                            <select id="departure-port-code" name="departure_port_code" class="form-control select2-port-code" style="width: 100%;">
+                                                                <option value=""></option>
+                                                                @if (old('departure_port_code'))
+                                                                    <option value="{{ old('departure_port_code') }}" selected>{{ old('departure_port_code') }}</option>
+                                                                @endif
+                                                            </select>
                                                         </div>
                                                         <div class="form-group col-md-6 mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Service</label>
@@ -1036,8 +1040,12 @@
                                                         </div>
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Port code</label>
-                                                            <input type="text" id="consignee-port-code" name="consignee_port_code" class="form-control filter-input"
-                                                                placeholder="" value="{{ old('consignee_port_code') }}">
+                                                            <select id="consignee-port-code" name="consignee_port_code" class="form-control select2-port-code" style="width: 100%;">
+                                                                <option value=""></option>
+                                                                @if (old('consignee_port_code'))
+                                                                    <option value="{{ old('consignee_port_code') }}" selected>{{ old('consignee_port_code') }}</option>
+                                                                @endif
+                                                            </select>
                                                         </div>
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Location</label>
@@ -1737,7 +1745,7 @@
             // Initialize Select2 for standard filters
             $('.select2').select2({
                 placeholder: "Click here",
-                allowClear: true
+                allowClear: false
             });
 
             // Flag display formatting for Country
@@ -1786,23 +1794,83 @@
 
             var hubDepartureCodes = @json($hubs->mapWithKeys(fn ($hub) => ['hub:' . $hub->id => $hub->code ?? '']));
 
+            function formatPortResult(port) {
+                if (port.loading || !port.id) {
+                    return port.text;
+                }
+                var title = (port.code || port.id) + (port.city ? ', ' + port.city : '');
+                var $option = $(
+                    '<div class="port-option">' +
+                        '<div style="font-weight: 600; font-size: 13px; color: #111827;"></div>' +
+                        '<div style="font-size: 12px; color: #6b7280;"></div>' +
+                    '</div>'
+                );
+                $option.find('div').eq(0).text(title);
+                $option.find('div').eq(1).text(port.country || '');
+                return $option;
+            }
+
+            function formatPortSelection(port) {
+                if (!port.id) return port.text;
+                return port.code
+                    ? (port.code + (port.city ? ', ' + port.city : ''))
+                    : (port.text || port.id);
+            }
+
+            function setPortCodeSelect($select, code) {
+                code = $.trim((code || '').toString());
+                if (!code) {
+                    $select.val(null).trigger('change');
+                    return;
+                }
+
+                if ($select.find('option').filter(function () {
+                    return $(this).val() === code;
+                }).length === 0) {
+                    $select.append(new Option(code, code, true, true));
+                }
+
+                $select.val(code).trigger('change');
+            }
+
+            $('.select2-port-code').select2({
+                placeholder: 'Search port code',
+                allowClear: false,
+                width: '100%',
+                minimumInputLength: 0,
+                ajax: {
+                    url: '{{ route('api.ports') }}',
+                    dataType: 'json',
+                    delay: 200,
+                    data: function (params) {
+                        return { q: params.term || '' };
+                    },
+                    processResults: function (data) {
+                        return { results: data.results || [] };
+                    },
+                    cache: true
+                },
+                templateResult: formatPortResult,
+                templateSelection: formatPortSelection
+            });
+
             function applyDeparturePortCode(data) {
                 if (!data || !data.id) {
-                    $('#departure-port-code').val('');
+                    setPortCodeSelect($('#departure-port-code'), '');
                     return;
                 }
 
                 if (data.type === 'hub' || String(data.id).indexOf('hub:') === 0) {
-                    $('#departure-port-code').val(data.hub_code || hubDepartureCodes[data.id] || '');
+                    setPortCodeSelect($('#departure-port-code'), data.hub_code || hubDepartureCodes[data.id] || '');
                     return;
                 }
 
-                $('#departure-port-code').val(data.port_code || '');
+                setPortCodeSelect($('#departure-port-code'), data.port_code || '');
             }
 
             $('#departure-select').select2({
                 placeholder: 'Type departure',
-                allowClear: true,
+                allowClear: false,
                 width: '100%',
                 ajax: {
                     url: '/laravel/api/parties',
@@ -1825,13 +1893,13 @@
             }).on('select2:select', function (e) {
                 applyDeparturePortCode(e.params.data);
             }).on('select2:clear', function (e) {
-                $('#departure-port-code').val('');
+                setPortCodeSelect($('#departure-port-code'), '');
             });
 
             // Consignee select2 (hubs / agents / offices / other_companies / suppliers / customers)
             $('#consignee-select').select2({
                 placeholder: 'Type consignee',
-                allowClear: true,
+                allowClear: false,
                 width: '100%',
                 ajax: {
                     url: '/laravel/api/consignees',
@@ -1858,7 +1926,7 @@
                 $('#consignee-district').val(data.district || '');
                 $('#consignee-zip').val(data.zip || '');
                 $('#consignee-country').val(data.country || '').trigger('change');
-                $('#consignee-port-code').val(data.port_code || '');
+                setPortCodeSelect($('#consignee-port-code'), data.port_code || '');
                 $('#consignee-email').val(data.email || '');
                 $('textarea[name="special_considerations_destination"]').val(data.special_considerations || '');
             }).on('select2:clear', function (e) {
@@ -1867,7 +1935,7 @@
                 $('#consignee-district').val('');
                 $('#consignee-zip').val('');
                 $('#consignee-country').val('').trigger('change');
-                $('#consignee-port-code').val('');
+                setPortCodeSelect($('#consignee-port-code'), '');
                 $('#location').val('');
                 $('#consignee-email').val('');
                 $('textarea[name="special_considerations_destination"]').val('');
@@ -1876,7 +1944,7 @@
             // Account Manager select2 (all office user types)
             $('#account-manager-select').select2({
                 placeholder: 'Type account manager',
-                allowClear: true,
+                allowClear: false,
                 width: '100%',
                 ajax: {
                     url: '/laravel/api/account-managers',
@@ -2077,7 +2145,7 @@
                 // Re-initialize Select2 for new item
                 $newItem.find('.select2').select2({
                     placeholder: "",
-                    allowClear: true,
+                    allowClear: false,
                     dropdownAutoWidth: true,
                     width: '100%'
                 });
@@ -2799,7 +2867,7 @@
                 $('#modal-add-selected').prop('disabled', false);
                 $('.modal-select2').select2({
                     placeholder: "Click here",
-                    allowClear: true,
+                    allowClear: false,
                     width: '100%',
                     dropdownParent: $('#stock-items-modal')
                 });

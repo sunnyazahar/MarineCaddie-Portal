@@ -3504,6 +3504,66 @@
         var hubDepartureCodes = @json($hubs->mapWithKeys(fn ($hub) => ['hub:' . $hub->id => $hub->code ?? '']));
         var consigneePartyCodes = @json($consigneePartyCodes ?? []);
 
+        function formatPortResult(port) {
+            if (port.loading || !port.id) {
+                return port.text;
+            }
+            var title = (port.code || port.id) + (port.city ? ', ' + port.city : '');
+            var $option = $(
+                '<div class="port-option">' +
+                    '<div style="font-weight: 600; font-size: 13px; color: #111827;"></div>' +
+                    '<div style="font-size: 12px; color: #6b7280;"></div>' +
+                '</div>'
+            );
+            $option.find('div').eq(0).text(title);
+            $option.find('div').eq(1).text(port.country || '');
+            return $option;
+        }
+
+        function formatPortSelection(port) {
+            if (!port.id) return port.text;
+            return port.code
+                ? (port.code + (port.city ? ', ' + port.city : ''))
+                : (port.text || port.id);
+        }
+
+        function setPortCodeSelect($select, code) {
+            code = $.trim((code || '').toString());
+            if (!code) {
+                $select.val(null).trigger('change');
+                return;
+            }
+
+            if ($select.find('option').filter(function () {
+                return $(this).val() === code;
+            }).length === 0) {
+                $select.append(new Option(code, code, true, true));
+            }
+
+            $select.val(code).trigger('change');
+        }
+
+        $('.select2-port-code').select2({
+            placeholder: 'Search port code',
+            allowClear: false,
+            width: '100%',
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('api.ports') }}',
+                dataType: 'json',
+                delay: 200,
+                data: function (params) {
+                    return { q: params.term || '' };
+                },
+                processResults: function (data) {
+                    return { results: data.results || [] };
+                },
+                cache: true
+            },
+            templateResult: formatPortResult,
+            templateSelection: formatPortSelection
+        });
+
         function resolveConsigneeCodeFromSelection(data) {
             if (!data || !data.id) {
                 return '';
@@ -3523,16 +3583,16 @@
 
         function applyDeparturePortCode(data) {
             if (!data || !data.id) {
-                $('#departure-port-code').val('');
+                setPortCodeSelect($('#departure-port-code'), '');
                 return;
             }
 
             if (data.type === 'hub' || String(data.id).indexOf('hub:') === 0) {
-                $('#departure-port-code').val(data.hub_code || hubDepartureCodes[data.id] || '');
+                setPortCodeSelect($('#departure-port-code'), data.hub_code || hubDepartureCodes[data.id] || '');
                 return;
             }
 
-            $('#departure-port-code').val(data.port_code || '');
+            setPortCodeSelect($('#departure-port-code'), data.port_code || '');
         }
 
         $('#departure-select').select2({
@@ -3551,7 +3611,7 @@
         }).on('select2:select', function(e) {
             applyDeparturePortCode(e.params.data);
         }).on('select2:clear', function() {
-            $('#departure-port-code').val('');
+            setPortCodeSelect($('#departure-port-code'), '');
         });
 
         $('#consignee-select').select2({
@@ -3574,12 +3634,13 @@
             $('#consignee-district').val(data.district || '');
             $('#consignee-zip').val(data.zip || '');
             $('#consignee-country').val(data.country || '').trigger('change');
-            $('#consignee-port-code').val(data.port_code || '');
+            setPortCodeSelect($('#consignee-port-code'), data.port_code || '');
             $('#consignee-email').val(data.email || '');
             $('textarea[name="special_considerations_destination"]').val(data.special_considerations || '');
             applyConsigneeCode(data);
         }).on('select2:clear', function() {
-            $('#consignee-address, #consignee-city, #consignee-district, #consignee-zip, #consignee-port-code, #location, #consignee-email').val('');
+            $('#consignee-address, #consignee-city, #consignee-district, #consignee-zip, #location, #consignee-email').val('');
+            setPortCodeSelect($('#consignee-port-code'), '');
             $('#consignee-country').val('').trigger('change');
             $('#consignee-party-code').val('');
             $('textarea[name="special_considerations_destination"]').val('');
@@ -3640,7 +3701,7 @@
                 width: '100%',
                 dropdownParent: dropdownParent,
                 placeholder: 'Select flag',
-                allowClear: true
+                allowClear: false
             });
         }
 

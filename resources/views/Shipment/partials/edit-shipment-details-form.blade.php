@@ -44,7 +44,14 @@
         </div>
         <div class="form-group-custom">
             <label>Port code</label>
-            <input type="text" id="departure-port-code" name="departure_port_code" class="form-control-sm-custom" value="{{ old('departure_port_code', $shipment->departure_port_code) }}">
+            <select id="departure-port-code" name="departure_port_code" class="form-control-sm-custom select2-port-code" style="width: 100%;">
+                <option value=""></option>
+                @if (old('departure_port_code', $shipment->departure_port_code))
+                    <option value="{{ old('departure_port_code', $shipment->departure_port_code) }}" selected>
+                        {{ old('departure_port_code', $shipment->departure_port_code) }}
+                    </option>
+                @endif
+            </select>
         </div>
         <div class="row">
             <div class="col-6">
@@ -185,7 +192,14 @@
         </div>
         <div class="form-group-custom">
             <label>Port code</label>
-            <input type="text" id="consignee-port-code" name="consignee_port_code" class="form-control-sm-custom" value="{{ old('consignee_port_code', $shipment->consignee_port_code) }}">
+            <select id="consignee-port-code" name="consignee_port_code" class="form-control-sm-custom select2-port-code" style="width: 100%;">
+                <option value=""></option>
+                @if (old('consignee_port_code', $shipment->consignee_port_code))
+                    <option value="{{ old('consignee_port_code', $shipment->consignee_port_code) }}" selected>
+                        {{ old('consignee_port_code', $shipment->consignee_port_code) }}
+                    </option>
+                @endif
+            </select>
         </div>
         <div class="form-group-custom">
             <label>Location</label>
