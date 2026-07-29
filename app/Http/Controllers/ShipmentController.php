@@ -370,6 +370,7 @@ class ShipmentController extends Controller
                 'status_badge_class' => $shipment->statusBadgeClass(),
                 'reminder_sent_count' => (int) ($shipment->reminder_sent_count ?? 0),
                 'preview_url' => route('shipments.invoice-request-mail.preview', $shipment->id),
+                'send_url' => route('shipments.invoice-request-mail.send', $shipment->id),
                 'record_url' => route('shipments.pre-alert-reminder-mail.send', $shipment->id),
                 'eml_url' => route('shipments.invoice-request-mail', $shipment->id),
                 'eml_filename' => 'invoice-request-' . $shipment->shipment_number . '.eml',
@@ -413,6 +414,64 @@ class ShipmentController extends Controller
             'preview' => $preview,
             'eml_url' => route('shipments.pre-alert-reminder-mail', $shipment->id),
             'eml_filename' => 'pre-alert-reminder-' . $shipment->shipment_number . '.eml',
+        ]);
+    }
+
+    public function sendPreAlertReminderMail(Request $request, $id, PreAlertReminderMailService $reminderMailService)
+    {
+        $shipment = Shipment::findOrFail($id);
+
+        if ($shipment->status === 'Completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Completed shipments cannot receive pre-alert reminders.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'to' => ['required', 'string', 'max:2000'],
+            'cc' => ['nullable', 'string', 'max:2000'],
+            'bcc' => ['nullable', 'string', 'max:2000'],
+            'subject' => ['required', 'string', 'max:500'],
+            'body' => ['nullable', 'string'],
+            'files' => ['nullable', 'array'],
+            'files.*' => ['file', 'max:20480'],
+        ]);
+
+        try {
+            $result = $reminderMailService->send(
+                $shipment,
+                auth()->user()?->name,
+                auth()->user()?->email,
+                'pre_alert',
+                [
+                    'to' => $validated['to'],
+                    'cc' => $validated['cc'] ?? '',
+                    'bcc' => $validated['bcc'] ?? '',
+                    'subject' => $validated['subject'],
+                    'body' => $validated['body'] ?? '',
+                ],
+                $this->collectUploadedMailAttachments($request)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Pre-alert reminder mail send failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Could not send reminder email.',
+            ], 400);
+        }
+
+        ShipmentPreAlertReminderSend::create([
+            'shipment_id' => $shipment->id,
+            'user_id' => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reminder email sent successfully.',
+            'result' => $result,
+            'reminder_sent_count' => $shipment->preAlertReminderSends()->count(),
         ]);
     }
 
@@ -471,6 +530,63 @@ class ShipmentController extends Controller
         ]);
     }
 
+    public function sendDeliveryStatusReminderMail(Request $request, $id, PreAlertReminderMailService $reminderMailService)
+    {
+        $shipment = Shipment::findOrFail($id);
+
+        if ($shipment->status === 'Completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Completed shipments cannot receive delivery status reminders.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'to' => ['required', 'string', 'max:2000'],
+            'cc' => ['nullable', 'string', 'max:2000'],
+            'bcc' => ['nullable', 'string', 'max:2000'],
+            'subject' => ['required', 'string', 'max:500'],
+            'body' => ['nullable', 'string'],
+            'files' => ['nullable', 'array'],
+            'files.*' => ['file', 'max:20480'],
+        ]);
+
+        try {
+            $result = $reminderMailService->send(
+                $shipment,
+                auth()->user()?->name,
+                auth()->user()?->email,
+                'delivery_status',
+                [
+                    'to' => $validated['to'],
+                    'cc' => $validated['cc'] ?? '',
+                    'bcc' => $validated['bcc'] ?? '',
+                    'subject' => $validated['subject'],
+                    'body' => $validated['body'] ?? '',
+                ],
+                $this->collectUploadedMailAttachments($request)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Delivery status reminder mail send failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Could not send reminder email.',
+            ], 400);
+        }
+
+        \App\Models\ShipmentPreAlertReminderSend::create([
+            'shipment_id' => $shipment->id,
+            'user_id' => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reminder email sent successfully.',
+            'result' => $result,
+        ]);
+    }
+
     public function deliveryStatusReminderMail($id, PreAlertReminderMailService $reminderMailService)
     {
         $shipment = Shipment::findOrFail($id);
@@ -516,6 +632,56 @@ class ShipmentController extends Controller
             'preview' => $preview,
             'eml_url' => route('shipments.invoice-request-mail', $shipment->id),
             'eml_filename' => 'invoice-request-' . $shipment->shipment_number . '.eml',
+        ]);
+    }
+
+    public function sendInvoiceRequestMail(Request $request, $id, PreAlertReminderMailService $reminderMailService)
+    {
+        $shipment = Shipment::findOrFail($id);
+        $validated = $request->validate([
+            'to' => ['required', 'string', 'max:2000'],
+            'cc' => ['nullable', 'string', 'max:2000'],
+            'bcc' => ['nullable', 'string', 'max:2000'],
+            'subject' => ['required', 'string', 'max:500'],
+            'body' => ['nullable', 'string'],
+            'files' => ['nullable', 'array'],
+            'files.*' => ['file', 'max:20480'],
+        ]);
+
+        try {
+            $result = $reminderMailService->send(
+                $shipment,
+                auth()->user()?->name,
+                auth()->user()?->email,
+                'invoice_request',
+                [
+                    'to' => $validated['to'],
+                    'cc' => $validated['cc'] ?? '',
+                    'bcc' => $validated['bcc'] ?? '',
+                    'subject' => $validated['subject'],
+                    'body' => $validated['body'] ?? '',
+                ],
+                $this->collectUploadedMailAttachments($request)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Invoice request mail send failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Could not send invoice request email.',
+            ], 400);
+        }
+
+        ShipmentPreAlertReminderSend::create([
+            'shipment_id' => $shipment->id,
+            'user_id' => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Invoice request email sent successfully.',
+            'result' => $result,
+            'reminder_sent_count' => $shipment->preAlertReminderSends()->count(),
         ]);
     }
 

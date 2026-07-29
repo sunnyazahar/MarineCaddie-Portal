@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\Hub;
 use App\Models\Office;
 use App\Models\Shipment;
+use Illuminate\Support\Facades\Mail;
 use RuntimeException;
 
 class PreAlertReminderMailService
@@ -79,6 +80,97 @@ class PreAlertReminderMailService
         return $this->previewFromMail(
             $this->prepareMail($shipment, $senderName, $senderEmail, 'invoice_request')
         );
+    }
+
+    /**
+     * Send a reminder email (any mail type) via SMTP, with optional field overrides.
+     *
+     * @param  array{to?: string, cc?: string, bcc?: string, subject?: string, body?: string}  $overrides
+     * @return array{to: array<int,string>, cc: array<int,string>, bcc: array<int,string>, subject: string}
+     */
+    public function send(
+        Shipment $shipment,
+        ?string $senderName = null,
+        ?string $senderEmail = null,
+        string $mailType = 'delivery_status',
+        array $overrides = [],
+        array $extraAttachments = []
+    ): array {
+        $mail = $this->prepareMail($shipment, $senderName, $senderEmail, $mailType);
+
+        $to = $this->parseAddressList($overrides['to'] ?? null);
+        if ($to === []) {
+            $to = collect($mail['to'])->pluck('email')->filter()->values()->all();
+        }
+        $cc = array_key_exists('cc', $overrides)
+            ? $this->parseAddressList($overrides['cc'])
+            : collect($mail['cc'])->pluck('email')->filter()->values()->all();
+        $bcc = $this->parseAddressList($overrides['bcc'] ?? null);
+        $subject = trim((string) ($overrides['subject'] ?? $mail['subject']));
+        $body = array_key_exists('body', $overrides)
+            ? (string) $overrides['body']
+            : (string) $mail['body'];
+
+        if ($to === []) {
+            throw new RuntimeException('No recipient email address provided.');
+        }
+
+        if ($subject === '') {
+            throw new RuntimeException('Email subject is required.');
+        }
+
+        $normalizedBody = preg_replace("/\r\n|\r|\n/", "\n", $body) ?? '';
+        $htmlBody = nl2br(e($normalizedBody), false);
+        $fromEmail = $mail['senderEmail'] ?: config('mail.from.address');
+        $fromName = $mail['senderName'] ?: config('mail.from.name');
+
+        Mail::html($htmlBody, function ($message) use ($to, $cc, $bcc, $subject, $fromEmail, $fromName, $extraAttachments) {
+            $message->to($to)->subject($subject);
+
+            if ($fromEmail) {
+                $message->from($fromEmail, $fromName);
+            }
+
+            if ($cc !== []) {
+                $message->cc($cc);
+            }
+
+            if ($bcc !== []) {
+                $message->bcc($bcc);
+            }
+
+            foreach ($extraAttachments as $attachment) {
+                $message->attachData(
+                    $attachment['content'],
+                    $attachment['filename'],
+                    ['mime' => $attachment['mime'] ?? 'application/octet-stream']
+                );
+            }
+        });
+
+        return [
+            'to' => $to,
+            'cc' => $cc,
+            'bcc' => $bcc,
+            'subject' => $subject,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function parseAddressList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        $parts = is_array($value) ? $value : (preg_split('/[;,]+/', (string) $value) ?: []);
+
+        return array_values(array_unique(array_filter(array_map(
+            static fn ($email) => strtolower(trim((string) $email)),
+            $parts
+        ), static fn ($email) => $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL))));
     }
 
     private function previewFromMail(array $mail): array

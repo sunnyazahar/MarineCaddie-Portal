@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
     <!-- Date-range picker css  -->
     <link rel="stylesheet" type="text/css" href="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/css/sweetalert.css') }}" />
     <style>
         #offices-table {
             width: 100% !important;
@@ -413,6 +414,7 @@
         td a {
             color: rgb(24, 100, 131) !important;
         }
+        @include('Shipment.partials.reminder-compose-styles')
     </style>
     @include('partials.searchable-filter-multiselect-styles')
 @endsection
@@ -613,6 +615,8 @@
             </div>
         </div>
     </div>
+    @include('Shipment.partials.reminder-compose-modal')
+
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -656,6 +660,7 @@
     <!-- date-range-picker js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/moment/moment.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
 
     <script>
         $(document).ready(function() {
@@ -836,7 +841,7 @@
                     '<button type="button" class="btn btn-outline-teal py-1 px-2 send-reminder-btn" style="font-size: 11px; height: 26px; border-color: #ddd; background: #fff;"'
                         + ' data-shipment-id="' + escapeHtml(row.id) + '"'
                         + ' data-preview-url="' + escapeHtml(row.preview_url) + '"'
-                        + ' data-record-url="' + escapeHtml(row.record_url) + '"'
+                        + ' data-send-url="' + escapeHtml(row.send_url) + '"'
                         + ' data-eml-url="' + escapeHtml(row.eml_url) + '"'
                         + ' data-eml-filename="' + escapeHtml(row.eml_filename) + '">Send reminder</button>'
                 ];
@@ -906,76 +911,7 @@
                 clearTableRows();
             });
 
-            function openReminderMailto(preview) {
-                if (!preview) {
-                    return;
-                }
-
-                var params = [];
-                if (preview.to) {
-                    params.push('to=' + encodeURIComponent(preview.to));
-                }
-                if (preview.cc) {
-                    params.push('cc=' + encodeURIComponent(preview.cc));
-                }
-                if (preview.subject) {
-                    params.push('subject=' + encodeURIComponent(preview.subject));
-                }
-                if (preview.body) {
-                    var body = preview.body;
-                    if (body.length > 1800) {
-                        body = body.substring(0, 1800) + '...';
-                    }
-                    params.push('body=' + encodeURIComponent(body));
-                }
-
-                window.location.href = 'mailto:?' + params.join('&');
-            }
-
-            $(document).on('click', '.send-reminder-btn', function() {
-                var $btn = $(this);
-                var previewUrl = $btn.data('preview-url');
-                var recordUrl = $btn.data('record-url');
-                var shipmentId = $btn.data('shipment-id');
-
-                if (!previewUrl || !recordUrl) {
-                    return;
-                }
-
-                $btn.prop('disabled', true);
-
-                $.getJSON(previewUrl)
-                    .done(function(response) {
-                        if (!response || !response.success || !response.preview) {
-                            $btn.prop('disabled', false);
-                            alert((response && response.message) || 'Unable to prepare reminder email.');
-                            return;
-                        }
-
-                        openReminderMailto(response.preview);
-
-                        $.ajax({
-                            url: recordUrl,
-                            method: 'POST',
-                            data: {
-                                _token: '{{ csrf_token() }}'
-                            }
-                        }).done(function(response) {
-                            if (response && typeof response.reminder_sent_count !== 'undefined') {
-                                $('.reminder-sent-count[data-shipment-id="' + shipmentId + '"]').text(response.reminder_sent_count);
-                            }
-                        }).always(function() {
-                            $btn.prop('disabled', false);
-                        });
-                    })
-                    .fail(function(xhr) {
-                        $btn.prop('disabled', false);
-                        var message = (xhr.responseJSON && xhr.responseJSON.message)
-                            ? xhr.responseJSON.message
-                            : 'Unable to prepare reminder email.';
-                        alert(message);
-                    });
-            });
+            @include('Shipment.partials.reminder-compose-script')
         });
     </script>
 @endsection

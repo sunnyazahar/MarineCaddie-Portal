@@ -334,6 +334,381 @@
         td a {
             color: rgb(24, 100, 131) !important;
         }
+
+        /* ── Compose reminder modal (same design as manifest email modal) ── */
+        #compose-reminder-modal .modal-dialog {
+            max-width: 860px;
+            margin: 1.75rem auto;
+        }
+        #compose-reminder-modal .modal-content {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
+            position: relative;
+        }
+        #compose-reminder-modal .compose-header {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        #compose-reminder-modal .compose-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+        }
+        #compose-reminder-modal .compose-body {
+            padding: 16px 20px 8px;
+        }
+        #compose-reminder-modal .compose-field {
+            margin-bottom: 10px;
+        }
+        #compose-reminder-modal .compose-field-contact {
+            position: relative;
+        }
+        #compose-reminder-modal .compose-field-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #compose-reminder-modal .compose-field-with-icon .compose-input {
+            flex: 1;
+            min-width: 0;
+        }
+        #compose-reminder-modal .compose-contact-btn {
+            width: 34px;
+            height: 30px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: #f8fafc;
+            color: #475569;
+            cursor: pointer;
+            padding: 0;
+        }
+        #compose-reminder-modal .compose-contact-btn:hover,
+        #compose-reminder-modal .compose-contact-btn.active {
+            background: #e0f2fe;
+            border-color: #93c5fd;
+            color: #0369a1;
+        }
+        #compose-reminder-modal .compose-contact-btn i {
+            font-size: 15px;
+            line-height: 1;
+        }
+        #compose-reminder-modal .compose-contact-picker {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 4px);
+            z-index: 20;
+            width: min(360px, calc(100vw - 80px));
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+            overflow: hidden;
+        }
+        #compose-reminder-modal .compose-contact-picker.open {
+            display: block;
+        }
+        #compose-reminder-modal .compose-contact-search {
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 12px;
+            font-size: 12px;
+            outline: none;
+        }
+        #compose-reminder-modal .compose-contact-list {
+            max-height: 220px;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        #compose-reminder-modal .compose-contact-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        #compose-reminder-modal .compose-contact-item:hover {
+            background: #f0f9ff;
+        }
+        #compose-reminder-modal .compose-contact-name {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #111827;
+        }
+        #compose-reminder-modal .compose-contact-email {
+            margin: 2px 0 0;
+            font-size: 11px;
+            color: #64748b;
+        }
+        #compose-reminder-modal .compose-contact-empty {
+            padding: 14px 12px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+        #compose-reminder-modal .compose-input {
+            width: 100%;
+            height: 30px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 5px 12px;
+            font-size: 13px;
+            color: #111827;
+            background: #fff;
+        }
+        #compose-reminder-modal .compose-input:focus {
+            outline: none;
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        }
+        #compose-reminder-modal .compose-input::placeholder {
+            color: #9ca3af;
+        }
+        #compose-reminder-modal .compose-editor-wrap {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #fff;
+        }
+        #compose-reminder-modal .compose-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 2px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #fafafa;
+        }
+        #compose-reminder-modal .compose-toolbar select {
+            height: 28px;
+            border: 1px solid #d1d5db;
+            border-radius: 3px;
+            font-size: 12px;
+            padding: 0 6px;
+            margin-right: 4px;
+            background: #fff;
+            color: #374151;
+        }
+        #compose-reminder-modal .compose-tool-btn {
+            min-width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: #4b5563;
+            border-radius: 3px;
+            font-size: 13px;
+            line-height: 1;
+            padding: 0 6px;
+            cursor: pointer;
+        }
+        #compose-reminder-modal .compose-tool-btn:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+        #compose-reminder-modal .compose-editor {
+            min-height: 220px;
+            max-height: 340px;
+            overflow-y: auto;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #111827;
+            outline: none;
+            white-space: pre-wrap;
+        }
+        #compose-reminder-modal .compose-editor:empty:before {
+            content: attr(data-placeholder);
+            color: #9ca3af;
+            pointer-events: none;
+        }
+        #compose-reminder-modal .compose-attach-row {
+            margin-top: 14px;
+        }
+        #compose-reminder-modal .btn-compose-attach {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #3b82f6;
+            border: 1px solid #3b82f6;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 4px;
+            padding: 7px 14px;
+            cursor: pointer;
+        }
+        #compose-reminder-modal .btn-compose-attach:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+        #compose-reminder-modal .compose-attach-hint {
+            margin: 6px 0 0;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        #compose-reminder-modal .compose-attach-previews {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+        #compose-reminder-modal .compose-attach-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: #f8fafc;
+            overflow: hidden;
+            position: relative;
+        }
+        #compose-reminder-modal .compose-attach-remove {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            z-index: 2;
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 50%;
+            background: #ef4444;
+            color: #fff;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        #compose-reminder-modal .compose-attach-thumb {
+            height: 90px;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        #compose-reminder-modal .compose-attach-thumb iframe,
+        #compose-reminder-modal .compose-attach-thumb img {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            object-fit: cover;
+            background: #fff;
+            pointer-events: none;
+        }
+        #compose-reminder-modal .compose-attach-thumb .attach-icon {
+            font-size: 36px;
+            color: #64748b;
+        }
+        #compose-reminder-modal .compose-attach-meta {
+            padding: 8px 10px;
+            border-top: 1px solid #e5e7eb;
+            background: #fff;
+        }
+        #compose-reminder-modal .compose-attach-name {
+            margin: 0;
+            font-size: 11px;
+            font-weight: 600;
+            color: #1f2937;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #compose-reminder-modal .compose-attach-type {
+            margin: 2px 0 0;
+            font-size: 10px;
+            color: #6b7280;
+        }
+        #compose-reminder-modal .compose-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px 18px;
+            border-top: 1px solid #e5e7eb;
+            background: #fff;
+        }
+        #compose-reminder-modal .compose-footer-right {
+            display: flex;
+            gap: 8px;
+        }
+        #compose-reminder-modal .btn-compose-discard {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ef4444;
+            border: 1px solid #ef4444;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 4px;
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+        #compose-reminder-modal .btn-compose-discard:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #fff;
+        }
+        #compose-reminder-modal .btn-compose-send {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #14b8a6;
+            border: 1px solid #14b8a6;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        #compose-reminder-modal .btn-compose-send:hover {
+            background: #0d9488;
+            border-color: #0d9488;
+            color: #fff;
+        }
+        #compose-reminder-modal .btn-compose-send:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        #compose-reminder-modal .compose-send-loader {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.82);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            border-radius: inherit;
+        }
+        #compose-reminder-modal.compose-sending .compose-send-loader {
+            display: flex;
+        }
+        #compose-reminder-modal .compose-send-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #ccfbf1;
+            border-top-color: #14b8a6;
+            border-radius: 50%;
+            animation: reminder-spin 0.75s linear infinite;
+        }
+        #compose-reminder-modal .compose-send-loader-text {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f766e;
+        }
+        @keyframes reminder-spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
     @include('partials.searchable-filter-multiselect-styles')
 @endsection
@@ -579,7 +954,7 @@
                                                                         style="font-size: 10px; height: 24px; border-color: #ddd; color: #666;"
                                                                         data-shipment-id="{{ $shipment->id }}"
                                                                         data-preview-url="{{ route('shipments.delivery-status-reminder-mail.preview', $shipment->id) }}"
-                                                                        data-record-url="{{ route('shipments.pre-alert-reminder-mail.send', $shipment->id) }}"
+                                                                        data-send-url="{{ route('shipments.delivery-status-reminder-mail.send', $shipment->id) }}"
                                                                         data-eml-url="{{ route('shipments.delivery-status-reminder-mail', $shipment->id) }}"
                                                                         data-eml-filename="delivery-status-request-{{ $shipment->shipment_number }}.eml">Send reminder</button>
                                                                 </td>
@@ -608,6 +983,93 @@
             </div>
         </div>
     </div>
+<!-- Compose Reminder Modal -->
+<div class="modal fade" id="compose-reminder-modal" tabindex="-1" role="dialog" aria-labelledby="composeReminderLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="compose-send-loader" aria-live="polite" aria-busy="true">
+                <div class="compose-send-spinner" role="status"></div>
+                <p class="compose-send-loader-text">Sending email...</p>
+            </div>
+            <div class="compose-header">
+                <h5 class="compose-title" id="composeReminderLabel">Compose New Message</h5>
+            </div>
+            <div class="compose-body">
+                <div class="compose-field">
+                    <input type="text" id="reminder-mail-to" class="compose-input" placeholder="To:">
+                </div>
+                <div class="compose-field compose-field-contact">
+                    <div class="compose-field-with-icon">
+                        <input type="text" id="reminder-mail-cc" class="compose-input" placeholder="Cc:">
+                        <button type="button" class="compose-contact-btn" data-target-field="reminder-mail-cc" title="Contact directory">
+                            <i class="icofont icofont-contacts"></i>
+                        </button>
+                    </div>
+                    <div class="compose-contact-picker" data-for="reminder-mail-cc">
+                        <input type="text" class="compose-contact-search" placeholder="Search contacts...">
+                        <ul class="compose-contact-list"></ul>
+                    </div>
+                </div>
+                <div class="compose-field compose-field-contact">
+                    <div class="compose-field-with-icon">
+                        <input type="text" id="reminder-mail-bcc" class="compose-input" placeholder="Bcc:">
+                        <button type="button" class="compose-contact-btn" data-target-field="reminder-mail-bcc" title="Contact directory">
+                            <i class="icofont icofont-contacts"></i>
+                        </button>
+                    </div>
+                    <div class="compose-contact-picker" data-for="reminder-mail-bcc">
+                        <input type="text" class="compose-contact-search" placeholder="Search contacts...">
+                        <ul class="compose-contact-list"></ul>
+                    </div>
+                </div>
+                <div class="compose-field">
+                    <input type="text" id="reminder-mail-subject" class="compose-input" placeholder="Subject:">
+                </div>
+                <div class="compose-editor-wrap">
+                    <div class="compose-toolbar">
+                        <select id="reminder-font-size" title="Text style">
+                            <option value="3">A Normal text</option>
+                            <option value="2">Small</option>
+                            <option value="4">Large</option>
+                            <option value="5">Heading</option>
+                        </select>
+                        <button type="button" class="compose-tool-btn" data-cmd="bold" title="Bold"><strong>B</strong></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="italic" title="Italic"><em>I</em></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="fontSize" data-value="2" title="Small">Small</button>
+                        <button type="button" class="compose-tool-btn" data-cmd="formatBlock" data-value="blockquote" title="Quote"><i class="ti-quote-left"></i></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="insertUnorderedList" title="Bulleted list"><i class="ti-list"></i></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="insertOrderedList" title="Numbered list"><i class="ti-list-ol"></i></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="outdent" title="Outdent"><i class="ti-shift-left-alt"></i></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="indent" title="Indent"><i class="ti-shift-right-alt"></i></button>
+                    </div>
+                    <div id="reminder-mail-body" class="compose-editor" contenteditable="true" data-placeholder="Your Message Here...."></div>
+                </div>
+                <div class="compose-attach-row">
+                    <button type="button" class="btn-compose-attach" id="reminder-attachment-btn">
+                        <i class="ti-clip"></i> Attachment
+                    </button>
+                    <p class="compose-attach-hint">Maximum 20MB per file</p>
+                    <div class="compose-attach-previews" id="reminder-attach-previews"></div>
+                    <input type="file" id="reminder-attachment-input" multiple style="display:none;"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip">
+                </div>
+            </div>
+            <div class="compose-footer">
+                <button type="button" class="btn-compose-discard" id="reminder-mail-discard">
+                    <i class="ti-close"></i> Discard
+                </button>
+                <div class="compose-footer-right">
+                    <button type="button" class="btn-compose-send" id="reminder-mail-send">
+                        <i class="ti-email"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Compose Reminder Modal -->
+
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -837,43 +1299,289 @@
                 table.columns().search('').draw();
             });
 
-            function openReminderMailto(preview) {
-                if (!preview) {
+            // ── Compose reminder modal state ─────────────────────
+            var pendingReminderMail = null;
+            var reminderContactsUrl = @json(route('api.mail-contacts'));
+            var reminderContactsSearchTimer = null;
+
+            function closeReminderContactPickers() {
+                $('#compose-reminder-modal .compose-contact-picker').removeClass('open');
+                $('#compose-reminder-modal .compose-contact-btn').removeClass('active');
+            }
+
+            function appendReminderEmail(fieldId, email) {
+                email = $.trim(email || '');
+                if (!email) {
                     return;
                 }
 
-                var params = [];
-                if (preview.to) {
-                    params.push('to=' + encodeURIComponent(preview.to));
-                }
-                if (preview.cc) {
-                    params.push('cc=' + encodeURIComponent(preview.cc));
-                }
-                if (preview.subject) {
-                    params.push('subject=' + encodeURIComponent(preview.subject));
-                }
-                if (preview.body) {
-                    var body = preview.body;
-                    if (body.length > 1800) {
-                        body = body.substring(0, 1800) + '...';
-                    }
-                    params.push('body=' + encodeURIComponent(body));
+                var $field = $('#' + fieldId);
+                var current = $.trim($field.val() || '');
+                var parts = current
+                    ? current.split(/[;,]+/).map(function(part) {
+                        return $.trim(part);
+                    }).filter(Boolean)
+                    : [];
+
+                var exists = parts.some(function(part) {
+                    return part.toLowerCase() === email.toLowerCase();
+                });
+
+                if (!exists) {
+                    parts.push(email);
                 }
 
-                var mailtoLink = document.createElement('a');
-                mailtoLink.href = 'mailto:' + (params.length ? '?' + params.join('&') : '');
-                mailtoLink.style.display = 'none';
-                document.body.appendChild(mailtoLink);
-                mailtoLink.click();
-                document.body.removeChild(mailtoLink);
+                $field.val(parts.join(', ')).trigger('change');
             }
 
+            function renderReminderContacts($picker, contacts) {
+                var $list = $picker.find('.compose-contact-list').empty();
+
+                if (!contacts.length) {
+                    $list.append('<li class="compose-contact-empty">No contacts found</li>');
+                    return;
+                }
+
+                contacts.forEach(function(contact) {
+                    var $item = $('<li class="compose-contact-item"></li>')
+                        .attr('data-email', contact.email || '')
+                        .append($('<p class="compose-contact-name"></p>').text(contact.name || contact.email || 'Contact'))
+                        .append($('<p class="compose-contact-email"></p>').text(contact.email || ''));
+                    $list.append($item);
+                });
+            }
+
+            function loadReminderContacts($picker, query) {
+                $picker.find('.compose-contact-list').html('<li class="compose-contact-empty">Loading...</li>');
+
+                $.ajax({
+                    url: reminderContactsUrl,
+                    method: 'GET',
+                    dataType: 'json',
+                    data: { q: query || '' }
+                })
+                    .done(function(response) {
+                        renderReminderContacts($picker, (response && response.results) || []);
+                    })
+                    .fail(function() {
+                        $picker.find('.compose-contact-list').html('<li class="compose-contact-empty">Could not load contacts</li>');
+                    });
+            }
+
+            $(document).on('click', '#compose-reminder-modal .compose-contact-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                var $button = $(this);
+                var fieldId = $button.data('target-field');
+                var $picker = $('#compose-reminder-modal .compose-contact-picker[data-for="' + fieldId + '"]');
+                var alreadyOpen = $picker.hasClass('open');
+
+                closeReminderContactPickers();
+                if (alreadyOpen) {
+                    return;
+                }
+
+                $button.addClass('active');
+                $picker.addClass('open');
+                $picker.find('.compose-contact-search').val('').focus();
+                loadReminderContacts($picker, '');
+            });
+
+            $(document).on('input', '#compose-reminder-modal .compose-contact-search', function() {
+                var $picker = $(this).closest('.compose-contact-picker');
+                var query = $.trim($(this).val() || '');
+
+                clearTimeout(reminderContactsSearchTimer);
+                reminderContactsSearchTimer = setTimeout(function() {
+                    loadReminderContacts($picker, query);
+                }, 200);
+            });
+
+            $(document).on('click', '#compose-reminder-modal .compose-contact-item', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                var email = $(this).attr('data-email');
+                var fieldId = $(this).closest('.compose-contact-picker').attr('data-for');
+                appendReminderEmail(fieldId, email);
+                closeReminderContactPickers();
+            });
+
+            $(document).on('click', '#compose-reminder-modal', function(e) {
+                if ($(e.target).closest('.compose-contact-btn, .compose-contact-picker').length) {
+                    return;
+                }
+                closeReminderContactPickers();
+            });
+
+            $('#compose-reminder-modal').on('hidden.bs.modal', function() {
+                closeReminderContactPickers();
+            });
+
+            function plainTextToReminderHtml(text) {
+                return String(text || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\n/g, '<br>');
+            }
+
+            function reminderEditorToPlainText(html) {
+                return $('<div>').html(
+                    String(html || '')
+                        .replace(/<br\s*\/?>/gi, '\n')
+                        .replace(/<\/p>/gi, '\n')
+                        .replace(/<\/div>/gi, '\n')
+                        .replace(/<[^>]+>/g, '')
+                ).text();
+            }
+
+            function formatReminderFileSize(bytes) {
+                if (bytes < 1024) {
+                    return bytes + ' B';
+                }
+                if (bytes < 1024 * 1024) {
+                    return (bytes / 1024).toFixed(1) + ' KB';
+                }
+                return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            }
+
+            function clearReminderAttachments() {
+                if (pendingReminderMail && pendingReminderMail.attachments) {
+                    pendingReminderMail.attachments.forEach(function(item) {
+                        if (item.previewUrl) {
+                            URL.revokeObjectURL(item.previewUrl);
+                        }
+                    });
+                }
+                $('#reminder-attach-previews').empty();
+                $('#reminder-attachment-input').val('');
+            }
+
+            function renderReminderAttachments() {
+                var $previews = $('#reminder-attach-previews').empty();
+                var attachments = pendingReminderMail ? pendingReminderMail.attachments : [];
+
+                (attachments || []).forEach(function(item) {
+                    var isPdf = item.file.type === 'application/pdf' || /\.pdf$/i.test(item.file.name);
+                    var isImage = /^image\//.test(item.file.type) || /\.(png|jpe?g|gif|webp)$/i.test(item.file.name);
+                    var canPreview = !!item.previewUrl;
+                    var typeLabel = isPdf ? 'PDF' : (isImage ? 'Image' : 'File');
+                    var $card = $('<div class="compose-attach-card"></div>')
+                        .attr('data-preview-url', item.previewUrl || '')
+                        .attr('title', canPreview ? ('Preview ' + item.file.name) : item.file.name)
+                        .css('cursor', canPreview ? 'pointer' : 'default');
+                    var $remove = $('<button type="button" class="compose-attach-remove" title="Remove attachment">&times;</button>')
+                        .attr('data-key', item.key);
+                    var $thumb = $('<div class="compose-attach-thumb"></div>');
+
+                    if (item.previewUrl && isPdf) {
+                        $thumb.append(
+                            $('<iframe></iframe>')
+                                .attr('src', item.previewUrl)
+                                .attr('title', item.file.name)
+                                .attr('loading', 'lazy')
+                        );
+                    } else if (item.previewUrl && isImage) {
+                        $thumb.append($('<img alt="">').attr('src', item.previewUrl));
+                    } else {
+                        $thumb.append('<i class="ti-file attach-icon"></i>');
+                    }
+
+                    var $meta = $('<div class="compose-attach-meta"></div>')
+                        .append($('<p class="compose-attach-name"></p>').text(item.file.name))
+                        .append(
+                            $('<p class="compose-attach-type"></p>').text(
+                                typeLabel + ' · ' + formatReminderFileSize(item.file.size)
+                                + (canPreview ? ' · Click to preview' : '')
+                            )
+                        );
+
+                    $card.append($remove, $thumb, $meta);
+                    $previews.append($card);
+                });
+            }
+
+            // Rich-text toolbar for reminder modal
+            $(document).on('click', '#compose-reminder-modal .compose-tool-btn', function(e) {
+                e.preventDefault();
+                var cmd = $(this).data('cmd');
+                var val = $(this).data('value') || null;
+                document.execCommand(cmd, false, val);
+                $('#reminder-mail-body').focus();
+            });
+
+            $(document).on('change', '#reminder-font-size', function() {
+                document.execCommand('fontSize', false, $(this).val());
+                $('#reminder-mail-body').focus();
+            });
+
+            $(document).on('click', '#reminder-attachment-btn', function() {
+                $('#reminder-attachment-input').trigger('click');
+            });
+
+            $(document).on('change', '#reminder-attachment-input', function() {
+                if (!pendingReminderMail) {
+                    return;
+                }
+
+                Array.prototype.forEach.call(this.files || [], function(file, index) {
+                    if (file.size > 20 * 1024 * 1024) {
+                        alert(file.name + ' is larger than the 20MB limit.');
+                        return;
+                    }
+
+                    var canPreview = file.type === 'application/pdf'
+                        || /^image\//.test(file.type)
+                        || /\.(pdf|png|jpe?g|gif|webp)$/i.test(file.name);
+                    pendingReminderMail.attachments.push({
+                        key: 'reminder-local-' + Date.now() + '-' + index,
+                        file: file,
+                        previewUrl: canPreview ? URL.createObjectURL(file) : null
+                    });
+                });
+
+                renderReminderAttachments();
+                this.value = '';
+            });
+
+            $(document).on('click', '#reminder-attach-previews .compose-attach-remove', function() {
+                if (!pendingReminderMail) {
+                    return;
+                }
+
+                var key = String($(this).data('key'));
+                pendingReminderMail.attachments = pendingReminderMail.attachments.filter(function(item) {
+                    if (String(item.key) !== key) {
+                        return true;
+                    }
+                    if (item.previewUrl) {
+                        URL.revokeObjectURL(item.previewUrl);
+                    }
+                    return false;
+                });
+                renderReminderAttachments();
+            });
+
+            $(document).on('click', '#reminder-attach-previews .compose-attach-card', function(e) {
+                if ($(e.target).closest('.compose-attach-remove').length) {
+                    return;
+                }
+
+                var previewUrl = $(this).attr('data-preview-url');
+                if (previewUrl) {
+                    window.open(previewUrl, '_blank');
+                }
+            });
+
+            // Open compose modal when Send reminder is clicked
             $(document).on('click', '.send-reminder-btn', function(e) {
                 e.preventDefault();
 
                 var $btn = $(this);
                 var previewUrl = $btn.data('preview-url');
-                var recordUrl = $btn.data('record-url');
+                var sendUrl = $btn.data('send-url');
                 var shipmentId = $btn.data('shipment-id');
                 var originalText = $btn.text();
 
@@ -887,9 +1595,7 @@
                     url: previewUrl,
                     method: 'GET',
                     dataType: 'json',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: { 'Accept': 'application/json' }
                 })
                     .done(function(response) {
                         if (!response || !response.success || !response.preview) {
@@ -897,35 +1603,21 @@
                             return;
                         }
 
-                        if (!recordUrl) {
-                            openReminderMailto(response.preview);
-                            return;
-                        }
+                        var preview = response.preview;
+                        pendingReminderMail = {
+                            shipmentId: shipmentId,
+                            sendUrl: sendUrl || null,
+                            attachments: []
+                        };
 
-                        $.ajax({
-                            url: recordUrl,
-                            method: 'POST',
-                            dataType: 'json',
-                            data: {
-                                _token: $('meta[name="csrf-token"]').attr('content')
-                            },
-                            headers: {
-                                'Accept': 'application/json'
-                            }
-                        })
-                            .done(function(recordResponse) {
-                                if (recordResponse && recordResponse.success) {
-                                    var today = new Date();
-                                    var formatted = ('0' + today.getDate()).slice(-2) + '.' +
-                                        ('0' + (today.getMonth() + 1)).slice(-2) + '.' +
-                                        today.getFullYear();
-                                    $('.reminder-sent-date[data-shipment-id="' + shipmentId + '"]').text(formatted);
-                                }
-                                openReminderMailto(response.preview);
-                            })
-                            .fail(function() {
-                                openReminderMailto(response.preview);
-                            });
+                        $('#reminder-mail-to').val(preview.to || '');
+                        $('#reminder-mail-cc').val(preview.cc || '');
+                        $('#reminder-mail-bcc').val(preview.bcc || '');
+                        $('#reminder-mail-subject').val(preview.subject || '');
+                        $('#reminder-mail-body').html(plainTextToReminderHtml(preview.body || ''));
+                        renderReminderAttachments();
+
+                        $('#compose-reminder-modal').modal('show');
                     })
                     .fail(function(xhr) {
                         var message = 'Could not prepare reminder email.';
@@ -936,6 +1628,102 @@
                     })
                     .always(function() {
                         $btn.prop('disabled', false).text(originalText);
+                    });
+            });
+
+            // Discard
+            $(document).on('click', '#reminder-mail-discard', function() {
+                clearReminderAttachments();
+                pendingReminderMail = null;
+                $('#compose-reminder-modal').modal('hide');
+            });
+
+            // Send
+            $(document).on('click', '#reminder-mail-send', function() {
+                if (!pendingReminderMail || !pendingReminderMail.sendUrl) {
+                    alert('Email is not available.');
+                    return;
+                }
+
+                var $btn = $(this);
+                var to = $.trim($('#reminder-mail-to').val() || '');
+                var cc = $.trim($('#reminder-mail-cc').val() || '');
+                var bcc = $.trim($('#reminder-mail-bcc').val() || '');
+                var subject = $.trim($('#reminder-mail-subject').val() || '');
+                var body = reminderEditorToPlainText($('#reminder-mail-body').html());
+
+                if (!to) {
+                    alert('Please enter at least one recipient in To.');
+                    return;
+                }
+                if (!subject) {
+                    alert('Please enter a subject.');
+                    return;
+                }
+
+                var $modal = $('#compose-reminder-modal');
+                var originalHtml = $btn.html();
+                $modal.addClass('compose-sending');
+                $btn.prop('disabled', true).html('<i class="ti-reload"></i> Sending...');
+                $('#reminder-mail-discard, #reminder-attachment-btn').prop('disabled', true);
+
+                var formData = new FormData();
+                formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+                formData.append('to', to);
+                formData.append('cc', cc);
+                formData.append('bcc', bcc);
+                formData.append('subject', subject);
+                formData.append('body', body);
+                (pendingReminderMail.attachments || []).forEach(function(item) {
+                    formData.append('files[]', item.file, item.file.name);
+                });
+
+                $.ajax({
+                    url: pendingReminderMail.sendUrl,
+                    method: 'POST',
+                    dataType: 'json',
+                    data: formData,
+                    processData: false,
+                    contentType: false
+                })
+                    .done(function(response) {
+                        if (!response || !response.success) {
+                            alert((response && response.message) || 'Could not send email.');
+                            return;
+                        }
+
+                        var shipmentId = pendingReminderMail.shipmentId;
+                        clearReminderAttachments();
+                        $modal.modal('hide');
+                        pendingReminderMail = null;
+
+                        // Update "Rem. sent" date column
+                        var today = new Date();
+                        var formatted = ('0' + today.getDate()).slice(-2) + '.' +
+                            ('0' + (today.getMonth() + 1)).slice(-2) + '.' +
+                            today.getFullYear();
+                        $('.reminder-sent-date[data-shipment-id="' + shipmentId + '"]').text(formatted);
+
+                        if (typeof swal === 'function') {
+                            swal({
+                                title: 'Email sent',
+                                text: response.message || 'Reminder email sent successfully.',
+                                type: 'success',
+                                timer: 4000
+                            });
+                        } else {
+                            alert(response.message || 'Reminder email sent successfully.');
+                        }
+                    })
+                    .fail(function(xhr) {
+                        var message = (xhr.responseJSON && xhr.responseJSON.message)
+                            || 'Could not send email. Please try again.';
+                        alert(message);
+                    })
+                    .always(function() {
+                        $modal.removeClass('compose-sending');
+                        $btn.prop('disabled', false).html(originalHtml);
+                        $('#reminder-mail-discard, #reminder-attachment-btn').prop('disabled', false);
                     });
             });
 

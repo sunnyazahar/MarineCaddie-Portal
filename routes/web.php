@@ -103,11 +103,14 @@ Route::post('/shipments/{id}/flags', [App\Http\Controllers\ShipmentController::c
 
 Route::get('/pre-alert-reminders', [App\Http\Controllers\ShipmentController::class, 'preAlertReminders'])->name('pre-alert-reminders');
 Route::get('/shipments/{id}/pre-alert-reminder-mail/preview', [App\Http\Controllers\ShipmentController::class, 'preAlertReminderMailPreview'])->name('shipments.pre-alert-reminder-mail.preview');
+Route::post('/shipments/{id}/pre-alert-reminder-mail/dispatch', [App\Http\Controllers\ShipmentController::class, 'sendPreAlertReminderMail'])->name('shipments.pre-alert-reminder-mail.dispatch');
 Route::post('/shipments/{id}/pre-alert-reminder-mail/send', [App\Http\Controllers\ShipmentController::class, 'recordPreAlertReminderSend'])->name('shipments.pre-alert-reminder-mail.send');
 Route::get('/shipments/{id}/pre-alert-reminder-mail', [App\Http\Controllers\ShipmentController::class, 'preAlertReminderMail'])->name('shipments.pre-alert-reminder-mail');
 Route::get('/shipments/{id}/delivery-status-reminder-mail/preview', [App\Http\Controllers\ShipmentController::class, 'deliveryStatusReminderMailPreview'])->name('shipments.delivery-status-reminder-mail.preview');
+Route::post('/shipments/{id}/delivery-status-reminder-mail/send', [App\Http\Controllers\ShipmentController::class, 'sendDeliveryStatusReminderMail'])->name('shipments.delivery-status-reminder-mail.send');
 Route::get('/shipments/{id}/delivery-status-reminder-mail', [App\Http\Controllers\ShipmentController::class, 'deliveryStatusReminderMail'])->name('shipments.delivery-status-reminder-mail');
 Route::get('/shipments/{id}/invoice-request-mail/preview', [App\Http\Controllers\ShipmentController::class, 'invoiceRequestMailPreview'])->name('shipments.invoice-request-mail.preview');
+Route::post('/shipments/{id}/invoice-request-mail/send', [App\Http\Controllers\ShipmentController::class, 'sendInvoiceRequestMail'])->name('shipments.invoice-request-mail.send');
 Route::get('/shipments/{id}/invoice-request-mail', [App\Http\Controllers\ShipmentController::class, 'invoiceRequestMail'])->name('shipments.invoice-request-mail');
 
 Route::get('/shipment-follow-up', [App\Http\Controllers\ShipmentController::class, 'shipmentFollowUp'])->name('shipment-follow-up');
