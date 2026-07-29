@@ -79,6 +79,7 @@ Route::post('/shipments/{id}/manifests/generate', [App\Http\Controllers\Shipment
 Route::get('/shipments/{shipmentId}/manifests/{manifestId}', [App\Http\Controllers\ShipmentController::class, 'showManifest'])->name('shipments.manifests.show');
 Route::delete('/shipments/{shipmentId}/manifests/{manifestId}', [App\Http\Controllers\ShipmentController::class, 'deleteManifest'])->name('shipments.manifests.delete');
 Route::post('/shipments/{id}/manifest-mail/prepare', [App\Http\Controllers\ShipmentController::class, 'prepareManifestMail'])->name('shipments.manifest-mail.prepare');
+Route::post('/shipments/{id}/manifest-mail/send', [App\Http\Controllers\ShipmentController::class, 'sendManifestMail'])->name('shipments.manifest-mail.send');
 Route::get('/shipments/{id}/manifest-mail/open', [App\Http\Controllers\ShipmentController::class, 'manifestMailOpen'])->name('shipments.manifest-mail.open');
 Route::get('/shipments/{id}/manifest-mail/launcher', [App\Http\Controllers\ShipmentController::class, 'manifestMailLauncher'])->name('shipments.manifest-mail-launcher');
 Route::get('/shipments/{id}/manifest-mail', [App\Http\Controllers\ShipmentController::class, 'manifestMail'])->name('shipments.manifest-mail');
@@ -86,6 +87,7 @@ Route::post('/shipments/{id}/pre-alerts/generate', [App\Http\Controllers\Shipmen
 Route::get('/shipments/{shipmentId}/pre-alerts/{preAlertId}', [App\Http\Controllers\ShipmentController::class, 'showPreAlert'])->name('shipments.pre-alerts.show');
 Route::delete('/shipments/{shipmentId}/pre-alerts/{preAlertId}', [App\Http\Controllers\ShipmentController::class, 'deletePreAlert'])->name('shipments.pre-alerts.delete');
 Route::post('/shipments/{id}/pre-alert-mail/prepare', [App\Http\Controllers\ShipmentController::class, 'preparePreAlertMail'])->name('shipments.pre-alert-mail.prepare');
+Route::post('/shipments/{id}/pre-alert-mail/send', [App\Http\Controllers\ShipmentController::class, 'sendPreAlertMail'])->name('shipments.pre-alert-mail.send');
 Route::get('/shipments/{id}/pre-alert-mail/open', [App\Http\Controllers\ShipmentController::class, 'preAlertMailOpen'])->name('shipments.pre-alert-mail.open');
 Route::get('/shipments/{id}/pre-alert-mail', [App\Http\Controllers\ShipmentController::class, 'preAlertMail'])->name('shipments.pre-alert-mail');
 Route::post('/shipments/{id}/documents', [App\Http\Controllers\ShipmentController::class, 'uploadDocument'])->name('shipments.documents.upload');
@@ -227,6 +229,33 @@ Route::get('/create-shipment', function (\Illuminate\Http\Request $request) {
 })->name('create-shipment');
 
 // API: port code search for Select2 (ports table, mapped to countries)
+Route::get('/api/mail-contacts', function (\Illuminate\Http\Request $request) {
+    $q = trim((string) $request->query('q', ''));
+
+    $contacts = \App\Models\Contact::query()
+        ->whereNotNull('email')
+        ->where('email', '!=', '')
+        ->when($q !== '', function ($query) use ($q) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            });
+        })
+        ->orderBy('name')
+        ->limit(25)
+        ->get(['id', 'name', 'email'])
+        ->map(function ($contact) {
+            return [
+                'id' => $contact->id,
+                'name' => $contact->name,
+                'email' => $contact->email,
+            ];
+        })
+        ->values();
+
+    return response()->json(['results' => $contacts]);
+})->name('api.mail-contacts');
+
 Route::get('/api/ports', function (\Illuminate\Http\Request $request) {
     $q = trim((string) $request->query('q', ''));
     $limit = $q === '' ? 10 : 30;

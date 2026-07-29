@@ -1243,7 +1243,8 @@ class ShipmentController extends Controller
                 $shipment,
                 auth()->user()?->name,
                 auth()->user()?->email,
-                $this->parseMailDocumentIds($request->query('document_ids'))
+                $this->parseMailDocumentIds($request->query('document_ids')),
+                $this->parseMailExcludeAttachments($request->query('exclude_attachments'))
             );
         } catch (\Throwable $e) {
             Log::error('Manifest mail draft failed: ' . $e->getMessage());
@@ -1340,6 +1341,63 @@ class ShipmentController extends Controller
             'eml_url' => route('shipments.manifest-mail', $shipment->id),
             'eml_filename' => 'manifest-mail-' . $shipment->shipment_number . '.eml',
             'open_url' => route('shipments.manifest-mail.open', $shipment->id),
+            'send_url' => route('shipments.manifest-mail.send', $shipment->id),
+        ]);
+    }
+
+    public function sendManifestMail(Request $request, $id, ManifestMailService $manifestMailService)
+    {
+        $shipment = Shipment::with([
+            'crrs.packages',
+            'crrs.documents',
+            'crrs.customerVessel.customer',
+            'accountManager.office',
+            'creator',
+            'documents',
+            'manifests',
+        ])->findOrFail($id);
+
+        $validated = $request->validate([
+            'to' => ['required', 'string', 'max:2000'],
+            'cc' => ['nullable', 'string', 'max:2000'],
+            'bcc' => ['nullable', 'string', 'max:2000'],
+            'subject' => ['required', 'string', 'max:500'],
+            'body' => ['nullable', 'string'],
+            'document_ids' => ['nullable'],
+            'exclude_attachments' => ['nullable'],
+            'files' => ['nullable', 'array'],
+            'files.*' => ['file', 'max:20480'],
+        ]);
+
+        try {
+            $result = $manifestMailService->send(
+                $shipment,
+                auth()->user()?->name,
+                auth()->user()?->email,
+                $this->parseMailDocumentIds($request->input('document_ids')),
+                $this->parseMailExcludeAttachments($request->input('exclude_attachments')),
+                [
+                    'to' => $validated['to'],
+                    'cc' => $validated['cc'] ?? '',
+                    'bcc' => $validated['bcc'] ?? '',
+                    'subject' => $validated['subject'],
+                    'body' => $validated['body'] ?? '',
+                ],
+                $this->collectUploadedMailAttachments($request)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Manifest mail send failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Could not send manifest email.',
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Manifest email sent successfully.',
+            'result' => $result,
         ]);
     }
 
@@ -1347,10 +1405,18 @@ class ShipmentController extends Controller
     {
         $shipment = Shipment::findOrFail($id);
         $documentIds = $this->parseMailDocumentIds($request->query('document_ids'));
+        $excludeAttachments = $this->parseMailExcludeAttachments($request->query('exclude_attachments'));
         $emlUrl = route('shipments.manifest-mail', $shipment->id);
+        $query = [];
 
         if ($documentIds !== []) {
-            $emlUrl .= '?document_ids=' . implode(',', $documentIds);
+            $query['document_ids'] = implode(',', $documentIds);
+        }
+        if ($excludeAttachments !== []) {
+            $query['exclude_attachments'] = implode(',', $excludeAttachments);
+        }
+        if ($query !== []) {
+            $emlUrl .= '?' . http_build_query($query);
         }
 
         return view('Shipment.manifest-mail-open', [
@@ -1460,6 +1526,69 @@ class ShipmentController extends Controller
             'eml_url' => route('shipments.pre-alert-mail', $shipment->id),
             'eml_filename' => 'pre-alert-mail-' . $shipment->shipment_number . '.eml',
             'open_url' => route('shipments.pre-alert-mail.open', $shipment->id),
+            'send_url' => route('shipments.pre-alert-mail.send', $shipment->id),
+        ]);
+    }
+
+    public function sendPreAlertMail(Request $request, $id, PreAlertMailService $preAlertMailService)
+    {
+        $shipment = Shipment::with([
+            'crrs.packages',
+            'crrs.customerVessel.customer',
+            'accountManager.office',
+            'creator',
+            'documents',
+            'preAlerts',
+            'flights',
+            'seaLegs',
+            'truckLegs',
+            'courierLegs',
+            'releaseLegs',
+            'handCarryLegs',
+            'onBoardLegs',
+        ])->findOrFail($id);
+
+        $validated = $request->validate([
+            'to' => ['required', 'string', 'max:2000'],
+            'cc' => ['nullable', 'string', 'max:2000'],
+            'bcc' => ['nullable', 'string', 'max:2000'],
+            'subject' => ['required', 'string', 'max:500'],
+            'body' => ['nullable', 'string'],
+            'document_ids' => ['nullable'],
+            'exclude_attachments' => ['nullable'],
+            'files' => ['nullable', 'array'],
+            'files.*' => ['file', 'max:20480'],
+        ]);
+
+        try {
+            $result = $preAlertMailService->send(
+                $shipment,
+                auth()->user()?->name,
+                auth()->user()?->email,
+                $this->parseMailDocumentIds($request->input('document_ids')),
+                $this->parseMailExcludeAttachments($request->input('exclude_attachments')),
+                [
+                    'to' => $validated['to'],
+                    'cc' => $validated['cc'] ?? '',
+                    'bcc' => $validated['bcc'] ?? '',
+                    'subject' => $validated['subject'],
+                    'body' => $validated['body'] ?? '',
+                ],
+                $this->collectUploadedMailAttachments($request)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Pre-alert mail send failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Could not send pre-alert email.',
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pre-alert email sent successfully.',
+            'result' => $result,
         ]);
     }
 
@@ -1467,10 +1596,18 @@ class ShipmentController extends Controller
     {
         $shipment = Shipment::findOrFail($id);
         $documentIds = $this->parseMailDocumentIds($request->query('document_ids'));
+        $excludeAttachments = $this->parseMailExcludeAttachments($request->query('exclude_attachments'));
         $emlUrl = route('shipments.pre-alert-mail', $shipment->id);
+        $query = [];
 
         if ($documentIds !== []) {
-            $emlUrl .= '?document_ids=' . implode(',', $documentIds);
+            $query['document_ids'] = implode(',', $documentIds);
+        }
+        if ($excludeAttachments !== []) {
+            $query['exclude_attachments'] = implode(',', $excludeAttachments);
+        }
+        if ($query !== []) {
+            $emlUrl .= '?' . http_build_query($query);
         }
 
         return view('Shipment.manifest-mail-open', [
@@ -1488,7 +1625,8 @@ class ShipmentController extends Controller
                 $shipment,
                 auth()->user()?->name,
                 auth()->user()?->email,
-                $this->parseMailDocumentIds($request->query('document_ids'))
+                $this->parseMailDocumentIds($request->query('document_ids')),
+                $this->parseMailExcludeAttachments($request->query('exclude_attachments'))
             );
         } catch (\Throwable $e) {
             Log::error('Pre-alert mail draft failed: ' . $e->getMessage());
@@ -2101,6 +2239,47 @@ class ShipmentController extends Controller
     }
 
     /**
+     * @return array<int, string>
+     */
+    private function parseMailExcludeAttachments(mixed $excludeAttachments): array
+    {
+        if ($excludeAttachments === null || $excludeAttachments === '') {
+            return [];
+        }
+
+        $keys = is_array($excludeAttachments)
+            ? $excludeAttachments
+            : explode(',', (string) $excludeAttachments);
+
+        return array_values(array_unique(array_filter(array_map(
+            static fn ($key) => trim((string) $key),
+            $keys
+        ), static fn ($key) => $key !== '')));
+    }
+
+    /**
+     * @return array<int, array{filename: string, content: string, mime: string}>
+     */
+    private function collectUploadedMailAttachments(Request $request): array
+    {
+        $attachments = [];
+
+        foreach ($request->file('files', []) as $file) {
+            if (! $file || ! $file->isValid()) {
+                continue;
+            }
+
+            $attachments[] = [
+                'filename' => $file->getClientOriginalName(),
+                'content' => (string) file_get_contents($file->getRealPath()),
+                'mime' => $file->getMimeType() ?: 'application/octet-stream',
+            ];
+        }
+
+        return $attachments;
+    }
+
+    /**
      * @return array<int, array{url: string, filename: string}>
      */
     private function manifestMailAttachmentSources(Shipment $shipment, CombinedPoPdfService $combinedPoPdfService): array
@@ -2110,11 +2289,13 @@ class ShipmentController extends Controller
 
         if ($latestManifest) {
             $sources[] = [
+                'key' => 'manifest',
                 'url' => route('shipments.manifests.show', [$shipment->id, $latestManifest->id]),
                 'filename' => $latestManifest->displayLabel() . '-' . $shipment->shipment_number . '.pdf',
             ];
         } else {
             $sources[] = [
+                'key' => 'manifest',
                 'url' => route('shipments.combined-manifest-documents', $shipment->id),
                 'filename' => 'manifest-' . $shipment->shipment_number . '.pdf',
             ];
@@ -2122,6 +2303,7 @@ class ShipmentController extends Controller
 
         if ($combinedPoPdfService->documentsForShipment($shipment)->isNotEmpty()) {
             $sources[] = [
+                'key' => 'combined_po',
                 'url' => route('shipments.combined-po-documents', $shipment->id),
                 'filename' => 'combined-po-documents-' . $shipment->shipment_number . '.pdf',
             ];
@@ -2140,6 +2322,7 @@ class ShipmentController extends Controller
 
         if ($latestPreAlert) {
             $sources[] = [
+                'key' => 'pre_alert',
                 'url' => route('shipments.pre-alerts.show', [$shipment->id, $latestPreAlert->id]),
                 'filename' => 'pre-alert-' . $shipment->shipment_number . '-' . $latestPreAlert->version . '.pdf',
             ];

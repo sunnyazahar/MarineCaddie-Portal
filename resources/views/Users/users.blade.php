@@ -346,6 +346,25 @@
         .password-feedback.is-mismatch {
             color: #dc2626;
         }
+
+        input#edit-user-name {
+            font-size: 12px;
+        }
+        input#edit-user-email {
+            font-size: 12px;
+        }
+        input#edit-user-phone-number {
+            font-size: 12px;
+        }
+        input#edit-user-role {
+            font-size: 12px;
+        }
+        input#edit-user-password {
+            font-size: 12px;
+        }
+        input#edit-user-password-confirmation {
+            font-size: 12px;
+        }
     </style>
 @endsection
 

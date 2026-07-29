@@ -5,6 +5,17 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// Ensure PHP can create temp files under XAMPP/Apache (daemon user).
+$appTmp = __DIR__.'/../storage/framework/tmp';
+if (! is_dir($appTmp)) {
+    @mkdir($appTmp, 0777, true);
+}
+if (is_dir($appTmp) && is_writable($appTmp)) {
+    putenv('TMPDIR='.$appTmp);
+    putenv('TMP='.$appTmp);
+    putenv('TEMP='.$appTmp);
+}
+
 // Support subdirectory hosting under /laravel without prefixing route definitions.
 if (isset($_SERVER['REQUEST_URI'])) {
     $uri = preg_replace('#^/laravel#', '', $_SERVER['REQUEST_URI']) ?: '/';

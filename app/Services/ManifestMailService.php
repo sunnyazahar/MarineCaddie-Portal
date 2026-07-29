@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Shipment;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
@@ -17,9 +18,14 @@ class ManifestMailService
         private ShipmentPdfCompanyFooter $companyFooter,
     ) {}
 
-    public function buildEml(Shipment $shipment, ?string $senderName = null, ?string $senderEmail = null, array $documentIds = []): string
-    {
-        $mail = $this->prepareMail($shipment, $senderName, $senderEmail, $documentIds);
+    public function buildEml(
+        Shipment $shipment,
+        ?string $senderName = null,
+        ?string $senderEmail = null,
+        array $documentIds = [],
+        array $excludeAttachments = []
+    ): string {
+        $mail = $this->prepareMail($shipment, $senderName, $senderEmail, $documentIds, $excludeAttachments);
 
         return $this->emlMessageBuilder->build(
             $mail['senderName'],
@@ -39,13 +45,111 @@ class ManifestMailService
         return [
             'to' => collect($mail['to'])->pluck('email')->filter()->implode(','),
             'cc' => collect($mail['cc'])->pluck('email')->filter()->implode(','),
+            'bcc' => '',
             'subject' => $mail['subject'],
             'body' => preg_replace("/\r\n|\r|\n/", "\n", $mail['body']),
         ];
     }
 
-    private function prepareMail(Shipment $shipment, ?string $senderName, ?string $senderEmail, array $documentIds = []): array
+    /**
+     * @param  array{to?: string, cc?: string, bcc?: string, subject?: string, body?: string}  $overrides
+     * @param  array<int, array{filename: string, content: string, mime?: string}>  $extraAttachments
+     * @return array{to: array<int, string>, cc: array<int, string>, bcc: array<int, string>, subject: string}
+     */
+    public function send(
+        Shipment $shipment,
+        ?string $senderName = null,
+        ?string $senderEmail = null,
+        array $documentIds = [],
+        array $excludeAttachments = [],
+        array $overrides = [],
+        array $extraAttachments = []
+    ): array {
+        $mail = $this->prepareMail($shipment, $senderName, $senderEmail, $documentIds, $excludeAttachments);
+
+        $to = $this->parseAddressList($overrides['to'] ?? null);
+        if ($to === []) {
+            $to = collect($mail['to'])->pluck('email')->filter()->values()->all();
+        }
+        $cc = array_key_exists('cc', $overrides)
+            ? $this->parseAddressList($overrides['cc'])
+            : collect($mail['cc'])->pluck('email')->filter()->values()->all();
+        $bcc = $this->parseAddressList($overrides['bcc'] ?? null);
+        $subject = trim((string) ($overrides['subject'] ?? $mail['subject']));
+        $body = array_key_exists('body', $overrides)
+            ? (string) $overrides['body']
+            : (string) $mail['body'];
+
+        if ($to === []) {
+            throw new RuntimeException('No recipient email address provided.');
+        }
+
+        if ($subject === '') {
+            throw new RuntimeException('Email subject is required.');
+        }
+
+        $attachments = array_merge($mail['attachments'], $extraAttachments);
+        $normalizedBody = preg_replace("/\r\n|\r|\n/", "\n", $body) ?? '';
+        $htmlBody = nl2br(e($normalizedBody), false);
+        $fromEmail = $mail['senderEmail'] ?: config('mail.from.address');
+        $fromName = $mail['senderName'] ?: config('mail.from.name');
+
+        Mail::html($htmlBody, function ($message) use ($to, $cc, $bcc, $subject, $attachments, $fromEmail, $fromName) {
+            $message->to($to)->subject($subject);
+
+            if ($fromEmail) {
+                $message->from($fromEmail, $fromName);
+            }
+
+            if ($cc !== []) {
+                $message->cc($cc);
+            }
+
+            if ($bcc !== []) {
+                $message->bcc($bcc);
+            }
+
+            foreach ($attachments as $attachment) {
+                $message->attachData(
+                    $attachment['content'],
+                    $attachment['filename'],
+                    ['mime' => $attachment['mime'] ?? 'application/octet-stream']
+                );
+            }
+        });
+
+        return [
+            'to' => $to,
+            'cc' => $cc,
+            'bcc' => $bcc,
+            'subject' => $subject,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function parseAddressList(mixed $value): array
     {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        $parts = is_array($value) ? $value : (preg_split('/[;,]+/', (string) $value) ?: []);
+
+        return array_values(array_unique(array_filter(array_map(
+            static fn ($email) => strtolower(trim((string) $email)),
+            $parts
+        ), static fn ($email) => $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL))));
+    }
+
+    private function prepareMail(
+        Shipment $shipment,
+        ?string $senderName,
+        ?string $senderEmail,
+        array $documentIds = [],
+        array $excludeAttachments = []
+    ): array {
         $shipment->loadMissing([
             'crrs.packages',
             'crrs.documents',
@@ -74,7 +178,7 @@ class ManifestMailService
             'body' => $this->buildBody($shipment, $consigneeParty, $senderName, $senderEmail),
             'to' => $this->buildToAddresses($consigneeParty),
             'cc' => $this->buildCcAddresses($shipment, $senderEmail, $consigneeParty),
-            'attachments' => $this->buildAttachments($shipment, $manifestData, $documentIds),
+            'attachments' => $this->buildAttachments($shipment, $manifestData, $documentIds, $excludeAttachments),
         ];
     }
 
@@ -207,36 +311,45 @@ class ManifestMailService
     /**
      * @return array<int, array{filename: string, content: string, mime: string}>
      */
-    private function buildAttachments(Shipment $shipment, array $manifestData, array $documentIds = []): array
-    {
+    private function buildAttachments(
+        Shipment $shipment,
+        array $manifestData,
+        array $documentIds = [],
+        array $excludeAttachments = []
+    ): array {
         $attachments = [];
+        $exclude = array_flip(array_map('strval', $excludeAttachments));
 
-        $latestManifest = $shipment->manifests->sortByDesc('version')->first();
-        if ($latestManifest && is_file(\App\Support\PrivateDisk::path($latestManifest->file_path))) {
-            $attachments[] = [
-                'filename' => $latestManifest->file_name . '-' . $shipment->shipment_number . '.pdf',
-                'content' => (string) file_get_contents(\App\Support\PrivateDisk::path($latestManifest->file_path)),
-                'mime' => 'application/pdf',
-            ];
-        } else {
-            $manifestPdf = $this->companyFooter->output(
-                Pdf::loadView('Shipment.pdf.manifest', $manifestData)->setPaper('a4', 'portrait'),
-                (string) ($manifestData['createdAt'] ?? '')
-            );
+        if (! isset($exclude['manifest'])) {
+            $latestManifest = $shipment->manifests->sortByDesc('version')->first();
+            if ($latestManifest && is_file(\App\Support\PrivateDisk::path($latestManifest->file_path))) {
+                $attachments[] = [
+                    'filename' => $latestManifest->file_name . '-' . $shipment->shipment_number . '.pdf',
+                    'content' => (string) file_get_contents(\App\Support\PrivateDisk::path($latestManifest->file_path)),
+                    'mime' => 'application/pdf',
+                ];
+            } else {
+                $manifestPdf = $this->companyFooter->output(
+                    Pdf::loadView('Shipment.pdf.manifest', $manifestData)->setPaper('a4', 'portrait'),
+                    (string) ($manifestData['createdAt'] ?? '')
+                );
 
-            $attachments[] = [
-                'filename' => 'manifest-' . $shipment->shipment_number . '.pdf',
-                'content' => $manifestPdf,
-                'mime' => 'application/pdf',
-            ];
+                $attachments[] = [
+                    'filename' => 'manifest-' . $shipment->shipment_number . '.pdf',
+                    'content' => $manifestPdf,
+                    'mime' => 'application/pdf',
+                ];
+            }
         }
 
-        $combinedPoAttachment = $this->combinedPoPdfService->buildAttachmentForShipment($shipment);
-        if ($combinedPoAttachment !== null) {
-            $attachments[] = $combinedPoAttachment;
-        } else {
-            foreach ($this->combinedPoPdfService->individualAttachmentsForShipment($shipment) as $poAttachment) {
-                $attachments[] = $poAttachment;
+        if (! isset($exclude['combined_po'])) {
+            $combinedPoAttachment = $this->combinedPoPdfService->buildAttachmentForShipment($shipment);
+            if ($combinedPoAttachment !== null) {
+                $attachments[] = $combinedPoAttachment;
+            } else {
+                foreach ($this->combinedPoPdfService->individualAttachmentsForShipment($shipment) as $poAttachment) {
+                    $attachments[] = $poAttachment;
+                }
             }
         }
 

@@ -1665,6 +1665,414 @@
         #stock-items-modal .select2-container {
             width: 100% !important;
         }
+
+        /* Compose New Message modal (Send manifest) */
+        #compose-manifest-mail-modal .modal-dialog {
+            max-width: 860px;
+            margin: 1.75rem auto;
+        }
+        #compose-manifest-mail-modal .modal-content {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
+        }
+        #compose-manifest-mail-modal .compose-header {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        #compose-manifest-mail-modal .compose-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+        }
+        #compose-manifest-mail-modal .compose-body {
+            padding: 16px 20px 8px;
+        }
+        #compose-manifest-mail-modal .compose-field {
+            margin-bottom: 10px;
+        }
+        #compose-manifest-mail-modal .compose-field-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #compose-manifest-mail-modal .compose-field-with-icon .compose-input {
+            flex: 1;
+            min-width: 0;
+        }
+        #compose-manifest-mail-modal .compose-contact-btn {
+            width: 34px;
+            height: 30px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: #f8fafc;
+            color: #475569;
+            cursor: pointer;
+            padding: 0;
+        }
+        #compose-manifest-mail-modal .compose-contact-btn:hover,
+        #compose-manifest-mail-modal .compose-contact-btn.active {
+            background: #e0f2fe;
+            border-color: #93c5fd;
+            color: #0369a1;
+        }
+        #compose-manifest-mail-modal .compose-contact-btn i {
+            font-size: 15px;
+            line-height: 1;
+        }
+        #compose-manifest-mail-modal .compose-contact-picker {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 4px);
+            z-index: 20;
+            width: min(360px, calc(100vw - 80px));
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+            overflow: hidden;
+        }
+        #compose-manifest-mail-modal .compose-field-contact {
+            position: relative;
+        }
+        #compose-manifest-mail-modal .compose-contact-picker.open {
+            display: block;
+        }
+        #compose-manifest-mail-modal .compose-contact-search {
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 12px;
+            font-size: 12px;
+            outline: none;
+        }
+        #compose-manifest-mail-modal .compose-contact-list {
+            max-height: 220px;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        #compose-manifest-mail-modal .compose-contact-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        #compose-manifest-mail-modal .compose-contact-item:hover {
+            background: #f0f9ff;
+        }
+        #compose-manifest-mail-modal .compose-contact-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+        #compose-manifest-mail-modal .compose-contact-email {
+            font-size: 11px;
+            color: #64748b;
+            margin: 2px 0 0;
+        }
+        #compose-manifest-mail-modal .compose-contact-empty {
+            padding: 14px 12px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+        #compose-manifest-mail-modal .compose-input {
+            width: 100%;
+            height: 30px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 5px 12px;
+            font-size: 13px;
+            color: #111827;
+            background: #fff;
+        }
+        #compose-manifest-mail-modal .compose-input:focus {
+            outline: none;
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        }
+        #compose-manifest-mail-modal .compose-input::placeholder {
+            color: #9ca3af;
+        }
+        #compose-manifest-mail-modal .compose-editor-wrap {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #fff;
+        }
+        #compose-manifest-mail-modal .compose-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 2px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #fafafa;
+        }
+        #compose-manifest-mail-modal .compose-toolbar select {
+            height: 28px;
+            border: 1px solid #d1d5db;
+            border-radius: 3px;
+            font-size: 12px;
+            padding: 0 6px;
+            margin-right: 4px;
+            background: #fff;
+            color: #374151;
+        }
+        #compose-manifest-mail-modal .compose-tool-btn {
+            min-width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: #4b5563;
+            border-radius: 3px;
+            font-size: 13px;
+            line-height: 1;
+            padding: 0 6px;
+            cursor: pointer;
+        }
+        #compose-manifest-mail-modal .compose-tool-btn:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+        #compose-manifest-mail-modal .compose-editor {
+            min-height: 220px;
+            max-height: 340px;
+            overflow-y: auto;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #111827;
+            outline: none;
+            white-space: pre-wrap;
+        }
+        #compose-manifest-mail-modal .compose-editor:empty:before {
+            content: attr(data-placeholder);
+            color: #9ca3af;
+            pointer-events: none;
+        }
+        #compose-manifest-mail-modal .compose-attach-row {
+            margin-top: 14px;
+        }
+        #compose-manifest-mail-modal .btn-compose-attach {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #3b82f6;
+            border: 1px solid #3b82f6;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 4px;
+            padding: 7px 14px;
+            cursor: pointer;
+        }
+        #compose-manifest-mail-modal .btn-compose-attach:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+        #compose-manifest-mail-modal .compose-attach-hint {
+            margin: 6px 0 0;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        #compose-manifest-mail-modal .compose-attach-previews {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+        #compose-manifest-mail-modal .compose-attach-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: #f8fafc;
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            position: relative;
+        }
+        #compose-manifest-mail-modal .compose-attach-card:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+        }
+        #compose-manifest-mail-modal .compose-attach-remove {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            z-index: 2;
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 50%;
+            background: #ef4444;
+            color: #fff;
+            font-size: 14px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        #compose-manifest-mail-modal .compose-attach-remove:hover {
+            background: #dc2626;
+        }
+        #compose-manifest-mail-modal .compose-attach-thumb {
+            height: 90px;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        #compose-manifest-mail-modal .compose-attach-thumb iframe,
+        #compose-manifest-mail-modal .compose-attach-thumb img {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            object-fit: cover;
+            background: #fff;
+            pointer-events: none;
+        }
+        #compose-manifest-mail-modal .compose-attach-thumb .attach-icon {
+            font-size: 36px;
+            color: #64748b;
+        }
+        #compose-manifest-mail-modal .compose-attach-meta {
+            padding: 8px 10px;
+            border-top: 1px solid #e5e7eb;
+            background: #fff;
+        }
+        #compose-manifest-mail-modal .compose-attach-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1f2937;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0;
+        }
+        #compose-manifest-mail-modal .compose-attach-type {
+            font-size: 10px;
+            color: #6b7280;
+            margin: 2px 0 0;
+        }
+        #compose-manifest-mail-modal .compose-attach-empty {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        #compose-manifest-mail-modal .compose-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px 18px;
+            border-top: 1px solid #e5e7eb;
+            background: #fff;
+        }
+        #compose-manifest-mail-modal .compose-footer-right {
+            display: flex;
+            gap: 8px;
+        }
+        #compose-manifest-mail-modal .btn-compose-discard {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ef4444;
+            border: 1px solid #ef4444;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 4px;
+            padding: 8px 14px;
+        }
+        #compose-manifest-mail-modal .btn-compose-discard:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #fff;
+        }
+        #compose-manifest-mail-modal .btn-compose-draft {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 4px;
+            padding: 8px 14px;
+        }
+        #compose-manifest-mail-modal .btn-compose-draft:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+        #compose-manifest-mail-modal .btn-compose-send {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #14b8a6;
+            border: 1px solid #14b8a6;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 4px;
+            padding: 8px 16px;
+        }
+        #compose-manifest-mail-modal .btn-compose-send:hover {
+            background: #0d9488;
+            border-color: #0d9488;
+            color: #fff;
+        }
+        #compose-manifest-mail-modal .btn-compose-send:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        #compose-manifest-mail-modal .modal-content {
+            position: relative;
+        }
+        #compose-manifest-mail-modal .compose-send-loader {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.82);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            border-radius: inherit;
+        }
+        #compose-manifest-mail-modal.compose-sending .compose-send-loader {
+            display: flex;
+        }
+        #compose-manifest-mail-modal .compose-send-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #ccfbf1;
+            border-top-color: #14b8a6;
+            border-radius: 50%;
+            animation: compose-spin 0.75s linear infinite;
+        }
+        #compose-manifest-mail-modal .compose-send-loader-text {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f766e;
+        }
+        @keyframes compose-spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 @endsection
 
@@ -2412,7 +2820,7 @@
                                                                    class="doc-name po-document-link"
                                                                    data-pdf-url="{{ route('shipments.manifests.show', [$shipment->id, $manifest->id]) }}"
                                                                    data-title="{{ $manifest->displayLabel() }}">
-                                                                    {{ $manifest->displayLabel() }}
+                                                                    {{ ucfirst($manifest->displayLabel()) }}
                                                                 </a>
                                                                 <span class="doc-type-label">Manifest</span>
                                                             </div>
@@ -2439,7 +2847,7 @@
                                                                    class="doc-name po-document-link"
                                                                    data-pdf-url="{{ route('shipments.pre-alerts.show', [$shipment->id, $preAlert->id]) }}"
                                                                    data-title="{{ $preAlert->displayLabel() }}">
-                                                                    {{ $preAlert->displayLabel() }}
+                                                                    {{ ucfirst($preAlert->displayLabel()) }}
                                                                 </a>
                                                                 <span class="doc-type-label">Pre-alert</span>
                                                             </div>
@@ -2630,6 +3038,94 @@
             </div>
             <div class="modal-body p-0" style="height: 80vh; background: #f3f4f6;">
                 <iframe id="pdf-preview-frame" title="PDF preview" style="width: 100%; height: 100%; border: 0;" src=""></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="compose-manifest-mail-modal" tabindex="-1" role="dialog" aria-labelledby="composeManifestMailLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="compose-send-loader" aria-live="polite" aria-busy="true">
+                <div class="compose-send-spinner" role="status"></div>
+                <p class="compose-send-loader-text">Sending email...</p>
+            </div>
+            <div class="compose-header">
+                <h5 class="compose-title" id="composeManifestMailLabel">Compose New Message</h5>
+            </div>
+            <div class="compose-body">
+                <div class="compose-field">
+                    <input type="text" id="compose-mail-to" class="compose-input" placeholder="To:">
+                </div>
+                <div class="compose-field compose-field-contact">
+                    <div class="compose-field-with-icon">
+                        <input type="text" id="compose-mail-cc" class="compose-input" placeholder="Cc:">
+                        <button type="button" class="compose-contact-btn" data-target-field="compose-mail-cc" title="Contact directory">
+                        <i class="icofont icofont-contacts"></i>
+                        </button>
+                    </div>
+                    <div class="compose-contact-picker" data-for="compose-mail-cc">
+                        <input type="text" class="compose-contact-search" placeholder="Search contacts...">
+                        <ul class="compose-contact-list"></ul>
+                    </div>
+                </div>
+                <div class="compose-field compose-field-contact">
+                    <div class="compose-field-with-icon">
+                        <input type="text" id="compose-mail-bcc" class="compose-input" placeholder="Bcc:">
+                        <button type="button" class="compose-contact-btn" data-target-field="compose-mail-bcc" title="Contact directory">
+                        <i class="icofont icofont-contacts"></i>
+                        </button>
+                    </div>
+                    <div class="compose-contact-picker" data-for="compose-mail-bcc">
+                        <input type="text" class="compose-contact-search" placeholder="Search contacts...">
+                        <ul class="compose-contact-list"></ul>
+                    </div>
+                </div>
+                <div class="compose-field">
+                    <input type="text" id="compose-mail-subject" class="compose-input" placeholder="Subject:">
+                </div>
+                <div class="compose-editor-wrap">
+                    <div class="compose-toolbar">
+                        <select id="compose-font-size" title="Text style">
+                            <option value="3">A Normal text</option>
+                            <option value="2">Small</option>
+                            <option value="4">Large</option>
+                            <option value="5">Heading</option>
+                        </select>
+                        <button type="button" class="compose-tool-btn" data-cmd="bold" title="Bold"><strong>B</strong></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="italic" title="Italic"><em>I</em></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="fontSize" data-value="2" title="Small">Small</button>
+                        <button type="button" class="compose-tool-btn" data-cmd="formatBlock" data-value="blockquote" title="Quote"><i class="ti-quote-left"></i></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="insertUnorderedList" title="Bulleted list"><i class="ti-list"></i></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="insertOrderedList" title="Numbered list"><i class="ti-list-ol"></i></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="outdent" title="Outdent"><i class="ti-shift-left-alt"></i></button>
+                        <button type="button" class="compose-tool-btn" data-cmd="indent" title="Indent"><i class="ti-shift-right-alt"></i></button>
+                        <button type="button" class="compose-tool-btn" id="compose-insert-link" title="Insert link"><i class="ti-link"></i></button>
+                        <button type="button" class="compose-tool-btn" id="compose-insert-image" title="Insert image"><i class="ti-image"></i></button>
+                    </div>
+                    <div id="compose-mail-body" class="compose-editor" contenteditable="true" data-placeholder="Your Message Here...."></div>
+                </div>
+                <div class="compose-attach-row">
+                    <button type="button" class="btn-compose-attach" id="compose-attachment-btn">
+                        <i class="ti-clip"></i> Attachment
+                    </button>
+                    <p class="compose-attach-hint">Max. 32MB</p>
+                    <div class="compose-attach-previews" id="compose-attach-previews"></div>
+                    <p class="compose-attach-empty" id="compose-attach-empty" style="display:none;">No attachments</p>
+                    <input type="file" id="compose-attachment-input" multiple style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip">
+                </div>
+            </div>
+            <div class="compose-footer">
+                <button type="button" class="btn-compose-discard" id="compose-mail-discard">
+                    <i class="ti-close"></i> Discard
+                </button>
+                <div class="compose-footer-right">
+                    
+                    <button type="button" class="btn-compose-send" id="compose-mail-send">
+                        <i class="ti-email"></i> Send
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -3090,6 +3586,9 @@
             if (preview.cc) {
                 params.push('cc=' + encodeURIComponent(preview.cc));
             }
+            if (preview.bcc) {
+                params.push('bcc=' + encodeURIComponent(preview.bcc));
+            }
             if (preview.subject) {
                 params.push('subject=' + encodeURIComponent(preview.subject));
             }
@@ -3113,18 +3612,587 @@
             document.body.removeChild(link);
         }
 
-        function buildMailOpenUrl(baseUrl, documentIds) {
+        var pendingManifestMail = null;
+        var mailContactsUrl = @json(route('api.mail-contacts'));
+        var mailContactsCache = [];
+        var mailContactsSearchTimer = null;
+
+        function closeComposeContactPickers() {
+            $('#compose-manifest-mail-modal .compose-contact-picker').removeClass('open');
+            $('#compose-manifest-mail-modal .compose-contact-btn').removeClass('active');
+        }
+
+        function appendEmailToField(fieldId, email) {
+            email = $.trim(email || '');
+            if (!email) {
+                return;
+            }
+
+            var $field = $('#' + fieldId);
+            var current = $.trim($field.val() || '');
+            var parts = current
+                ? current.split(/[;,]+/).map(function(part) { return $.trim(part); }).filter(Boolean)
+                : [];
+
+            var exists = parts.some(function(part) {
+                return part.toLowerCase() === email.toLowerCase();
+            });
+
+            if (!exists) {
+                parts.push(email);
+            }
+
+            $field.val(parts.join(', ')).trigger('change');
+        }
+
+        function renderComposeContactList($picker, contacts) {
+            var $list = $picker.find('.compose-contact-list').empty();
+
+            if (!contacts.length) {
+                $list.append('<li class="compose-contact-empty">No contacts found</li>');
+                return;
+            }
+
+            contacts.forEach(function(contact) {
+                var $item = $('<li class="compose-contact-item"></li>')
+                    .attr('data-email', contact.email || '')
+                    .append($('<p class="compose-contact-name"></p>').text(contact.name || contact.email || 'Contact'))
+                    .append($('<p class="compose-contact-email"></p>').text(contact.email || ''));
+                $list.append($item);
+            });
+        }
+
+        function loadComposeContacts($picker, query) {
+            $picker.find('.compose-contact-list').html('<li class="compose-contact-empty">Loading...</li>');
+
+            $.ajax({
+                url: mailContactsUrl,
+                method: 'GET',
+                dataType: 'json',
+                data: { q: query || '' }
+            })
+                .done(function(response) {
+                    mailContactsCache = (response && response.results) || [];
+                    renderComposeContactList($picker, mailContactsCache);
+                })
+                .fail(function() {
+                    $picker.find('.compose-contact-list').html('<li class="compose-contact-empty">Could not load contacts</li>');
+                });
+        }
+
+        $(document).on('click', '#compose-manifest-mail-modal .compose-contact-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var $btn = $(this);
+            var fieldId = $btn.data('target-field');
+            var $picker = $('#compose-manifest-mail-modal .compose-contact-picker[data-for="' + fieldId + '"]');
+            var alreadyOpen = $picker.hasClass('open');
+
+            closeComposeContactPickers();
+
+            if (alreadyOpen) {
+                return;
+            }
+
+            $btn.addClass('active');
+            $picker.addClass('open');
+            $picker.find('.compose-contact-search').val('').focus();
+            loadComposeContacts($picker, '');
+        });
+
+        $(document).on('input', '#compose-manifest-mail-modal .compose-contact-search', function() {
+            var $picker = $(this).closest('.compose-contact-picker');
+            var query = $.trim($(this).val() || '');
+
+            clearTimeout(mailContactsSearchTimer);
+            mailContactsSearchTimer = setTimeout(function() {
+                loadComposeContacts($picker, query);
+            }, 200);
+        });
+
+        $(document).on('click', '#compose-manifest-mail-modal .compose-contact-item', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var email = $(this).attr('data-email');
+            var fieldId = $(this).closest('.compose-contact-picker').attr('data-for');
+            appendEmailToField(fieldId, email);
+            closeComposeContactPickers();
+        });
+
+        $(document).on('click', '#compose-manifest-mail-modal', function(e) {
+            if ($(e.target).closest('.compose-contact-btn, .compose-contact-picker').length) {
+                return;
+            }
+            closeComposeContactPickers();
+        });
+
+        $('#compose-manifest-mail-modal').on('hidden.bs.modal', function() {
+            closeComposeContactPickers();
+        });
+
+        function plainTextToEditorHtml(text) {
+            return $('<div>').text(text || '').html().replace(/\n/g, '<br>');
+        }
+
+        function editorHtmlToPlainText(html) {
+            var $tmp = $('<div>').html(html || '');
+            $tmp.find('br').replaceWith('\n');
+            $tmp.find('div, p, li').each(function() {
+                $(this).append('\n');
+            });
+            return $.trim($tmp.text().replace(/\n{3,}/g, '\n\n'));
+        }
+
+        function isPdfAttachment(item) {
+            var name = ((item && (item.filename || item.name || item.label)) || '').toLowerCase();
+            var url = ((item && (item.url || item.previewUrl)) || '').toLowerCase();
+            var mime = ((item && item.mime) || '').toLowerCase();
+            return mime === 'application/pdf'
+                || name.indexOf('.pdf') !== -1
+                || url.indexOf('.pdf') !== -1
+                || url.indexOf('/manifest') !== -1
+                || url.indexOf('/pre-alert') !== -1
+                || url.indexOf('/documents') !== -1;
+        }
+
+        function isImageAttachment(item) {
+            var name = ((item && (item.filename || item.name || item.label)) || '').toLowerCase();
+            var mime = ((item && item.mime) || '').toLowerCase();
+            return mime.indexOf('image/') === 0 || /\.(png|jpe?g|gif|webp)$/.test(name);
+        }
+
+        function buildComposeAttachCard(item, index) {
+            var label = (item && (item.filename || item.name || item.label)) || ('Attachment ' + (index + 1));
+            var url = (item && (item.url || item.previewUrl)) || '';
+            var key = (item && item.key) ? String(item.key) : ('attach-' + index);
+            var isPdf = isPdfAttachment(item);
+            var isImage = isImageAttachment(item) || (item && item.previewUrl && /^image\//.test(item.mime || ''));
+            var typeLabel = isPdf ? 'PDF' : (isImage ? 'Image' : 'File');
+            var canPreview = !!url;
+
+            var $card = $('<div class="compose-attach-card" role="button" tabindex="0"></div>')
+                .attr('data-attach-index', index)
+                .attr('data-attach-key', key)
+                .attr('data-attach-url', url)
+                .attr('data-attach-title', label)
+                .attr('title', canPreview ? ('Preview ' + label) : label);
+
+            var $remove = $('<button type="button" class="compose-attach-remove" title="Remove attachment">&times;</button>')
+                .attr('data-attach-key', key)
+                .attr('aria-label', 'Remove ' + label);
+
+            var $thumb = $('<div class="compose-attach-thumb"></div>');
+            if (url && isPdf) {
+                var pdfSrc = url;
+                if (url.indexOf('blob:') === 0) {
+                    // blob PDFs preview directly; hash params can break some browsers
+                    pdfSrc = url;
+                } else if (url.indexOf('#') < 0) {
+                    pdfSrc = url + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+                }
+                $thumb.append(
+                    $('<iframe></iframe>')
+                        .attr('src', pdfSrc)
+                        .attr('title', label)
+                        .attr('loading', 'lazy')
+                );
+            } else if (url && isImage) {
+                $thumb.append($('<img>').attr('src', url).attr('alt', label));
+            } else {
+                $thumb.append($('<i class="ti-file attach-icon"></i>'));
+            }
+
+            var $meta = $('<div class="compose-attach-meta"></div>');
+            $meta.append($('<p class="compose-attach-name"></p>').text(label));
+            $meta.append($('<p class="compose-attach-type"></p>').text(typeLabel + (canPreview ? ' · Click to preview' : '')));
+
+            $card.append($remove).append($thumb).append($meta);
+            return $card;
+        }
+
+        function renderComposeAttachments(attachments) {
+            var $previews = $('#compose-attach-previews').empty();
+            var list = attachments || [];
+
+            if (!list.length) {
+                $('#compose-attach-empty').show();
+                return;
+            }
+
+            $('#compose-attach-empty').hide();
+            list.forEach(function(item, index) {
+                if (!item.key) {
+                    item.key = item.document_id ? ('document-' + item.document_id) : ('attach-' + index);
+                }
+                $previews.append(buildComposeAttachCard(item, index));
+            });
+        }
+
+        function fillComposeManifestModal(preview, attachments) {
+            preview = preview || {};
+            $('#compose-mail-to').val(preview.to || '');
+            $('#compose-mail-cc').val(preview.cc || '');
+            $('#compose-mail-bcc').val(preview.bcc || '');
+            $('#compose-mail-subject').val(preview.subject || '');
+            $('#compose-mail-body').html(plainTextToEditorHtml(preview.body || ''));
+            renderComposeAttachments(attachments);
+        }
+
+        function getComposeExcludedAttachmentKeys() {
+            if (!pendingManifestMail) {
+                return [];
+            }
+
+            var original = pendingManifestMail.originalAttachments || [];
+            var currentKeys = {};
+            (pendingManifestMail.attachments || []).forEach(function(item) {
+                if (item && item.key) {
+                    currentKeys[String(item.key)] = true;
+                }
+            });
+
+            return original
+                .map(function(item) { return item && item.key ? String(item.key) : ''; })
+                .filter(function(key) { return key !== '' && !currentKeys[key]; });
+        }
+
+        function openComposeAttachmentPreview(url, title) {
+            if (!url) {
+                return;
+            }
+
+            $('#pdfPreviewModalLabel').text(title || 'Attachment preview');
+            $('#pdf-preview-frame').attr('src', url);
+
+            var $compose = $('#compose-manifest-mail-modal');
+            var $preview = $('#pdf-preview-modal');
+
+            // Temporarily hide compose so the PDF modal is fully usable, then restore it.
+            $compose.one('hidden.bs.modal', function() {
+                $preview.modal('show');
+            });
+            $preview.one('hidden.bs.modal', function() {
+                $('#pdf-preview-frame').attr('src', '');
+                if (pendingManifestMail) {
+                    $compose.modal('show');
+                }
+            });
+            $compose.modal('hide');
+        }
+
+        function readComposeManifestPreview() {
+            return {
+                to: $.trim($('#compose-mail-to').val() || ''),
+                cc: $.trim($('#compose-mail-cc').val() || ''),
+                bcc: $.trim($('#compose-mail-bcc').val() || ''),
+                subject: $.trim($('#compose-mail-subject').val() || ''),
+                body: editorHtmlToPlainText($('#compose-mail-body').html())
+            };
+        }
+
+        function openComposeMailModal(response, mailType) {
+            var attachments = (response.attachments || []).map(function(item, index) {
+                var copy = $.extend({}, item);
+                if (!copy.key) {
+                    copy.key = copy.document_id ? ('document-' + copy.document_id) : ('attach-' + index);
+                }
+                return copy;
+            });
+
+            pendingManifestMail = {
+                type: mailType || 'manifest',
+                preview: response.preview || {},
+                open_url: response.open_url || null,
+                send_url: response.send_url || null,
+                eml_url: response.eml_url || null,
+                eml_filename: response.eml_filename || null,
+                originalAttachments: attachments.slice(),
+                attachments: attachments.slice()
+            };
+
+            $('#composeManifestMailLabel').text(
+                pendingManifestMail.type === 'prealert' ? 'Pre-alert email' : 'Manifest email'
+            );
+            fillComposeManifestModal(pendingManifestMail.preview, pendingManifestMail.attachments);
+            $('#compose-manifest-mail-modal').modal('show');
+        }
+
+        function openComposeManifestModal(response) {
+            openComposeMailModal(response, 'manifest');
+        }
+
+        $(document).on('click', '#compose-manifest-mail-modal .compose-tool-btn[data-cmd]', function(e) {
+            e.preventDefault();
+            var cmd = $(this).data('cmd');
+            var value = $(this).data('value') || null;
+            $('#compose-mail-body').focus();
+            document.execCommand(cmd, false, value);
+        });
+
+        $(document).on('change', '#compose-font-size', function() {
+            $('#compose-mail-body').focus();
+            document.execCommand('fontSize', false, $(this).val());
+        });
+
+        $(document).on('click', '#compose-insert-link', function(e) {
+            e.preventDefault();
+            var url = window.prompt('Enter URL');
+            if (!url) {
+                return;
+            }
+            $('#compose-mail-body').focus();
+            document.execCommand('createLink', false, url);
+        });
+
+        $(document).on('click', '#compose-insert-image', function(e) {
+            e.preventDefault();
+            var url = window.prompt('Enter image URL');
+            if (!url) {
+                return;
+            }
+            $('#compose-mail-body').focus();
+            document.execCommand('insertImage', false, url);
+        });
+
+        $(document).on('click', '#compose-attachment-btn', function() {
+            $('#compose-attachment-input').trigger('click');
+        });
+
+        $(document).on('click', '#compose-attach-previews .compose-attach-remove', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var key = String($(this).attr('data-attach-key') || '');
+            if (!pendingManifestMail || !key) {
+                return;
+            }
+
+            pendingManifestMail.attachments = (pendingManifestMail.attachments || []).filter(function(item) {
+                if (String(item.key || '') !== key) {
+                    return true;
+                }
+                if (item.previewUrl && String(item.previewUrl).indexOf('blob:') === 0) {
+                    try { URL.revokeObjectURL(item.previewUrl); } catch (err) {}
+                }
+                if (item.url && String(item.url).indexOf('blob:') === 0 && item.url !== item.previewUrl) {
+                    try { URL.revokeObjectURL(item.url); } catch (err) {}
+                }
+                return false;
+            });
+
+            renderComposeAttachments(pendingManifestMail.attachments);
+        });
+
+        $(document).on('click', '#compose-attach-previews .compose-attach-card', function(e) {
+            e.preventDefault();
+            if ($(e.target).closest('.compose-attach-remove').length) {
+                return;
+            }
+            var url = $(this).attr('data-attach-url');
+            var title = $(this).attr('data-attach-title') || 'Attachment preview';
+            if (!url) {
+                return;
+            }
+            openComposeAttachmentPreview(url, title);
+        });
+
+        $(document).on('keydown', '#compose-attach-previews .compose-attach-card', function(e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+            e.preventDefault();
+            $(this).trigger('click');
+        });
+
+        $(document).on('change', '#compose-attachment-input', function() {
+            var files = this.files || [];
+            if (!files.length) {
+                return;
+            }
+
+            if (!pendingManifestMail) {
+                pendingManifestMail = {
+                    preview: {},
+                    attachments: [],
+                    originalAttachments: []
+                };
+            }
+
+            pendingManifestMail.attachments = pendingManifestMail.attachments || [];
+
+            Array.prototype.forEach.call(files, function(file, index) {
+                var objectUrl = URL.createObjectURL(file);
+                var isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+                var isImage = /^image\//.test(file.type) || /\.(png|jpe?g|gif|webp)$/i.test(file.name);
+
+                var localItem = {
+                    key: 'local-' + Date.now() + '-' + index,
+                    filename: file.name,
+                    mime: file.type || '',
+                    previewUrl: objectUrl,
+                    url: objectUrl,
+                    local: true,
+                    file: file
+                };
+
+                // Keep explicit type hints for card rendering
+                if (isPdf) {
+                    localItem.filename = file.name.match(/\.pdf$/i) ? file.name : (file.name + '.pdf');
+                } else if (isImage && !/\.(png|jpe?g|gif|webp)$/i.test(file.name)) {
+                    // leave as-is; mime drives image preview
+                }
+
+                pendingManifestMail.attachments.push(localItem);
+            });
+
+            renderComposeAttachments(pendingManifestMail.attachments);
+            this.value = '';
+        });
+
+        $(document).on('click', '#compose-mail-discard', function() {
+            pendingManifestMail = null;
+            $('#compose-manifest-mail-modal').modal('hide');
+        });
+
+        $(document).on('click', '#compose-mail-draft', function() {
+            if (!pendingManifestMail || !pendingManifestMail.open_url) {
+                alert('Draft is not available for this shipment.');
+                return;
+            }
+
+            var mailType = pendingManifestMail.type || 'manifest';
+            var $btn = mailType === 'prealert' ? $('#send-prealert-btn') : $('#send-manifest-btn');
+            var preview = readComposeManifestPreview();
+
+            if (mailType === 'prealert') {
+                preAlertMailPreview = preview;
+            } else {
+                manifestMailPreview = preview;
+            }
+            pendingManifestMail.preview = preview;
+
+            var mailWindow = openMailDraftWindow();
+            sendShipmentMail($btn, preview, pendingManifestMail.open_url, mailWindow);
+            $('#compose-manifest-mail-modal').modal('hide');
+        });
+
+        $(document).on('click', '#compose-mail-send', function() {
+            if (!pendingManifestMail || !pendingManifestMail.send_url) {
+                alert('Email is not available for this shipment.');
+                return;
+            }
+
+            var mailType = pendingManifestMail.type || 'manifest';
+            var $btn = $(this);
+            var preview = readComposeManifestPreview();
+            if (!preview.to) {
+                alert('Please enter at least one recipient in To.');
+                return;
+            }
+            if (!preview.subject) {
+                alert('Please enter a subject.');
+                return;
+            }
+
+            if (mailType === 'prealert') {
+                preAlertMailPreview = preview;
+            } else {
+                manifestMailPreview = preview;
+            }
+            pendingManifestMail.preview = preview;
+
+            var formData = new FormData();
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            formData.append('to', preview.to);
+            formData.append('cc', preview.cc || '');
+            formData.append('bcc', preview.bcc || '');
+            formData.append('subject', preview.subject);
+            formData.append('body', preview.body || '');
+
+            var documentIds = (pendingManifestMail.attachments || [])
+                .filter(function(item) { return item && item.document_id && !item.local; })
+                .map(function(item) { return item.document_id; });
+            documentIds.forEach(function(id) {
+                formData.append('document_ids[]', id);
+            });
+
+            getComposeExcludedAttachmentKeys().forEach(function(key) {
+                formData.append('exclude_attachments[]', key);
+            });
+
+            (pendingManifestMail.attachments || []).forEach(function(item) {
+                if (item && item.local && item.file) {
+                    formData.append('files[]', item.file, item.filename || item.file.name);
+                }
+            });
+
+            var originalText = $btn.html();
+            var $modal = $('#compose-manifest-mail-modal');
+            $modal.addClass('compose-sending');
+            $btn.prop('disabled', true).html('<i class="ti-reload"></i> Sending...');
+            $('#compose-mail-draft, #compose-mail-discard, #compose-attachment-btn').prop('disabled', true);
+
+            $.ajax({
+                url: pendingManifestMail.send_url,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json'
+            })
+                .done(function(response) {
+                    if (!response || !response.success) {
+                        alert((response && response.message) || 'Could not send email.');
+                        return;
+                    }
+
+                    $modal.modal('hide');
+                    pendingManifestMail = null;
+
+                    if (typeof swal === 'function') {
+                        swal({
+                            title: 'Email sent',
+                            text: response.message || 'Your email was sent successfully.',
+                            type: 'success',
+                            timer: 4000
+                        });
+                    } else {
+                        alert(response.message || 'Your email was sent successfully.');
+                    }
+                })
+                .fail(function(xhr) {
+                    var message = (xhr.responseJSON && xhr.responseJSON.message)
+                        || 'Could not send email. Please try again.';
+                    alert(message);
+                })
+                .always(function() {
+                    $modal.removeClass('compose-sending');
+                    $btn.prop('disabled', false).html(originalText);
+                    $('#compose-mail-draft, #compose-mail-discard, #compose-attachment-btn').prop('disabled', false);
+                });
+        });
+
+        function buildMailOpenUrl(baseUrl, documentIds, excludeAttachments) {
             if (!baseUrl) {
                 return baseUrl;
             }
 
-            if (!documentIds || !documentIds.length) {
+            var parts = [];
+            if (documentIds && documentIds.length) {
+                parts.push('document_ids=' + encodeURIComponent(documentIds.join(',')));
+            }
+            if (excludeAttachments && excludeAttachments.length) {
+                parts.push('exclude_attachments=' + encodeURIComponent(excludeAttachments.join(',')));
+            }
+
+            if (!parts.length) {
                 return baseUrl;
             }
 
             var separator = baseUrl.indexOf('?') >= 0 ? '&' : '?';
-
-            return baseUrl + separator + 'document_ids=' + encodeURIComponent(documentIds.join(','));
+            return baseUrl + separator + parts.join('&');
         }
 
         function openMailDraftWindow() {
@@ -3151,7 +4219,11 @@
                 return Promise.resolve();
             }
 
-            var openUrlWithDocuments = buildMailOpenUrl(openUrl, getCheckedUploadedDocumentIds());
+            var openUrlWithDocuments = buildMailOpenUrl(
+                openUrl,
+                getCheckedUploadedDocumentIds(),
+                getComposeExcludedAttachmentKeys()
+            );
             var originalText = $btn.text();
             $btn.prop('disabled', true).text('Opening mail...');
 
@@ -3165,7 +4237,7 @@
                 swal({
                     title: 'Email opening',
                     html: 'Your mail app is opening with To, Cc and Subject.<br><br>' +
-                        'A complete draft with <strong>all PDF attachments</strong> is also downloading — ' +
+                        'A complete draft with <strong>PDF attachments</strong> is also downloading — ' +
                         'if Mail opens from that file, use that compose window (attachments included). ' +
                         'Otherwise double-click the downloaded <strong>.eml</strong> file in Downloads.',
                     type: 'info',
@@ -3199,7 +4271,6 @@
                 return;
             }
 
-            var mailWindow = openMailDraftWindow();
             var originalText = $btn.text();
             $btn.prop('disabled', true).text('Preparing manifest...');
             syncCrrHiddenInputs();
@@ -3216,31 +4287,16 @@
             })
                 .done(function(response) {
                     if (!response || !response.success || !response.preview) {
-                        if (mailWindow && !mailWindow.closed) {
-                            mailWindow.close();
-                        }
                         alert((response && response.message) || 'Could not prepare manifest email.');
                         $btn.prop('disabled', false).text(originalText);
                         return;
                     }
 
                     manifestMailPreview = response.preview;
-                    openShipmentMailto(response.preview);
-                    var attachmentSources = (response.attachments && response.attachments.length)
-                        ? response.attachments
-                        : manifestCoreAttachmentSources;
-
-                    sendShipmentMail(
-                        $btn,
-                        response.preview,
-                        response.open_url,
-                        mailWindow
-                    );
+                    openComposeManifestModal(response);
+                    $btn.prop('disabled', false).text(originalText);
                 })
                 .fail(function(xhr) {
-                    if (mailWindow && !mailWindow.closed) {
-                        mailWindow.close();
-                    }
                     var message = 'Could not prepare manifest email.';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         message = xhr.responseJSON.message;
@@ -3271,7 +4327,6 @@
                 return;
             }
 
-            var mailWindow = openMailDraftWindow();
             var originalText = $btn.text();
             $btn.prop('disabled', true).text('Preparing pre-alert...');
             syncCrrHiddenInputs();
@@ -3288,28 +4343,16 @@
             })
                 .done(function(response) {
                     if (!response || !response.success || !response.preview) {
-                        if (mailWindow && !mailWindow.closed) {
-                            mailWindow.close();
-                        }
                         alert((response && response.message) || 'Could not prepare pre-alert email.');
                         $btn.prop('disabled', false).text(originalText);
                         return;
                     }
 
                     preAlertMailPreview = response.preview;
-                    openShipmentMailto(response.preview);
-
-                    sendShipmentMail(
-                        $btn,
-                        response.preview,
-                        response.open_url,
-                        mailWindow
-                    );
+                    openComposeMailModal(response, 'prealert');
+                    $btn.prop('disabled', false).text(originalText);
                 })
                 .fail(function(xhr) {
-                    if (mailWindow && !mailWindow.closed) {
-                        mailWindow.close();
-                    }
                     var message = 'Could not prepare pre-alert email.';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         message = xhr.responseJSON.message;

@@ -135,7 +135,7 @@
                     </li>
                     <li class="{{ request()->routeIs('customers.*', 'contacts.*') ? 'active' : '' }}">
                         <a href="{{ route('customers.index') }}">
-                            <span class="pcoded-mtext">customers</span>
+                            <span class="pcoded-mtext">Customers</span>
                         </a>
                     </li>
                     <li class="{{ request()->routeIs('vessels.*') ? 'active' : '' }}">
