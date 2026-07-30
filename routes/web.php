@@ -770,6 +770,7 @@ Route::delete('/Agents/users/destroy/{id}', [App\Http\Controllers\AgentControlle
 Route::get('/Agents/company-agent/{id}', function ($id) {
     return view('Agents.company-agent', compact('id'));
 })->name('agents.company-agent');
-Route::get('/update-currency-rates', [App\Http\Controllers\CurrencyController::class, 'updateRates'])->name('currency.update');
+
     });
 });
+Route::get('/update-currency-rates', [App\Http\Controllers\CurrencyController::class, 'updateRates'])->name('currency.update');
