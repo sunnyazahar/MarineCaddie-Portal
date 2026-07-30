@@ -2304,7 +2304,10 @@ class ShipmentController extends Controller
 
     private function normalizeManifestGenerationRequest(Request $request): void
     {
-        if ($request->input('account_manager') === '' || $request->input('account_manager') === null) {
+        // Only normalize an explicitly submitted empty value. Merging null when the
+        // field is absent makes Request::has('account_manager') true in Laravel 12
+        // and wipes account_manager_id on partial updates (service details / pre-alert).
+        if ($request->exists('account_manager') && $request->input('account_manager') === '') {
             $request->merge(['account_manager' => null]);
         }
     }
@@ -2598,6 +2601,11 @@ class ShipmentController extends Controller
             }
 
             $requestKey = $requestKeyMap[$key] ?? $key;
+
+            // Preserve existing account manager unless a real ID was posted.
+            if ($key === 'account_manager_id') {
+                return $request->filled('account_manager');
+            }
 
             return $request->has($requestKey);
         })->all();

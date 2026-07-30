@@ -2216,6 +2216,7 @@
                                                 <form id="shipment-edit-form" method="POST" action="{{ route('shipments.update', $shipment->id) }}">
                                                     @csrf
                                                     @method('PUT')
+                                                    <input type="hidden" name="account_manager" value="{{ $shipment->account_manager_id }}">
                                                     <div id="crr-ids-container">
                                                         @foreach ($shipment->crrs as $crr)
                                                             <input type="hidden" name="crr_ids[]" value="{{ $crr->id }}">
