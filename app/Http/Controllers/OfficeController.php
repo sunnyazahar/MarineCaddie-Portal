@@ -145,7 +145,10 @@ class OfficeController extends Controller
             'status' => true,
         ]);
 
-        return redirect()->route('offices.edit', $office->id)->with('success', 'Operation user added successfully.');
+        return redirect()
+            ->route('offices.edit', $office->id)
+            ->with('success', 'Operation user added successfully.')
+            ->withFragment('operations-users');
     }
 
     public function editOperationUser($officeId, $contactId)
@@ -175,7 +178,10 @@ class OfficeController extends Controller
             'is_cc_enabled' => $request->has('is_cc_enabled'),
         ]);
 
-        return redirect()->back()->with('success', 'Operation user updated successfully.');
+        return redirect()
+            ->route('offices.edit', $office->id)
+            ->with('success', 'Operation user updated successfully.')
+            ->withFragment('operations-users');
     }
 
     public function createAccountUser($officeId)
@@ -206,7 +212,10 @@ class OfficeController extends Controller
             'status' => true,
         ]);
 
-        return redirect()->route('offices.edit', $office->id)->with('success', 'Account user added successfully.');
+        return redirect()
+            ->route('offices.edit', $office->id)
+            ->with('success', 'Account user added successfully.')
+            ->withFragment('accounting-users');
     }
 
     public function editAccountUser($officeId, $contactId)
@@ -236,7 +245,10 @@ class OfficeController extends Controller
             'is_cc_enabled' => $request->has('is_cc_enabled'),
         ]);
 
-        return redirect()->back()->with('success', 'Account user updated successfully.');
+        return redirect()
+            ->route('offices.edit', $office->id)
+            ->with('success', 'Account user updated successfully.')
+            ->withFragment('accounting-users');
     }
 
     public function createSalesUser($officeId)
@@ -267,7 +279,10 @@ class OfficeController extends Controller
             'status' => true,
         ]);
 
-        return redirect()->route('offices.edit', $office->id)->with('success', 'Sales user added successfully.');
+        return redirect()
+            ->route('offices.edit', $office->id)
+            ->with('success', 'Sales user added successfully.')
+            ->withFragment('sales-users');
     }
 
     public function editSalesUser($officeId, $contactId)
@@ -297,7 +312,10 @@ class OfficeController extends Controller
             'is_cc_enabled' => $request->has('is_cc_enabled'),
         ]);
 
-        return redirect()->back()->with('success', 'Sales user updated successfully.');
+        return redirect()
+            ->route('offices.edit', $office->id)
+            ->with('success', 'Sales user updated successfully.')
+            ->withFragment('sales-users');
     }
 
     public function createManagerUser($officeId)
@@ -328,7 +346,10 @@ class OfficeController extends Controller
             'status' => true,
         ]);
 
-        return redirect()->route('offices.edit', $office->id)->with('success', 'Manager user added successfully.');
+        return redirect()
+            ->route('offices.edit', $office->id)
+            ->with('success', 'Manager user added successfully.')
+            ->withFragment('manager-users');
     }
 
     public function editManagerUser($officeId, $contactId)
@@ -358,7 +379,10 @@ class OfficeController extends Controller
             'is_cc_enabled' => $request->has('is_cc_enabled'),
         ]);
 
-        return redirect()->back()->with('success', 'Manager user updated successfully.');
+        return redirect()
+            ->route('offices.edit', $office->id)
+            ->with('success', 'Manager user updated successfully.')
+            ->withFragment('manager-users');
     }
 
     public function update(Request $request, $id)

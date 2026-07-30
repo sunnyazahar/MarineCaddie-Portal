@@ -599,6 +599,7 @@
                                                             <form id="hubEditForm" action="{{ route('hub.update', $hub->id) }}" method="POST">
                                                                 @csrf
                                                                 @method('PUT')
+                                                                <input type="hidden" name="active_tab" id="active_tab" value="{{ old('active_tab', 'hub-details') }}">
                                                             <div class="tab-content-container">
                                                                  <!-- Hub Details Tab -->
                                                                  <div id="hub-details" class="tab-content-custom active">
@@ -1308,13 +1309,27 @@
                 setTimeout(fixedFooterOffset, 300);
             });
 
-            // Tab switching logic
-            $('.tab-item').on('click', function() {
-                var tabId = $(this).data('tab');
+            // Tab switching logic (keeps URL hash + hidden field so update redirects restore the active tab)
+            function activateHubTab(tabId) {
+                if (!tabId || !$('#' + tabId).length || !$('.tab-item[data-tab="' + tabId + '"]').length) {
+                    return false;
+                }
                 $('.tab-item').removeClass('active');
-                $(this).addClass('active');
+                $('.tab-item[data-tab="' + tabId + '"]').addClass('active');
                 $('.tab-content-custom').removeClass('active');
                 $('#' + tabId).addClass('active');
+                $('#active_tab').val(tabId);
+                return true;
+            }
+
+            $('.tab-item').on('click', function() {
+                var tabId = $(this).data('tab');
+                activateHubTab(tabId);
+                if (history.replaceState) {
+                    history.replaceState(null, '', '#' + tabId);
+                } else {
+                    window.location.hash = tabId;
+                }
                 
                 // Re-initialize or trigger change for Select2 in hidden tabs to fix layout issues
                 if (tabId === 'email-settings') {
@@ -1429,6 +1444,14 @@
             $('#import_services_select').on('change', function() {
                 updateServiceEmailFields('import_services_select', 'import_emails_dynamic_container', 'import');
             });
+
+            // Restore active tab from URL hash after helpers are defined
+            var hashTab = window.location.hash.replace(/^#/, '');
+            if (hashTab === 'email-settings') {
+                $('.tab-item[data-tab="email-settings"]').triggerHandler('click');
+            } else if (hashTab) {
+                activateHubTab(hashTab);
+            }
 
             // Initialize Select2
             $('.select2-single').select2({

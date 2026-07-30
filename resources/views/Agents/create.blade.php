@@ -650,7 +650,7 @@
                                                                                         <label
                                                                                             class="form-label-custom">City</label>
                                                                                         <input type="text"
-                                                                                            name="agent_city"
+                                                                                            name="city"
                                                                                             class="form-input-custom"
                                                                                             value="">
                                                                                     </div>
@@ -658,14 +658,14 @@
                                                                                         <label
                                                                                             class="form-label-custom">District/state</label>
                                                                                         <input type="text"
-                                                                                            name="agent_district"
+                                                                                            name="district_state"
                                                                                             class="form-input-custom">
                                                                                     </div>
                                                                                     <div class="form-group-custom">
                                                                                         <label class="form-label-custom">Zip
                                                                                             code</label>
                                                                                         <input type="text"
-                                                                                            name="agent_zip"
+                                                                                            name="zip_code"
                                                                                             class="form-input-custom"
                                                                                             value="">
                                                                                     </div>
@@ -719,14 +719,14 @@
                                                                                         <label
                                                                                             class="form-label-custom">District/state</label>
                                                                                         <input type="text"
-                                                                                            name="office_district"
+                                                                                            name="office_district_state"
                                                                                             class="form-input-custom">
                                                                                     </div>
                                                                                     <div class="form-group-custom">
                                                                                         <label class="form-label-custom">Zip
                                                                                             code</label>
                                                                                         <input type="text"
-                                                                                            name="office_zip"
+                                                                                            name="office_zip_code"
                                                                                             class="form-input-custom"
                                                                                             value="">
                                                                                     </div>

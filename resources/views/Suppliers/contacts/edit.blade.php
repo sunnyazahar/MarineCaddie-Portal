@@ -288,7 +288,7 @@
                                         <div class="form-footer-container">
                                             <div class="footer-left-actions">
                                                 <button type="submit" id="saveButton" class="btn-saved-disabled">All changes saved</button>
-                                                <a href="{{ route('suppliers.edit', $supplier->id) }}" class="btn-cancel-link">Cancel</a>
+                                                <a href="{{ route('suppliers.edit', $supplier->id) }}#contacts" class="btn-cancel-link">Cancel</a>
                                             </div>
                                             
                                             <div class="footer-metadata">
@@ -347,5 +347,5 @@
             });
         });
     </script>
-@include('partials.unsaved-changes-guard', ['formSelector' => '#contactForm', 'fallbackUrl' => route('suppliers.edit', $supplier->id)])
+@include('partials.unsaved-changes-guard', ['formSelector' => '#contactForm', 'fallbackUrl' => route('suppliers.edit', $supplier->id) . '#contacts'])
 @endsection

@@ -464,6 +464,7 @@
                                         <form action="{{ route('suppliers.update', $supplier->id) }}" method="POST" id="edit-supplier-form">
                                             @csrf
                                             @method('PUT')
+                                            <input type="hidden" name="active_tab" id="active_tab" value="{{ old('active_tab', 'supplier-details') }}">
                                             
                                             <div class="nav-tabs-custom">
                                                 <a href="javascript:void(0)" class="nav-link active" data-tab="supplier-details">Supplier details</a>
@@ -792,18 +793,33 @@
                 templateSelection: formatPortSelection
             });
 
-            // Tab switching logic
-            $('.nav-tabs-custom .nav-link').on('click', function() {
-                var tabId = $(this).data('tab');
-                
-                // Update active tab link
+            // Tab switching logic (keeps URL hash + hidden field so update redirects restore the active tab)
+            function activateSupplierTab(tabId) {
+                if (!tabId || !$('#' + tabId).length || !$('.nav-tabs-custom .nav-link[data-tab="' + tabId + '"]').length) {
+                    return false;
+                }
                 $('.nav-tabs-custom .nav-link').removeClass('active');
-                $(this).addClass('active');
-                
-                // Update active tab content
+                $('.nav-tabs-custom .nav-link[data-tab="' + tabId + '"]').addClass('active');
                 $('.tab-content-custom').removeClass('active');
                 $('#' + tabId).addClass('active');
+                $('#active_tab').val(tabId);
+                return true;
+            }
+
+            $('.nav-tabs-custom .nav-link').on('click', function() {
+                var tabId = $(this).data('tab');
+                activateSupplierTab(tabId);
+                if (history.replaceState) {
+                    history.replaceState(null, '', '#' + tabId);
+                } else {
+                    window.location.hash = tabId;
+                }
             });
+
+            var hashTab = window.location.hash.replace(/^#/, '');
+            if (hashTab) {
+                activateSupplierTab(hashTab);
+            }
         });
     </script>
 @include('partials.unsaved-changes-guard', ['formSelector' => '#edit-supplier-form', 'fallbackUrl' => route('suppliers.index')])

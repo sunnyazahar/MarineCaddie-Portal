@@ -80,72 +80,78 @@ class AgentController extends Controller
     public function update(Request $request, $id)
     {
         $agent = Agent::findOrFail($id);
+        $activeTab = $this->resolveActiveTab($request);
 
-        $validated = $request->validate([
-            'agent_name'          => 'required|string|max:255',
-            'company_id'          => 'nullable|string|max:255',
-            'code'                => 'nullable|string|max:255',
-            'code_description'    => 'nullable|string|max:255',
-            'phone'               => 'nullable|string|max:255',
-            'email'               => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
-            'remarks'             => 'nullable|string',
-            'special_considerations' => 'nullable|string',
-            'show_pre_alert'      => 'nullable|boolean',
-            'agent_address'       => 'nullable|string',
-            'city'                => 'nullable|string|max:255',
-            'district_state'      => 'nullable|string|max:255',
-            'zip_code'            => 'nullable|string|max:255',
-            'country_id'          => 'nullable|exists:countries,id',
-            'port_code'           => 'nullable|string|max:255',
-            'office_address'      => 'nullable|string',
-            'office_city'         => 'nullable|string|max:255',
-            'office_district_state' => 'nullable|string|max:255',
-            'office_zip_code'     => 'nullable|string|max:255',
-            'office_country_id'   => 'nullable|exists:countries,id',
-            'eori_number'         => 'nullable|string|max:255',
-            'un_locode'           => 'nullable|string|max:255',
-            'agent_type'          => 'nullable|string|max:255',
-            
-            // Billing
-            'invoicing_name'      => 'nullable|string|max:255',
-            'billing_address'     => 'nullable|string',
-            'billing_city'        => 'nullable|string|max:255',
-            'billing_district_state'=> 'nullable|string|max:255',
-            'billing_zip_code'    => 'nullable|string|max:255',
-            'billing_country_id'  => 'nullable|exists:countries,id',
-            'invoicing_emails'    => 'nullable|string|max:255',
-            'invoicing_emails_cc' => 'nullable|string|max:255',
-            'vat_number'          => 'nullable|string|max:255',
-            'invoicing_frequency' => 'nullable|string|max:255',
-            'rebate_percentage'   => 'nullable|numeric',
-            'outgoing_currency'   => 'nullable|string|max:255',
-            'outgoing_payment_terms'=> 'nullable|string|max:255',
-            'incoming_currency'   => 'nullable|string|max:255',
-            'incoming_payment_terms'=> 'nullable|string|max:255',
+        try {
+            $validated = $request->validate([
+                'agent_name'          => 'required|string|max:255',
+                'company_id'          => 'nullable|string|max:255',
+                'code'                => 'nullable|string|max:255',
+                'code_description'    => 'nullable|string|max:255',
+                'phone'               => 'nullable|string|max:255',
+                'email'               => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+                'remarks'             => 'nullable|string',
+                'special_considerations' => 'nullable|string',
+                'show_pre_alert'      => 'nullable|boolean',
+                'agent_address'       => 'nullable|string',
+                'city'                => 'nullable|string|max:255',
+                'district_state'      => 'nullable|string|max:255',
+                'zip_code'            => 'nullable|string|max:255',
+                'country_id'          => 'nullable|exists:countries,id',
+                'port_code'           => 'nullable|string|max:255',
+                'office_address'      => 'nullable|string',
+                'office_city'         => 'nullable|string|max:255',
+                'office_district_state' => 'nullable|string|max:255',
+                'office_zip_code'     => 'nullable|string|max:255',
+                'office_country_id'   => 'nullable|exists:countries,id',
+                'eori_number'         => 'nullable|string|max:255',
+                'un_locode'           => 'nullable|string|max:255',
+                'agent_type'          => 'nullable|string|max:255',
+                
+                // Billing
+                'invoicing_name'      => 'nullable|string|max:255',
+                'billing_address'     => 'nullable|string',
+                'billing_city'        => 'nullable|string|max:255',
+                'billing_district_state'=> 'nullable|string|max:255',
+                'billing_zip_code'    => 'nullable|string|max:255',
+                'billing_country_id'  => 'nullable|exists:countries,id',
+                'invoicing_emails'    => 'nullable|string|max:255',
+                'invoicing_emails_cc' => 'nullable|string|max:255',
+                'vat_number'          => 'nullable|string|max:255',
+                'invoicing_frequency' => 'nullable|string|max:255',
+                'rebate_percentage'   => 'nullable|numeric',
+                'outgoing_currency'   => 'nullable|string|max:255',
+                'outgoing_payment_terms'=> 'nullable|string|max:255',
+                'incoming_currency'   => 'nullable|string|max:255',
+                'incoming_payment_terms'=> 'nullable|string|max:255',
 
-            // SOP
-            'coc_signed_date'     => 'nullable|date',
-            'responsible_manager' => 'nullable|string|max:255',
+                // SOP
+                'coc_signed_date'     => 'nullable|date',
+                'responsible_manager' => 'nullable|string|max:255',
 
-            // Pricing
-            'purchase_rate'       => 'nullable|string|max:255',
-            'sell_rate'           => 'nullable|string|max:255',
-            'profit'              => 'nullable|string|max:255',
+                // Pricing
+                'purchase_rate'       => 'nullable|string|max:255',
+                'sell_rate'           => 'nullable|string|max:255',
+                'profit'              => 'nullable|string|max:255',
 
-            // Email
-            'export_email_services'=> 'nullable|string',
-            'import_email_services'=> 'nullable|string',
-            'status_changed_emails'=> 'nullable|string|max:255',
-            'stock_item_changed_emails'=> 'nullable|string|max:255',
-            'quote_requests_emails'=> 'nullable|string|max:255',
+                // Email
+                'export_email_services'=> 'nullable|string',
+                'import_email_services'=> 'nullable|string',
+                'status_changed_emails'=> 'nullable|string|max:255',
+                'stock_item_changed_emails'=> 'nullable|string|max:255',
+                'quote_requests_emails'=> 'nullable|string|max:255',
 
-            // Scan gun
-            'scangun_login'       => 'nullable|string|max:255',
-            'scangun_password'    => 'nullable|string|max:255',
-            
-            // Exceptions array
-            'billing_exceptions'  => 'nullable|array',
-        ]);
+                // Scan gun
+                'scangun_login'       => 'nullable|string|max:255',
+                'scangun_password'    => 'nullable|string|max:255',
+                
+                // Exceptions array
+                'billing_exceptions'  => 'nullable|array',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $e->redirectTo(route('agents.edit', $id) . '#' . $activeTab);
+            throw $e;
+        }
 
         $validated['show_pre_alert'] = $request->has('show_pre_alert');
         $validated['applies_to_rebate'] = $request->has('applies_to_rebate');
@@ -204,7 +210,10 @@ class AgentController extends Controller
             }
         }
 
-        return redirect()->back()->with('success', 'Agent updated successfully.');
+        return redirect()
+            ->route('agents.edit', $id)
+            ->with('success', 'Agent updated successfully.')
+            ->withFragment($activeTab);
     }
 
     public function updateStatus(Request $request, $id)
@@ -276,6 +285,8 @@ class AgentController extends Controller
     public function deleteDocument($id)
     {
         $document = \App\Models\AgentDocument::findOrFail($id);
+        $agentId = $document->agent_id;
+        $tab = $document->section === 'pricing' ? 'pricing' : 'sop';
         
         // Delete file from storage
         \App\Support\PrivateDisk::delete($document->file_path);
@@ -283,7 +294,10 @@ class AgentController extends Controller
         // Delete record from DB
         $document->delete();
 
-        return back()->with('success', 'Document deleted successfully.');
+        return redirect()
+            ->route('agents.edit', $agentId)
+            ->with('success', 'Document deleted successfully.')
+            ->withFragment($tab);
     }
 
     public function showDocument($agentId, $docId)
@@ -318,7 +332,10 @@ class AgentController extends Controller
             'is_main_contact' => $request->has('is_main_contact') ? 1 : 0,
         ]);
 
-        return redirect()->route('agents.edit', $agent_id)->with('success', 'Contact added successfully.');
+        return redirect()
+            ->route('agents.edit', $agent_id)
+            ->with('success', 'Contact added successfully.')
+            ->withFragment('contacts');
     }
 
     public function editContact($id)
@@ -344,7 +361,10 @@ class AgentController extends Controller
             'is_main_contact' => $request->has('is_main_contact') ? 1 : 0,
         ]);
 
-        return redirect()->back()->with('success', 'Contact updated successfully.');
+        return redirect()
+            ->route('agents.edit', $contact->agent_id)
+            ->with('success', 'Contact updated successfully.')
+            ->withFragment('contacts');
     }
 
     public function destroyContact($id)
@@ -353,7 +373,10 @@ class AgentController extends Controller
         $agent_id = $contact->agent_id;
         $contact->delete();
 
-        return redirect()->route('agents.edit', $agent_id)->with('success', 'Contact deleted successfully.');
+        return redirect()
+            ->route('agents.edit', $agent_id)
+            ->with('success', 'Contact deleted successfully.')
+            ->withFragment('contacts');
     }
 
     public function storeUser(Request $request, $agent_id)
@@ -371,7 +394,10 @@ class AgentController extends Controller
             'description' => $request->description,
         ]);
 
-        return redirect()->route('agents.edit', $agent_id)->with('success', 'User added successfully.');
+        return redirect()
+            ->route('agents.edit', $agent_id)
+            ->with('success', 'User added successfully.')
+            ->withFragment('agent-users');
     }
 
     public function editUser($id)
@@ -396,7 +422,10 @@ class AgentController extends Controller
             'description' => $request->description,
         ]);
 
-        return redirect()->back()->with('success', 'User updated successfully.');
+        return redirect()
+            ->route('agents.edit', $user->agent_id)
+            ->with('success', 'User updated successfully.')
+            ->withFragment('agent-users');
     }
 
     public function destroyUser($id)
@@ -405,7 +434,28 @@ class AgentController extends Controller
         $agent_id = $user->agent_id;
         $user->delete();
 
-        return redirect()->route('agents.edit', $agent_id)->with('success', 'User deleted successfully.');
+        return redirect()
+            ->route('agents.edit', $agent_id)
+            ->with('success', 'User deleted successfully.')
+            ->withFragment('agent-users');
+    }
+
+    private function resolveActiveTab(Request $request): string
+    {
+        $allowed = [
+            'agent-details',
+            'billing-details',
+            'sop',
+            'pricing',
+            'agent-users',
+            'contacts',
+            'email-settings',
+            'scan-gun',
+        ];
+
+        $tab = (string) $request->input('active_tab', 'agent-details');
+
+        return in_array($tab, $allowed, true) ? $tab : 'agent-details';
     }
 
     private function multipleEmailsValidator(): \Closure

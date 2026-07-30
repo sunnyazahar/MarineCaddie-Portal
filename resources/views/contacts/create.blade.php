@@ -371,7 +371,7 @@
 
                                                 <div class="form-footer">
                                                     <button type="submit" class="btn-save-contact">Save</button>
-                                                    <a href="{{ route('customers.edit', $customer_id) }}" class="btn-cancel-contact">Cancel</a>
+                                                    <a href="{{ route('customers.edit', $customer_id) }}#contacts" class="btn-cancel-contact">Cancel</a>
                                                 </div>
                                             </div>
                                             </form>

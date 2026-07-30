@@ -419,6 +419,7 @@
                                                 <form action="{{ route('other-companies.update', $otherCompany->id) }}" method="POST" id="edit-company-form">
                                                     @csrf
                                                     @method('PUT')
+                                                    <input type="hidden" name="active_tab" id="active_tab" value="{{ old('active_tab', 'company-details') }}">
                                                     <div class="form-pillar-container">
                                                         <!-- ... existing content ... -->
                                                         <!-- Column 1: Company information -->
@@ -868,14 +869,33 @@
                 }
             });
 
-                // Tab switching logic
-            $('.tab-item').on('click', function() {
-                var tabId = $(this).data('tab');
+                // Tab switching logic (keeps URL hash + hidden field so update redirects restore the active tab)
+            function activateOtherCompanyTab(tabId) {
+                if (!tabId || !$('#' + tabId).length || !$('.tab-item[data-tab="' + tabId + '"]').length) {
+                    return false;
+                }
                 $('.tab-item').removeClass('active');
-                $(this).addClass('active');
+                $('.tab-item[data-tab="' + tabId + '"]').addClass('active');
                 $('.tab-content-custom').removeClass('active');
                 $('#' + tabId).addClass('active');
+                $('#active_tab').val(tabId);
+                return true;
+            }
+
+            $('.tab-item').on('click', function() {
+                var tabId = $(this).data('tab');
+                activateOtherCompanyTab(tabId);
+                if (history.replaceState) {
+                    history.replaceState(null, '', '#' + tabId);
+                } else {
+                    window.location.hash = tabId;
+                }
             });
+
+            var hashTab = window.location.hash.replace(/^#/, '');
+            if (hashTab) {
+                activateOtherCompanyTab(hashTab);
+            }
         });
     </script>
 @include('partials.unsaved-changes-guard', ['formSelector' => '#edit-company-form', 'fallbackUrl' => route('other-companies.index'), 'saveButtonSelector' => '#btn-save'])

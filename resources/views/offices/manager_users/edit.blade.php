@@ -754,7 +754,7 @@
         <button type="submit" form="managerUserEditForm" class="btn-save-custom"
             style="background: #1b5e6f; color: white; border: none; padding: 8px 30px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer;">Save
             user</button>
-        <a href="{{ route('offices.edit', $office) }}" class="btn-cancel-custom">Cancel</a>
+        <a href="{{ route('offices.edit', $office) }}#manager-users" class="btn-cancel-custom">Cancel</a>
         <div class="audit-info">
             @include('partials.audit-info', ['record' => $contact, 'bold' => true])
         </div>
@@ -853,5 +853,5 @@
             });
         });
     </script>
-@include('partials.unsaved-changes-guard', ['formSelector' => '#managerUserEditForm', 'fallbackUrl' => route('offices.edit', $office->id)])
+@include('partials.unsaved-changes-guard', ['formSelector' => '#managerUserEditForm', 'fallbackUrl' => route('offices.edit', $office->id) . '#manager-users'])
 @endsection

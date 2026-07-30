@@ -236,6 +236,11 @@
         .main-body .page-wrapper {
             padding: 5px !important;
         }
+        .country-flag {
+            width: 18px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
        
     </style>
 @endsection
@@ -394,7 +399,16 @@
                                                                     <td><a href="{{ route('hub.show', $hub->id) }}" style="color: #3b82f6;">{{ $hub->hub_name }}</a></td>
                                                                     <td>{{ $hub->code }}</td>
                                                                     <td>{{ $hub->city }}</td>
-                                                                    <td>{{ $hub->country }}</td>
+                                                                    <td>
+                                                                        @if($hub->country)
+                                                                            @if(!empty($countryFlags[$hub->country]))
+                                                                                <img src="{{ $countryFlags[$hub->country] }}" class="country-flag" alt="">
+                                                                            @endif
+                                                                            {{ $hub->country }}
+                                                                        @else
+                                                                            —
+                                                                        @endif
+                                                                    </td>
                                                                     <td>{{ $hub->phone_number }}</td>
                                                                     <td>{{ $hub->email }}</td>
                                                                     <td>

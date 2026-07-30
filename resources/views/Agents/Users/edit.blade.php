@@ -420,7 +420,7 @@
 
                                             <div class="form-footer">
                                                 <button type="submit" class="btn-save-contact">Save</button>
-                                                <a href="{{ route('agents.edit', $user->agent_id) }}"
+                                                <a href="{{ route('agents.edit', $user->agent_id) }}#agent-users"
                                                     class="btn-cancel-contact">Cancel</a>
                                                 <div style="margin-left:auto; text-align:right; font-size:11px; color:#999; line-height:1.6;">
                                                     @include('partials.audit-info', ['record' => $user])
@@ -595,5 +595,5 @@
             });
         });
     </script>
-@include('partials.unsaved-changes-guard', ['formSelector' => '#contactForm', 'fallbackUrl' => route('agents.edit', $user->agent_id)])
+@include('partials.unsaved-changes-guard', ['formSelector' => '#contactForm', 'fallbackUrl' => route('agents.edit', $user->agent_id) . '#agent-users'])
 @endsection

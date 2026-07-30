@@ -79,6 +79,25 @@ class CrrController extends Controller
     {
         $validated = $request->validate([
             'hub_agent' => ['required', 'string', 'max:50', 'regex:/[A-Za-z0-9]/'],
+            'status' => ['nullable', 'integer', \Illuminate\Validation\Rule::in(array_keys(Crr::getStatusLabels()))],
+            'actual_delivery_date' => ['nullable', 'required_if:status,' . Crr::STATUS_ACTIVE, 'date'],
+            'packages' => ['required', 'array', 'min:1'],
+            'packages.*.length' => ['required', 'numeric', 'gt:0'],
+            'packages.*.width' => ['required', 'numeric', 'gt:0'],
+            'packages.*.height' => ['required', 'numeric', 'gt:0'],
+            'packages.*.weight' => ['required', 'numeric', 'gt:0'],
+        ], [
+            'actual_delivery_date.required_if' => 'Actual delivery date is required when status is Stock.',
+            'packages.required' => 'Please add at least one package before saving.',
+            'packages.min' => 'Please add at least one package before saving.',
+            'packages.*.length.required' => 'Package length is required.',
+            'packages.*.width.required' => 'Package width is required.',
+            'packages.*.height.required' => 'Package height is required.',
+            'packages.*.weight.required' => 'Package weight is required.',
+            'packages.*.length.gt' => 'Package length must be greater than 0.',
+            'packages.*.width.gt' => 'Package width must be greater than 0.',
+            'packages.*.height.gt' => 'Package height must be greater than 0.',
+            'packages.*.weight.gt' => 'Package weight must be greater than 0.',
         ]);
 
         DB::beginTransaction();
@@ -140,19 +159,8 @@ class CrrController extends Controller
 
             $crr = Crr::create($crrData);
 
-            // --- Save Package rows (skip completely blank rows) ---
+            // --- Save Package rows ---
             foreach ($request->input('packages', []) as $pkgData) {
-                $hasDimension = !empty($pkgData['length'])             || !empty($pkgData['width'])
-                             || !empty($pkgData['height'])             || !empty($pkgData['weight'])
-                             || !empty($pkgData['warehouse_location']) || !empty($pkgData['remarks']);
-                $hasFlag      = isset($pkgData['is_dgr'])              || isset($pkgData['is_not_stackable'])
-                             || isset($pkgData['is_medicine'])         || isset($pkgData['is_xray'])
-                             || isset($pkgData['is_delivery_irregularity']);
-
-                if (!$hasDimension && !$hasFlag) {
-                    continue;
-                }
-
                 CrrPackage::create([
                     'crr_id'                   => $crr->id,
                     'length'                   => $pkgData['length']                   ?: null,
@@ -241,6 +249,25 @@ class CrrController extends Controller
         $crr->load(['packages', 'costs']);
         $changeLogSnapshot = $changeLogService->captureSnapshot($crr);
 
+        $request->validate([
+            'packages' => ['required', 'array', 'min:1'],
+            'packages.*.length' => ['required', 'numeric', 'gt:0'],
+            'packages.*.width' => ['required', 'numeric', 'gt:0'],
+            'packages.*.height' => ['required', 'numeric', 'gt:0'],
+            'packages.*.weight' => ['required', 'numeric', 'gt:0'],
+        ], [
+            'packages.required' => 'Please add at least one package before saving.',
+            'packages.min' => 'Please add at least one package before saving.',
+            'packages.*.length.required' => 'Package length is required.',
+            'packages.*.width.required' => 'Package width is required.',
+            'packages.*.height.required' => 'Package height is required.',
+            'packages.*.weight.required' => 'Package weight is required.',
+            'packages.*.length.gt' => 'Package length must be greater than 0.',
+            'packages.*.width.gt' => 'Package width must be greater than 0.',
+            'packages.*.height.gt' => 'Package height must be greater than 0.',
+            'packages.*.weight.gt' => 'Package weight must be greater than 0.',
+        ]);
+
         DB::beginTransaction();
         try {
             // --- Update main CRR data ---
@@ -290,17 +317,6 @@ class CrrController extends Controller
             // --- Sync Packages (Delete existing and recreate) ---
             $crr->packages()->delete();
             foreach ($request->input('packages', []) as $pkgData) {
-                $hasDimension = !empty($pkgData['length'])             || !empty($pkgData['width'])
-                             || !empty($pkgData['height'])             || !empty($pkgData['weight'])
-                             || !empty($pkgData['warehouse_location']) || !empty($pkgData['remarks']);
-                $hasFlag      = isset($pkgData['is_dgr'])              || isset($pkgData['is_not_stackable'])
-                             || isset($pkgData['is_medicine'])         || isset($pkgData['is_xray'])
-                             || isset($pkgData['is_delivery_irregularity']);
-
-                if (!$hasDimension && !$hasFlag) {
-                    continue;
-                }
-
                 CrrPackage::create([
                     'crr_id'                   => $crr->id,
                     'length'                   => $pkgData['length']                   ?: null,

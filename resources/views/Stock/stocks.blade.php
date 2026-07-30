@@ -895,6 +895,11 @@
                                                                 $isNotStackable = $crr->packages->where('is_not_stackable', true)->isNotEmpty();
                                                                 $hasMedicine = $crr->packages->where('is_medicine', true)->isNotEmpty();
                                                                 $hasDeliveryIrreg = is_array($crr->delivery_irregularities) && in_array('Yes', $crr->delivery_irregularities);
+                                                                $isOversized = $crr->packages->contains(function ($pkg) {
+                                                                    return (float) ($pkg->length ?? 0) >= 120
+                                                                        || (float) ($pkg->width ?? 0) >= 120
+                                                                        || (float) ($pkg->height ?? 0) >= 120;
+                                                                });
                                                             @endphp
                                                             <tr
                                                                 data-customer="{{ $customerName }}"
@@ -913,6 +918,10 @@
                                                                 data-items="{{ $totalItems }}"
                                                                 data-weight="{{ $totalWeight > 0 ? number_format($totalWeight, 2, '.', '') : '0' }}"
                                                                 data-cbm="{{ $totalCbm > 0 ? number_format($totalCbm, 2, '.', '') : '0' }}"
+                                                                data-value="{{ $crr->customs_value !== null ? number_format((float) $crr->customs_value, 2, '.', '') : '' }}"
+                                                                data-currency="{{ $crr->currency ?? '' }}"
+                                                                data-dgr="{{ $hasDgr ? 'Yes' : '' }}"
+                                                                data-oversized="{{ $isOversized ? 'Yes' : '' }}"
                                                             >
                                                                  <td class="text-center"><input type="checkbox" class="row-checkbox" value="{{ $crr->id }}"></td>
                                                                 <td>{{ $crr->hub_code ?? '—' }}</td>
@@ -1234,6 +1243,38 @@
                 });
             }
 
+            function hasNonStatusStockFilters() {
+                var multiSelects = [
+                    '#col-Hub-Agent select',
+                    '#col-Customer select',
+                    '#col-Vessel select',
+                    '#col-Account-manager select',
+                    '#col-Office select'
+                ];
+                for (var i = 0; i < multiSelects.length; i++) {
+                    var selected = $(multiSelects[i]).val() || [];
+                    if (selected.length > 0) {
+                        return true;
+                    }
+                }
+
+                var textInputs = [
+                    '#col-Stock-number input',
+                    '#col-PO-number input',
+                    '#col-Supplier input',
+                    '#col-Service-reference input',
+                    '#col-Shipment-no input',
+                    '#col-Transit-id input'
+                ];
+                for (var j = 0; j < textInputs.length; j++) {
+                    if (getFilterText(textInputs[j])) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
             $('#col-Customer select, #col-Vessel select, #col-Hub-Agent select, #col-Status select, #col-Account-manager select, #col-Office select, #col-PO-number input, #col-Supplier input, #col-Stock-number input, #col-Service-reference input, #col-Shipment-no input, #col-Transit-id input').on('change keyup', function() {
                 table.draw();
             });
@@ -1249,6 +1290,18 @@
                 }
 
                 var $row = $(row);
+                var status = rowData($row, 'status');
+                var selectedStatuses = $('#col-Status select').val() || [];
+
+                // Hide Completed/Cancelled by default; show them when Status is filtered
+                // or when any other list filter/search is active.
+                if (selectedStatuses.length > 0) {
+                    if (!matchesSelectedValues(selectedStatuses, status)) {
+                        return false;
+                    }
+                } else if (!hasNonStatusStockFilters() && (status === 'Completed' || status === 'Cancelled')) {
+                    return false;
+                }
 
                 if (!matchesHubAgent(
                     $('#col-Hub-Agent select').val() || [],
@@ -1263,10 +1316,6 @@
                 }
 
                 if (!matchesSelectedValues($('#col-Vessel select').val() || [], rowData($row, 'vessel'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Status select').val() || [], rowData($row, 'status'))) {
                     return false;
                 }
 
@@ -1304,6 +1353,8 @@
 
                 return true;
             });
+
+            table.draw();
 
             $('.clear-filters').on('click', function(e) {
                 e.preventDefault();
@@ -1346,59 +1397,129 @@
                 }).get();
             }
 
-            function getCellCopyText($cell) {
-                var $clone = $cell.clone();
-                $clone.find('input, button, i, .landed-badge').remove();
-                return $.trim($clone.text()).replace(/\s+/g, ' ');
+            function escapeHtml(value) {
+                return String(value == null ? '' : value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
             }
 
-            function getRowCopyValues($row) {
-                var values = [];
-
-                $row.find('td').each(function(index) {
-                    if (index === 0) {
-                        return;
-                    }
-
-                    values.push(getCellCopyText($(this)));
-                });
-
-                return values;
-            }
-
-            function getTableCopyHeaders() {
-                var headers = [];
-
-                $('#offices-table thead tr:first th').each(function(index) {
-                    if (index === 0) {
-                        return;
-                    }
-
-                    headers.push($.trim($(this).text()));
-                });
-
-                return headers;
-            }
-
-            function buildSelectedRowsCopyText(rows) {
-                var lines = [];
-                var headers = getTableCopyHeaders();
-
-                if (headers.length) {
-                    lines.push(headers.join('\t'));
+            function formatCopyNumber(value, decimals) {
+                var num = parseFloat(value);
+                if (isNaN(num)) {
+                    return '';
                 }
 
-                rows.forEach(function($row) {
-                    lines.push(getRowCopyValues($row).join('\t'));
-                });
-
-                return lines.join('\n');
+                var fixed = num.toFixed(decimals);
+                var parts = fixed.split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+                return parts.join('.');
             }
 
-            function copyTextToClipboard(text) {
-                function fallbackCopy() {
+            function formatCopyVolumeWeight(cbm) {
+                var volume = parseFloat(cbm);
+                if (isNaN(volume) || volume <= 0) {
+                    return '0.00';
+                }
+
+                return formatCopyNumber(Math.round(volume * 167 * 100) / 100, 2);
+            }
+
+            function getCopyRowData($row) {
+                var weight = parseFloat(rowData($row, 'weight')) || 0;
+                var volume = parseFloat(rowData($row, 'cbm')) || 0;
+                var valueRaw = rowData($row, 'value');
+                var valueNum = valueRaw === '' ? NaN : parseFloat(valueRaw);
+
+                return {
+                    hub: rowData($row, 'hub-agent') || rowData($row, 'hub-agent-raw') || '',
+                    vessel: rowData($row, 'vessel') || '',
+                    supplier: rowData($row, 'supplier') || '',
+                    poNumbers: rowData($row, 'po-numbers') || '',
+                    items: rowData($row, 'items') || '0',
+                    weight: weight,
+                    weightText: formatCopyNumber(weight, 2),
+                    valueText: isNaN(valueNum) ? '' : formatCopyNumber(valueNum, 2),
+                    currency: rowData($row, 'currency') || '',
+                    volume: volume,
+                    volumeText: formatCopyNumber(volume, 2),
+                    vw: parseFloat(formatCopyVolumeWeight(volume)) || 0,
+                    vwText: formatCopyVolumeWeight(volume),
+                    dgr: rowData($row, 'dgr') || '',
+                    oversized: rowData($row, 'oversized') || ''
+                };
+            }
+
+            function buildSelectedRowsCopyPayload(rows) {
+                var headers = ['Hub', 'Vessel', 'Supplier', 'PO numbers', 'Items', 'Weight', 'Value', 'Cur.', 'Volume', 'VW', 'DG', 'Oversized'];
+                var plainLines = [headers.join('\t')];
+                var totalWeight = 0;
+                var totalVolume = 0;
+                var totalVw = 0;
+                var bodyHtml = '';
+
+                rows.forEach(function($row) {
+                    var row = getCopyRowData($row);
+                    totalWeight += row.weight;
+                    totalVolume += row.volume;
+                    totalVw += row.vw;
+
+                    var cells = [
+                        row.hub,
+                        row.vessel,
+                        row.supplier,
+                        row.poNumbers,
+                        row.items,
+                        row.weightText,
+                        row.valueText,
+                        row.currency,
+                        row.volumeText,
+                        row.vwText,
+                        row.dgr,
+                        row.oversized
+                    ];
+
+                    plainLines.push(cells.join('\t'));
+                    bodyHtml += '<tr>' + cells.map(function(cell) {
+                        return '<td style="border:1px solid #9ca3af;padding:4px 6px;vertical-align:top;">' + escapeHtml(cell) + '</td>';
+                    }).join('') + '</tr>';
+                });
+
+                var weightTotalText = formatCopyNumber(totalWeight, 2);
+                var volumeTotalText = formatCopyNumber(totalVolume, 2);
+                var vwTotalText = formatCopyNumber(totalVw, 2);
+
+                plainLines.push('');
+                plainLines.push('Weight: ' + weightTotalText);
+                plainLines.push('Volume: ' + volumeTotalText);
+                plainLines.push('VW: ' + vwTotalText);
+
+                var html = ''
+                    + '<table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1e3a5f;">'
+                    + '<thead><tr>'
+                    + headers.map(function(header) {
+                        return '<th style="border:1px solid #9ca3af;padding:4px 6px;text-align:left;font-weight:700;color:#1e3a8a;background:#ffffff;">' + escapeHtml(header) + '</th>';
+                    }).join('')
+                    + '</tr></thead>'
+                    + '<tbody>' + bodyHtml + '</tbody>'
+                    + '</table>'
+                    + '<div style="margin-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1e3a5f;font-weight:700;line-height:1.5;">'
+                    + '<div>Weight: ' + escapeHtml(weightTotalText) + '</div>'
+                    + '<div>Volume: ' + escapeHtml(volumeTotalText) + '</div>'
+                    + '<div>VW: ' + escapeHtml(vwTotalText) + '</div>'
+                    + '</div>';
+
+                return {
+                    plain: plainLines.join('\n'),
+                    html: html
+                };
+            }
+
+            function copyTextToClipboard(text, html) {
+                function fallbackCopy(plainText) {
                     var textarea = document.createElement('textarea');
-                    textarea.value = text;
+                    textarea.value = plainText;
                     textarea.setAttribute('readonly', '');
                     textarea.style.position = 'fixed';
                     textarea.style.top = '0';
@@ -1425,13 +1546,53 @@
                     return success;
                 }
 
-                if (navigator.clipboard && window.isSecureContext) {
-                    return navigator.clipboard.writeText(text).catch(function() {
-                        return fallbackCopy() ? Promise.resolve() : Promise.reject();
+                function fallbackHtmlCopy(plainText, htmlText) {
+                    var container = document.createElement('div');
+                    container.contentEditable = 'true';
+                    container.style.position = 'fixed';
+                    container.style.left = '-9999px';
+                    container.style.top = '0';
+                    container.innerHTML = htmlText || plainText;
+                    document.body.appendChild(container);
+
+                    var range = document.createRange();
+                    range.selectNodeContents(container);
+                    var selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+
+                    var success = false;
+                    try {
+                        success = document.execCommand('copy');
+                    } catch (err) {
+                        success = false;
+                    }
+
+                    selection.removeAllRanges();
+                    document.body.removeChild(container);
+                    return success || fallbackCopy(plainText);
+                }
+
+                if (html && navigator.clipboard && window.ClipboardItem && window.isSecureContext) {
+                    var item = new ClipboardItem({
+                        'text/plain': new Blob([text], { type: 'text/plain' }),
+                        'text/html': new Blob([html], { type: 'text/html' })
+                    });
+
+                    return navigator.clipboard.write([item]).catch(function() {
+                        return fallbackHtmlCopy(text, html) ? Promise.resolve() : Promise.reject();
                     });
                 }
 
-                return fallbackCopy() ? Promise.resolve() : Promise.reject();
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(text).catch(function() {
+                        return fallbackCopy(text) ? Promise.resolve() : Promise.reject();
+                    });
+                }
+
+                return (html ? fallbackHtmlCopy(text, html) : fallbackCopy(text))
+                    ? Promise.resolve()
+                    : Promise.reject();
             }
 
             var copyToastTimer = null;
@@ -1561,12 +1722,12 @@
                     return;
                 }
 
-                var text = buildSelectedRowsCopyText(selectedRows);
+                var payload = buildSelectedRowsCopyPayload(selectedRows);
 
-                copyTextToClipboard(text).then(function() {
+                copyTextToClipboard(payload.plain, payload.html).then(function() {
                     showCopyNotification(selectedRows.length);
                 }).catch(function() {
-                    alert('Could not copy to clipboard. Please copy manually:\n\n' + text);
+                    alert('Could not copy to clipboard. Please copy manually:\n\n' + payload.plain);
                 });
             });
 

@@ -732,7 +732,10 @@ class CustomerController extends Controller
             'is_main_contact' => $request->has('is_main_contact'),
         ]);
 
-        return redirect()->back()->with('success', 'Contact updated successfully.');
+        return redirect()
+            ->route('customers.edit', $contact->customer_id)
+            ->with('success', 'Contact updated successfully.')
+            ->withFragment('contacts');
     }
 
     /**
@@ -787,7 +790,10 @@ class CustomerController extends Controller
             'contact'
         );
 
-        return redirect()->route('customers.edit', $id)->with('success', 'Contact added successfully.');
+        return redirect()
+            ->route('customers.edit', $id)
+            ->with('success', 'Contact added successfully.')
+            ->withFragment('contacts');
     }
 
     /**
@@ -851,7 +857,10 @@ class CustomerController extends Controller
             'vessel'
         );
 
-        return redirect()->route('customers.edit', $id)->with('success', 'Vessel added successfully.');
+        return redirect()
+            ->route('customers.edit', $id)
+            ->with('success', 'Vessel added successfully.')
+            ->withFragment('vessels');
     }
 
     /**
@@ -928,7 +937,10 @@ class CustomerController extends Controller
             ['contact' => 'Notification contact']
         );
 
-        return redirect()->back()->with('success', 'Vessel updated successfully.');
+        return redirect()
+            ->route('customers.edit', $vessel->customer_id)
+            ->with('success', 'Vessel updated successfully.')
+            ->withFragment('vessels');
     }
 
     private function multipleEmailsValidator(): \Closure

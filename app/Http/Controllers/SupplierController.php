@@ -61,16 +61,25 @@ class SupplierController extends Controller
     public function update(Request $request, $id)
     {
         $supplier = Supplier::findOrFail($id);
-        
-        $request->validate([
-            'supplier_name' => 'required|string|max:255',
-            'email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
-            'phone_number' => 'nullable|string|max:255',
-        ]);
+        $activeTab = $this->resolveActiveTab($request);
+
+        try {
+            $request->validate([
+                'supplier_name' => 'required|string|max:255',
+                'email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+                'phone_number' => 'nullable|string|max:255',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $e->redirectTo(route('suppliers.edit', $id) . '#' . $activeTab);
+            throw $e;
+        }
 
         $supplier->update($request->all());
 
-        return redirect()->back()->with('success', 'Supplier updated successfully.');
+        return redirect()
+            ->route('suppliers.edit', $id)
+            ->with('success', 'Supplier updated successfully.')
+            ->withFragment($activeTab);
     }
 
     public function destroy($id)
@@ -111,7 +120,10 @@ class SupplierController extends Controller
             'is_main_contact' => $request->has('is_main_contact'),
         ]);
 
-        return redirect()->route('suppliers.edit', $supplierId)->with('success', 'Contact added successfully.');
+        return redirect()
+            ->route('suppliers.edit', $supplierId)
+            ->with('success', 'Contact added successfully.')
+            ->withFragment('contacts');
     }
 
     public function editContact($supplierId, $contactId)
@@ -141,7 +153,18 @@ class SupplierController extends Controller
             'is_main_contact' => $request->has('is_main_contact'),
         ]);
 
-        return redirect()->back()->with('success', 'Contact updated successfully.');
+        return redirect()
+            ->route('suppliers.edit', $supplierId)
+            ->with('success', 'Contact updated successfully.')
+            ->withFragment('contacts');
+    }
+
+    private function resolveActiveTab(Request $request): string
+    {
+        $allowed = ['supplier-details', 'contacts'];
+        $tab = (string) $request->input('active_tab', 'supplier-details');
+
+        return in_array($tab, $allowed, true) ? $tab : 'supplier-details';
     }
 
     private function multipleEmailsValidator(): \Closure

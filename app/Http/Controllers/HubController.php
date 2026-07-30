@@ -14,8 +14,11 @@ class HubController extends Controller
     {
         $hubs = Hub::orderBy('hub_name')->get();
         $countries = $hubs->pluck('country')->filter()->unique()->sort()->values();
+        $countryFlags = DB::table('countries')
+            ->whereNotNull('flag_url')
+            ->pluck('flag_url', 'name');
 
-        return view('hub.index', compact('hubs', 'countries'));
+        return view('hub.index', compact('hubs', 'countries', 'countryFlags'));
     }
 
     public function create()
@@ -75,75 +78,81 @@ class HubController extends Controller
     public function update(Request $request, $id)
     {
         $hub = Hub::findOrFail($id);
-        
-        $validated = $request->validate([
-            'hub_name' => 'required|string|max:255',
-            'company_id' => 'nullable|string|max:255',
-            'customer_number_fm' => 'nullable|string|max:255',
-            'code' => 'nullable|string|max:255',
-            'code_description' => 'nullable|string|max:255',
-            'phone_number' => 'nullable|string|max:255',
-            'email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
-            'is_gts_company' => 'nullable|boolean',
-            'remarks' => 'nullable|string',
-            'special_considerations' => 'nullable|string',
-            'show_pre_alert' => 'nullable|boolean',
-            'hub_address' => 'nullable|string',
-            'city' => 'nullable|string|max:255',
-            'district_state' => 'nullable|string|max:255',
-            'zip_code' => 'nullable|string|max:255',
-            'country' => 'nullable|string|max:255',
-            'port_code' => 'nullable|string|max:255',
-            'office_address' => 'nullable|string',
-            'office_city' => 'nullable|string|max:255',
-            'office_district_state' => 'nullable|string|max:255',
-            'office_zip_code' => 'nullable|string|max:255',
-            'office_country' => 'nullable|string|max:255',
-            'eori_number' => 'nullable|string|max:255',
-            'un_locode' => 'nullable|string|max:255',
-            'hide_in_portal' => 'nullable|boolean',
-            'portal_remarks' => 'nullable|string',
-            'portal_email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+        $activeTab = $this->resolveActiveTab($request);
 
-            // New Fields Validation
-            'invoicing_name' => 'nullable|string|max:255',
-            'invoicing_address' => 'nullable|string',
-            'invoicing_city' => 'nullable|string|max:255',
-            'invoicing_district' => 'nullable|string|max:255',
-            'invoicing_zip' => 'nullable|string|max:255',
-            'billing_country' => 'nullable|string|max:255',
-            'emails_for_invoicing' => 'nullable|string',
-            'emails_for_invoicing_cc' => 'nullable|string',
-            'vat_number' => 'nullable|string|max:255',
-            'invoicing_frequency' => 'nullable|string|max:255',
-            'billing_currency_outgoing' => 'nullable|string|max:255',
-            'payment_terms_outgoing' => 'nullable|string|max:255',
-            'billing_currency_incoming' => 'nullable|string|max:255',
-            'payment_terms_incoming' => 'nullable|string|max:255',
-            'agreement_type' => 'nullable|string|max:255',
-            'rebate_percentage' => 'nullable|numeric|min:0|max:100',
-            'export_services' => 'nullable|array',
-            'import_services' => 'nullable|array',
-            'export_emails' => 'nullable|array',
-            'import_emails' => 'nullable|array',
-            'stock_item_changed_emails' => 'nullable|string',
-            'quote_requests_emails' => 'nullable|string',
-            'coc_signed' => 'nullable|boolean',
-            'sop_implemented' => 'nullable|boolean',
-            'coc_signed_date' => 'nullable|date_format:d.m.Y',
-            'responsible_manager' => 'nullable|string|max:255',
-            'scan_gun_login' => 'nullable|string|max:255',
-            'scan_gun_password' => 'nullable|string|max:255',
-            'agreement_start_date' => 'nullable|date_format:d.m.Y',
-            'agreement_expiry_date' => 'nullable|date_format:d.m.Y',
-            'minimal_cbm' => 'nullable|numeric|min:0',
-            'minimal_weight' => 'nullable|numeric|min:0',
-            'free_storage_days' => 'nullable|integer|min:0',
-            'cbm_charge_usd' => 'nullable|numeric|min:0',
-            'agreement_implemented' => 'nullable|boolean',
-            'scangun_photo_taking' => 'nullable|boolean',
-            'scangun_detailed_shipment_out' => 'nullable|boolean',
-        ]);
+        try {
+            $validated = $request->validate([
+                'hub_name' => 'required|string|max:255',
+                'company_id' => 'nullable|string|max:255',
+                'customer_number_fm' => 'nullable|string|max:255',
+                'code' => 'nullable|string|max:255',
+                'code_description' => 'nullable|string|max:255',
+                'phone_number' => 'nullable|string|max:255',
+                'email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+                'is_gts_company' => 'nullable|boolean',
+                'remarks' => 'nullable|string',
+                'special_considerations' => 'nullable|string',
+                'show_pre_alert' => 'nullable|boolean',
+                'hub_address' => 'nullable|string',
+                'city' => 'nullable|string|max:255',
+                'district_state' => 'nullable|string|max:255',
+                'zip_code' => 'nullable|string|max:255',
+                'country' => 'nullable|string|max:255',
+                'port_code' => 'nullable|string|max:255',
+                'office_address' => 'nullable|string',
+                'office_city' => 'nullable|string|max:255',
+                'office_district_state' => 'nullable|string|max:255',
+                'office_zip_code' => 'nullable|string|max:255',
+                'office_country' => 'nullable|string|max:255',
+                'eori_number' => 'nullable|string|max:255',
+                'un_locode' => 'nullable|string|max:255',
+                'hide_in_portal' => 'nullable|boolean',
+                'portal_remarks' => 'nullable|string',
+                'portal_email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+
+                // New Fields Validation
+                'invoicing_name' => 'nullable|string|max:255',
+                'invoicing_address' => 'nullable|string',
+                'invoicing_city' => 'nullable|string|max:255',
+                'invoicing_district' => 'nullable|string|max:255',
+                'invoicing_zip' => 'nullable|string|max:255',
+                'billing_country' => 'nullable|string|max:255',
+                'emails_for_invoicing' => 'nullable|string',
+                'emails_for_invoicing_cc' => 'nullable|string',
+                'vat_number' => 'nullable|string|max:255',
+                'invoicing_frequency' => 'nullable|string|max:255',
+                'billing_currency_outgoing' => 'nullable|string|max:255',
+                'payment_terms_outgoing' => 'nullable|string|max:255',
+                'billing_currency_incoming' => 'nullable|string|max:255',
+                'payment_terms_incoming' => 'nullable|string|max:255',
+                'agreement_type' => 'nullable|string|max:255',
+                'rebate_percentage' => 'nullable|numeric|min:0|max:100',
+                'export_services' => 'nullable|array',
+                'import_services' => 'nullable|array',
+                'export_emails' => 'nullable|array',
+                'import_emails' => 'nullable|array',
+                'stock_item_changed_emails' => 'nullable|string',
+                'quote_requests_emails' => 'nullable|string',
+                'coc_signed' => 'nullable|boolean',
+                'sop_implemented' => 'nullable|boolean',
+                'coc_signed_date' => 'nullable|date_format:d.m.Y',
+                'responsible_manager' => 'nullable|string|max:255',
+                'scan_gun_login' => 'nullable|string|max:255',
+                'scan_gun_password' => 'nullable|string|max:255',
+                'agreement_start_date' => 'nullable|date_format:d.m.Y',
+                'agreement_expiry_date' => 'nullable|date_format:d.m.Y',
+                'minimal_cbm' => 'nullable|numeric|min:0',
+                'minimal_weight' => 'nullable|numeric|min:0',
+                'free_storage_days' => 'nullable|integer|min:0',
+                'cbm_charge_usd' => 'nullable|numeric|min:0',
+                'agreement_implemented' => 'nullable|boolean',
+                'scangun_photo_taking' => 'nullable|boolean',
+                'scangun_detailed_shipment_out' => 'nullable|boolean',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $e->redirectTo(route('hub.show', $id) . '#' . $activeTab);
+            throw $e;
+        }
 
         // Handle checkbox values
         $validated['is_gts_company'] = $request->has('is_gts_company');
@@ -175,7 +184,10 @@ class HubController extends Controller
 
         $hub->update($validated);
 
-        return redirect()->back()->with('success', 'Hub updated successfully.');
+        return redirect()
+            ->route('hub.show', $id)
+            ->with('success', 'Hub updated successfully.')
+            ->withFragment($activeTab);
     }
 
     public function updateStatus(Request $request, $id)
@@ -322,7 +334,10 @@ class HubController extends Controller
             'is_main_contact' => $request->has('is_main_contact'),
         ]);
 
-        return redirect()->route('hub.show', $hubId)->with('success', 'Contact added successfully.');
+        return redirect()
+            ->route('hub.show', $hubId)
+            ->with('success', 'Contact added successfully.')
+            ->withFragment('contacts');
     }
 
     public function editContact($hubId, $contactId)
@@ -352,7 +367,10 @@ class HubController extends Controller
             'is_main_contact' => $request->has('is_main_contact'),
         ]);
 
-        return redirect()->back()->with('success', 'Contact updated successfully.');
+        return redirect()
+            ->route('hub.show', $hubId)
+            ->with('success', 'Contact updated successfully.')
+            ->withFragment('contacts');
     }
 
     // Hub User Methods
@@ -380,7 +398,10 @@ class HubController extends Controller
             'show_in_scan_gun' => $request->has('show_in_scan_gun'),
         ]);
 
-        return redirect()->route('hub.show', $hubId)->with('success', 'Hub User added successfully.');
+        return redirect()
+            ->route('hub.show', $hubId)
+            ->with('success', 'Hub User added successfully.')
+            ->withFragment('hub-users');
     }
 
     public function editUser($hubId, $userId)
@@ -408,7 +429,28 @@ class HubController extends Controller
             'show_in_scan_gun' => $request->has('show_in_scan_gun'),
         ]);
 
-        return redirect()->back()->with('success', 'Hub User updated successfully.');
+        return redirect()
+            ->route('hub.show', $hubId)
+            ->with('success', 'Hub User updated successfully.')
+            ->withFragment('hub-users');
+    }
+
+    private function resolveActiveTab(Request $request): string
+    {
+        $allowed = [
+            'hub-details',
+            'billing-details',
+            'sop',
+            'pricing',
+            'hub-users',
+            'contacts',
+            'email-settings',
+            'scan-gun',
+        ];
+
+        $tab = (string) $request->input('active_tab', 'hub-details');
+
+        return in_array($tab, $allowed, true) ? $tab : 'hub-details';
     }
 
     private function multipleEmailsValidator(): \Closure

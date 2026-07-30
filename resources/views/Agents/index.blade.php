@@ -463,7 +463,16 @@
                                                 </td>
                                                 <td>{{ $agent->code }}</td>
                                                 <td>{{ $agent->city }}</td>
-                                                <td>{{ $countryName ?: '—' }}</td>
+                                                <td>
+                                                    @if($countryName)
+                                                        @if(!empty($agent->country->flag_url))
+                                                            <img src="{{ $agent->country->flag_url }}" class="country-flag" alt="">
+                                                        @endif
+                                                        {{ $countryName }}
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
                                                 <td>{{ $agent->phone }}</td>
                                                 <td>
                                                     @if($agent->email)

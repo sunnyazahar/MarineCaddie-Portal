@@ -742,7 +742,7 @@
 
                                         <div class="vessel-footer">
                                             <button type="submit" class="btn-save-vessel">Save vessel</button>
-                                            <a href="{{ route('customers.edit', $id) }}"
+                                            <a href="{{ route('customers.edit', $id) }}#vessels"
                                                 class="btn-cancel-vessel">Cancel</a>
                                             <div class="metadata-footer"></div>
                                         </div>

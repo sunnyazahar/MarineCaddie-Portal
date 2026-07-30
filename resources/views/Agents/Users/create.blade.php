@@ -415,7 +415,7 @@
 
                                             <div class="form-footer">
                                                 <button type="submit" class="btn-save-contact">Save</button>
-                                                <a href="{{ route('agents.edit', $agent_id) }}"
+                                                <a href="{{ route('agents.edit', $agent_id) }}#agent-users"
                                                     class="btn-cancel-contact">Cancel</a>
                                             </div>
                                         </div>

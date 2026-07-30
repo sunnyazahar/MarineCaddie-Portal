@@ -936,6 +936,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Restore active tab from URL hash (e.g. after contact create/update)
+            var hash = window.location.hash;
+            if (hash && $(hash).length && $('.nav-tabs a[href="' + hash + '"]').length) {
+                $('.nav-tabs a[href="' + hash + '"]').tab('show');
+            }
+
             // Initialize Select2 on specified fields
             function formatCountry(state) {
                 if (!state.id) {

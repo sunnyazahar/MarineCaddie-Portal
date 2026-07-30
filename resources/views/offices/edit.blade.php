@@ -1439,14 +1439,31 @@
 
             initSelect2();
 
-            // Tab switching logic
-            $('.custom-tab').on('click', function () {
-                var tabId = $(this).data('tab');
+            // Tab switching logic (keeps URL hash so redirects can restore the active tab)
+            function activateOfficeTab(tabId) {
+                if (!tabId || !$('#' + tabId).length || !$('.custom-tab[data-tab="' + tabId + '"]').length) {
+                    return;
+                }
                 $('.custom-tab').removeClass('active');
-                $(this).addClass('active');
+                $('.custom-tab[data-tab="' + tabId + '"]').addClass('active');
                 $('.tab-pane').removeClass('active');
                 $('#' + tabId).addClass('active');
+            }
+
+            $('.custom-tab').on('click', function () {
+                var tabId = $(this).data('tab');
+                activateOfficeTab(tabId);
+                if (history.replaceState) {
+                    history.replaceState(null, '', '#' + tabId);
+                } else {
+                    window.location.hash = tabId;
+                }
             });
+
+            var hashTab = window.location.hash.replace(/^#/, '');
+            if (hashTab) {
+                activateOfficeTab(hashTab);
+            }
 
             // Dynamic Bank Accounts
             var accountCount = {{ $office->bankAccounts->count() }};

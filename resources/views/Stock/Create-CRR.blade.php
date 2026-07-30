@@ -638,6 +638,16 @@
 
                                         <form action="{{ route('stocks.crr.store') }}" method="POST" id="crrForm">
                                             @csrf
+                                            @if ($errors->any() || session('error'))
+                                                <div id="crr-form-errors" style="margin-bottom: 16px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 13px;">
+                                                    @if (session('error'))
+                                                        <div>{{ session('error') }}</div>
+                                                    @endif
+                                                    @foreach ($errors->all() as $error)
+                                                        <div>{{ $error }}</div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
                                             <div class="crr-form-row">
                                                 <!-- Column 1 -->
                                                 <div class="crr-col">
@@ -779,9 +789,13 @@
                                                         </div>
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label">Actual delivery date</label>
-                                                                <input type="text" class="crr-input datepicker"
+                                                                <label class="crr-label" id="actual-delivery-date-label">Actual delivery date <span id="actual-delivery-required-mark" style="color:#dc3545; display:none;">*</span></label>
+                                                                <input type="text" class="crr-input datepicker" id="actual_delivery_date"
                                                                     name="actual_delivery_date" placeholder="YYYY-MM-DD">
+                                                                <div id="actual-delivery-validation-error" style="display:none; margin-top: 6px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 12px; position: relative; padding-right: 32px;">
+                                                                    <span id="actual-delivery-validation-error-text"></span>
+                                                                    <button type="button" id="actual-delivery-validation-error-close" title="Close" aria-label="Close" style="position: absolute; top: 6px; right: 8px; border: none; background: transparent; color: #b91c1c; font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 4px;">&times;</button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1017,7 +1031,7 @@
                                                 <div class="crr-col">
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Status</label>
-                                                        <select class="form-control select2" name="status">
+                                                        <select class="form-control select2" name="status" id="crr_status">
                                                             @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
                                                                 <option value="{{ $value }}" {{ $value == \App\Models\Crr::STATUS_PENDING ? 'selected' : '' }}>{{ $label }}</option>
                                                             @endforeach
@@ -1037,6 +1051,10 @@
                                                         style="font-weight: normal; color: #000000; font-weight: 600;">(Total
                                                         : 0.00 kg, 0
                                                         Packages, 0.0000 CBM)</span></span></div>
+                                            <div id="packages-validation-error" style="display:none; margin-bottom: 10px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 12px; position: relative; padding-right: 32px;">
+                                                <span id="packages-validation-error-text"></span>
+                                                <button type="button" id="packages-validation-error-close" title="Close" aria-label="Close" style="position: absolute; top: 6px; right: 8px; border: none; background: transparent; color: #b91c1c; font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 4px;">&times;</button>
+                                            </div>
                                             <div class="table-responsive">
                                                 <table class="crr-data-table" id="packagesTable">
                                                     <thead>
@@ -2240,6 +2258,92 @@
                         $btn.prop('disabled', false).text('Save supplier');
                     }
                 });
+            });
+
+            // Require package details + Actual delivery date when status is Stock
+            var STOCK_STATUS = {{ \App\Models\Crr::STATUS_ACTIVE }};
+
+            function toggleActualDeliveryRequired() {
+                var isStock = String($('#crr_status').val()) === String(STOCK_STATUS);
+                $('#actual-delivery-required-mark').toggle(isStock);
+                if (!isStock) {
+                    $('#actual_delivery_date').css('border-color', '');
+                    $('#actual-delivery-validation-error-text').text('');
+                    $('#actual-delivery-validation-error').hide();
+                }
+            }
+
+            $('#crr_status').on('change', toggleActualDeliveryRequired);
+            toggleActualDeliveryRequired();
+
+            $('#crrForm').on('submit', function (e) {
+                var $errorBox = $('#packages-validation-error');
+                var $errorText = $('#packages-validation-error-text');
+                var $rows = $('#packagesTable tbody tr:not(.empty-row):not(.dgr-sub-row):not(.irregularity-sub-row)');
+                var message = '';
+                var incomplete = false;
+                var $actualDelivery = $('#actual_delivery_date');
+                var $actualErrorBox = $('#actual-delivery-validation-error');
+                var $actualErrorText = $('#actual-delivery-validation-error-text');
+
+                $rows.find('.pkg-l, .pkg-w, .pkg-h, .pkg-weight').css('border-color', '');
+                $actualDelivery.css('border-color', '');
+                $actualErrorText.text('');
+                $actualErrorBox.hide();
+
+                if ($rows.length === 0) {
+                    message = 'Please add at least one package with Length, Width, Height and Weight before saving.';
+                } else {
+                    $rows.each(function () {
+                        var $row = $(this);
+                        ['pkg-l', 'pkg-w', 'pkg-h', 'pkg-weight'].forEach(function (cls) {
+                            var $input = $row.find('.' + cls);
+                            var value = $.trim(String($input.val() || ''));
+                            if (value === '' || isNaN(parseFloat(value)) || parseFloat(value) <= 0) {
+                                incomplete = true;
+                                $input.css('border-color', '#dc3545');
+                            }
+                        });
+                    });
+                    if (incomplete) {
+                        message = 'Please fill Length, Width, Height and Weight (greater than 0) for all packages before saving.';
+                    }
+                }
+
+                if (message) {
+                    e.preventDefault();
+                    $errorText.text(message);
+                    $errorBox.show();
+                    $('html, body').animate({
+                        scrollTop: $('.crr-table-header').first().offset().top - 80
+                    }, 300);
+                    return false;
+                }
+
+                $errorText.text('');
+                $errorBox.hide();
+
+                if (String($('#crr_status').val()) === String(STOCK_STATUS) && !$.trim(String($actualDelivery.val() || ''))) {
+                    e.preventDefault();
+                    $actualDelivery.css('border-color', '#dc3545');
+                    $actualErrorText.text('Actual delivery date is required when status is Stock.');
+                    $actualErrorBox.show();
+                    $('html, body').animate({
+                        scrollTop: $actualDelivery.offset().top - 100
+                    }, 300);
+                    return false;
+                }
+            });
+
+            $(document).on('click', '#packages-validation-error-close', function () {
+                $('#packages-validation-error-text').text('');
+                $('#packages-validation-error').hide();
+            });
+
+            $(document).on('click', '#actual-delivery-validation-error-close', function () {
+                $('#actual-delivery-validation-error-text').text('');
+                $('#actual-delivery-validation-error').hide();
+                $('#actual_delivery_date').css('border-color', '');
             });
 
             $modal.off('hidden.bs.modal.supplierAdd').on('hidden.bs.modal.supplierAdd', function () {

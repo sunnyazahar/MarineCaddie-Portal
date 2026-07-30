@@ -696,7 +696,7 @@
 
                                             <div class="vessel-footer">
                                                 <button type="submit" class="btn-save-vessel">Save vessel</button>
-                                                <a href="{{ route('customers.edit', $vessel->customer_id) }}" class="btn-cancel-vessel">Cancel</a>
+                                                <a href="{{ route('customers.edit', $vessel->customer_id) }}#vessels" class="btn-cancel-vessel">Cancel</a>
                                                 <div class="metadata-footer">
                                                     @include('partials.audit-info', ['record' => $vessel])
                                                 </div>
@@ -1020,5 +1020,5 @@
             });
         });
     </script>
-@include('partials.unsaved-changes-guard', ['formSelector' => '#vesselForm', 'fallbackUrl' => route('customers.edit', $vessel->customer_id)])
+@include('partials.unsaved-changes-guard', ['formSelector' => '#vesselForm', 'fallbackUrl' => route('customers.edit', $vessel->customer_id) . '#vessels'])
 @endsection

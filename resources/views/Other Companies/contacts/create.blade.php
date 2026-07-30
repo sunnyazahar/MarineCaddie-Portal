@@ -187,7 +187,7 @@
 
                                         <div class="form-footer">
                                             <button type="submit" class="btn-save-custom">Save</button>
-                                            <a href="{{ route('other-companies.edit', $otherCompany->id) }}"
+                                            <a href="{{ route('other-companies.edit', $otherCompany->id) }}#contacts"
                                                 class="btn-cancel-custom">Cancel</a>
                                         </div>
                                     </form>

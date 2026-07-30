@@ -425,6 +425,7 @@
                                     enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')
+                                    <input type="hidden" name="active_tab" id="active_tab" value="{{ old('active_tab', 'agent-details') }}">
                                     <div class="card">
                                         <!-- Agent Details Tab -->
                                         <div id="agent-details" class="tab-content-custom active">
@@ -1505,18 +1506,33 @@
                 "ordering": false
             });
 
-            // Tab switching logic
-            $('.tab-item').on('click', function () {
-                var tabId = $(this).data('tab');
-
-                // Update active tab link
+            // Tab switching logic (keeps URL hash + hidden field so update redirects restore the active tab)
+            function activateAgentTab(tabId) {
+                if (!tabId || !$('#' + tabId).length || !$('.tab-item[data-tab="' + tabId + '"]').length) {
+                    return false;
+                }
                 $('.tab-item').removeClass('active');
-                $(this).addClass('active');
-
-                // Show corresponding content
+                $('.tab-item[data-tab="' + tabId + '"]').addClass('active');
                 $('.tab-content-custom').removeClass('active');
                 $('#' + tabId).addClass('active');
+                $('#active_tab').val(tabId);
+                return true;
+            }
+
+            $('.tab-item').on('click', function () {
+                var tabId = $(this).data('tab');
+                activateAgentTab(tabId);
+                if (history.replaceState) {
+                    history.replaceState(null, '', '#' + tabId);
+                } else {
+                    window.location.hash = tabId;
+                }
             });
+
+            var hashTab = window.location.hash.replace(/^#/, '');
+            if (hashTab) {
+                activateAgentTab(hashTab);
+            }
             // Dynamic Billing Exceptions
             var currencyOptionsHtml = '<option value=""></option>';
             @foreach($countries->pluck('currency')->filter()->unique()->sort() as $currency)

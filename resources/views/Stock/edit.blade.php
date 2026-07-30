@@ -1252,6 +1252,16 @@
                                 <form action="{{ route('stocks.crr.update', $crr->id) }}" method="POST" id="crrEditForm">
                                     @csrf
                                     @method('PUT')
+                                    @if ($errors->any() || session('error'))
+                                        <div id="crr-form-errors" style="margin: 0 0 16px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 13px;">
+                                            @if (session('error'))
+                                                <div>{{ session('error') }}</div>
+                                            @endif
+                                            @foreach ($errors->all() as $error)
+                                                <div>{{ $error }}</div>
+                                            @endforeach
+                                        </div>
+                                    @endif
 
                                     <!-- Summary Header -->
                                     <div class="summary-header">
@@ -1809,6 +1819,10 @@
                                                         Packages, 0.0000 CBM)</span></span>
                                                 <button type="button" class="btn btn-outline-teal btn-add-package">Add
                                                     item</button>
+                                            </div>
+                                            <div id="packages-validation-error" style="display:none; margin-bottom: 10px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 12px; position: relative; padding-right: 32px;">
+                                                <span id="packages-validation-error-text"></span>
+                                                <button type="button" id="packages-validation-error-close" title="Close" aria-label="Close" style="position: absolute; top: 6px; right: 8px; border: none; background: transparent; color: #b91c1c; font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 4px;">&times;</button>
                                             </div>
                                             <div class="table-responsive" style="margin-top: -10px !important;">
                                                 <table class="crr-data-table" id="packagesTable">
@@ -4111,6 +4125,54 @@ function updatePackageSummary() {
                     $btn.prop('disabled', false).text('Save supplier');
                 }
             });
+        });
+
+        // Require package details before save
+        $('#crrEditForm').on('submit', function (e) {
+            var $errorBox = $('#packages-validation-error');
+            var $errorText = $('#packages-validation-error-text');
+            var $rows = $('#packagesTable tbody tr:not(.empty-row):not(.dgr-sub-row):not(.irregularity-sub-row)');
+            var message = '';
+            var incomplete = false;
+
+            $rows.find('.pkg-l, .pkg-w, .pkg-h, .pkg-weight').css('border-color', '');
+
+            if ($rows.length === 0) {
+                message = 'Please add at least one package with Length, Width, Height and Weight before saving.';
+            } else {
+                $rows.each(function () {
+                    var $row = $(this);
+                    ['pkg-l', 'pkg-w', 'pkg-h', 'pkg-weight'].forEach(function (cls) {
+                        var $input = $row.find('.' + cls);
+                        var value = $.trim(String($input.val() || ''));
+                        if (value === '' || isNaN(parseFloat(value)) || parseFloat(value) <= 0) {
+                            incomplete = true;
+                            $input.css('border-color', '#dc3545');
+                        }
+                    });
+                });
+                if (incomplete) {
+                    message = 'Please fill Length, Width, Height and Weight (greater than 0) for all packages before saving.';
+                }
+            }
+
+            if (message) {
+                e.preventDefault();
+                $errorText.text(message);
+                $errorBox.show();
+                $('html, body').animate({
+                    scrollTop: $errorBox.offset().top - 80
+                }, 300);
+                return false;
+            }
+
+            $errorText.text('');
+            $errorBox.hide();
+        });
+
+        $(document).on('click', '#packages-validation-error-close', function () {
+            $('#packages-validation-error-text').text('');
+            $('#packages-validation-error').hide();
         });
 
         $modal.off('hidden.bs.modal.supplierAdd').on('hidden.bs.modal.supplierAdd', function () {

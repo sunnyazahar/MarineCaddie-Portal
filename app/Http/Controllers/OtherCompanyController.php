@@ -65,14 +65,21 @@ class OtherCompanyController extends Controller
 
     public function update(Request $request, OtherCompany $otherCompany)
     {
-        $request->validate([
-            'company_name'      => 'required|string|max:255',
-            'company_type'      => 'nullable|string|max:255',
-            'email'             => 'nullable|email|max:255',
-            'phone_number'      => 'nullable|string|max:255',
-            'country_id'        => 'nullable|exists:countries,id',
-            'office_country_id' => 'nullable|exists:countries,id',
-        ]);
+        $activeTab = $this->resolveActiveTab($request);
+
+        try {
+            $request->validate([
+                'company_name'      => 'required|string|max:255',
+                'company_type'      => 'nullable|string|max:255',
+                'email'             => 'nullable|email|max:255',
+                'phone_number'      => 'nullable|string|max:255',
+                'country_id'        => 'nullable|exists:countries,id',
+                'office_country_id' => 'nullable|exists:countries,id',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $e->redirectTo(route('other-companies.edit', $otherCompany->id) . '#' . $activeTab);
+            throw $e;
+        }
 
         $otherCompany->fill($request->only([
             'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'email',
@@ -89,7 +96,8 @@ class OtherCompanyController extends Controller
 
         return redirect()
             ->route('other-companies.edit', $otherCompany->id)
-            ->with('success', 'Company updated successfully.');
+            ->with('success', 'Company updated successfully.')
+            ->withFragment($activeTab);
     }
 
     public function destroy(OtherCompany $otherCompany)
@@ -143,7 +151,10 @@ class OtherCompanyController extends Controller
             'is_main_contact' => $request->has('is_main_contact'),
         ]);
 
-        return redirect()->route('other-companies.edit', $otherCompanyId)->with('success', 'Contact added successfully.');
+        return redirect()
+            ->route('other-companies.edit', $otherCompanyId)
+            ->with('success', 'Contact added successfully.')
+            ->withFragment('contacts');
     }
 
     public function editContact($otherCompanyId, $contactId)
@@ -173,14 +184,28 @@ class OtherCompanyController extends Controller
             'is_main_contact' => $request->has('is_main_contact'),
         ]);
 
-        return redirect()->back()->with('success', 'Contact updated successfully.');
+        return redirect()
+            ->route('other-companies.edit', $otherCompanyId)
+            ->with('success', 'Contact updated successfully.')
+            ->withFragment('contacts');
     }
 
     public function destroyContact($otherCompanyId, $contactId)
     {
         $contact = \App\Models\Contact::findOrFail($contactId);
         $contact->delete();
-        return redirect()->route('other-companies.edit', $otherCompanyId)->with('success', 'Contact deleted successfully.');
+        return redirect()
+            ->route('other-companies.edit', $otherCompanyId)
+            ->with('success', 'Contact deleted successfully.')
+            ->withFragment('contacts');
+    }
+
+    private function resolveActiveTab(Request $request): string
+    {
+        $allowed = ['company-details', 'contacts'];
+        $tab = (string) $request->input('active_tab', 'company-details');
+
+        return in_array($tab, $allowed, true) ? $tab : 'company-details';
     }
 
     private function companyTypeOptions(): array
