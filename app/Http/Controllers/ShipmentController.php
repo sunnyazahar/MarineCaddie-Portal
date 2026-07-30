@@ -1189,6 +1189,7 @@ class ShipmentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Add service details before generating a pre-alert PDF.',
+                'code' => 'missing_service_details',
             ], 422);
         }
 
@@ -1658,11 +1659,16 @@ class ShipmentController extends Controller
             ], 422);
         }
 
+        if (!\App\Services\ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails($shipment)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Add service details before generating a pre-alert PDF.',
+                'code' => 'missing_service_details',
+            ], 422);
+        }
+
         try {
-            if (
-                \App\Services\ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails($shipment)
-                && ! $shipment->preAlerts()->exists()
-            ) {
+            if (! $shipment->preAlerts()->exists()) {
                 app(ShipmentPreAlertService::class)->generate($shipment);
                 $shipment->load('preAlerts');
             }

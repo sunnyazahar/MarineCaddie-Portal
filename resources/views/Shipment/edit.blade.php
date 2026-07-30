@@ -4306,6 +4306,61 @@
                 });
         });
 
+        function showServiceDetailsRequiredAlert(message) {
+            var text = message || 'Add service details before generating a pre-alert PDF.';
+
+            if (typeof swal === 'function') {
+                swal({
+                    title: 'Service details required',
+                    text: text,
+                    type: 'warning',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                alert(text);
+            }
+        }
+
+        function serviceDetailsHasData() {
+            var service = $('select[name="service"]').val();
+            var panelMap = {
+                'Airfreight': '#service-details-airfreight',
+                'Sea freight': '#service-details-sea-freight',
+                'Truck': '#service-details-truck',
+                'Courier': '#service-details-courier',
+                'Release': '#service-details-release',
+                'Hand Carry': '#service-details-hand-carry',
+                'On-board delivery': '#service-details-on-board'
+            };
+            var panelSelector = panelMap[service];
+            if (!panelSelector || !$(panelSelector).length) {
+                return false;
+            }
+
+            var hasData = false;
+            $(panelSelector).find('input, select, textarea').each(function() {
+                var $el = $(this);
+                if ($el.is(':disabled') || $el.attr('type') === 'hidden') {
+                    return;
+                }
+
+                if ($el.is(':checkbox, :radio')) {
+                    if ($el.is(':checked')) {
+                        hasData = true;
+                        return false;
+                    }
+                    return;
+                }
+
+                if ($.trim(String($el.val() || '')) !== '') {
+                    hasData = true;
+                    return false;
+                }
+            });
+
+            return hasData;
+        }
+
         $(document).on('click', '#send-prealert-btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -4319,6 +4374,11 @@
 
             if (!$('#crr-ids-container input[name="crr_ids[]"]').length) {
                 alert('Please add at least one stock item before sending a pre-alert.');
+                return;
+            }
+
+            if (!serviceDetailsHasData()) {
+                showServiceDetailsRequiredAlert('Please fill in Service details before sending a pre-alert. The pre-alert PDF will not be generated until service details are added.');
                 return;
             }
 
@@ -4343,7 +4403,12 @@
             })
                 .done(function(response) {
                     if (!response || !response.success || !response.preview) {
-                        alert((response && response.message) || 'Could not prepare pre-alert email.');
+                        var failMessage = (response && response.message) || 'Could not prepare pre-alert email.';
+                        if (response && response.code === 'missing_service_details') {
+                            showServiceDetailsRequiredAlert(failMessage);
+                        } else {
+                            alert(failMessage);
+                        }
                         $btn.prop('disabled', false).text(originalText);
                         return;
                     }
@@ -4354,10 +4419,19 @@
                 })
                 .fail(function(xhr) {
                     var message = 'Could not prepare pre-alert email.';
+                    var code = null;
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         message = xhr.responseJSON.message;
                     }
-                    alert(message);
+                    if (xhr.responseJSON && xhr.responseJSON.code) {
+                        code = xhr.responseJSON.code;
+                    }
+
+                    if (code === 'missing_service_details' || /service details/i.test(message)) {
+                        showServiceDetailsRequiredAlert(message);
+                    } else {
+                        alert(message);
+                    }
                     $btn.prop('disabled', false).text(originalText);
                 });
         });
