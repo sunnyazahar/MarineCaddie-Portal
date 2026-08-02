@@ -321,9 +321,165 @@
             border-bottom: 1px solid #e5e7eb;
         }
         .office-table {
-            min-width: 1500px; 
+            min-width: 0;
             border-collapse: separate; /* Required for sticky borders */
             border-spacing: 0;
+        }
+        @media (min-width: 1200px) {
+            .office-table {
+                min-width: 1500px;
+            }
+        }
+        .table-scroll-wrapper .office-table,
+        .dataTables_wrapper .office-table {
+            min-width: 1100px;
+        }
+
+        .pickup-filters-toolbar {
+            display: none;
+        }
+        .pickup-filters-fields {
+            width: 100%;
+        }
+
+        @media (max-width: 991.98px) {
+            .pickup-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding: 4px 0 8px;
+            }
+
+            /* Always show filter fields on mobile; toggle only collapses */
+            .pickup-filters-fields {
+                display: flex !important;
+                flex-direction: column;
+                width: 100%;
+                max-height: 38vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 8px;
+                margin-bottom: 8px;
+                border-bottom: 1px solid #eef2f7;
+            }
+
+            body.pickup-filters-collapsed .pickup-filters-fields {
+                display: none !important;
+            }
+
+            #btn-pickup-filters-toggle.is-collapsed {
+                background: transparent !important;
+                color: #008080 !important;
+            }
+
+            /* Hide column-picker — its Search box was the only thing showing */
+            .pickup-filters-fields .mr-2,
+            .pickup-filters-fields .btn-filter-toggle,
+            .pickup-filters-fields #filter-multiselect + .btn-group,
+            .pickup-filters-fields .multiselect-native-select .btn-group:has(.btn-filter-toggle) {
+                display: none !important;
+            }
+
+            .pickup-filters-fields > div {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .pickup-filters-fields .row.no-gutters {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+                width: 100%;
+            }
+
+            .pickup-filters-fields .custom-col,
+            .pickup-filters-fields .custom-col[style*="flex"],
+            .pickup-filters-fields #col-Account-manager,
+            .pickup-filters-fields #col-Stock-number,
+            .pickup-filters-fields #col-Expected-del-date,
+            .pickup-filters-fields #col-Pick-up-date,
+            .pickup-filters-fields #col-Deadline-warehouse,
+            .pickup-filters-fields #col-Handled-by,
+            .pickup-filters-fields #col-Vessel,
+            .pickup-filters-fields #col-Supplier-ref,
+            .pickup-filters-fields #col-Hub-Agent {
+                flex: 0 0 auto !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                margin-bottom: 8px !important;
+                display: block !important;
+                visibility: visible !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+
+            .pickup-filters-fields .filter-group {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .table-scroll-wrapper,
+            .dt-responsive.table-responsive,
+            .dataTables_wrapper,
+            .dataTables_scroll,
+            .dataTables_scrollBody {
+                width: 100% !important;
+                max-width: 100%;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .dataTables_scrollHead {
+                overflow: hidden !important;
+            }
+
+            #offices-table,
+            .office-table {
+                min-width: 1100px !important;
+            }
+
+            .pickup-filters-fields .filter-group {
+                width: 100%;
+            }
+
+            .pickup-filters-fields .clear-filters {
+                display: inline-block;
+                margin: 4px 0 8px;
+            }
+
+            .table-scroll-wrapper,
+            .dt-responsive.table-responsive {
+                max-height: calc(100vh - 260px);
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .pagination-sticky-footer {
+                justify-content: center !important;
+                overflow-x: auto;
+            }
+
+            .dataTables_wrapper .dataTables_paginate {
+                justify-content: center;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .pickup-filters-toolbar {
+                display: none !important;
+            }
+            .pickup-filters-fields {
+                display: flex !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            body.pickup-filters-collapsed .pickup-filters-fields {
+                display: flex !important;
+            }
         }
         .office-table thead th {
             position: sticky !important;
@@ -418,44 +574,29 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content" >
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                         <!-- Base Style - Compact start -->
                                         <div class="card">
                                             <div class="card-block">
-                                                <div class="d-flex justify-content-between align-items-start pt-2">
+                                                <div class="pickup-filters-toolbar">
+                                                    <button type="button" id="btn-pickup-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                                        <i class="ti-filter"></i> <span class="pickup-filters-toggle-label">Hide filters</span>
+                                                    </button>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-start pt-2 pickup-filters-fields">
                                                     <div style="width: 100%;">
                                                         <div class="row no-gutters">
                                                             <div class="mr-2" style="margin-top: 2px;">
                                                                 <select id="filter-multiselect" multiple="multiple">
-                                                                    <option value="Account manager">Account manager</option>
-                                                                    <option value="Stock number">Stock number</option>
-                                                                    <option value="Expected del. date">Expected del. date</option>
-                                                                    <option value="Pick up date">Pick up date</option>
-                                                                    <option value="Deadline warehouse">Deadline warehouse</option>
-                                                                    <option value="Handled by">Handled by</option>
-                                                                    <option value="Vessel">Vessel</option>
-                                                                    <option value="Supplier ref">Supplier ref</option>
-                                                                    <option value="Hub/Agent">Hub/Agent</option>
+                                                                    <option value="Account manager" selected>Account manager</option>
+                                                                    <option value="Stock number" selected>Stock number</option>
+                                                                    <option value="Expected del. date" selected>Expected del. date</option>
+                                                                    <option value="Pick up date" selected>Pick up date</option>
+                                                                    <option value="Deadline warehouse" selected>Deadline warehouse</option>
+                                                                    <option value="Handled by" selected>Handled by</option>
+                                                                    <option value="Vessel" selected>Vessel</option>
+                                                                    <option value="Supplier ref" selected>Supplier ref</option>
+                                                                    <option value="Hub/Agent" selected>Hub/Agent</option>
                                                                 </select>
                                                             </div>
                                                             <div id="col-Account-manager" class="custom-col" style="flex: 0 0 220px;">
@@ -534,9 +675,8 @@
                                                             <a class="clear-filters">Clear filters</a>
                                                         </div>
                                                     </div>
-                                               
-                                            </div>
                                                 </div>
+
                                                 <div class="dt-responsive table-responsive">
                                                     <table id="offices-table" class="office-table">
                                                         <thead>
@@ -654,19 +794,7 @@
                                             </div>
                                         </div>
                                         <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -720,7 +848,7 @@
             // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: true,
+                enableFiltering: false,
                 buttonWidth: '100%',
                 nonSelectedText: '',
                 allSelectedText: '',
@@ -741,7 +869,44 @@
                 }
             });
 
+            $('#filter-multiselect').multiselect('selectAll', false);
+            $('#filter-multiselect').multiselect('updateButtonText');
+
+            var pickupFilterIds = [
+                'col-Account-manager',
+                'col-Stock-number',
+                'col-Expected-del-date',
+                'col-Pick-up-date',
+                'col-Deadline-warehouse',
+                'col-Handled-by',
+                'col-Vessel',
+                'col-Supplier-ref',
+                'col-Hub-Agent'
+            ];
+
+            function isPickupMobile() {
+                return window.matchMedia('(max-width: 991.98px)').matches;
+            }
+
+            function ensureMobileFiltersVisible() {
+                if (!isPickupMobile()) {
+                    return;
+                }
+                pickupFilterIds.forEach(function (id) {
+                    $('#' + id).show().css('display', '');
+                });
+                // Column picker + its "Search" filter must stay hidden on mobile
+                $('.pickup-filters-fields .mr-2').hide();
+                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+            }
+
             function toggleFilterVisibility() {
+                // On mobile always show every filter field (column picker is hidden)
+                if (isPickupMobile()) {
+                    ensureMobileFiltersVisible();
+                    return;
+                }
+
                 var selectedOptions = $('#filter-multiselect option:selected');
                 var selectedValues = [];
                 selectedOptions.each(function() {
@@ -761,15 +926,20 @@
                 ];
 
                 allFilters.forEach(function(filter) {
-                    if (selectedValues.includes(filter.val)) {
+                    if (selectedValues.indexOf(filter.val) !== -1) {
                         $('#' + filter.id).show();
                     } else {
                         $('#' + filter.id).hide();
                     }
                 });
             }
-            
+
             toggleFilterVisibility();
+            ensureMobileFiltersVisible();
+            $(window).on('resize', function () {
+                toggleFilterVisibility();
+                ensureMobileFiltersVisible();
+            });
 
             // Initialize Date Range Picker
             $('.date-range-filter').daterangepicker({
@@ -793,9 +963,23 @@
                 "lengthChange": false,
                 "pageLength": 200,
                 "responsive": false,
-                "searching": true,
+                "searching": false,
                 "ordering": true,
-                "autoWidth": false
+                "autoWidth": false,
+                "scrollX": true
+            });
+
+            $('#btn-pickup-filters-toggle').on('click', function () {
+                $('body').toggleClass('pickup-filters-collapsed');
+                var collapsed = $('body').hasClass('pickup-filters-collapsed');
+                $(this).toggleClass('is-collapsed', collapsed);
+                $(this).find('.pickup-filters-toggle-label').text(collapsed ? 'Show filters' : 'Hide filters');
+                if (!collapsed) {
+                    ensureMobileFiltersVisible();
+                }
+                setTimeout(function () {
+                    table.columns.adjust();
+                }, 50);
             });
 
             function matchesMultiSelectFilter(selectedValues, rowValue) {

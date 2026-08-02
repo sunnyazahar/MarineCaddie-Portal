@@ -296,6 +296,92 @@
             color: #9ca3af;
         }
 
+        @media (max-width: 1199.98px) {
+            .form-pillar-container {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 24px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .form-pillar-container {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .form-pillar {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .input-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .input-row .form-group-custom,
+            .input-row .form-group-custom[style*="flex"] {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+            }
+
+            .form-group-custom input[style*="width: 50%"],
+            .form-input-custom[style*="width: 50%"] {
+                width: 100% !important;
+            }
+
+            .form-footer {
+                left: 0 !important;
+                right: 0 !important;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .btn-saved-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .btn-cancel-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .metadata-footer {
+                padding: 16px 12px 96px;
+                text-align: left;
+            }
+
+            .form-label-custom {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .form-group-custom[style*="flex-direction: row"] {
+                align-items: flex-start !important;
+            }
+
+            .form-group-custom[style*="flex-direction: row"] .form-label-custom {
+                flex: 1;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .card-block {
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+        }
+
         /* Validation Styling */
         .error-message {
             color: #d9534f;

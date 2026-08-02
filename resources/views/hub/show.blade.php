@@ -558,6 +558,113 @@
                 .ui-datepicker .ui-datepicker-next:hover {
                     background: rgba(255,255,255,0.1) !important;
                 }
+
+                @media (max-width: 1199.98px) {
+                    .form-pillar-container {
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 24px;
+                        padding: 20px;
+                    }
+                }
+
+                @media (max-width: 991.98px) {
+                    .tabs-container {
+                        display: flex !important;
+                        flex-wrap: nowrap;
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                        max-width: calc(100% - 24px);
+                        margin: 12px;
+                        padding: 6px;
+                        gap: 4px;
+                    }
+
+                    .tab-item {
+                        flex: 0 0 auto;
+                        white-space: nowrap;
+                        padding: 8px 12px;
+                        font-size: 12px;
+                    }
+
+                    .form-pillar-container,
+                    .form-pillar-container[style*="grid-template-columns"] {
+                        display: grid !important;
+                        grid-template-columns: 1fr !important;
+                        gap: 24px !important;
+                        padding: 12px !important;
+                        max-width: 100%;
+                        overflow-x: hidden;
+                    }
+
+                    .form-pillar {
+                        width: 100%;
+                        max-width: 100%;
+                        min-width: 0;
+                    }
+
+                    .input-row,
+                    .input-row[style*="align-items"] {
+                        flex-direction: column !important;
+                        align-items: stretch !important;
+                        gap: 12px;
+                    }
+
+                    .input-row .form-group-custom {
+                        flex: 0 0 auto !important;
+                        width: 100% !important;
+                    }
+
+                    .form-footer {
+                        left: 0 !important;
+                        right: 0 !important;
+                        padding: 12px 16px;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                    }
+
+                    .form-footer .metadata-footer {
+                        width: 100%;
+                        margin-left: 0;
+                        text-align: left;
+                        order: 3;
+                    }
+
+                    .btn-saved-custom {
+                        flex: 1 1 auto;
+                        text-align: center;
+                        min-width: 140px;
+                    }
+
+                    .edit-header-summary {
+                        flex-wrap: wrap;
+                        gap: 12px 20px;
+                        padding: 12px 16px;
+                    }
+
+                    .custom-table {
+                        min-width: 640px;
+                    }
+
+                    .tab-content-custom,
+                    .card-block {
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                    }
+
+                    .select2-container {
+                        width: 100% !important;
+                        max-width: 100%;
+                    }
+
+                    .form-label-custom {
+                        white-space: normal;
+                        line-height: 1.3;
+                    }
+
+                    .page-body {
+                        padding-bottom: 100px;
+                    }
+                }
             </style>
 
             <!-- Page-body start -->
@@ -1299,6 +1406,11 @@
     <script>
         $(document).ready(function() {
             function fixedFooterOffset() {
+                var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
+                if (isMobile) {
+                    $('.form-footer').css('left', '0px');
+                    return;
+                }
                 var $navbar = $('.pcoded-navbar');
                 var sidebarWidth = $navbar.length ? $navbar.outerWidth() : 0;
                 $('.form-footer').css('left', sidebarWidth + 'px');

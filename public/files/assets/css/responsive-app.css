@@ -1,0 +1,493 @@
+/**
+ * MarineCaddie global responsive overrides (phone / tablet / laptop)
+ * Softens fixed-width filters & forms; keeps wide operational tables scrollable.
+ */
+
+/* --- Content area: allow controlled horizontal scroll --- */
+.pcoded-content,
+.pcoded-inner-content,
+.main-body,
+.page-wrapper,
+.page-body {
+    max-width: 100%;
+}
+
+.page-body {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll-wrapper,
+.dataTables_wrapper,
+.dataTables_scroll,
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Soften hard desktop table floors so scroll wrappers own the overflow */
+@media (max-width: 1199.98px) {
+    .office-table,
+    table.office-table,
+    .stocks-table-area .office-table,
+    .shipments-list-card .office-table,
+    .dt-responsive {
+        min-width: 0 !important;
+    }
+
+    .table-scroll-wrapper .office-table,
+    .dataTables_scrollBody .office-table,
+    .dataTables_wrapper .office-table {
+        min-width: 1100px;
+    }
+}
+
+/* --- Filter toolbars --- */
+.filter-row.custom-row,
+.row.custom-row.filter-row,
+.row.no-gutters.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 991.98px) {
+    .custom-col[style*="flex: 0 0 200px"],
+    .custom-col[style*="flex:0 0 200px"],
+    .filter-row .custom-col {
+        flex: 1 1 160px !important;
+        max-width: 100%;
+        min-width: 140px;
+        margin-bottom: 8px;
+    }
+
+    .custom-col[style*="flex: 0 0 50px"],
+    .custom-col[style*="flex:0 0 50px"] {
+        flex: 0 0 auto !important;
+        min-width: 44px;
+    }
+
+    .stocks-filters-fixed,
+    .shipments-filters-fixed {
+        position: static !important;
+    }
+
+    .d-flex.justify-content-between.align-items-start,
+    .d-flex.justify-content-between.align-items-end {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* Customer list & similar fixed-width filter chips */
+    .card-block [style*="width: 150px"],
+    .card-block [style*="width: 180px"],
+    .card-block [style*="width: 200px"] {
+        width: 100% !important;
+        max-width: 100%;
+        min-width: 0;
+        flex: 1 1 160px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .custom-col[style*="flex: 0 0 200px"],
+    .custom-col[style*="flex:0 0 200px"],
+    .filter-row .custom-col {
+        flex: 1 1 100% !important;
+        min-width: 0;
+    }
+
+    .filter-group {
+        height: auto !important;
+        min-height: 36px;
+    }
+
+    .pagination-sticky-footer {
+        padding: 8px 12px !important;
+        height: auto !important;
+        min-height: 48px;
+        justify-content: center !important;
+    }
+
+    .stock-bulk-footer-inner {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 8px;
+    }
+
+    .stock-bulk-footer-stats {
+        flex-wrap: wrap;
+        gap: 6px 12px;
+    }
+}
+
+/* --- CRR / multi-column form grids --- */
+.crr-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+}
+
+@media (max-width: 991.98px) {
+    .crr-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .crr-col {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .crr-form-container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+}
+
+/* Package / cost / wide edit tables */
+.crr-form-container .table-responsive,
+.master-container .table-responsive,
+.page-body .table-scroll-wrapper {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 991.98px) {
+    .crr-form-container table,
+    .packages-table,
+    .costs-table {
+        min-width: 720px;
+    }
+}
+
+/* --- Header / breadcrumb / notifications --- */
+
+/* Theme1 header is white but logo links default to #fff — hamburger was invisible */
+.pcoded-header .navbar-logo .mobile-menu,
+.pcoded-header .navbar-logo .mobile-menu i,
+.pcoded-header[header-theme="theme1"] .navbar-logo .mobile-menu,
+.pcoded-header[header-theme="theme1"] .navbar-logo .mobile-menu i,
+.header-navbar .navbar-wrapper .navbar-logo .mobile-menu,
+.header-navbar .navbar-wrapper .navbar-logo .mobile-menu i {
+    color: #002d5b !important;
+}
+
+.pcoded-header .navbar-logo .mobile-options,
+.pcoded-header .navbar-logo .mobile-options i {
+    color: #002d5b !important;
+}
+
+@media (max-width: 991.98px) {
+    .pcoded-header .navbar-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        position: relative;
+        padding-left: 48px;
+        padding-right: 48px;
+    }
+
+    .header-navbar .navbar-wrapper .navbar-logo .mobile-menu {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        position: absolute !important;
+        left: 8px !important;
+        right: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%);
+        z-index: 30;
+        width: 40px;
+        height: 40px;
+        padding: 0 !important;
+        border-radius: 50%;
+        color: #002d5b !important;
+        background: transparent;
+    }
+
+    .header-navbar .navbar-wrapper .navbar-logo .mobile-menu i {
+        color: #002d5b !important;
+        font-size: 22px;
+        line-height: 1;
+    }
+
+    /* Force hamburger glyph even if theme JS swaps feather classes */
+    .header-navbar .navbar-wrapper .navbar-logo .mobile-menu i.icon-toggle-right::before,
+    .header-navbar .navbar-wrapper .navbar-logo .mobile-menu i.icon-toggle-left::before {
+        content: "\e88f"; /* feather icon-menu */
+    }
+
+    .header-navbar .navbar-wrapper .navbar-logo .mobile-options {
+        display: block !important;
+        position: absolute !important;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 30;
+        color: #002d5b !important;
+    }
+
+    .header-navbar .nav-left .app-breadcrumb {
+        margin-left: 0;
+        font-size: 12px;
+        max-width: 100%;
+    }
+
+    .header-navbar .nav-right > li.user-profile .dropdown-toggle > span {
+        max-width: 96px;
+        overflow: hidden;
+    }
+
+    .header-navbar .nav-right > li.user-profile .dropdown-toggle > span > span:first-child {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mc-notif-panel {
+        max-width: min(360px, calc(100vw - 24px)) !important;
+        right: 8px !important;
+        left: auto !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .app-breadcrumb {
+        font-size: 11px !important;
+        gap: 4px !important;
+    }
+
+    .header-navbar .nav-right > li.user-profile .dropdown-toggle > span > span:last-child {
+        display: none;
+    }
+}
+
+/* --- Shipment edit header --- */
+@media (max-width: 991.98px) {
+    .summary-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .header-meta-group {
+        flex-wrap: wrap;
+        gap: 10px 16px;
+        width: 100%;
+    }
+
+    .summary-header .header-actions,
+    .summary-header .action-buttons,
+    .master-container .header-actions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .master-container,
+    .main-content-area {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .summary-header .meta-item {
+        min-width: 0;
+        flex: 1 1 140px;
+    }
+}
+
+/* --- Cards / buttons touch targets --- */
+@media (max-width: 767.98px) {
+    .card-block {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    .btn.btn-sm {
+        min-height: 34px;
+    }
+
+    .stocks-list-card.mt-4,
+    .shipments-list-card.mt-4 {
+        margin-top: 12px !important;
+    }
+}
+
+/* Dashboard tables on small screens */
+@media (max-width: 767.98px) {
+    .dashboard-table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Stock / shipment edit: kill desktop sidebar offset on small screens */
+@media (max-width: 991.98px) {
+    .pcoded .pcoded-content {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .stock-edit-wrapper,
+    .master-container {
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
+
+    .stock-right-panel,
+    .shipment-right-panel,
+    .right-sidebar {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-top: 0 !important;
+    }
+
+    .summary-header,
+    .stock-tabs-container,
+    .edit-footer {
+        left: 0 !important;
+    }
+
+    .stock-tabs-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .stock-form-scroll {
+        padding-top: 12px !important;
+        margin-top: 0 !important;
+    }
+
+    /* Shipment edit: stack 3-col form + nested half fields */
+    .form-grid-3 {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    .form-grid-3 .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .form-grid-3 .row > [class*="col-"] {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .form-grid-3 .form-group-custom label {
+        overflow: visible;
+        line-height: 1.3;
+    }
+
+    /* Shipment create: same row-margin clipping as edit */
+    #shipment-form .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    #shipment-form .row > [class*="col-"],
+    #shipment-form .custom-col {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    #shipment-form > .row > .col-md-4.custom-col,
+    #shipment-form .col-md-6,
+    #shipment-form .form-group.col-md-6 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    #shipment-form .input-group-addon {
+        flex: 0 0 auto;
+        max-width: none;
+    }
+
+    .custom-nav-tabs {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-tab-item {
+        white-space: nowrap;
+        flex: 0 0 auto;
+    }
+
+    .address-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Office create/edit: 4-pillar form stacks on phone/tablet */
+    .form-pillar-container {
+        grid-template-columns: 1fr !important;
+        /* gap: 24px !important; */
+        padding: 12px !important;
+        min-height: 0 !important;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .form-pillar-container .form-pillar {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .form-pillar-container .address-sub-grid,
+    .form-pillar-container .account-row-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-pillar-container .select2-container {
+        width: 100% !important;
+        max-width: 100%;
+    }
+
+    .edit-footer {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    /* Hub create/show: fixed footer must not keep desktop sidebar offset */
+    .form-footer {
+        left: 0 !important;
+        right: 0 !important;
+        padding: 12px 16px !important;
+        flex-wrap: wrap;
+    }
+
+    .form-footer .btn-saved-custom,
+    .form-footer .btn-cancel-custom {
+        text-align: center;
+    }
+
+    .form-pillar-container .input-row {
+        flex-direction: column !important;
+    }
+
+    .form-pillar-container .input-row .form-group-custom {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+    }
+}

@@ -283,6 +283,7 @@
             flex-direction: column;
             overflow: hidden;
             padding-bottom: 80px;
+            /* margin-top: 35px; */
             /* Space for fixed footer */
         }
 
@@ -301,6 +302,134 @@
             /* will be overridden by JS */
             z-index: 100;
             height: 75px;
+        }
+
+        @media (max-width: 991.98px) {
+            .stock-edit-wrapper {
+                margin: 0 !important;
+                min-height: auto;
+                flex-direction: column;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .stock-sidebar {
+                display: none !important;
+            }
+
+            .stock-main-content {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                flex: 1 1 auto !important;
+                overflow: visible !important;
+                padding-bottom: 0px;
+            }
+
+            .summary-header {
+                position: relative !important;
+                top: auto !important;
+                left: 0 !important;
+                right: auto !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0;
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px 12px;
+            }
+
+            .summary-info-group {
+                flex-wrap: wrap;
+                gap: 12px 16px !important;
+                width: 100%;
+            }
+
+            .stock-tabs-container {
+                position: relative !important;
+                top: auto !important;
+                left: 0 !important;
+                right: auto !important;
+                width: 100% !important;
+                padding: 0 12px !important;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                white-space: nowrap;
+            }
+
+            .stock-tabs {
+                display: inline-flex;
+                flex-wrap: nowrap;
+                gap: 20px;
+                min-width: max-content;
+            }
+
+            .stock-form-scroll {
+                padding: 12px !important;
+                padding-top: 12px !important;
+                margin-top: 5px !important;
+                overflow: visible !important;
+            }
+
+            .edit-form-row {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .edit-form-col {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .stock-right-panel {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-top: 5px !important;
+                padding: 12px !important;
+                order: 3;
+                border-left: none;
+                border-top: 1px solid #e2e8f0;
+            }
+
+            .edit-footer {
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                padding: 12px !important;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .edit-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .edit-table {
+                min-width: 900px !important;
+            }
+
+            table.edit-table[style*="min-width"] {
+                min-width: 900px !important;
+            }
+
+            .page-wrapper.p-0,
+            .page-body {
+                overflow-x: hidden;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .stock-tab {
+                padding: 12px 4px;
+                font-size: 12px;
+            }
+
+            .summary-header .header-actions,
+            .summary-header .dropdown {
+                width: 100%;
+            }
         }
 
         .summary-info-group {
@@ -497,7 +626,7 @@
             padding: 25px;
             background: #fff;
             padding-top: 135px;
-            margin-top: 65px;
+            margin-top: 5px;
             /* space for fixed header + tabs */
         }
 
@@ -650,7 +779,7 @@
             flex-direction: column;
             gap: 20px;
             overflow-y: auto;
-            margin-top: 170px;
+            margin-top: 110px;
         }
 
         .panel-card {
@@ -998,7 +1127,7 @@
 
         /* CRR Form Specific Styles from Create-CRR */
         .crr-table-header {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 600;
             color: #374151;
             margin: 30px 0 10px 0;
@@ -1204,15 +1333,7 @@
         </div>
     </div>
 
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
-
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <div class="main-body">
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
                         <div class="stock-edit-wrapper">
                             <!-- 1. LEFT SIDEBAR: Stock List -->
                             <div class="stock-sidebar" style="display:none">
@@ -2543,12 +2664,8 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                         </div>{{-- .stock-edit-wrapper --}}
+    @include('layouts.partials.pcoded-shell-end')
 
     {{-- Quick-add supplier modal --}}
     <div class="modal fade" id="add-supplier-modal" tabindex="-1" role="dialog" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
@@ -2726,9 +2843,16 @@
         $(document).ready(function () {
             // ─── Fixed header/tabs left-offset ────────────────────────────
             function fixedHeaderOffset() {
-                // Find the pcoded navbar (left sidebar) width
+                var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
                 var $navbar = $('.pcoded-navbar');
-                var sidebarWidth = $navbar.length ? $navbar.outerWidth() : 0;
+                var navType = $('#pcoded').attr('vertical-nav-type') || '';
+                var sidebarWidth = 0;
+
+                // On phone/tablet the nav is offcanvas — never reserve its desktop width.
+                if (!isMobile && $navbar.length && navType !== 'offcanvas' && $navbar.is(':visible')) {
+                    sidebarWidth = $navbar.outerWidth() || 0;
+                }
+
                 $('.summary-header, .stock-tabs-container, .edit-footer').css('left', sidebarWidth + 'px');
             }
             fixedHeaderOffset();

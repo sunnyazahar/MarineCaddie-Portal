@@ -132,10 +132,14 @@ $(document).ready(function() {
             $(".main-search").removeClass('open');
         }, 300);
     });
-    $('#mobile-collapse i').addClass('icon-toggle-right');
+    // Keep hamburger as icon-menu (toggle icons looked like a switch, not a menu)
+    $('#mobile-collapse i')
+        .removeClass('icon-toggle-right icon-toggle-left')
+        .addClass('icon-menu');
     $('#mobile-collapse').on('click', function() {
-        $('#mobile-collapse i').toggleClass('icon-toggle-right');
-        $('#mobile-collapse i').toggleClass('icon-toggle-left');
+        $('#mobile-collapse i')
+            .removeClass('icon-toggle-right icon-toggle-left')
+            .addClass('icon-menu');
     });
 });
 $(document).ready(function() {

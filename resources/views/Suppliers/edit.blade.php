@@ -398,6 +398,108 @@
             font-weight: bold;
             font-size: 16px;
         }
+
+        @media (max-width: 1199.98px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 24px;
+                padding: 20px 20px 110px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .nav-tabs-custom {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                padding: 0 8px;
+                max-width: 100%;
+            }
+
+            .nav-tabs-custom .nav-link {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px 12px 120px !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .form-column {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .sub-grid-3 {
+                grid-template-columns: 1fr !important;
+                gap: 12px;
+            }
+
+            .form-footer-custom {
+                left: 0 !important;
+                right: 0 !important;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .form-footer-custom .btn,
+            .btn-cancel-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .footer-metadata {
+                margin-left: 0;
+                width: 100%;
+                text-align: left;
+            }
+
+            .contacts-top-bar {
+                padding: 12px 16px;
+                justify-content: stretch;
+            }
+
+            .btn-add-contact {
+                width: 100%;
+                text-align: center;
+            }
+
+            .contacts-table-container {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table-contacts {
+                min-width: 640px;
+            }
+
+            .form-label-custom {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .tab-content-custom,
+            .card,
+            .page-body {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+        }
     </style>
 @endsection
 
@@ -440,32 +542,12 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                         <form action="{{ route('suppliers.update', $supplier->id) }}" method="POST" id="edit-supplier-form">
                                             @csrf
                                             @method('PUT')
                                             <input type="hidden" name="active_tab" id="active_tab" value="{{ old('active_tab', 'supplier-details') }}">
-                                            
+
                                             <div class="nav-tabs-custom">
                                                 <a href="javascript:void(0)" class="nav-link active" data-tab="supplier-details">Supplier details</a>
                                                 <a href="javascript:void(0)" class="nav-link" data-tab="contacts">Contacts</a>
@@ -675,19 +757,7 @@
                                                 </div>
                                             </div>
                                         </form>
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>

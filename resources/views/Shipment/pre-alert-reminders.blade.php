@@ -269,6 +269,12 @@
             max-height: calc(100vh - 150px);
             width: 100%;
             position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+        .table-scroll-wrapper .office-table,
+        .dataTables_wrapper .office-table,
+        #offices-table {
+            min-width: 1100px;
         }
         .pagination-sticky-footer {
             position: sticky;
@@ -285,6 +291,98 @@
             padding: 0;
             display: flex;
             justify-content: flex-end;
+        }
+        .prealert-filters-toolbar {
+            display: none;
+        }
+        .prealert-filters-fields {
+            width: 100%;
+        }
+
+        @media (max-width: 991.98px) {
+            .prealert-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding: 4px 0 8px;
+            }
+            .prealert-filters-fields {
+                display: none !important;
+                flex-direction: column;
+                max-height: 38vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 6px;
+                margin-bottom: 8px;
+                border-bottom: 1px solid #eef2f7;
+            }
+            body.prealert-filters-open .prealert-filters-fields {
+                display: flex !important;
+            }
+            #btn-prealert-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
+            }
+            .prealert-filters-fields .mr-2,
+            .prealert-filters-fields .btn-filter-toggle {
+                display: none !important;
+            }
+            .prealert-filters-fields .row.no-gutters {
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100%;
+            }
+            .prealert-filters-fields .custom-col,
+            .prealert-filters-fields .custom-col[style*="flex"] {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-bottom: 8px !important;
+                display: block !important;
+                visibility: visible !important;
+            }
+            .prealert-filters-fields .filter-group {
+                width: 100%;
+                max-width: 100%;
+            }
+            .prealert-filters-fields .clear-filters {
+                margin: 4px 0 8px;
+            }
+            .table-scroll-wrapper,
+            .dataTables_wrapper,
+            .dataTables_scroll,
+            .dataTables_scrollBody {
+                width: 100% !important;
+                max-width: 100%;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            .pagination-sticky-footer {
+                justify-content: center !important;
+                padding: 8px 12px !important;
+            }
+            .dataTables_wrapper .dataTables_paginate {
+                justify-content: center;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .prealert-filters-toolbar {
+                display: none !important;
+            }
+            .prealert-filters-fields {
+                display: flex !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            body.prealert-filters-open .prealert-filters-fields {
+                display: flex !important;
+            }
         }
         /* Reduce gap/margin between sidebar and content */
         .pcoded-inner-content {
@@ -364,19 +462,24 @@
                                         <!-- Base Style - Compact start -->
                                         <div class="card">
                                             <div class="card-block">
-                                                <div class="d-flex justify-content-between align-items-start pt-2">
+                                                <div class="prealert-filters-toolbar">
+                                                    <button type="button" id="btn-prealert-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                                        <i class="ti-filter"></i> <span class="prealert-filters-toggle-label">Show filters</span>
+                                                    </button>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-start pt-2 prealert-filters-fields">
                                                     <div style="width: 100%;">
                                                         <div class="row no-gutters">
                                                             <div class="mr-2" style="margin-top: 2px;">
                                                                 <select id="filter-multiselect" multiple="multiple">
-                                                                    <option value="Account manager">Account manager</option>
-                                                                    <option value="Show ETL shipments">Show ETL shipments</option>
-                                                                    <option value="Shipment no">Shipment no</option>
-                                                                    <option value="Customer">Customer</option>
-                                                                    <option value="Vessel">Vessel</option>
-                                                                    <option value="Port of destination">Port of destination</option>
-                                                                    <option value="Status">Status</option>
-                                                                    <option value="Created by">Created by</option>
+                                                                    <option value="Account manager" selected>Account manager</option>
+                                                                    <option value="Show ETL shipments" selected>Show ETL shipments</option>
+                                                                    <option value="Shipment no" selected>Shipment no</option>
+                                                                    <option value="Customer" selected>Customer</option>
+                                                                    <option value="Vessel" selected>Vessel</option>
+                                                                    <option value="Port of destination" selected>Port of destination</option>
+                                                                    <option value="Status" selected>Status</option>
+                                                                    <option value="Created by" selected>Created by</option>
                                                                 </select>
                                                             </div>
 
@@ -463,7 +566,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                                <div class="table-scroll-wrapper">
+                                                <div class="dt-responsive table-responsive">
                                                     <table id="offices-table"
                                                         class="office-table">
                                                         <thead>
@@ -702,7 +805,7 @@
             // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: true,
+                enableFiltering: false,
                 buttonWidth: '100%',
                 maxHeight: 200,
                 nonSelectedText: '',
@@ -724,7 +827,41 @@
                 }
             });
 
+            $('#filter-multiselect').multiselect('selectAll', false);
+            $('#filter-multiselect').multiselect('updateButtonText');
+
+            var prealertFilterIds = [
+                'col-Account-manager',
+                'col-Show-ETL-shipments',
+                'col-Shipment-no',
+                'col-Customer',
+                'col-Vessel',
+                'col-Port-of-destination',
+                'col-Status',
+                'col-Created-by'
+            ];
+
+            function isPrealertMobile() {
+                return window.matchMedia('(max-width: 991.98px)').matches;
+            }
+
+            function ensurePrealertMobileFiltersVisible() {
+                if (!isPrealertMobile()) {
+                    return;
+                }
+                prealertFilterIds.forEach(function (id) {
+                    $('#' + id).show().css('display', '');
+                });
+                $('.prealert-filters-fields .mr-2').hide();
+                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+            }
+
             function toggleFilterVisibility() {
+                if (isPrealertMobile()) {
+                    ensurePrealertMobileFiltersVisible();
+                    return;
+                }
+
                 var selectedOptions = $('#filter-multiselect option:selected');
                 var selectedValues = [];
                 selectedOptions.each(function() {
@@ -743,22 +880,23 @@
                 ];
 
                 allFilters.forEach(function(filter) {
-                    if (selectedValues.includes(filter.val)) {
+                    if (selectedValues.indexOf(filter.val) !== -1) {
                         $('#' + filter.id).show();
                     } else {
                         $('#' + filter.id).hide();
                     }
                 });
             }
-            
+
             toggleFilterVisibility();
+            ensurePrealertMobileFiltersVisible();
 
             var table = $('#offices-table').DataTable({
                 "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
                 "lengthChange": false,
                 "pageLength": 100,
                 "responsive": false,
-                "searching": true,
+                "searching": false,
                 "ordering": true,
                 "autoWidth": false,
                 "scrollX": true,
@@ -769,6 +907,29 @@
                     }
                 }
             });
+
+            $('#btn-prealert-filters-toggle').on('click', function () {
+                $('body').toggleClass('prealert-filters-open');
+                var isOpen = $('body').hasClass('prealert-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.prealert-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                if (isOpen) {
+                    ensurePrealertMobileFiltersVisible();
+                }
+                setTimeout(function () {
+                    table.columns.adjust();
+                }, 50);
+            });
+
+            $(window).on('resize', function () {
+                toggleFilterVisibility();
+                ensurePrealertMobileFiltersVisible();
+                table.columns.adjust();
+            });
+
+            setTimeout(function () {
+                table.columns.adjust();
+            }, 100);
 
             function rowData($row, key) {
                 return String($row.attr('data-' + key) || '');

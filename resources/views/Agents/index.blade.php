@@ -23,7 +23,23 @@
             padding: 10px 15px;
             background: #fff;
             border-bottom: 1px solid #eee;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
+        }
+
+        .agents-filters-toolbar {
+            display: none;
+        }
+
+        .btn-outline-teal {
+            color: #008080;
+            border-color: #008080;
+            background-color: transparent;
+        }
+        .btn-outline-teal:hover,
+        .btn-outline-teal.is-open {
+            background-color: #008080;
+            color: #fff;
+            border-color: #008080;
         }
 
         .filter-item {
@@ -300,6 +316,132 @@
             background: #fff;
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-agents {
+            min-width: 900px;
+        }
+
+        .agents-add-desktop {
+            font-size: 11px;
+            padding: 6px 15px;
+            border-radius: 2px;
+            background: #fff;
+            color: #1b5e6f;
+            border: 1px solid #1b5e6f;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 991.98px) {
+            .agents-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                flex-wrap: wrap;
+                padding: 8px 12px;
+                background: #fff;
+                border-bottom: 1px solid #eee;
+            }
+
+            .agents-filters-toolbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .filter-row {
+                display: none !important;
+                flex-direction: column;
+                align-items: stretch;
+                flex-wrap: nowrap;
+                gap: 10px;
+                max-height: 42vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 10px 12px 12px;
+            }
+
+            body.agents-filters-open .filter-row {
+                display: flex !important;
+            }
+
+            #btn-agents-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
+            }
+
+            .filter-item,
+            .filter-item[style*="margin-left"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                margin-left: 0 !important;
+                width: 100%;
+                gap: 4px;
+            }
+
+            .filter-label-custom {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .filter-input-custom,
+            .filter-input-custom[style*="width"],
+            .filter-row .select2-container {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .input-group-custom {
+                width: 100%;
+            }
+
+            .input-group-custom .filter-input-custom {
+                flex: 1;
+            }
+
+            .filter-checkbox-group,
+            .btn-clear-filters {
+                margin-left: 0 !important;
+            }
+
+            .agents-add-desktop {
+                display: none !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter {
+                display: none !important;
+            }
+
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                float: none;
+                text-align: center;
+                padding-top: 8px;
+            }
+
+            .dataTables_wrapper .dataTables_paginate {
+                display: flex;
+                justify-content: center;
+            }
+
+            .table-agents th:first-child,
+            .table-agents td:first-child {
+                padding-left: 12px;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .agents-filters-toolbar {
+                display: none !important;
+            }
+            .filter-row {
+                display: flex !important;
+            }
         }
     </style>
 @endsection
@@ -364,6 +506,17 @@
 
                             <!-- Page-body start -->
                             <div class="page-body">
+                                <div class="agents-filters-toolbar">
+                                    <button type="button" id="btn-agents-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                        <i class="ti-filter"></i> <span class="agents-filters-toggle-label">Show filters</span>
+                                    </button>
+                                    <div class="agents-filters-toolbar-actions">
+                                        <a class="btn btn-sm agents-add-mobile" href="{{ route('agents.create') }}"
+                                            style="font-size: 11px; padding: 6px 12px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
+                                            Add Agent
+                                        </a>
+                                    </div>
+                                </div>
                                 <!-- Filter Bar -->
                                 <div class="filter-row">
                                     <div class="filter-item">
@@ -371,7 +524,7 @@
                                         <div class="input-group-custom">
                                             <input type="text" id="filter-agent-name" class="filter-input-custom has-append"
                                                 placeholder="type here" style="width: 120px;">
-                                            <button class="btn-input-append"><i class="ti-layout-grid3"></i></button>
+                                            <button class="btn-input-append" type="button"><i class="ti-layout-grid3"></i></button>
                                         </div>
                                     </div>
                                     <div class="filter-item" style="margin-left: 15px;">
@@ -412,8 +565,7 @@
                                         <label for="hide-inactive-check">Hide inactive</label>
                                     </div>
                                     <a href="#" id="clear-agent-filters" class="btn-clear-filters">Clear filters</a>
-                                    <a class="btn btn-primary" href="{{ route('agents.create') }}"
-                                        style="font-size: 11px; padding: 6px 15px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
+                                    <a class="agents-add-desktop" href="{{ route('agents.create') }}">
                                         Add Agent
                                     </a>
                                 </div>
@@ -583,12 +735,14 @@
             });
 
             var table = $('#agents-table').DataTable({
+                "dom": 'rt<"d-flex flex-wrap justify-content-between align-items-center"ip>',
                 "lengthChange": false,
                 "pageLength": 25,
                 "responsive": false,
-                "searching": true,
+                "searching": false,
                 "ordering": true,
                 "autoWidth": false,
+                "scrollX": true,
                 "columnDefs": [
                     { "orderable": false, "targets": [8] }
                 ],
@@ -600,6 +754,24 @@
                     }
                 }
             });
+
+            $('#btn-agents-filters-toggle').on('click', function () {
+                $('body').toggleClass('agents-filters-open');
+                var isOpen = $('body').hasClass('agents-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.agents-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                setTimeout(function () {
+                    table.columns.adjust();
+                }, 50);
+            });
+
+            $(window).on('resize', function () {
+                table.columns.adjust();
+            });
+
+            setTimeout(function () {
+                table.columns.adjust();
+            }, 100);
 
             function rowData($row, key) {
                 return String($row.attr('data-' + key) || '');

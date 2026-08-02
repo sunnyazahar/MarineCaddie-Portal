@@ -117,7 +117,7 @@
         .form-pillar {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            /* gap: 20px; */
         }
         .form-section-header {
             font-size: 14px;
@@ -309,6 +309,133 @@
         .main-body .page-wrapper {
             padding: 0 !important;
         }
+
+        @media (max-width: 1199.98px) {
+            .form-pillar-container {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 24px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .edit-header-summary {
+                flex-wrap: wrap;
+                gap: 12px 20px;
+                padding: 12px 16px;
+            }
+
+            .summary-item {
+                min-width: 0;
+                flex: 1 1 120px;
+            }
+
+            .tabs-container {
+                display: flex !important;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 0 8px;
+                max-width: 100%;
+            }
+
+            .tab-item {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+
+            .form-pillar-container,
+            .form-pillar-container[style*="grid-template-columns"] {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .form-pillar {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .input-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .input-row .form-group-custom {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+            }
+
+            .form-group-custom input[style*="width: 50%"],
+            .form-input-custom[style*="width: 50%"] {
+                width: 100% !important;
+            }
+
+            .form-footer {
+                left: 0 !important;
+                right: 0 !important;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .btn-save-custom,
+            .btn-saved-custom,
+            .btn-cancel-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .form-footer .audit-meta {
+                margin-left: 0;
+                width: 100%;
+                text-align: left;
+            }
+
+            .contacts-top-bar {
+                padding: 12px 16px;
+                justify-content: stretch;
+            }
+
+            .btn-add-contact {
+                width: 100%;
+                text-align: center;
+            }
+
+            .contacts-table-container {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table-contacts {
+                min-width: 640px;
+            }
+
+            .tab-content-custom,
+            .card,
+            .page-body {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .form-label-custom {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+        }
     </style>
 @endsection
 
@@ -351,27 +478,7 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                         <!-- Header Summary Bar -->
                                         <div class="edit-header-summary">
                                             <div class="summary-item">
@@ -655,18 +762,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -710,6 +806,11 @@
     <script>
         $(document).ready(function() {
             function fixedFooterOffset() {
+                var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
+                if (isMobile) {
+                    $('.form-footer').css('left', '0px');
+                    return;
+                }
                 var $navbar = $('.pcoded-navbar');
                 var sidebarWidth = $navbar.length ? $navbar.outerWidth() : 0;
                 $('.form-footer').css('left', sidebarWidth + 'px');

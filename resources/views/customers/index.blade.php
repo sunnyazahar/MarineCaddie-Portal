@@ -17,6 +17,13 @@
         .table-other-companies {
             width: 100%;
             border-collapse: collapse;
+            min-width: 0;
+        }
+
+        .table-scroll-wrapper .table-other-companies,
+        .dataTables_wrapper .table-other-companies,
+        .table-responsive .table-other-companies {
+            min-width: 900px;
         }
 
         .table-other-companies th {
@@ -98,6 +105,243 @@
         .main-body .page-wrapper {
             padding: 5px !important;
         }
+
+        .btn-outline-teal {
+            color: #008080;
+            border-color: #008080;
+            background-color: transparent;
+        }
+        .btn-outline-teal:hover,
+        .btn-outline-teal.is-open {
+            background-color: #008080;
+            color: #fff;
+            border-color: #008080;
+        }
+
+        .customers-filters-toolbar {
+            display: none;
+        }
+
+        .customers-add-mobile {
+            display: none;
+        }
+
+        .customers-filters-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .customers-filters-fields {
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            flex-grow: 1;
+            flex-wrap: wrap;
+        }
+
+        .customers-filters-actions {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        #offices-table {
+            min-width: 900px !important;
+            width: 100% !important;
+        }
+
+        #offices-table th,
+        #offices-table td {
+            white-space: nowrap;
+        }
+
+        /* Hide DataTables scrollX cloned header inside scroll body */
+        #offices-table_wrapper .dataTables_scrollBody > table > thead,
+        #offices-table_wrapper .dataTables_scrollBody thead {
+            height: 0 !important;
+            line-height: 0 !important;
+            visibility: collapse !important;
+        }
+        #offices-table_wrapper .dataTables_scrollBody thead tr,
+        #offices-table_wrapper .dataTables_scrollBody thead th {
+            height: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border: none !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+            overflow: hidden !important;
+            background: transparent !important;
+        }
+        #offices-table_wrapper .dataTables_scrollBody thead th:before,
+        #offices-table_wrapper .dataTables_scrollBody thead th:after {
+            display: none !important;
+            content: none !important;
+        }
+
+        @media (max-width: 991.98px) {
+            .customers-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                flex-wrap: wrap;
+                padding: 0 0 10px;
+                margin-bottom: 0;
+            }
+
+            .customers-filters-toolbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .customers-add-mobile {
+                display: inline-flex !important;
+                align-items: center;
+                height: 28px;
+                font-size: 11px;
+                padding: 5px 12px;
+                border-radius: 2px;
+                text-decoration: none;
+            }
+
+            .customers-filters-panel {
+                display: none !important;
+                flex-direction: column;
+                justify-content: flex-start !important;
+                align-items: stretch !important;
+                align-content: flex-start !important;
+                gap: 8px;
+                flex-grow: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: 48vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                margin-bottom: 12px;
+                padding: 0 2px 8px;
+            }
+
+            body.customers-filters-open .customers-filters-panel {
+                display: flex !important;
+            }
+
+            #btn-customers-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
+            }
+
+            .customers-filters-fields {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                align-items: stretch !important;
+                align-content: flex-start !important;
+                gap: 8px !important;
+                width: 100%;
+                flex-grow: 0 !important;
+                flex-wrap: nowrap !important;
+                height: auto !important;
+                min-height: 0 !important;
+            }
+
+            .customers-filters-fields > div {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                flex: 0 0 auto !important;
+            }
+
+            .customers-filters-fields > div.d-flex {
+                height: 28px !important;
+            }
+
+            /* Only stretch real inputs — never force native <select> visible (breaks Select2) */
+            .customers-filters-fields input.filter-input {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+            }
+
+            .customers-filters-fields select.filter-input,
+            .customers-filters-fields select.select2,
+            .customers-filters-panel .select2-hidden-accessible {
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                padding: 0 !important;
+                margin: -1px !important;
+                overflow: hidden !important;
+                clip: rect(0, 0, 0, 0) !important;
+                border: 0 !important;
+                display: block !important;
+            }
+
+            .customers-filters-fields .select2-container,
+            .customers-filters-panel .select2-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                display: block !important;
+                margin: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+            }
+
+            .customers-filters-panel .select2-container .select2-selection--single {
+                width: 100% !important;
+                height: 28px !important;
+                min-height: 28px !important;
+            }
+
+            .customers-filters-actions {
+                display: none !important;
+            }
+
+            .card-block {
+                padding: 12px !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter {
+                display: none !important;
+            }
+
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                float: none;
+                text-align: center;
+                padding-top: 8px;
+            }
+
+            .dataTables_wrapper .dataTables_paginate {
+                display: flex;
+                justify-content: center;
+            }
+
+            .dt-responsive,
+            .dataTables_wrapper,
+            .dataTables_scroll,
+            .dataTables_scrollBody {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .customers-filters-toolbar {
+                display: none !important;
+            }
+            .customers-filters-panel {
+                display: flex !important;
+            }
+        }
     </style>
 @endsection
 
@@ -106,61 +350,34 @@
     <div class="theme-loader">
         <div class="ball-scale">
             <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
             </div>
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
-            <!-- Page-body start -->
-            <br>
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <!-- Main-body start -->
-                    <div class="main-body">
-                        <div class="page-wrapper">
-                            <!-- Page-body start -->
-                            <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                 <!-- Base Style - Compact start -->
                                 <div class="card" style="border-radius: 0; box-shadow: none; border: 1px solid #eef2f7;">
-                                    <div class="card-block mt-5" style="padding: 15px;">
-                                        <div class="d-flex justify-content-between align-items-end mb-3">
-                                            <div class="d-flex align-items-end"
-                                                style="gap: 15px; flex-grow: 1; flex-wrap: wrap;">
+                                    <div class="card-block" style="padding: 15px;">
+                                        <div class="customers-filters-toolbar">
+                                            <button type="button" id="btn-customers-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                                <i class="ti-filter"></i> <span class="customers-filters-toggle-label">Show filters</span>
+                                            </button>
+                                            <div class="customers-filters-toolbar-actions">
+                                                <a href="{{ route('customers.create') }}" class="btn btn-outline-primary customers-add-mobile">Add customer</a>
+                                            </div>
+                                        </div>
+                                        <div class="customers-filters-panel">
+                                            <div class="customers-filters-fields">
                                                 <div style="width: 150px;">
                                                     <span class="filter-label">Search</span>
                                                     <input type="text" id="filter-customer-search" class="form-control filter-input"
@@ -211,12 +428,12 @@
                                                     <a href="#" id="clear-customer-filters" class="clear-filters">Clear filters</a>
                                                 </div>
                                             </div>
-                                            <div class="d-flex" style="gap: 5px;">
+                                            <div class="customers-filters-actions">
                                                 <button class="btn btn-outline-secondary"
                                                     style="height: 28px; padding: 0 10px; border-radius: 2px;"><i
                                                         class="ti-download"></i></button>
                                                 <a href="{{ route('customers.create') }}" class="btn btn-outline-primary"
-                                                    style="height: 28px; font-size: 11px; padding: 5 12px; border-radius: 2px;">Add
+                                                    style="height: 28px; font-size: 11px; padding: 5px 12px; border-radius: 2px;">Add
                                                     customer</a>
                                             </div>
                                         </div>
@@ -286,19 +503,7 @@
                                     </div>
                                 </div>
                                 <!-- Base Style - Compact end -->
-                            </div>
-                            <!-- Page-body end -->
-                        </div>
-                    </div>
-                    <div id="styleSelector">
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
     <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -350,16 +555,22 @@
             $('.select2').select2({
                 placeholder: "Click here",
                 allowClear: true,
-                width: 'resolve'
+                width: '100%'
             });
 
+            function fixCustomerFilterSelect2Width() {
+                $('.customers-filters-panel .select2-container').css('width', '100%');
+            }
+
             var table = $('#offices-table').DataTable({
+                "dom": 'rt<"d-flex flex-wrap justify-content-between align-items-center"ip>',
                 "lengthChange": false,
                 "pageLength": 25,
                 "responsive": false,
-                "searching": true,
+                "searching": false,
                 "ordering": true,
                 "autoWidth": false,
+                "scrollX": true,
                 "columnDefs": [
                     { "orderable": false, "targets": [5] }
                 ],
@@ -371,6 +582,27 @@
                     }
                 }
             });
+
+            $('#btn-customers-filters-toggle').on('click', function () {
+                $('body').toggleClass('customers-filters-open');
+                var isOpen = $('body').hasClass('customers-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.customers-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                setTimeout(function () {
+                    fixCustomerFilterSelect2Width();
+                    table.columns.adjust();
+                }, 50);
+            });
+
+            $(window).on('resize', function () {
+                fixCustomerFilterSelect2Width();
+                table.columns.adjust();
+            });
+
+            setTimeout(function () {
+                fixCustomerFilterSelect2Width();
+                table.columns.adjust();
+            }, 100);
 
             function rowData($row, key) {
                 return String($row.attr('data-' + key) || '');

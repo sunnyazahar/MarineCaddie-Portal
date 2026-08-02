@@ -201,24 +201,32 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
         .search-inner {
             display: flex;
             align-items: center;
             gap: 15px;
+            flex: 1 1 auto;
+            min-width: 0;
         }
         .search-text {
             font-size: 13px;
             font-weight: 600;
             color: #374151;
+            flex-shrink: 0;
         }
         .search-input-custom {
-            border: 1px solid #f3f4f6;
+            border: 1px solid #e5e7eb;
             padding: 6px 12px;
             font-size: 13px;
             width: 200px;
+            max-width: 100%;
             border-radius: 4px;
-            color: #9ca3af;
+            color: #374151;
+            min-width: 0;
+            flex: 1 1 160px;
         }
         .btn-add-office {
             border: 1px solid #3b82f6;
@@ -229,16 +237,28 @@
             border-radius: 4px;
             font-weight: 500;
             cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         .btn-add-office:hover {
             background: #3b82f6;
             color: #fff;
+            text-decoration: none;
         }
 
+        .offices-table-wrap {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #fff;
+        }
         .office-table {
             width: 100%;
             border-collapse: collapse;
             background: #fff;
+            min-width: 900px;
         }
         .office-table th {
             text-align: left;
@@ -247,6 +267,7 @@
             font-weight: 600;
             color: #374151;
             border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
         }
         .office-table td {
             padding: 12px 15px;
@@ -293,6 +314,47 @@
         .action-icon:hover {
             color: #4b5563;
         }
+
+        /* Kill DataTables responsive "+" control if theme CSS reintroduces it */
+        table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before,
+        table.dataTable.dtr-column.collapsed > tbody > tr > td.dtr-control:before,
+        table.dataTable.dtr-column.collapsed > tbody > tr > th.dtr-control:before {
+            display: none !important;
+        }
+
+        @media (max-width: 991.98px) {
+            .page-title-link {
+                margin-left: 4px;
+            }
+            .header-search-bar {
+                padding: 10px 12px;
+                margin-bottom: 12px;
+            }
+            .search-inner {
+                width: 100%;
+                gap: 8px;
+            }
+            .search-input-custom {
+                width: auto;
+                flex: 1 1 auto;
+            }
+            .btn-add-office {
+                width: 100%;
+                text-align: center;
+            }
+            .offices-table-wrap,
+            .dataTables_wrapper,
+            .dataTables_scroll,
+            .dataTables_scrollBody {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            .office-table th,
+            .office-table td {
+                padding: 10px 12px;
+            }
+        }
     </style>
 @endsection
 
@@ -335,19 +397,7 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
+    @include('layouts.partials.pcoded-shell-start')
                                    <a href="#" class="page-title-link">Offices</a>
                                    
                                    <div class="header-search-bar">
@@ -358,6 +408,7 @@
                                        <a href="{{ route('offices.create') }}" class="btn-add-office">Add office</a>
                                    </div>
 
+                                   <div class="offices-table-wrap">
                                    <table id="offices-table" class="office-table">
                                        <thead>
                                            <tr>
@@ -383,7 +434,7 @@
                                                    <td>{{ $office->city }}</td>
                                                    <td>
                                                        @if($office->country)
-                                                           <img src="{{ $office->country->flag_url }}" class="flag-icon"> 
+                                                           <img src="{{ $office->country->flag_url }}" class="flag-icon" alt="">
                                                            {{ $office->country->name }}
                                                        @endif
                                                    </td>
@@ -411,17 +462,8 @@
                                            @endforeach
                                        </tbody>
                                    </table>
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                                   </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -464,77 +506,28 @@
 
     <script>
         $(document).ready(function() {
-             // Initialize Select2 for standard filters
-            $('.select2').select2({
-                placeholder: "Click here",
-                allowClear: true
-            });
-
-            // Initialize Bootstrap Multiselect for special filter toggle
-            $('#filter-multiselect').multiselect({
-                includeSelectAllOption: true,
-                enableFiltering: true,
-                buttonWidth: '100%',
-                maxHeight: 200,
-                nonSelectedText: '',
-                allSelectedText: '',
-                nSelectedText: '',
-                numberDisplayed: 0,
-                buttonClass: 'btn btn-outline-teal btn-filter-toggle',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><i class="ti-filter"></i></button>'
-                },
-                onChange: function(option, checked) {
-                    toggleFilterVisibility();
-                },
-                onSelectAll: function() {
-                    toggleFilterVisibility();
-                },
-                onDeselectAll: function() {
-                    toggleFilterVisibility();
-                }
-            });
-
-            function toggleFilterVisibility() {
-                var selectedOptions = $('#filter-multiselect option:selected');
-                var selectedValues = [];
-                selectedOptions.each(function() {
-                    selectedValues.push($(this).val());
-                });
-
-                var allFilters = [
-                    {val: 'Office Name', id: 'col-Office-Name'},
-                    {val: 'Short Name', id: 'col-Short-Name'},
-                    {val: 'City', id: 'col-City'},
-                    {val: 'Country', id: 'col-Country'},
-                    {val: 'Phone', id: 'col-Phone'},
-                    {val: 'Email', id: 'col-Email'}
-                ];
-
-                allFilters.forEach(function(filter) {
-                    if (selectedValues.includes(filter.val)) {
-                        $('#' + filter.id).show();
-                    } else {
-                        $('#' + filter.id).hide();
-                    }
-                });
-            }
-            
-            // Initial call to set visibility state
-            toggleFilterVisibility();
-
             var table = $('#offices-table').DataTable({
-                "dom": 't', // Only show the table itself
+                "dom": 't',
                 "pageLength": 100,
                 "ordering": true,
                 "autoWidth": false,
-                "responsive": true
+                "responsive": false,
+                "scrollX": true,
+                "searching": true
             });
 
             // Link custom search input to DataTable
             $('.search-input-custom').on('keyup', function() {
                 table.search(this.value).draw();
             });
+
+            $(window).on('resize', function () {
+                table.columns.adjust();
+            });
+
+            setTimeout(function () {
+                table.columns.adjust();
+            }, 100);
         });
     </script>
 @endsection

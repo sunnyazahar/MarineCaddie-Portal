@@ -31,18 +31,7 @@
 @endsection
 
 @section('content')
-<div id="pcoded" class="pcoded">
-    <div class="pcoded-overlay-box"></div>
-    <div class="pcoded-container navbar-wrapper">
-        @include('layouts.top-menu')
-        <div class="pcoded-main-container">
-            <div class="pcoded-wrapper">
-                @include('layouts.left-menu')
-                <div class="pcoded-content">
-                    <div class="pcoded-inner-content">
-                        <div class="main-body">
-                            <div class="page-wrapper">
-                                <div class="page-body">
+@include('layouts.partials.pcoded-shell-start')
                                     <div class="dashboard-heading">
                                         <div>
                                             <h3>Shipment Dashboard</h3>
@@ -186,16 +175,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="styleSelector"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@include('layouts.partials.pcoded-shell-end')
 
 <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
 <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>

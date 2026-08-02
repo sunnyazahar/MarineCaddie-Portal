@@ -152,6 +152,100 @@
             align-items: center;
         }
 
+        /* Mobile/tablet: row negative margins + thin custom-col padding clipped labels & calendar icons */
+        @media (max-width: 991.98px) {
+            #shipment-form .row {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            #shipment-form .row > [class*="col-"],
+            #shipment-form .custom-col,
+            #shipment-form .form-group[class*="col-"] {
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+
+            #shipment-form > .row > .col-md-4.custom-col {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+
+            #shipment-form .col-md-6,
+            #shipment-form .col-md-6.pr-1,
+            #shipment-form .col-md-6.pl-1,
+            #shipment-form .col-md-4.pr-1,
+            #shipment-form .col-md-4.px-1,
+            #shipment-form .col-md-4.pl-1,
+            #shipment-form .form-group.col-md-6 {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+
+            .page-body > .row > .col-md-12.pr-2,
+            .card.h-100 > .card-block {
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+            }
+
+            #shipment-form label {
+                overflow: visible;
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            #shipment-form .input-group {
+                flex-wrap: nowrap;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            #shipment-form .input-group .form-control {
+                min-width: 0;
+            }
+
+            #shipment-form .input-group-addon {
+                flex: 0 0 auto;
+                max-width: none;
+                padding: 0 10px !important;
+            }
+
+            #shipment-form .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .airfreight-flight-row,
+            .sea-freight-leg-row,
+            .truck-leg-row {
+                flex-wrap: wrap;
+            }
+
+            .airfreight-flight-row .flight-field-time,
+            .sea-freight-leg-row .sea-leg-field-time,
+            .truck-leg-row .truck-leg-field-time {
+                flex: 1 1 120px;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .mt-4.pt-3.border-top.d-flex {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .modal-body .filter-group[style*="width"] {
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100%;
+            }
+        }
+
         .filter-input {
             height: 30px;
             font-size: 11px;
@@ -224,10 +318,19 @@
         }
 
         .office-table {
-            min-width: 1500px;
+            min-width: 0;
             border-collapse: separate;
             border-spacing: 0;
             width: 100%;
+        }
+        @media (min-width: 1200px) {
+            .office-table {
+                min-width: 1500px;
+            }
+        }
+        .table-scroll-wrapper .office-table,
+        .dataTables_wrapper .office-table {
+            min-width: 1100px;
         }
 
         .office-table thead th {
@@ -738,61 +841,21 @@
     <div class="theme-loader">
         <div class="ball-scale">
             <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
             </div>
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
-            <!-- Page-body start -->
-            <br>
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <!-- Main-body start -->
-                    <div class="main-body">
-                        <div class="page-wrapper">
-                            <!-- Page-header start -->
-                            <div class="page-header">
-
-                            </div>
-                            <!-- Page-header end -->
-
-                            <!-- Page-body start -->
-                            <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                 <!-- Base Style - Compact start -->
                                 <div class="row">
                                     <!-- Left Card: Pillars + Tabs + Actions -->
@@ -1516,26 +1579,11 @@
                                                 </form>
                                             </div>
                                         </div>
-
-                                    
+                                    </div>
                                 </div>
 
-                            </div>
-                        </div>
-                        <!-- Base Style - Compact end -->
-                    </div>
-                    <!-- Page-body end -->
-                </div>
-            </div>
-            <div id="styleSelector">
-
-            </div>
-        </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
+                                        <!-- Base Style - Compact end -->
+    @include('layouts.partials.pcoded-shell-end')
     <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>

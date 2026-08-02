@@ -56,7 +56,7 @@
         .form-pillar {
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 5px;
             max-width: 100%;
         }
 

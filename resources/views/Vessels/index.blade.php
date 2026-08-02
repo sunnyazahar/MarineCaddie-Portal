@@ -212,7 +212,186 @@
         .select2-container--default .select2-selection--multiple {
             padding: 0px !important;
         }
-       
+
+        .vessels-filters-toolbar {
+            display: none;
+        }
+
+        .vessels-filters-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .vessels-filters-fields {
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            flex-grow: 1;
+            flex-wrap: wrap;
+        }
+
+        #vessels-table {
+            min-width: 720px !important;
+            width: 100% !important;
+        }
+
+        #vessels-table th,
+        #vessels-table td {
+            font-size: 11px !important;
+            line-height: 1.35;
+            white-space: nowrap;
+        }
+
+        /* Hide DataTables scrollX cloned header */
+        #vessels-table_wrapper .dataTables_scrollBody > table > thead,
+        #vessels-table_wrapper .dataTables_scrollBody thead {
+            height: 0 !important;
+            line-height: 0 !important;
+            visibility: collapse !important;
+        }
+        #vessels-table_wrapper .dataTables_scrollBody thead tr,
+        #vessels-table_wrapper .dataTables_scrollBody thead th {
+            height: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border: none !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+            overflow: hidden !important;
+            background: transparent !important;
+        }
+        #vessels-table_wrapper .dataTables_scrollBody thead th:before,
+        #vessels-table_wrapper .dataTables_scrollBody thead th:after {
+            display: none !important;
+            content: none !important;
+        }
+
+        @media (max-width: 991.98px) {
+            .vessels-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding: 0 0 10px;
+            }
+
+            .vessels-filters-panel {
+                display: none !important;
+                flex-direction: column;
+                justify-content: flex-start !important;
+                align-items: stretch !important;
+                gap: 8px;
+                max-height: 42vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                margin-bottom: 12px;
+                padding: 0 2px 8px;
+                -webkit-text-size-adjust: 100%;
+                text-size-adjust: 100%;
+            }
+
+            body.vessels-filters-open .vessels-filters-panel {
+                display: flex !important;
+            }
+
+            #btn-vessels-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
+            }
+
+            .vessels-filters-fields {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+                width: 100%;
+                flex-grow: 0 !important;
+            }
+
+            .vessels-filters-fields > div {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                flex: 0 0 auto !important;
+            }
+
+            .vessels-filters-fields input.filter-input {
+                width: 100% !important;
+                margin: 0 !important;
+            }
+
+            .vessels-filters-fields select.filter-input,
+            .vessels-filters-fields select.select2,
+            .vessels-filters-panel .select2-hidden-accessible {
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                padding: 0 !important;
+                margin: -1px !important;
+                overflow: hidden !important;
+                clip: rect(0, 0, 0, 0) !important;
+                border: 0 !important;
+            }
+
+            .vessels-filters-panel .select2-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                display: block !important;
+            }
+
+            .vessels-filters-panel .select2-container .select2-selection--single {
+                height: 28px !important;
+                min-height: 28px !important;
+            }
+
+            .clear-filters {
+                margin-top: 0;
+            }
+
+            .card-block {
+                padding: 12px !important;
+            }
+
+            #vessels-table th,
+            #vessels-table td {
+                font-size: 11px !important;
+                padding: 8px 10px !important;
+            }
+
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                float: none;
+                text-align: center;
+                padding-top: 8px;
+                font-size: 11px !important;
+            }
+
+            .dataTables_wrapper .dataTables_paginate {
+                display: flex;
+                justify-content: center;
+            }
+
+            .dt-responsive,
+            .dataTables_wrapper,
+            .dataTables_scroll,
+            .dataTables_scrollBody {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .vessels-filters-toolbar {
+                display: none !important;
+            }
+            .vessels-filters-panel {
+                display: flex !important;
+            }
+        }
     </style>
 @endsection
 
@@ -255,32 +434,16 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
-                                        <!-- Base Style - Compact start -->
+    @include('layouts.partials.pcoded-shell-start')
                                         <div class="card" style="border-radius: 0; box-shadow: none; border: 1px solid #eef2f7;">
                                             <div class="card-block" style="padding: 15px;">
-                                                <div class="d-flex justify-content-between align-items-end mb-3">
-                                                    <div class="d-flex align-items-end" style="gap: 15px; flex-grow: 1;">
+                                                <div class="vessels-filters-toolbar">
+                                                    <button type="button" id="btn-vessels-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                                        <i class="ti-filter"></i> <span class="vessels-filters-toggle-label">Show filters</span>
+                                                    </button>
+                                                </div>
+                                                <div class="vessels-filters-panel">
+                                                    <div class="vessels-filters-fields">
                                                         <div style="width: 200px;">
                                                             <span class="filter-label" style="font-size: 10px; font-weight: 600;">Vessel name</span>
                                                             <input type="text" id="vesselNameFilter" class="form-control filter-input" placeholder="type here" style="height: 28px; font-size: 11px;">
@@ -302,9 +465,6 @@
                                                             <span class="clear-filters" style="font-size: 11px; color: #3b82f6; cursor: pointer;">Clear filters</span>
                                                         </div>
                                                     </div>
-                                                    <!-- <div>
-                                                        <a href="{{ route('vessels.create') }}" class="btn btn-outline-primary" style="font-size: 11px; padding: 4px 12px; border-radius: 2px;">Add vessel</a>
-                                                    </div> -->
                                                 </div>
 
                                                 <div class="dt-responsive">
@@ -331,20 +491,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -387,19 +534,25 @@
 
     <script>
         $(document).ready(function() {
-             // Initialize Select2 for Type filter
             $('.select2').select2({
                 placeholder: "Click here",
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
 
-            $('#vessels-table').DataTable({
+            function fixVesselsFilterSelect2Width() {
+                $('.vessels-filters-panel .select2-container').css('width', '100%');
+            }
+
+            var table = $('#vessels-table').DataTable({
+                "dom": 'rt<"d-flex flex-wrap justify-content-between align-items-center"ip>',
                 "lengthChange": false,
                 "pageLength": 25,
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
                 "autoWidth": false,
+                "scrollX": true,
                 "language": {
                     "info": "Showing _START_ to _END_ of _TOTAL_ entries",
                     "paginate": {
@@ -408,6 +561,27 @@
                     }
                 }
             });
+
+            $('#btn-vessels-filters-toggle').on('click', function () {
+                $('body').toggleClass('vessels-filters-open');
+                var isOpen = $('body').hasClass('vessels-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.vessels-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                setTimeout(function () {
+                    fixVesselsFilterSelect2Width();
+                    table.columns.adjust();
+                }, 50);
+            });
+
+            $(window).on('resize', function () {
+                fixVesselsFilterSelect2Width();
+                table.columns.adjust();
+            });
+
+            setTimeout(function () {
+                fixVesselsFilterSelect2Width();
+                table.columns.adjust();
+            }, 100);
 
             function filterTable() {
                 var name = $('#vesselNameFilter').val().toLowerCase();

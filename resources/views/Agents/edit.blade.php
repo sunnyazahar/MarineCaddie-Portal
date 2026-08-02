@@ -293,6 +293,130 @@
             box-shadow: none;
             margin-bottom: 80px;
         }
+
+        @media (max-width: 1199.98px) {
+            .form-pillar-container {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 24px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .edit-header-summary {
+                flex-wrap: wrap;
+                gap: 12px 20px;
+                padding: 12px 16px;
+            }
+
+            .summary-item {
+                min-width: 0;
+                flex: 1 1 120px;
+            }
+
+            .tabs-container {
+                display: flex !important;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 0 8px;
+                max-width: 100%;
+            }
+
+            .tab-item {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+
+            .form-pillar-container,
+            .form-pillar-container[style*="grid-template-columns"] {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .form-pillar {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .input-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .input-row .form-group-custom,
+            .input-row .form-group-custom[style*="flex"] {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+            }
+
+            .input-group-custom {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .form-input-custom.has-append {
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            .form-footer {
+                left: 0 !important;
+                right: 0 !important;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .form-footer-actions {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .btn-saved-custom,
+            .btn-cancel-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .metadata-footer {
+                margin-left: 0;
+                width: 100%;
+                text-align: left;
+                padding-bottom: 8px;
+            }
+
+            .form-label-custom {
+                white-space: normal;
+                line-height: 1.3;
+                overflow: visible;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .tab-content-custom,
+            .card,
+            .page-body {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .card-block {
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+        }
     </style>
     <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
     <style>
@@ -374,22 +498,9 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
-            <!-- Page-body start -->
-            <br>
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <!-- Main-body start -->
-                    <div class="main-body">
-                        <div class="page-wrapper">
-                            <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                 <!-- Header Summary Bar -->
-                                <div class="edit-header-summary mt-5">
+                                <div class="edit-header-summary">
                                     <div class="summary-item">
                                         <span class="summary-label">Company Id</span>
                                         <span class="summary-value">96696</span>
@@ -1306,19 +1417,7 @@
                                         </div>
                                     </div>
                                 </form>
-                            </div>
-                            <!-- Page-body end -->
-                        </div>
-                    </div>
-                    <div id="styleSelector">
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
     <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>

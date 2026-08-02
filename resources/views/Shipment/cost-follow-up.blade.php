@@ -343,6 +343,12 @@
             z-index: 40;
             padding-bottom: 6px;
         }
+        .cost-filters-toolbar {
+            display: none;
+        }
+        .cost-filters-fields {
+            width: 100%;
+        }
         .cost-table-area {
             flex: 1;
             min-height: 0;
@@ -365,7 +371,99 @@
             overflow: auto !important;
             width: 100%;
             position: relative;
+            -webkit-overflow-scrolling: touch;
         }
+        .cost-table-area .office-table,
+        .cost-table-area #offices-table {
+            min-width: 1100px;
+        }
+
+        @media (max-width: 991.98px) {
+            .cost-list-card {
+                height: calc(100vh - 64px) !important;
+                margin-top: 8px !important;
+            }
+            .cost-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding: 4px 0 8px;
+            }
+            .cost-filters-fields {
+                display: none !important;
+                flex-direction: column;
+                max-height: 38vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 6px;
+                margin-bottom: 4px;
+                border-bottom: 1px solid #eef2f7;
+            }
+            body.cost-filters-open .cost-filters-fields {
+                display: flex !important;
+            }
+            #btn-cost-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
+            }
+            .cost-filters-fields .custom-col[style*="flex: 0 0 50px"],
+            .cost-filters-fields .btn-filter-toggle {
+                display: none !important;
+            }
+            .cost-filters-fields .filter-row,
+            .cost-filters-fields .row.custom-row {
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100%;
+            }
+            .cost-filters-fields .custom-col,
+            .cost-filters-fields .custom-col[style*="flex"] {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-bottom: 8px !important;
+                display: block !important;
+                visibility: visible !important;
+            }
+            .cost-filters-fields .filter-group {
+                width: 100%;
+                max-width: 100%;
+            }
+            .cost-table-area {
+                flex: 1 1 auto;
+                min-height: 45vh;
+            }
+            .cost-table-area .table-scroll-wrapper {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            .pagination-sticky-footer {
+                justify-content: center !important;
+                padding: 8px 12px !important;
+                height: auto !important;
+                min-height: 48px;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .cost-filters-toolbar {
+                display: none !important;
+            }
+            .cost-filters-fields {
+                display: flex !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            body.cost-filters-open .cost-filters-fields {
+                display: flex !important;
+            }
+        }
+
         #offices-table thead th {
             position: sticky !important;
             top: 0 !important;
@@ -482,7 +580,12 @@
                                         <div class="card cost-list-card mt-4">
                                             <div class="card-block">
                                                 <div class="cost-filters-fixed">
-                                                <div class="d-flex justify-content-between align-items-start pt-2">
+                                                <div class="cost-filters-toolbar">
+                                                    <button type="button" id="btn-cost-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                                        <i class="ti-filter"></i> <span class="cost-filters-toggle-label">Show filters</span>
+                                                    </button>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-start pt-2 cost-filters-fields">
                                                     <div style="width: 100%;">
                                                         <div class="row custom-row filter-row">
                                                             <div class="custom-col" style="flex: 0 0 50px;">
@@ -672,7 +775,7 @@
 
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: true,
+                enableFiltering: false,
                 buttonWidth: '100%',
                 maxHeight: 200,
                 nonSelectedText: '',
@@ -697,7 +800,40 @@
             $('#filter-multiselect').multiselect('selectAll', false);
             $('#filter-multiselect').multiselect('updateButtonText');
 
+            var costFilterIds = [
+                'col-Account-manager',
+                'col-Shipment-no',
+                'col-Customer',
+                'col-Vessel',
+                'col-Port-of-destination',
+                'col-Status',
+                'col-Created-by'
+            ];
+
+            function isCostMobile() {
+                return window.matchMedia('(max-width: 991.98px)').matches;
+            }
+
+            function ensureCostMobileFiltersVisible() {
+                if (!isCostMobile()) {
+                    return;
+                }
+                costFilterIds.forEach(function (id) {
+                    $('#' + id).show().css('display', '');
+                });
+                $('.cost-filters-fields .custom-col[style*="flex: 0 0 50px"]').hide();
+                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+            }
+
             function toggleFilterVisibility() {
+                if (isCostMobile()) {
+                    ensureCostMobileFiltersVisible();
+                    if (typeof table !== 'undefined' && table.columns) {
+                        setTimeout(adjustCostTableLayout, 50);
+                    }
+                    return;
+                }
+
                 var selectedValues = [];
                 $('#filter-multiselect option:selected').each(function() {
                     selectedValues.push($(this).val());
@@ -714,7 +850,7 @@
                 ];
 
                 allFilters.forEach(function(filter) {
-                    if (selectedValues.includes(filter.val)) {
+                    if (selectedValues.indexOf(filter.val) !== -1) {
                         $('#' + filter.id).show();
                     } else {
                         $('#' + filter.id).hide();
@@ -727,6 +863,7 @@
             }
 
             toggleFilterVisibility();
+            ensureCostMobileFiltersVisible();
 
             var table;
 
@@ -746,6 +883,7 @@
                 "searching": false,
                 "ordering": true,
                 "autoWidth": false,
+                "scrollX": true,
                 "columnDefs": [
                     { "targets": 0, "width": "120px" },
                     { "targets": 1, "width": "160px" },
@@ -774,7 +912,21 @@
                 }
             });
 
+            $('#btn-cost-filters-toggle').on('click', function () {
+                $('body').toggleClass('cost-filters-open');
+                var isOpen = $('body').hasClass('cost-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.cost-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                if (isOpen) {
+                    ensureCostMobileFiltersVisible();
+                }
+                setTimeout(adjustCostTableLayout, 50);
+                setTimeout(adjustCostTableLayout, 200);
+            });
+
             $(window).on('resize', function() {
+                toggleFilterVisibility();
+                ensureCostMobileFiltersVisible();
                 adjustCostTableLayout();
             });
 

@@ -52,16 +52,16 @@
 
         .form-group label {
             display: block;
-            font-size: 10px;
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 500;
             color: #555;
             margin-bottom: 4px;
             text-transform: none;
         }
 
         .form-control {
-            height: 28px;
-            font-size: 11px;
+            height: 30px;
+            font-size: 12px;
             border-radius: 2px;
             border: 1px solid #eef2f7;
             background-color: #fff;
@@ -413,20 +413,78 @@
             color: #333;
             font-weight: bold;
         }
+
+        @media (max-width: 1199.98px) {
+            .customers-create-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 24px;
+                padding: 20px 20px 100px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .main-body .page-wrapper {
+                padding: 0 !important;
+            }
+
+            .customers-create-grid {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px 12px 110px !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .customers-create-grid > div {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .form-inline-row {
+                flex-direction: column !important;
+                gap: 12px;
+            }
+
+            .form-inline-row .form-group,
+            .form-inline-row .form-group[style*="flex"] {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+            }
+
+            .page-footer-actions {
+                left: 0 !important;
+                right: 0 !important;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .btn-save-customer,
+            .link-cancel-customer {
+                width: 100%;
+                text-align: center;
+            }
+
+            .form-group label {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .sop-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
     </style>
 @endsection
 
 @section('content')
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
-
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <div class="main-body">
-                        <div class="page-wrapper mt-5">
+    @include('layouts.partials.pcoded-shell-start')
 
                             @if(session('success'))
                                 <div class="alert alert-success mt-2">
@@ -776,13 +834,7 @@
                                 </div>
 
                             </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> <!-- end pcoded-container -->
-    </div> <!-- end pcoded -->
+    @include('layouts.partials.pcoded-shell-end')
 
     <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>

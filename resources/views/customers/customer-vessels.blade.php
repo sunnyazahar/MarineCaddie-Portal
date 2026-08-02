@@ -417,6 +417,107 @@
         .vessel-tab-pane.active {
             display: block;
         }
+
+        @media (max-width: 1199.98px) {
+            .vessel-details-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 24px;
+                padding: 20px 20px 100px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .vessel-tabs {
+                display: flex !important;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                max-width: 100%;
+            }
+
+            .vessel-tabs .tab-item {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+
+            .vessel-details-grid {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px 12px 110px !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .vessel-details-grid > div {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .vessel-details-grid > div > div[style*="display: flex"] {
+                flex-direction: column !important;
+                gap: 12px !important;
+            }
+
+            .vessel-details-grid > div > div[style*="display: flex"] > div,
+            .vessel-details-grid .form-group[style*="flex"] {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+            }
+
+            .checkbox-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .vessel-footer {
+                left: 0 !important;
+                right: 0 !important;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .btn-save-vessel,
+            .btn-cancel-vessel {
+                width: 100%;
+                text-align: center;
+            }
+
+            .metadata-footer {
+                margin-left: 0;
+                width: 100%;
+                text-align: left;
+            }
+
+            .add-contact-link {
+                float: none;
+                display: block;
+                margin-top: 8px;
+            }
+
+            .contact-card-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .form-group label {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .card,
+            .page-body {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+        }
     </style>
 @endsection
 
@@ -459,33 +560,12 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
-                                        <!-- Base Style - Compact start -->
+    @include('layouts.partials.pcoded-shell-start')
                                         <form id="vesselForm" method="POST" action="{{ route('customers.vessels.update', $vessel->id) }}">
                                             @csrf
                                             @method('PUT')
                                         <div class="card">
-                                            
+
                                             <div class="vessel-tabs">
                                                 <div class="tab-item active" data-target="#vessel-details">Vessel details</div>
                                                 <div class="tab-item" data-target="#vessel-location">Vessel location</div>
@@ -636,7 +716,6 @@
                                                                                 <label><input type="checkbox" name="contacts[1][free_storage_notifications]" value="1" {{ $vessel->contact_free_storage_notifications ? 'checked' : '' }}> Free storage notifications</label>
                                                                                 <label><input type="checkbox" name="contacts[1][offers]" value="1" {{ $vessel->contact_offers ? 'checked' : '' }}> Offers</label>
                                                                             </div>
-                                                                        </div>
                                                                     </div>
                                                                 @endif
                                                             </div>
@@ -703,20 +782,7 @@
                                             </div>
                                         </div>
                                         </form>
-                                        <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -762,6 +828,11 @@
     <script>
         $(document).ready(function() {
             function fixedFooterOffset() {
+                var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
+                if (isMobile) {
+                    $('.vessel-footer').css('left', '0px');
+                    return;
+                }
                 var $navbar = $('.pcoded-navbar');
                 var sidebarWidth = $navbar.length ? $navbar.outerWidth() : 0;
                 $('.vessel-footer').css('left', sidebarWidth + 'px');

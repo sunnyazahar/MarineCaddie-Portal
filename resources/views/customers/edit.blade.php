@@ -25,8 +25,14 @@
         }
         .summary-item { text-align: left; margin-right: 30px; }
         .summary-label { font-size: 11px; color: #888; display: block; margin-bottom: 2px; }
-        .summary-value { font-size: 14px; font-weight: 700; color: #333; }
-        .summary-value.active { color: #28a745; }
+        .summary-value {
+            font-size: 13px !important;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+        .summary-value.active { color: #28a745; font-size: 13px !important; }
 
         /* Custom Styled Tabs */
         .custom-edit-tabs {
@@ -295,21 +301,163 @@
             width: 1px !important;
             white-space: nowrap !important;
         }
+
+        @media (max-width: 1199.98px) {
+            .customers-edit-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 24px;
+                padding: 20px 20px 110px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .main-body .page-wrapper {
+                padding: 0 !important;
+            }
+
+            .summary-bar {
+                flex-wrap: wrap;
+                gap: 12px;
+                padding: 12px 16px;
+                -webkit-text-size-adjust: 100%;
+                text-size-adjust: 100%;
+            }
+
+            .summary-bar > div {
+                flex-wrap: wrap;
+                gap: 12px 20px;
+                width: 100%;
+            }
+
+            .summary-item {
+                margin-right: 0;
+                min-width: 0;
+                flex: 1 1 120px;
+            }
+
+            .summary-label {
+                font-size: 10px !important;
+            }
+
+            .summary-value,
+            .summary-value.active {
+                font-size: 12px !important;
+                font-weight: 600 !important;
+                line-height: 1.3;
+            }
+
+            .custom-edit-tabs {
+                display: flex !important;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 0 8px;
+                max-width: 100%;
+            }
+
+            .custom-edit-tabs .nav-item,
+            .custom-edit-tabs .nav-link {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+
+            .custom-edit-tabs .nav-link {
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+
+            .customers-edit-grid {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px 12px 120px !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .customers-edit-grid > div {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .form-inline-row {
+                flex-direction: column !important;
+                gap: 12px;
+            }
+
+            .form-inline-row .form-group,
+            .form-inline-row .form-group[style*="flex"] {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+            }
+
+            .page-footer-actions {
+                left: 0 !important;
+                right: 0 !important;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .btn-update-customer,
+            .link-cancel-customer {
+                width: 100%;
+                text-align: center;
+            }
+
+            .page-footer-actions .audit-meta {
+                margin-left: 0;
+                width: 100%;
+                text-align: left;
+            }
+
+            .sop-grid {
+                grid-template-columns: 1fr !important;
+                padding: 12px;
+            }
+
+            .vessels-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                padding: 12px 16px;
+            }
+
+            .vessels-search-container {
+                width: 100%;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .vessels-table {
+                min-width: 640px;
+            }
+
+            .form-group label {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .tab-content,
+            .card {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+        }
     </style>
 @endsection
 
 @section('content')
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
-            
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <div class="main-body">
-                        <div class="page-wrapper">
-                            
+    @include('layouts.partials.pcoded-shell-start')
+
                             <!-- Summary Bar -->
                             <div class="summary-bar">
                                 <div style="display: flex;">
@@ -885,13 +1033,7 @@
                             <input type="file" name="sop_documents[]" id="sop_documents_input" multiple style="display:none;" form="customerForm">
                             </form>
 
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> <!-- end pcoded-container -->
-</div> <!-- end pcoded -->
+    @include('layouts.partials.pcoded-shell-end')
 
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>

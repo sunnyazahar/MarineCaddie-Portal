@@ -329,9 +329,76 @@
             border-bottom: 1px solid #e5e7eb;
         }
         .office-table {
-            min-width: 1500px; 
+            min-width: 0;
             border-collapse: separate; /* Required for sticky borders */
             border-spacing: 0;
+        }
+        @media (min-width: 1200px) {
+            .office-table {
+                min-width: 1500px;
+            }
+        }
+        .table-scroll-wrapper .office-table,
+        .dataTables_wrapper .office-table {
+            min-width: 1100px;
+        }
+
+        .stock-followup-filters {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 12px 16px;
+            background: #fff;
+            padding: 12px 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            max-width: 100%;
+        }
+        .stock-followup-filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+            flex: 1 1 200px;
+            max-width: 280px;
+        }
+        .stock-followup-filter-item .filter-control {
+            width: 100%;
+            min-width: 0;
+        }
+        .stock-followup-filters .clear-filters {
+            margin-top: 0;
+            align-self: center;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 991.98px) {
+            .stock-followup-filter-item {
+                flex: 1 1 100%;
+                max-width: 100%;
+            }
+            .stock-followup-filters .clear-filters {
+                width: 100%;
+            }
+            .table-scroll-wrapper {
+                max-height: none;
+                max-height: calc(100vh - 220px);
+            }
+            .pagination-sticky-footer {
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                padding: 8px 12px !important;
+                height: auto !important;
+                min-height: 48px;
+                justify-content: center !important;
+                overflow-x: auto;
+            }
+            .card-block {
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
         }
         .office-table thead th {
             position: sticky !important;
@@ -426,35 +493,15 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content" >
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                         <!-- Base Style - Compact start -->
                                         <div class="card" style="border: none; box-shadow: none; background: transparent;">
                                             <div class="card-block" style="padding: 10px 0;">
                                                 <!-- Filter Row -->
-                                                <div style="display: flex; align-items: center; gap: 20px; background: #fff; padding: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                                <div class="stock-followup-filters">
+                                                    <div class="stock-followup-filter-item">
                                                         <span class="filter-label" style="margin-bottom: 0;">Account manager</span>
-                                                        <div style="width: 200px;">
+                                                        <div class="filter-control">
                                                             <select id="filter-account-manager" class="form-control searchable-filter-multiselect" multiple="multiple">
                                                                 @foreach ($accountManagers as $manager)
                                                                     <option value="{{ $manager }}">{{ $manager }}</option>
@@ -462,9 +509,9 @@
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                                    <div class="stock-followup-filter-item">
                                                         <span class="filter-label" style="margin-bottom: 0;">Customer</span>
-                                                        <div style="width: 250px;">
+                                                        <div class="filter-control">
                                                             <select id="filter-customer" class="form-control searchable-filter-multiselect" multiple="multiple">
                                                                 @foreach ($customers as $customer)
                                                                     <option value="{{ $customer }}">{{ $customer }}</option>
@@ -472,7 +519,7 @@
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <a href="#" class="clear-filters" style="margin-top: 0;">Clear filters</a>
+                                                    <a href="#" class="clear-filters">Clear filters</a>
                                                 </div>
 
                                                 <!-- Data Table -->
@@ -590,19 +637,7 @@
                                             </div>
                                         </div>
                                         <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -659,6 +694,7 @@
                 "searching": true,
                 "ordering": true,
                 "autoWidth": false,
+                "scrollX": true,
                 "columnDefs": [
                     { "orderable": false, "targets": [13] }
                 ]

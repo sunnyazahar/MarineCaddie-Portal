@@ -204,6 +204,171 @@
         .main-body .page-wrapper {
             padding: 5px !important;
         }
+
+        .btn-outline-teal {
+            color: #008080;
+            border-color: #008080;
+            background-color: transparent;
+        }
+        .btn-outline-teal:hover,
+        .btn-outline-teal.is-open {
+            background-color: #008080;
+            color: #fff;
+            border-color: #008080;
+        }
+
+        .other-companies-filters-toolbar {
+            display: none;
+        }
+
+        .other-companies-add-mobile {
+            display: none;
+        }
+
+        .table-other-companies {
+            min-width: 0;
+        }
+
+        .table-scroll-wrapper .table-other-companies,
+        .dataTables_wrapper .table-other-companies,
+        .table-responsive .table-other-companies {
+            min-width: 900px;
+        }
+
+        @media (max-width: 991.98px) {
+            .other-companies-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                flex-wrap: wrap;
+                padding: 8px 12px;
+                background: #fff;
+                border-bottom: 1px solid #eee;
+            }
+
+            .other-companies-filters-toolbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .other-companies-add-mobile {
+                display: inline-flex !important;
+                align-items: center;
+                font-size: 11px;
+                padding: 6px 12px;
+                border-radius: 2px;
+                background: #fff;
+                color: #1b5e6f;
+                border: 1px solid #1b5e6f;
+                font-weight: 600;
+                text-decoration: none;
+                white-space: nowrap;
+            }
+
+            .filter-row {
+                display: none !important;
+                flex-direction: column;
+                align-items: stretch;
+                flex-wrap: nowrap;
+                gap: 10px;
+                max-height: 42vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 10px 12px 12px;
+            }
+
+            body.other-companies-filters-open .filter-row {
+                display: flex !important;
+            }
+
+            #btn-other-companies-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
+            }
+
+            .filter-item,
+            .filter-item[style*="width"] {
+                width: 100% !important;
+                max-width: 100% !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 4px;
+            }
+
+            .filter-label-custom {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .filter-input-custom,
+            .filter-input-custom[style*="width"],
+            .filter-row .select2-container {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .input-group-custom {
+                width: 100%;
+            }
+
+            .input-group-custom .filter-input-custom {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .filter-checkbox-group,
+            .btn-clear-filters {
+                margin-left: 0 !important;
+                margin-bottom: 0;
+            }
+
+            .btn-add-other,
+            .other-companies-add-desktop {
+                display: none !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter {
+                float: none;
+                text-align: left;
+                padding: 8px 12px 0;
+            }
+
+            .dataTables_wrapper .dataTables_filter input {
+                width: 100% !important;
+                margin-left: 0 !important;
+                display: block;
+                margin-top: 4px;
+            }
+
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                float: none;
+                text-align: center;
+                padding-top: 8px;
+            }
+
+            .dataTables_wrapper .dataTables_paginate {
+                display: flex;
+                justify-content: center;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .other-companies-filters-toolbar {
+                display: none !important;
+            }
+            .filter-row {
+                display: flex !important;
+            }
+        }
     </style>
 @endsection
 
@@ -246,28 +411,16 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                         <div class="card">
+                                            <div class="other-companies-filters-toolbar">
+                                                <button type="button" id="btn-other-companies-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                                    <i class="ti-filter"></i> <span class="other-companies-filters-toggle-label">Show filters</span>
+                                                </button>
+                                                <div class="other-companies-filters-toolbar-actions">
+                                                    <a class="other-companies-add-mobile" href="{{ route('other-companies.create') }}">Add other company</a>
+                                                </div>
+                                            </div>
                                             <!-- Filter Bar -->
                                             <div class="filter-row">
                                                 <div class="filter-item" style="width: 250px;">
@@ -303,7 +456,7 @@
                                                     <label for="filter-hide-inactive">Hide inactive</label>
                                                 </div>
                                                 <a href="#" id="clear-company-filters" class="btn-clear-filters">Clear filters</a>
-                                                <a href="{{ route('other-companies.create') }}" class="btn-add-other">Add other company</a>
+                                                <a href="{{ route('other-companies.create') }}" class="btn-add-other other-companies-add-desktop">Add other company</a>
                                             </div>
 
                                             <!-- Data Table -->
@@ -380,18 +533,7 @@
                                                 </table>
                                             </div>
                                         </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -442,12 +584,14 @@
             });
 
             var table = $('#other-companies-table').DataTable({
+                "dom": 'ft<"d-flex flex-wrap justify-content-between align-items-center"ip>',
                 "lengthChange": false,
                 "pageLength": 25,
                 "responsive": false,
                 "searching": true,
                 "ordering": true,
                 "autoWidth": false,
+                "scrollX": true,
                 "columnDefs": [
                     { "orderable": false, "targets": [9] }
                 ],
@@ -459,6 +603,24 @@
                     }
                 }
             });
+
+            $('#btn-other-companies-filters-toggle').on('click', function () {
+                $('body').toggleClass('other-companies-filters-open');
+                var isOpen = $('body').hasClass('other-companies-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.other-companies-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                setTimeout(function () {
+                    table.columns.adjust();
+                }, 50);
+            });
+
+            $(window).on('resize', function () {
+                table.columns.adjust();
+            });
+
+            setTimeout(function () {
+                table.columns.adjust();
+            }, 100);
 
             function rowData($row, key) {
                 return String($row.attr('data-' + key) || '');

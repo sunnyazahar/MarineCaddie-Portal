@@ -374,12 +374,124 @@
             z-index: 40;
             padding-bottom: 6px;
         }
+        .stocks-filters-toolbar {
+            display: none;
+        }
         .stocks-table-area {
             flex: 1;
             min-height: 0;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+
+        /* Mobile: unlock page if needed; collapse filters; keep table scrollable */
+        @media (max-width: 991.98px) {
+            body.stocks-list-page {
+                overflow: hidden !important;
+                height: 100vh;
+            }
+            body.stocks-list-page .pcoded-inner-content,
+            body.stocks-list-page .main-body,
+            body.stocks-list-page .page-wrapper,
+            body.stocks-list-page .page-body {
+                height: 100%;
+                overflow: hidden !important;
+            }
+            .stocks-list-card {
+                height: calc(100vh - 64px) !important;
+                margin-top: 8px !important;
+            }
+            body.stock-bulk-footer-visible .stocks-list-card {
+                height: calc(100vh - 120px) !important;
+            }
+            .stocks-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                flex-wrap: wrap;
+                padding: 4px 0 8px;
+            }
+            .stocks-filters-toolbar .stocks-filters-toolbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            /* Always show filters stacked on mobile; toolbar toggles collapse only */
+            .stocks-filters-fields {
+                display: flex !important;
+                flex-direction: column;
+                max-height: 38vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 6px;
+                margin-bottom: 4px;
+                border-bottom: 1px solid #eef2f7;
+            }
+            body.stocks-filters-collapsed .stocks-filters-fields {
+                display: none !important;
+            }
+            .stocks-filters-fields .custom-col[style*="margin-left: auto"],
+            .stocks-filters-fields .custom-col.d-flex.justify-content-end {
+                display: none !important;
+            }
+            /* Hide column picker (leaks a "Search" box on mobile) */
+            .stocks-filters-fields .custom-col[style*="flex: 0 0 50px"],
+            .stocks-filters-fields .btn-filter-toggle,
+            .stocks-filters-fields #filter-multiselect {
+                display: none !important;
+            }
+            .stocks-filters-fields .filter-row {
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100%;
+            }
+            .stocks-filters-fields .custom-col,
+            .stocks-filters-fields .custom-col[style*="flex"] {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-bottom: 8px !important;
+                display: block !important;
+                visibility: visible !important;
+            }
+            #btn-stocks-filters-toggle.is-collapsed {
+                background: transparent !important;
+                color: #008080 !important;
+            }
+            .stocks-table-area {
+                flex: 1 1 auto;
+                min-height: 45vh;
+            }
+            .stocks-table-area .dataTables_scrollBody {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            .pagination-sticky-footer {
+                padding: 8px 12px !important;
+                height: auto !important;
+                min-height: 48px;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .stocks-filters-toolbar {
+                display: none !important;
+            }
+            .stocks-filters-fields {
+                display: flex !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            body.stocks-filters-collapsed .stocks-filters-fields {
+                display: flex !important;
+            }
         }
         .stocks-table-area .dataTables_wrapper {
             display: flex;
@@ -451,10 +563,18 @@
             position: relative;
         }
         .office-table {
-            min-width: 1500px;
+            min-width: 0;
             border-collapse: separate;
             border-spacing: 0;
             width: 100% !important;
+        }
+        @media (min-width: 1200px) {
+            .office-table {
+                min-width: 1500px;
+            }
+        }
+        .table-scroll-wrapper .office-table {
+            min-width: 1100px;
         }
         .dataTables_scroll {
             width: 100%;
@@ -651,57 +771,21 @@
     <div class="theme-loader">
         <div class="ball-scale">
             <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
             </div>
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <div class="pcoded-content" >
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Flash Messages -->
+    @include('layouts.partials.pcoded-shell-start')
                                     @if(session('success'))
                                         <div class="alert alert-success alert-dismissible fade show" role="alert" style="font-size: 12px; margin-bottom: 10px;">
                                             <i class="fa fa-check-circle mr-1"></i> {{ session('success') }}
@@ -715,15 +799,20 @@
                                         </div>
                                     @endif
 
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
                                         <!-- Base Style - Compact start -->
                                         <div class="card stocks-list-card mt-4">
                                             <div class="card-block">
                                                 <div class="stocks-filters-fixed">
-                                                <div class="d-flex justify-content-between align-items-start pt-2">
+                                                <div class="stocks-filters-toolbar">
+                                                    <button type="button" id="btn-stocks-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                                        <i class="ti-filter"></i> <span class="stocks-filters-toggle-label">Hide filters</span>
+                                                    </button>
+                                                    <div class="stocks-filters-toolbar-actions">
+                                                        <button type="button" id="btn-export-pdf-mobile" class="btn btn-outline-teal btn-sm"><i class="ti-download"></i> Export</button>
+                                                        <a href="{{ route('create-crr') }}" class="btn btn-outline-teal btn-sm">Create CRR</a>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-start pt-2 stocks-filters-fields">
                                                     <div style="width: 100%;">
                                                         <!-- Row 1 -->
                                                         <div class="row custom-row filter-row">
@@ -978,19 +1067,7 @@
                                             </div>
                                         </div>
                                         <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
 
     <div id="stock-bulk-footer" class="stock-bulk-footer">
         <div class="stock-bulk-footer-inner">
@@ -1093,7 +1170,7 @@
             // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: true,
+                enableFiltering: false,
                 buttonWidth: '100%',
                 nonSelectedText: '',
                 allSelectedText: '',
@@ -1118,7 +1195,43 @@
             $('#filter-multiselect').multiselect('updateButtonText');
             toggleFilterVisibility();
 
+            function isStocksMobile() {
+                return window.matchMedia('(max-width: 991.98px)').matches;
+            }
+
+            function ensureStocksMobileFiltersVisible() {
+                if (!isStocksMobile()) {
+                    return;
+                }
+                [
+                    'col-Customer',
+                    'col-Vessel',
+                    'col-Hub-Agent',
+                    'col-Status',
+                    'col-PO-number',
+                    'col-Supplier',
+                    'col-Stock-number',
+                    'col-Service-reference',
+                    'col-Shipment-no',
+                    'col-Transit-id',
+                    'col-Account-manager',
+                    'col-Office'
+                ].forEach(function (id) {
+                    $('#' + id).show().css('display', '');
+                });
+                $('.stocks-filters-fields .custom-col[style*="flex: 0 0 50px"]').hide();
+                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+            }
+
             function toggleFilterVisibility() {
+                if (isStocksMobile()) {
+                    ensureStocksMobileFiltersVisible();
+                    if (typeof table !== 'undefined' && table.columns) {
+                        setTimeout(adjustStockTableLayout, 50);
+                    }
+                    return;
+                }
+
                 var selectedOptions = $('#filter-multiselect option:selected');
                 var selectedValues = [];
                 selectedOptions.each(function() {
@@ -1141,7 +1254,7 @@
                 ];
 
                 allFilters.forEach(function(filter) {
-                    if (selectedValues.includes(filter.val)) {
+                    if (selectedValues.indexOf(filter.val) !== -1) {
                         $('#' + filter.id).show();
                     } else {
                         $('#' + filter.id).hide();
@@ -1152,6 +1265,9 @@
                     setTimeout(adjustStockTableLayout, 50);
                 }
             }
+
+            ensureStocksMobileFiltersVisible();
+            $(window).on('resize.stocksFilters', ensureStocksMobileFiltersVisible);
 
             var table = $('#offices-table').DataTable({
                 "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
@@ -1172,19 +1288,32 @@
             });
 
             function getStockTableScrollHeight() {
+                var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
                 var $tableArea = $('.stocks-table-area');
                 var $scrollHead = $('.dataTables_scrollHead');
                 var areaHeight = $tableArea.length ? $tableArea.innerHeight() : 0;
                 var headHeight = $scrollHead.length ? $scrollHead.outerHeight() : 40;
                 var available = areaHeight - headHeight - 2;
 
-                if (available < 180) {
-                    var topOffset = $scrollHead.length ? $scrollHead.offset().top : 220;
+                if (isMobile) {
                     var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
                     var bulkHeight = $('body').hasClass('stock-bulk-footer-visible')
                         ? ($('#stock-bulk-footer').outerHeight() || 56)
                         : 0;
-                    available = window.innerHeight - topOffset - paginationHeight - bulkHeight - 4;
+                    var topOffset = $tableArea.length && $tableArea.offset()
+                        ? $tableArea.offset().top
+                        : 160;
+                    available = window.innerHeight - topOffset - paginationHeight - bulkHeight - 8;
+                    return Math.max(260, available);
+                }
+
+                if (available < 180) {
+                    var topOffsetFallback = $scrollHead.length ? $scrollHead.offset().top : 220;
+                    var paginationHeightFallback = $('.pagination-sticky-footer').outerHeight() || 48;
+                    var bulkHeightFallback = $('body').hasClass('stock-bulk-footer-visible')
+                        ? ($('#stock-bulk-footer').outerHeight() || 56)
+                        : 0;
+                    available = window.innerHeight - topOffsetFallback - paginationHeightFallback - bulkHeightFallback - 4;
                 }
 
                 return Math.max(180, available);
@@ -1201,6 +1330,22 @@
 
                 table.columns.adjust();
             }
+
+            $('#btn-stocks-filters-toggle').on('click', function () {
+                $('body').toggleClass('stocks-filters-collapsed');
+                var collapsed = $('body').hasClass('stocks-filters-collapsed');
+                $(this).toggleClass('is-collapsed', collapsed);
+                $(this).find('.stocks-filters-toggle-label').text(collapsed ? 'Show filters' : 'Hide filters');
+                if (!collapsed) {
+                    ensureStocksMobileFiltersVisible();
+                }
+                setTimeout(adjustStockTableLayout, 50);
+                setTimeout(adjustStockTableLayout, 200);
+            });
+
+            $('#btn-export-pdf-mobile').on('click', function () {
+                $('#btn-export-pdf').trigger('click');
+            });
 
             $(window).on('resize', function() {
                 adjustStockTableLayout();

@@ -106,6 +106,109 @@
         .dataTables_wrapper .dataTables_paginate {
             padding-top: 10px !important;
         }
+
+        .suppliers-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .suppliers-toolbar-search {
+            width: 200px;
+        }
+
+        .suppliers-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .table-other-companies {
+            min-width: 0;
+        }
+
+        .dt-responsive .table-other-companies,
+        .dataTables_wrapper .table-other-companies {
+            min-width: 900px;
+        }
+
+        /* Hide DataTables scrollX cloned header inside scroll body (prevents double header) */
+        #suppliers-table_wrapper .dataTables_scrollBody > table > thead,
+        #suppliers-table_wrapper .dataTables_scrollBody thead {
+            height: 0 !important;
+            line-height: 0 !important;
+            visibility: collapse !important;
+        }
+        #suppliers-table_wrapper .dataTables_scrollBody thead tr,
+        #suppliers-table_wrapper .dataTables_scrollBody thead th {
+            height: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border: none !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+            overflow: hidden !important;
+            background: transparent !important;
+        }
+        #suppliers-table_wrapper .dataTables_scrollBody thead th:before,
+        #suppliers-table_wrapper .dataTables_scrollBody thead th:after {
+            display: none !important;
+            content: none !important;
+        }
+
+        @media (max-width: 991.98px) {
+            .suppliers-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .suppliers-toolbar-search {
+                width: 100%;
+            }
+
+            .suppliers-toolbar-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .suppliers-toolbar-actions .btn,
+            .suppliers-toolbar-actions a.btn {
+                flex: 1 1 auto;
+                text-align: center;
+            }
+
+            .filter-input {
+                width: 100%;
+            }
+
+            .card-block {
+                padding: 12px !important;
+            }
+
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                float: none;
+                text-align: center;
+                padding-top: 8px !important;
+            }
+
+            .dataTables_wrapper .dataTables_paginate {
+                display: flex;
+                justify-content: center;
+            }
+
+            .dt-responsive,
+            .dataTables_wrapper,
+            .dataTables_scroll,
+            .dataTables_scrollBody {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
     </style>
 @endsection
 
@@ -148,36 +251,19 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
-                                        <!-- Base Style - Compact start -->
+    @include('layouts.partials.pcoded-shell-start')
                                         <div class="card" style="border-radius: 0; box-shadow: none; border: 1px solid #eef2f7;">
-                                            <div class="card-block mt-5" style="padding: 15px;">
-                                                <div class="d-flex justify-content-between align-items-end mb-3">
-                                                    <div class="d-flex align-items-end" style="gap: 15px;">
-                                                        <div style="width: 200px;">
-                                                            <span class="filter-label">Search</span>
-                                                            <input type="text" class="form-control filter-input" placeholder="type here">
-                                                        </div>
+                                            <div class="card-block" style="padding: 15px;">
+                                                <div class="suppliers-toolbar">
+                                                    <div class="suppliers-toolbar-search">
+                                                        <span class="filter-label">Search</span>
+                                                        <input type="text" class="form-control filter-input" placeholder="type here">
                                                     </div>
-                                                    <div class="d-flex align-items-center" style="gap: 8px;">
+                                                    <div class="suppliers-toolbar-actions">
                                                         <a href="#" style="border: 1px solid #ced4da; padding: 4px 10px; border-radius: 2px; color: #666; font-size: 14px;">
                                                             <i class="ti-download"></i>
                                                         </a>
-                                                        <a class="btn btn-primary" href="{{ route('suppliers.create') }}" 
+                                                        <a class="btn btn-primary" href="{{ route('suppliers.create') }}"
                                                            style="font-size: 11px; padding: 6px 15px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
                                                            Add supplier
                                                         </a>
@@ -228,17 +314,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -285,18 +361,28 @@
             var table = $('#suppliers-table').DataTable({
                 "lengthChange": false,
                 "pageLength": 25,
-                "responsive": true,
+                "responsive": false,
                 "searching": true,
                 "ordering": true,
-                "dom": 'rt<"d-flex justify-content-between align-items-center"ip>',
+                "autoWidth": false,
+                "scrollX": true,
+                "dom": 'rt<"d-flex flex-wrap justify-content-between align-items-center"ip>',
                 "language": {
                     "paginate": {
                         "previous": "<",
                         "next": ">"
                     },
-                    "info": "Showing 1 to _MENU_ of _TOTAL_ entries"
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries"
                 }
             });
+
+            $(window).on('resize', function () {
+                table.columns.adjust();
+            });
+
+            setTimeout(function () {
+                table.columns.adjust();
+            }, 100);
 
             // Bind search input
             $('.filter-input').keyup(function() {

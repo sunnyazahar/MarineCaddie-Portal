@@ -291,6 +291,63 @@
             font-size: 14px;
             text-decoration: none;
         }
+
+        @media (max-width: 1199.98px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 24px;
+                padding: 20px 20px 96px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .form-grid {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px 12px 110px !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .form-column {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .sub-grid-3 {
+                grid-template-columns: 1fr !important;
+                gap: 12px;
+            }
+
+            .form-footer-custom {
+                left: 0 !important;
+                right: 0 !important;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .btn-save-custom,
+            .btn-cancel-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .form-label-custom {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .card {
+                margin-bottom: 0;
+            }
+        }
     </style>
 @endsection
 
@@ -333,28 +390,7 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
-                                        <!-- Base Style - Compact start -->
+    @include('layouts.partials.pcoded-shell-start')
                                         <form id="supplierForm" action="{{ route('suppliers.store') }}" method="POST">
                                             @csrf
                                             <div class="card">
@@ -509,18 +545,7 @@
                                                 </div>
                                             </div>
                                         </form>
-                                    </div><!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>

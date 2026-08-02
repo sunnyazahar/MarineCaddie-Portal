@@ -365,6 +365,75 @@
         input#edit-user-password-confirmation {
             font-size: 12px;
         }
+
+        #offices-table {
+            min-width: 900px !important;
+            width: 100% !important;
+        }
+
+        #offices-table th,
+        #offices-table td {
+            font-size: 12px !important;
+            white-space: nowrap;
+        }
+
+        /* Hide DataTables scrollX cloned header */
+        #offices-table_wrapper .dataTables_scrollBody > table > thead,
+        #offices-table_wrapper .dataTables_scrollBody thead {
+            height: 0 !important;
+            line-height: 0 !important;
+            visibility: collapse !important;
+        }
+        #offices-table_wrapper .dataTables_scrollBody thead tr,
+        #offices-table_wrapper .dataTables_scrollBody thead th {
+            height: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border: none !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+            overflow: hidden !important;
+            background: transparent !important;
+        }
+        #offices-table_wrapper .dataTables_scrollBody thead th:before,
+        #offices-table_wrapper .dataTables_scrollBody thead th:after {
+            display: none !important;
+            content: none !important;
+        }
+
+        /* Kill responsive "+" control if any leftover CSS loads */
+        table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
+            display: none !important;
+        }
+
+        @media (max-width: 991.98px) {
+            .header-search-bar {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px 12px;
+                margin-bottom: 12px;
+            }
+
+            .btn-add-office {
+                width: 100%;
+                text-align: center;
+            }
+
+            .users-table-wrap,
+            .dataTables_wrapper,
+            .dataTables_scroll,
+            .dataTables_scrollBody {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #offices-table th,
+            #offices-table td {
+                font-size: 11px !important;
+                padding: 10px 12px !important;
+            }
+        }
     </style>
 @endsection
 
@@ -407,29 +476,18 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">                                   
+    @include('layouts.partials.pcoded-shell-start')
                                    @if (session('success'))
                                        <div class="alert alert-success">{{ session('success') }}</div>
                                    @endif
                                    <div class="header-search-bar">
                                        <div class="search-inner">
-                                          
+
                                        </div>
                                        <button type="button" class="btn-add-office" data-toggle="modal" data-target="#addUserModal">Add User</button>
                                    </div>
 
+                                   <div class="users-table-wrap">
                                    <table id="offices-table" class="office-table">
                                        <thead>
                                            <tr>
@@ -483,6 +541,7 @@
                                            @endforeach
                                        </tbody>
                                    </table>
+                                   </div>
 
                                    <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
                                        <div class="modal-dialog modal-dialog-centered" role="document">
@@ -669,17 +728,7 @@
                                            </div>
                                        </div>
                                    </div>
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-validation/dist/jquery.validate.js') }}"></script>
@@ -1070,11 +1119,12 @@
             toggleFilterVisibility();
 
             var table = $('#offices-table').DataTable({
-                "dom": 't', // Only show the table itself
+                "dom": 't',
                 "pageLength": 100,
                 "ordering": true,
                 "autoWidth": false,
-                "responsive": true
+                "responsive": false,
+                "scrollX": true
             });
 
             // Link custom search input to DataTable

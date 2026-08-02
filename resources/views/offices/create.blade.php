@@ -242,6 +242,80 @@
         .page-body {
             background-color: #FFFFFF;
         }
+
+        @media (max-width: 1199.98px) {
+            .form-pillar-container {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 20px;
+                padding: 16px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .form-pillar-container {
+                grid-template-columns: 1fr !important;
+                gap: 24px;
+                padding: 12px;
+                min-height: 0;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .form-pillar {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .address-sub-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px;
+            }
+
+            .account-row-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .form-section-header {
+                margin-bottom: 12px;
+            }
+
+            .card-block[style*="padding: 25px"] {
+                padding: 12px !important;
+            }
+
+            .card-header[style*="padding: 15px 25px"] {
+                padding: 12px 16px !important;
+                height: auto !important;
+            }
+
+            .edit-footer {
+                flex-wrap: wrap;
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .btn-save-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .form-label-custom,
+            .checkbox-label {
+                overflow: visible;
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .checkbox-group {
+                align-items: flex-start;
+            }
+        }
     </style>
 @endsection
 

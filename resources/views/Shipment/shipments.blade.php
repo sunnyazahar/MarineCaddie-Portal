@@ -16,7 +16,16 @@
             width: 100% !important;
             border-collapse: separate !important;
             border-spacing: 0 !important;
-            min-width: 1400px;
+            min-width: 0;
+        }
+        @media (min-width: 1200px) {
+            #offices-table {
+                min-width: 1400px;
+            }
+        }
+        .table-scroll-wrapper #offices-table,
+        .dataTables_wrapper #offices-table {
+            min-width: 1100px;
         }
         #offices-table thead th {
             position: relative !important;
@@ -304,6 +313,119 @@
             z-index: 40;
             padding-bottom: 6px;
         }
+        .shipments-filters-toolbar {
+            display: none;
+        }
+        .shipments-filters-fields {
+            width: 100%;
+        }
+        .shipments-create-desktop {
+            width: 15%;
+            padding-top: 18px;
+        }
+
+        @media (max-width: 991.98px) {
+            body.shipments-list-page {
+                overflow: hidden !important;
+                height: 100vh;
+            }
+            body.shipments-list-page .pcoded-inner-content,
+            body.shipments-list-page .main-body,
+            body.shipments-list-page .page-wrapper,
+            body.shipments-list-page .page-body {
+                height: 100%;
+                overflow: hidden !important;
+            }
+            .shipments-list-card {
+                height: calc(100vh - 64px) !important;
+                margin-top: 8px !important;
+            }
+            .shipments-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                flex-wrap: wrap;
+                padding: 4px 0 8px;
+            }
+            .shipments-filters-toolbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            /* Start collapsed on mobile so the table is visible */
+            .shipments-filters-fields {
+                display: none !important;
+                flex-direction: column;
+                max-height: 38vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 6px;
+                margin-bottom: 4px;
+                border-bottom: 1px solid #eef2f7;
+            }
+            body.shipments-filters-open .shipments-filters-fields {
+                display: flex !important;
+            }
+            #btn-shipments-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
+            }
+            .shipments-filters-fields .mr-2,
+            .shipments-filters-fields .btn-filter-toggle {
+                display: none !important;
+            }
+            .shipments-filters-fields .filter-row {
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100%;
+            }
+            .shipments-filters-fields .custom-col,
+            .shipments-filters-fields .custom-col[style*="flex"] {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-bottom: 8px !important;
+                display: block !important;
+                visibility: visible !important;
+            }
+            .shipments-create-desktop {
+                display: none !important;
+            }
+            .shipments-table-area {
+                flex: 1 1 auto;
+                min-height: 45vh;
+            }
+            .shipments-table-area .dataTables_scrollBody {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            .pagination-sticky-footer {
+                padding: 8px 12px !important;
+                height: auto !important;
+                min-height: 48px;
+                justify-content: center !important;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .shipments-filters-toolbar {
+                display: none !important;
+            }
+            .shipments-filters-fields {
+                display: block !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            body.shipments-filters-open .shipments-filters-fields {
+                display: block !important;
+            }
+        }
+
         .shipments-table-area {
             flex: 1;
             min-height: 0;
@@ -492,65 +614,34 @@
     <div class="theme-loader">
         <div class="ball-scale">
             <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
             </div>
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                         <!-- Base Style - Compact start -->
                                         <div class="card shipments-list-card mt-4">
                                             <div class="card-block">
                                                 <div class="shipments-filters-fixed">
-                                                <div class="d-flex justify-content-between align-items-start pt-2">
+                                                <div class="shipments-filters-toolbar">
+                                                    <button type="button" id="btn-shipments-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                                        <i class="ti-filter"></i> <span class="shipments-filters-toggle-label">Show filters</span>
+                                                    </button>
+                                                    <div class="shipments-filters-toolbar-actions">
+                                                        <a href="{{ route('create-shipment') }}" class="btn btn-teal btn-sm">Create shipment</a>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-start pt-2 shipments-filters-fields">
                                                     <div style="width: 100%;">
                                                         <div class="row no-gutters filter-row">
                                                             <div class="mr-2" style="margin-top: 2px;">
@@ -697,7 +788,7 @@
                                                             <a class="clear-filters">Clear filters</a>
                                                         </div>
                                                 </div>
-                                                <div class="text-right" style="width: 15%; padding-top: 18px;">
+                                                <div class="text-right shipments-create-desktop">
                                                      <!-- <button class="btn btn-outline-teal"><i class="ti-download"></i> Export</button> -->
                                                      <a href="{{ route('create-shipment') }}" class="btn btn-teal ml-2">Create shipment</a>
                                                 </div>
@@ -793,19 +884,7 @@
                                             </div>
                                         </div>
                                         <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -856,7 +935,7 @@
             // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: true,
+                enableFiltering: false,
                 buttonWidth: '100%',
                 maxHeight: 200,
                 nonSelectedText: '',
@@ -880,19 +959,54 @@
 
             $('#filter-multiselect').multiselect('selectAll', false);
             $('#filter-multiselect').multiselect('updateButtonText');
-            toggleFilterVisibility();
+
+            var shipmentFilterIds = [
+                'col-Customer',
+                'col-Vessel',
+                'col-Shipment-no',
+                'col-Service-reference-number',
+                'col-PO-number',
+                'col-Departure-hub',
+                'col-Consignee',
+                'col-Port-of-destination',
+                'col-Account-manager',
+                'col-Created-by',
+                'col-Office',
+                'col-Creation-date',
+                'col-Service',
+                'col-Status'
+            ];
+
+            function isShipmentsMobile() {
+                return window.matchMedia('(max-width: 991.98px)').matches;
+            }
+
+            function ensureShipmentsMobileFiltersVisible() {
+                if (!isShipmentsMobile()) {
+                    return;
+                }
+                shipmentFilterIds.forEach(function (id) {
+                    $('#' + id).show().css('display', '');
+                });
+                $('.shipments-filters-fields .mr-2').hide();
+                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+            }
 
             function toggleFilterVisibility() {
+                if (isShipmentsMobile()) {
+                    ensureShipmentsMobileFiltersVisible();
+                    if (typeof table !== 'undefined' && table.columns) {
+                        setTimeout(adjustShipmentsTableLayout, 50);
+                    }
+                    return;
+                }
+
                 var selectedOptions = $('#filter-multiselect option:selected');
                 var selectedValues = [];
                 selectedOptions.each(function() {
                     selectedValues.push($(this).val());
                 });
 
-                // Map of Option Value -> element ID
-                // Note: User provided option values are like "Customer", "Service reference number", etc.
-                // We constructed IDs like "col-Customer", "col-Service-reference-number"
-                
                 var allFilters = [
                     {val: 'Customer', id: 'col-Customer'},
                     {val: 'Vessel', id: 'col-Vessel'},
@@ -911,7 +1025,7 @@
                 ];
 
                 allFilters.forEach(function(filter) {
-                    if (selectedValues.includes(filter.val)) {
+                    if (selectedValues.indexOf(filter.val) !== -1) {
                         $('#' + filter.id).show();
                     } else {
                         $('#' + filter.id).hide();
@@ -923,12 +1037,15 @@
                 }
             }
 
+            toggleFilterVisibility();
+            ensureShipmentsMobileFiltersVisible();
+
             var table = $('#offices-table').DataTable({
                 "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
                 "lengthChange": false,
                 "pageLength": 100,
                 "responsive": false,
-                "searching": true,
+                "searching": false,
                 "ordering": true,
                 "order": [],
                 "autoWidth": false,
@@ -938,11 +1055,21 @@
             });
 
             function getShipmentsTableScrollHeight() {
+                var isMobile = isShipmentsMobile();
                 var $tableArea = $('.shipments-table-area');
                 var $scrollHead = $('.dataTables_scrollHead');
                 var areaHeight = $tableArea.length ? $tableArea.innerHeight() : 0;
                 var headHeight = $scrollHead.length ? $scrollHead.outerHeight() : 40;
                 var available = areaHeight - headHeight - 2;
+
+                if (isMobile) {
+                    var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
+                    var topOffset = $tableArea.length && $tableArea.offset()
+                        ? $tableArea.offset().top
+                        : 160;
+                    available = window.innerHeight - topOffset - paginationHeight - 8;
+                    return Math.max(260, available);
+                }
 
                 if (available < 180) {
                     var topOffset = $scrollHead.length ? $scrollHead.offset().top : 220;
@@ -965,7 +1092,21 @@
                 table.columns.adjust();
             }
 
+            $('#btn-shipments-filters-toggle').on('click', function () {
+                $('body').toggleClass('shipments-filters-open');
+                var isOpen = $('body').hasClass('shipments-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.shipments-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                if (isOpen) {
+                    ensureShipmentsMobileFiltersVisible();
+                }
+                setTimeout(adjustShipmentsTableLayout, 50);
+                setTimeout(adjustShipmentsTableLayout, 200);
+            });
+
             $(window).on('resize', function() {
+                toggleFilterVisibility();
+                ensureShipmentsMobileFiltersVisible();
                 adjustShipmentsTableLayout();
             });
 

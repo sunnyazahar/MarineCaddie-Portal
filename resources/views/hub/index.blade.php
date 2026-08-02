@@ -241,7 +241,133 @@
             margin-right: 6px;
             vertical-align: middle;
         }
-       
+
+        .hub-filters-toolbar {
+            display: none;
+        }
+        .hub-filters-bar {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 2px solid #eef2f7;
+            margin-bottom: 10px;
+            padding: 8px 10px 12px;
+        }
+        .hub-filters-bar .hub-filter-field {
+            width: 150px;
+            min-width: 0;
+            flex: 0 0 auto;
+            margin-bottom: 0;
+        }
+        .hub-filters-bar .hub-filter-field-sm {
+            width: 120px;
+        }
+        .hub-filters-bar .hub-filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            padding-bottom: 1px;
+        }
+        .hub-filters-bar .hub-filter-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 1px;
+            flex-wrap: wrap;
+        }
+        .hub-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .table-other-companies {
+            min-width: 900px;
+        }
+
+        @media (max-width: 991.98px) {
+            .hub-filters-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                flex-wrap: wrap;
+                padding: 4px 0 8px;
+            }
+            .hub-filters-toolbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .hub-filters-bar {
+                display: none !important;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                max-height: 42vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 8px 0 12px;
+                margin-bottom: 8px;
+            }
+            body.hub-filters-open .hub-filters-bar {
+                display: flex !important;
+            }
+            #btn-hub-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
+            }
+            .hub-filters-bar .hub-filter-field,
+            .hub-filters-bar .hub-filter-field-sm {
+                width: 100% !important;
+                max-width: 100% !important;
+                flex: 0 0 auto !important;
+            }
+            .hub-filters-bar .filter-label {
+                white-space: normal;
+                line-height: 1.3;
+            }
+            .hub-filters-bar .hub-filter-meta,
+            .hub-filters-bar .hub-filter-actions {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .hub-filters-bar .hub-add-desktop {
+                display: none !important;
+            }
+            .dataTables_wrapper .dataTables_filter {
+                text-align: left;
+                float: none;
+                margin-bottom: 8px;
+            }
+            .dataTables_wrapper .dataTables_filter input {
+                width: calc(100% - 70px);
+                max-width: 100%;
+                margin-left: 8px !important;
+            }
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                float: none;
+                text-align: center;
+                padding-top: 8px;
+            }
+            .dataTables_wrapper .dataTables_paginate {
+                display: flex;
+                justify-content: center;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .hub-filters-toolbar {
+                display: none !important;
+            }
+            .hub-filters-bar {
+                display: flex !important;
+            }
+        }
     </style>
 @endsection
 
@@ -309,18 +435,29 @@
                                         <!-- Hub Index Design start -->
                                         <div class="card">
                                             <div class="card-block">
-                                                <div class="d-flex align-items-center pt-2 pb-2" style="border-bottom: 2px solid #eef2f7; margin-bottom: 10px; padding-left: 10px; gap: 15px;">
-                                                    <div class="form-group mb-0" style="width: 150px;">
+                                                <div class="hub-filters-toolbar">
+                                                    <button type="button" id="btn-hub-filters-toggle" class="btn btn-outline-teal btn-sm">
+                                                        <i class="ti-filter"></i> <span class="hub-filters-toggle-label">Show filters</span>
+                                                    </button>
+                                                    <div class="hub-filters-toolbar-actions">
+                                                        <a class="btn btn-sm" href="{{ route('hub.create') }}"
+                                                           style="font-size: 11px; padding: 6px 12px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
+                                                           Add hub
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="hub-filters-bar">
+                                                    <div class="form-group mb-0 hub-filter-field">
                                                         <span class="filter-label">Name</span>
                                                         <input type="text" id="filter-hub-name" class="form-control filter-input" placeholder="type here">
                                                     </div>
-                                                    
-                                                    <div class="form-group mb-0" style="width: 120px;">
+
+                                                    <div class="form-group mb-0 hub-filter-field hub-filter-field-sm">
                                                         <span class="filter-label">Code</span>
                                                         <input type="text" id="filter-hub-code" class="form-control filter-input" placeholder="type here">
                                                     </div>
 
-                                                    <div class="form-group mb-0" style="width: 150px;">
+                                                    <div class="form-group mb-0 hub-filter-field">
                                                         <span class="filter-label">Address</span>
                                                         <div style="position: relative;">
                                                             <input type="text" id="filter-hub-address" class="form-control filter-input" placeholder="type here" style="padding-right: 30px;">
@@ -330,12 +467,12 @@
                                                         </div>
                                                     </div>
 
-                                                    <div class="form-group mb-0" style="width: 150px;">
+                                                    <div class="form-group mb-0 hub-filter-field">
                                                         <span class="filter-label">City</span>
                                                         <input type="text" id="filter-hub-city" class="form-control filter-input" placeholder="type here">
                                                     </div>
 
-                                                    <div class="form-group mb-0" style="width: 150px;">
+                                                    <div class="form-group mb-0 hub-filter-field">
                                                         <span class="filter-label">Country</span>
                                                         <select id="filter-hub-country" class="form-control filter-input select2">
                                                             <option value=""></option>
@@ -345,25 +482,26 @@
                                                         </select>
                                                     </div>
 
-                                                    <div class="d-flex align-items-center" style="margin-top: 18px; border: 1px solid #ced4da; padding: 4px 8px; border-radius: 2px; height: 30px;">
-                                                        <span style="font-size: 11px; margin-right: 8px; ">Hide inactive</span>
-                                                        <input type="checkbox" id="filter-hide-inactive" checked style="width: 14px; height: 14px;">
+                                                    <div class="hub-filter-meta">
+                                                        <div class="d-flex align-items-center" style="border: 1px solid #ced4da; padding: 4px 8px; border-radius: 2px; height: 30px;">
+                                                            <span style="font-size: 11px; margin-right: 8px;">Hide inactive</span>
+                                                            <input type="checkbox" id="filter-hide-inactive" checked style="width: 14px; height: 14px;">
+                                                        </div>
+                                                        <a href="#" id="clear-hub-filters" class="clear-filters">Clear filters</a>
                                                     </div>
 
-                                                    <a href="#" id="clear-hub-filters" class="clear-filters" style="margin-top: 18px;">Clear filters</a>
-
-                                                    <div class="d-flex align-items-center ml-auto" style="gap: 8px; margin-top: 18px;">
+                                                    <div class="hub-filter-actions">
                                                         <a href="#" style="border: 1px solid #ced4da; padding: 4px 10px; border-radius: 2px; color: #666; font-size: 14px;">
                                                             <i class="ti-download"></i>
                                                         </a>
-                                                        <a class="btn btn-primary" href="{{ route('hub.create') }}" 
+                                                        <a class="btn btn-primary hub-add-desktop" href="{{ route('hub.create') }}"
                                                            style="font-size: 11px; padding: 6px 15px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
                                                            Add hub
                                                         </a>
                                                     </div>
                                                 </div>
 
-                                                <div class="dt-responsive">
+                                                <div class="hub-table-wrap dt-responsive">
                                                     <table id="offices-table" class="table-other-companies">
                                                         <thead style="background: #fdfdfd;">
                                                             <tr>
@@ -499,12 +637,14 @@
             });
 
             var table = $('#offices-table').DataTable({
+                "dom": '<"hub-table-wrap"rt><"d-flex flex-wrap justify-content-between align-items-center"ip>',
                 "lengthChange": false,
                 "pageLength": 25,
                 "responsive": false,
-                "searching": true,
+                "searching": false,
                 "ordering": true,
                 "autoWidth": false,
+                "scrollX": true,
                 "columnDefs": [
                     { "orderable": false, "targets": [7] }
                 ],
@@ -516,6 +656,24 @@
                     }
                 }
             });
+
+            $('#btn-hub-filters-toggle').on('click', function () {
+                $('body').toggleClass('hub-filters-open');
+                var isOpen = $('body').hasClass('hub-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.hub-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                setTimeout(function () {
+                    table.columns.adjust();
+                }, 50);
+            });
+
+            $(window).on('resize', function () {
+                table.columns.adjust();
+            });
+
+            setTimeout(function () {
+                table.columns.adjust();
+            }, 100);
 
             function rowData($row, key) {
                 return String($row.attr('data-' + key) || '');

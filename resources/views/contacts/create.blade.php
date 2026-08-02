@@ -183,7 +183,7 @@
         
         /* Contact Form Styling */
         .contact-form-container {
-            padding: 30px;
+            padding: 10px;
             max-width: 600px;
         }
         .form-group-custom {

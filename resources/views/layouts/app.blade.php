@@ -37,6 +37,7 @@
     <link rel="stylesheet" type="text/css" href="{{asset('files/assets/icon/feather/css/feather.css')}}">
     <!-- Style.css -->
     <link rel="stylesheet" type="text/css" href="{{asset('files/assets/css/jquery.mCustomScrollbar.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{asset('files/assets/css/responsive-app.css')}}">
     <style>
         body {
             color: rgb(24, 100, 131) !important;

@@ -45,6 +45,30 @@
             /* Changed from hidden to prevent datepicker clipping */
         }
 
+        @media (max-width: 991.98px) {
+            .crr-col {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .crr-col {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .form-footer-custom {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 10px 12px;
+            }
+        }
+
+        .crr-data-table {
+            min-width: 900px;
+        }
+
         .crr-field-group {
             margin-bottom: 15px;
         }
@@ -584,56 +608,22 @@
     <div class="theme-loader">
         <div class="ball-scale">
             <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
             </div>
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
-            <!-- Page-body start -->
-            <br>
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <!-- Main-body start -->
-                    <div class="main-body">
-                        <div class="">
-                            <div class="page-header">
-
-                                <div class="card">
+    @include('layouts.partials.pcoded-shell-start')
+                                    <div class="card">
                                     <div class="crr-form-container p-4 mt-4" style="padding-bottom: 80px;">
 
                                         <form action="{{ route('stocks.crr.store') }}" method="POST" id="crrForm">
@@ -1127,17 +1117,7 @@
                                         </form>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div id="styleSelector">
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
 
     {{-- Quick-add supplier modal --}}
     <div class="modal fade" id="add-supplier-modal" tabindex="-1" role="dialog" aria-labelledby="addSupplierModalLabel" aria-hidden="true">

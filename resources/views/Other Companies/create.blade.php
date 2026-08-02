@@ -23,7 +23,7 @@
         .form-pillar {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            /* gap: 20px; */
         }
         .form-section-header {
             font-size: 14px;
@@ -170,6 +170,79 @@
             margin-right: 8px;
             vertical-align: middle;
         }
+
+        @media (max-width: 1199.98px) {
+            .form-pillar-container {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 24px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .form-pillar-container {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .form-pillar {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .input-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .input-row .form-group-custom {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+            }
+
+            .form-group-custom input[style*="width: 50%"],
+            .form-input-custom[style*="width: 50%"] {
+                width: 100% !important;
+            }
+
+            .form-footer {
+                left: 0 !important;
+                right: 0 !important;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .btn-save-custom,
+            .btn-cancel-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .footer-metadata {
+                margin-left: 0 !important;
+                width: 100%;
+                text-align: left !important;
+            }
+
+            .form-label-custom {
+                white-space: normal;
+                line-height: 1.3;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .card {
+                margin-bottom: 24px;
+            }
+        }
     </style>
 @endsection
 
@@ -212,27 +285,7 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                         <div class="card">
                                             <form action="{{ route('other-companies.store') }}" method="POST">
                                                 @csrf
@@ -404,18 +457,7 @@
                                                 </div>
                                             </form>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
      <!-- Required Jquery -->
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>

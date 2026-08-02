@@ -622,6 +622,147 @@
         .btn-add-row:hover {
             background: #f8fafc;
         }
+
+        .ops-table-wrap {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #fff;
+        }
+
+        .ops-table {
+            min-width: 640px;
+        }
+
+        @media (max-width: 1199.98px) {
+            .form-pillar-container {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 20px;
+                padding: 16px !important;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .main-body .page-wrapper {
+                padding: 0 !important;
+            }
+
+            .summary-header {
+                flex-wrap: wrap;
+                gap: 16px 24px;
+                padding: 12px 16px;
+            }
+
+            .custom-tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                padding: 0 8px;
+                gap: 0;
+            }
+
+            .custom-tab {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+
+            .form-pillar-container {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+                padding: 12px !important;
+                min-height: 0 !important;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .form-pillar {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .address-sub-grid,
+            .account-row-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .tab-pane.active {
+                padding: 12px;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            #office-details.tab-pane.active {
+                padding: 0;
+                padding-bottom: 72px;
+            }
+
+            .pane-header-actions {
+                padding: 10px 0;
+                justify-content: stretch !important;
+            }
+
+            .pane-header-actions .btn-pane-action,
+            .pane-header-actions a.btn-pane-action {
+                width: 100%;
+                text-align: center;
+                display: block;
+            }
+
+            .ops-table-wrap {
+                margin: 0 -4px;
+                padding: 0 4px;
+            }
+
+            .ops-table th,
+            .ops-table td {
+                padding: 10px 12px;
+                white-space: nowrap;
+            }
+
+            .ops-table th:first-child,
+            .ops-table td:first-child {
+                padding-left: 12px;
+            }
+
+            .edit-footer {
+                flex-wrap: wrap;
+                padding: 16px;
+                gap: 12px;
+                position: static !important;
+                left: auto !important;
+            }
+
+            .edit-footer .audit-info {
+                width: 100%;
+                text-align: left;
+                margin-left: 0;
+            }
+
+            .btn-save-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .custom-modal {
+                width: calc(100vw - 24px) !important;
+                max-width: 450px;
+                margin: 12px;
+            }
+
+            .select2-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .coming-soon-pane {
+                padding: 32px 16px;
+                min-height: 200px;
+            }
+        }
     </style>
 @endsection
 
@@ -664,27 +805,7 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
-            <!-- Page-body start -->
-            <br>
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <!-- Main-body start -->
-                    <div class="main-body">
-                        <div class="page-wrapper">
-                            <!-- Page-header start -->
-                            <div class="page-header">
-
-                            </div>
-                            <!-- Page-header end -->
-
-                            <!-- Page-body start -->
-                            <div class="page-body">
+    @include('layouts.partials.pcoded-shell-start')
                                 @if(session('success'))
                                     <div class="alert alert-success border-none"
                                         style="background-color: #ecfdf5; color: #065f46; border: 1px solid #10b981;">
@@ -711,11 +832,11 @@
                                 <div class="summary-header">
                                     <div class="summary-item">
                                         <div class="summary-label">Office Id</div>
-                                        <div class="summary-value">172465</div>
+                                        <div class="summary-value">{{ $office->id }}</div>
                                     </div>
                                     <div class="summary-item">
                                         <div class="summary-label">Inactive</div>
-                                        <div class="summary-value">No</div>
+                                        <div class="summary-value">{{ (int) $office->status === 1 ? 'No' : 'Yes' }}</div>
                                     </div>
                                 </div>
 
@@ -1043,6 +1164,7 @@
                                             Add operation user
                                         </a>
                                     </div>
+                                    <div class="ops-table-wrap">
                                     <table class="ops-table">
                                         <thead>
                                             <tr>
@@ -1073,6 +1195,7 @@
                                             @endforeach
                                         </tbody>
                                     </table>
+                                    </div>
                                 </div>
                                 <div id="sales-users" class="tab-pane">
                                     <div class="pane-header-actions"
@@ -1083,6 +1206,7 @@
                                             Add sales user
                                         </a>
                                     </div>
+                                    <div class="ops-table-wrap">
                                     <table class="ops-table">
                                         <thead>
                                             <tr>
@@ -1113,6 +1237,7 @@
                                             @endforeach
                                         </tbody>
                                     </table>
+                                    </div>
                                     @if($office->contacts->where('category', 'sales')->isEmpty())
                                         <div class="no-data-wrapper">
                                             <i class="fa fa-info-circle no-data-icon"></i>
@@ -1129,6 +1254,7 @@
                                             Add manager user
                                         </a>
                                     </div>
+                                    <div class="ops-table-wrap">
                                     <table class="ops-table">
                                         <thead>
                                             <tr>
@@ -1159,6 +1285,7 @@
                                             @endforeach
                                         </tbody>
                                     </table>
+                                    </div>
                                     @if($office->contacts->where('category', 'manager')->isEmpty())
                                         <div class="no-data-wrapper">
                                             <i class="fa fa-info-circle no-data-icon"></i>
@@ -1175,6 +1302,7 @@
                                             Add account user
                                         </a>
                                     </div>
+                                    <div class="ops-table-wrap">
                                     <table class="ops-table">
                                         <thead>
                                             <tr>
@@ -1205,6 +1333,7 @@
                                             @endforeach
                                         </tbody>
                                     </table>
+                                    </div>
                                     @if($office->contacts->where('category', 'account')->isEmpty())
                                         <div class="no-data-wrapper">
                                             <i class="fa fa-info-circle no-data-icon"></i>
@@ -1217,6 +1346,7 @@
                                         <button type="button" class="btn-pane-action" id="btn-add-template">Add
                                             template</button>
                                     </div>
+                                    <div class="ops-table-wrap">
                                     <table class="ops-table">
                                         <thead>
                                             <tr>
@@ -1227,6 +1357,7 @@
                                             </tr>
                                         </thead>
                                     </table>
+                                    </div>
                                     <div class="no-data-wrapper">
                                         <i class="fa fa-info-circle no-data-icon"></i>
                                         <div class="no-data-text">No data to show</div>
@@ -1237,6 +1368,7 @@
                                         <button type="button" class="btn-pane-action" id="btn-add-accounting">Add accounting
                                             system configuration</button>
                                     </div>
+                                    <div class="ops-table-wrap">
                                     <table class="ops-table">
                                         <thead>
                                             <tr>
@@ -1247,26 +1379,14 @@
                                             </tr>
                                         </thead>
                                     </table>
+                                    </div>
                                     <div class="no-data-wrapper">
                                         <i class="fa fa-info-circle no-data-icon"></i>
                                         <div class="no-data-text">No data to show</div>
                                     </div>
                                 </div>
 
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="styleSelector">
-
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
 
     <!-- Accounting System Modal -->
     <div class="custom-modal-overlay" id="modal-overlay">

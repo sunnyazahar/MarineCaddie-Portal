@@ -11,7 +11,7 @@
             height: calc(100vh - 120px); /* Adjusted for pcoded navigation */
             background: #f4f7f6;
             overflow: hidden;
-            margin: -20px -5px; /* Pull to edges of page-wrapper */
+            margin: -20px 0px; /* Pull to edges of page-wrapper */
         }
 
         /* Left Sidebar - Shipment List */
@@ -75,13 +75,13 @@
             flex-direction: column;
             overflow: hidden;
             padding: 0 10px;
-            padding-bottom: 72px;
+            padding-bottom: 0px;
         }
 
         /* Summary Header */
         .summary-header {
             background: #fff;
-            padding: 15px 20px;
+            padding: 25px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -91,6 +91,202 @@
         .header-meta-group {
             display: flex;
             gap: 25px;
+        }
+
+        @media (max-width: 991.98px) {
+            .master-container {
+                height: auto;
+                min-height: calc(100vh - 100px);
+                margin: 0;
+                overflow: visible;
+                flex-direction: column;
+            }
+
+            .left-sidebar {
+                display: none;
+            }
+
+            .main-content-area {
+                overflow: visible;
+                padding: 0 4px 5px;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .right-sidebar {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-top: 0 !important;
+                border-left: none;
+                border-top: 1px solid #e2e8f0;
+            }
+
+            .edit-footer {
+                left: 0 !important;
+                width: 100% !important;
+                padding: 12px !important;
+                flex-wrap: wrap;
+            }
+
+            .summary-header {
+                flex-wrap: wrap;
+                gap: 12px;
+                padding: 12px;
+                height: auto;
+                align-items: flex-start;
+            }
+
+            .header-meta-group {
+                flex-wrap: wrap;
+                gap: 10px 16px;
+                width: 100%;
+            }
+
+            .summary-header .header-actions,
+            .header-actions {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .header-actions .btn-premium {
+                flex: 1 1 auto;
+                min-width: 0;
+                white-space: nowrap;
+            }
+
+            .custom-nav-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                flex-wrap: nowrap;
+                gap: 0;
+                padding: 0 4px;
+            }
+
+            .nav-tab-item {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                padding: 10px 14px;
+            }
+
+            /* Stack the 3 desktop columns */
+            .form-grid-3 {
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
+                margin-bottom: 16px;
+            }
+
+            .form-grid-3 .form-col {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            /* Nested half/third fields → full width */
+            .form-grid-3 .row {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            .form-grid-3 .row > [class*="col-"] {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+
+            .form-grid-3 .form-group-custom {
+                margin-bottom: 14px;
+                overflow: visible;
+            }
+
+            .form-grid-3 .form-group-custom label {
+                overflow: visible;
+                line-height: 1.3;
+                padding-top: 1px;
+            }
+
+            .form-scroller {
+                padding: 12px !important;
+                overflow-x: hidden;
+            }
+
+            .address-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+
+            .stock-items-wrapper .stock-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                flex-wrap: nowrap;
+                white-space: nowrap;
+            }
+
+            .stock-table-container,
+            .table-responsive,
+            #tab-prices-costs .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .content-scroll-area,
+            .tab-content-scroll {
+                overflow-x: hidden;
+            }
+
+            .input-with-icon .form-control-sm-custom {
+                padding-right: 28px;
+            }
+
+            .form-grid-3 .select2-container {
+                width: 100% !important;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .meta-item {
+                flex: 1 1 130px;
+                min-width: 0;
+            }
+
+            .header-actions .btn-premium {
+                flex: 1 1 calc(50% - 8px);
+                font-size: 11px;
+                padding: 8px 10px;
+            }
+
+            /* Prices / customs / notes tabs often use Bootstrap cols */
+            #tab-prices-costs .row,
+            #tab-customs .row,
+            #tab-repacking-details .row,
+            #tab-notes .row,
+            #tab-milestones .row,
+            .stock-panel .row {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            #tab-prices-costs .row > [class*="col-"],
+            #tab-customs .row > [class*="col-"],
+            #tab-repacking-details .row > [class*="col-"],
+            #tab-notes .row > [class*="col-"],
+            #tab-milestones .row > [class*="col-"] {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+
+            .stock-panel .row > [class*="col-md-"],
+            .stock-panel .row > [class*="col-"] {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
         }
         .meta-item {
             display: flex;
@@ -506,7 +702,7 @@
             overflow: visible;
         }
         .sidebar-section {
-            padding: 15px;
+            padding: 30px 20px;
             border-bottom: 1px solid #f3f4f6;
             overflow: visible;
         }
@@ -1564,10 +1760,15 @@
             position: relative;
         }
         #stock-items-modal .office-table {
-            min-width: 1500px;
+            min-width: 1100px;
             border-collapse: separate;
             border-spacing: 0;
             width: 100%;
+        }
+        @media (min-width: 1200px) {
+            #stock-items-modal .office-table {
+                min-width: 1500px;
+            }
         }
         #stock-items-modal .office-table thead th {
             position: sticky !important;
@@ -2096,18 +2297,7 @@
 </div>
 <!-- Pre-loader end -->
 
-<div id="pcoded" class="pcoded">
-    <div class="pcoded-overlay-box"></div>
-    <div class="pcoded-container navbar-wrapper">
-        @include('layouts.top-menu')
-        <div class="pcoded-main-container">
-            <div class="pcoded-wrapper">
-                @include('layouts.left-menu')
-                <div class="pcoded-content">
-                    <div class="pcoded-inner-content">
-                        <div class="main-body">
-                            <div class="page-wrapper p-0">
-                                <div class="page-body">
+@include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
                                     <div class="master-container">
                                         <!-- Main Content Area -->
                                         <div class="main-content-area">
@@ -2968,16 +3158,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                                    </div>{{-- .master-container --}}
+@include('layouts.partials.pcoded-shell-end')
 
 @include('Shipment.partials.stock-items-modal')
 
@@ -3162,8 +3344,15 @@
 <script>
     $(document).ready(function() {
         function fixedFooterOffset() {
+            var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
             var $navbar = $('.pcoded-navbar');
-            var sidebarWidth = $navbar.length ? $navbar.outerWidth() : 0;
+            var navType = $('#pcoded').attr('vertical-nav-type') || '';
+            var sidebarWidth = 0;
+
+            if (!isMobile && $navbar.length && navType !== 'offcanvas' && $navbar.is(':visible')) {
+                sidebarWidth = $navbar.outerWidth() || 0;
+            }
+
             $('.edit-footer').css('left', sidebarWidth + 'px');
         }
         fixedFooterOffset();
