@@ -388,7 +388,7 @@
                     </div>
                 @elseif (! empty($otpMailFailed))
                     <div class="alert alert-danger alert-otp mb-0">
-                        We could not send the verification email. Please try Resend code, or ask an administrator to check the server mail settings (<code>MAIL_MAILER=sendmail</code>).
+                        {{ ! empty($otpMailError) ? $otpMailError : 'We could not send the verification email. Please try Resend code, or ask an administrator to check the server mail settings.' }}
                     </div>
                 @endif
 
