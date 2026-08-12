@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\LoginActivityService;
+use App\Mail\LoginOtpMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -173,24 +174,10 @@ class OtpController extends Controller
                         'env' => app()->environment(),
                     ]);
                 } else {
-                    Mail::send(
-                        'emails.auth.login-otp',
-                        [
-                            'otp' => $otp,
-                            'expiresInMinutes' => self::OTP_TTL_MINUTES,
-                        ],
-                        function ($message) use ($email) {
-                            $fromAddress = (string) config('mail.from.address');
-                            $fromName = (string) config('mail.from.name');
-
-                            $message
-                                ->to($email)
-                                ->subject('Your MarineCaddie verification code')
-                                ->from($fromAddress, $fromName)
-                                ->replyTo($fromAddress, $fromName)
-                                ->priority(1);
-                        },
-                    );
+                    Mail::to($email)->send(new LoginOtpMail(
+                        $otp,
+                        self::OTP_TTL_MINUTES,
+                    ));
 
                     // Local macOS/XAMPP sendmail accepts mail but cannot relay externally.
                     $delivered = ! (
