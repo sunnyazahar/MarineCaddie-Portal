@@ -5,9 +5,8 @@
             <a class="mobile-menu" id="mobile-collapse" href="#!">
                 <i class="feather icon-menu"></i>
             </a>
-            <a style="font-size:20px; font-weight:700">
-                <!-- <img class="img-fluid" src="../files/assets/images/logo.png" alt="Theme-Logo" /> -->
-                <span style="color: #002d5b;">Marine</span><span style="color: #359DDA;">Caddie</span>
+            <a style="display:inline-flex; align-items:center;">
+                <img src="{{ asset('files/assets/images/marinecaddie-logo.png') }}" alt="MarineCaddie" style="height:38px; width:auto; max-width:160px;">
             </a>
             <a class="mobile-options">
                 <i class="feather icon-more-horizontal"></i>

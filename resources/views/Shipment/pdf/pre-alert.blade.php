@@ -15,9 +15,6 @@
         .muted { color: #555; font-size: 11px; }
         .header-right { text-align: right; font-size: 10px; }
         .brand-logo { line-height: 1.05; margin-bottom: 4px; }
-        .brand-marine { font-size: 20px; font-weight: bold; color: #002D5B; }
-        .brand-caddie { font-size: 20px; font-weight: bold; color: #349DDA; }
-        .brand-tagline { display: block; font-size: 9px; color: #FF6B03; font-weight: bold; margin-top: 2px; }
         .section-title { font-size: 13px; font-weight: bold; margin: 12px 0 8px; }
         .expected-line { margin: 0 0 10px; font-size: 11px; }
         .data-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }

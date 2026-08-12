@@ -45,12 +45,7 @@
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;">
                     <tr>
                         <td align="center" style="padding:0 0 24px;">
-                            <div class="brand" style="font-size:38px; font-weight:700; line-height:1;">
-                                <span style="color:#073b6f;">Marine</span><span style="color:#369ed8;">Caddie</span>
-                            </div>
-                            <div style="padding-top:9px; color:#f36f21; font-size:14px; font-style:italic; font-weight:600;">
-                                Smart Caddies, Smarter Logistics!
-                            </div>
+                            <img src="https://marinecaddie.com/files/assets/images/marinecaddie-logo.png" alt="MarineCaddie" width="200" style="display:block; margin:0 auto; max-width:200px; height:auto;">
                         </td>
                     </tr>
                     <tr>

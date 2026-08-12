@@ -361,10 +361,7 @@
     <div class="login-wrapper">
         <div class="login-left">
             <div class="login-logo">
-                <span style="font-size: 40px; font-weight: bold; color:#002D5B">Marine</span><span
-                    style="font-size: 40px; font-weight: 600; color:#349DDA">Caddie</span><br>
-                <span style="font-size: 15px; font-weight: 500; color:#FF6B03"><i>Smart Caddies, Smarter Logistics
-                        !</i></span>
+                <img src="{{ asset('files/assets/images/marinecaddie-logo.png') }}" alt="MarineCaddie" style="max-width:260px; height:auto;">
             </div>
 
             <div class="login-card">
