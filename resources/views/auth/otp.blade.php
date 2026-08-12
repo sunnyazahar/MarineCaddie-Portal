@@ -386,6 +386,10 @@
                         @endif
                         Your code is <strong style="letter-spacing: 2px; font-size: 15px;">{{ $localOtp }}</strong>
                     </div>
+                @elseif (! empty($otpMailFailed))
+                    <div class="alert alert-danger alert-otp mb-0">
+                        We could not send the verification email. Please try Resend code, or ask an administrator to check the server mail settings (<code>MAIL_MAILER=sendmail</code>).
+                    </div>
                 @endif
 
                 @if (session('status'))

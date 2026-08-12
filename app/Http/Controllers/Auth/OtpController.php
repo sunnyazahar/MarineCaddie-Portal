@@ -157,38 +157,54 @@ class OtpController extends Controller
     {
         $delivered = false;
         $mailer = (string) config('mail.default');
+        $nonDeliveringMailers = ['log', 'array'];
 
         if ($email) {
             try {
-                Mail::send(
-                    'emails.auth.login-otp',
-                    [
-                        'otp' => $otp,
-                        'expiresInMinutes' => self::OTP_TTL_MINUTES,
-                    ],
-                    function ($message) use ($email) {
-                        $message->to($email)->subject('Your MarineCaddie verification code');
-                    },
-                );
+                // log/array never reach an inbox — treat as failure before sending.
+                if (in_array($mailer, $nonDeliveringMailers, true)) {
+                    Log::error('OTP email not sent: MAIL_MAILER is set to a non-delivering driver.', [
+                        'email' => $email,
+                        'mailer' => $mailer,
+                        'env' => app()->environment(),
+                    ]);
+                } else {
+                    Mail::send(
+                        'emails.auth.login-otp',
+                        [
+                            'otp' => $otp,
+                            'expiresInMinutes' => self::OTP_TTL_MINUTES,
+                        ],
+                        function ($message) use ($email) {
+                            $message->to($email)->subject('Your MarineCaddie verification code');
+                        },
+                    );
 
-                // Local macOS/XAMPP sendmail accepts mail but cannot relay to the internet.
-                $delivered = ! (
-                    app()->environment(['local', 'localhost', 'development', 'testing'])
-                    && in_array($mailer, ['sendmail', 'log', 'array'], true)
-                );
+                    // Local macOS/XAMPP sendmail accepts mail but cannot relay externally.
+                    $delivered = ! (
+                        app()->environment(['local', 'localhost', 'development', 'testing'])
+                        && $mailer === 'sendmail'
+                    );
+                }
             } catch (\Throwable $e) {
                 Log::warning('OTP email failed to send: ' . $e->getMessage(), [
                     'email' => $email,
                     'mailer' => $mailer,
                 ]);
             }
+        } else {
+            Log::warning('OTP email skipped: user has no email address.');
         }
+
+        // Always record delivery result so production can show a useful error.
+        session([
+            'login_otp_mail_failed' => ! $delivered,
+        ]);
 
         // Local/dev only: surface the code when real inbox delivery is unavailable.
         if ($this->shouldExposeLocalOtp()) {
             session([
                 'login_otp_local' => $otp,
-                'login_otp_mail_failed' => ! $delivered,
             ]);
             Log::info('Local OTP code issued', [
                 'email' => $email,

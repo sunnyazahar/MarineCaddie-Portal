@@ -82,8 +82,8 @@ return [
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
+                'sendmail',
                 'smtp',
-                'log',
             ],
             'retry_after' => 60,
         ],
