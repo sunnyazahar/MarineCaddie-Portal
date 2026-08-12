@@ -156,6 +156,7 @@ class OtpController extends Controller
     private function deliverOtp(?string $email, string $otp): void
     {
         $delivered = false;
+        $mailer = (string) config('mail.default');
 
         if ($email) {
             try {
@@ -169,15 +170,21 @@ class OtpController extends Controller
                         $message->to($email)->subject('Your MarineCaddie verification code');
                     },
                 );
-                $delivered = true;
+
+                // Local macOS/XAMPP sendmail accepts mail but cannot relay to the internet.
+                $delivered = ! (
+                    app()->environment(['local', 'localhost', 'development', 'testing'])
+                    && in_array($mailer, ['sendmail', 'log', 'array'], true)
+                );
             } catch (\Throwable $e) {
                 Log::warning('OTP email failed to send: ' . $e->getMessage(), [
                     'email' => $email,
+                    'mailer' => $mailer,
                 ]);
             }
         }
 
-        // Local/dev only: surface the code when SMTP is unreachable (common on local networks).
+        // Local/dev only: surface the code when real inbox delivery is unavailable.
         if ($this->shouldExposeLocalOtp()) {
             session([
                 'login_otp_local' => $otp,
@@ -186,6 +193,7 @@ class OtpController extends Controller
             Log::info('Local OTP code issued', [
                 'email' => $email,
                 'otp' => $otp,
+                'mailer' => $mailer,
                 'mail_delivered' => $delivered,
             ]);
         }

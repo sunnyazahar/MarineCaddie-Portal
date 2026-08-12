@@ -380,7 +380,7 @@
                 @if (! empty($localOtp))
                     <div class="alert {{ ! empty($otpMailFailed) ? 'alert-warning' : 'alert-info' }} alert-otp mb-0">
                         @if (! empty($otpMailFailed))
-                            Email could not be sent from this machine (SMTP blocked/unreachable).
+                            Email cannot be delivered from this local machine. Use the code below to continue.
                         @else
                             Local development mode.
                         @endif
