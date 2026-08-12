@@ -100,6 +100,8 @@
         </main>
     </div>
 
+    @include('partials.mail-busy-overlay')
+
     @if(app()->environment('production') && ! config('app.debug'))
         <script>
             // Soft deterrent only — not real security. Skipped when APP_DEBUG=true.

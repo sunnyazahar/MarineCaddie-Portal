@@ -11,6 +11,10 @@
             </div>
             <div class="compose-body">
                 <div class="compose-field">
+                    <input type="text" id="reminder-mail-from" class="compose-input compose-input-readonly" readonly placeholder="From:">
+                </div>
+                <p class="compose-from-hint">Reminder emails are sent from your login email address.</p>
+                <div class="compose-field">
                     <input type="text" id="reminder-mail-to" class="compose-input" placeholder="To:">
                 </div>
                 <div class="compose-field compose-field-contact">
@@ -75,8 +79,11 @@
                     <i class="ti-close"></i> Discard
                 </button>
                 <div class="compose-footer-right">
+                    <button type="button" class="btn-compose-draft" id="reminder-mail-draft" title="Open in your mail app from your email address">
+                        <i class="ti-share"></i> Open in mail app
+                    </button>
                     <button type="button" class="btn-compose-send" id="reminder-mail-send">
-                        <i class="ti-email"></i> Send
+                        <i class="ti-email"></i> Send from server
                     </button>
                 </div>
             </div>

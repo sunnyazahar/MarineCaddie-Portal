@@ -2185,7 +2185,17 @@
             display: flex;
             gap: 8px;
         }
-        #compose-manifest-mail-modal .btn-compose-discard {
+        #compose-manifest-mail-modal .compose-input.compose-input-readonly {
+            background: #f8fafc;
+            color: #475569;
+            cursor: default;
+        }
+        #compose-manifest-mail-modal .compose-from-hint {
+            margin: -4px 0 10px;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
+        }
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -3238,6 +3248,10 @@
             </div>
             <div class="compose-body">
                 <div class="compose-field">
+                    <input type="text" id="compose-mail-from" class="compose-input compose-input-readonly" readonly placeholder="From:">
+                </div>
+                <p class="compose-from-hint">Manifest and pre-alert emails are sent from your login email address.</p>
+                <div class="compose-field">
                     <input type="text" id="compose-mail-to" class="compose-input" placeholder="To:">
                 </div>
                 <div class="compose-field compose-field-contact">
@@ -3304,9 +3318,11 @@
                     <i class="ti-close"></i> Discard
                 </button>
                 <div class="compose-footer-right">
-                    
+                    <button type="button" class="btn-compose-draft" id="compose-mail-draft" title="Open in your mail app from your email address">
+                        <i class="ti-share"></i> Open in mail app
+                    </button>
                     <button type="button" class="btn-compose-send" id="compose-mail-send">
-                        <i class="ti-email"></i> Send
+                        <i class="ti-email"></i> Send from server
                     </button>
                 </div>
             </div>
@@ -3601,6 +3617,10 @@
         var manifestMailPreview = @json($manifestMailPreview);
         var preAlertMailPreview = @json($preAlertMailPreview ?? null);
         var manifestPrepareUrl = @json(route('shipments.manifest-mail.prepare', $shipment->id));
+        var shipmentComposeSender = @json([
+            'name' => auth()->user()?->name,
+            'email' => auth()->user()?->email,
+        ]);
         var preAlertPrepareUrl = @json(route('shipments.pre-alert-mail.prepare', $shipment->id));
         var manifestDeleteUrlTemplate = @json(route('shipments.manifests.delete', [$shipment->id, '__MANIFEST__']));
         var preAlertDeleteUrlTemplate = @json(route('shipments.pre-alerts.delete', [$shipment->id, '__PREALERT__']));
@@ -4022,6 +4042,12 @@
 
         function fillComposeManifestModal(preview, attachments) {
             preview = preview || {};
+            var fromName = preview.from_name || shipmentComposeSender.name || '';
+            var fromEmail = preview.from || shipmentComposeSender.email || '';
+            var fromDisplay = fromName && fromEmail
+                ? fromName + ' <' + fromEmail + '>'
+                : (fromEmail || fromName || '');
+            $('#compose-mail-from').val(fromDisplay);
             $('#compose-mail-to').val(preview.to || '');
             $('#compose-mail-cc').val(preview.cc || '');
             $('#compose-mail-bcc').val(preview.bcc || '');
@@ -4416,6 +4442,13 @@
             );
             var originalText = $btn.text();
             $btn.prop('disabled', true).text('Opening mail...');
+
+            if (window.MarineMailBusy) {
+                window.MarineMailBusy.show('Opening mail app...');
+                window.setTimeout(function () {
+                    window.MarineMailBusy.hide();
+                }, 8000);
+            }
 
             if (mailWindow && !mailWindow.closed) {
                 mailWindow.location.href = openUrlWithDocuments;

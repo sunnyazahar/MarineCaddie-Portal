@@ -46,6 +46,8 @@ class ManifestMailService
             'to' => collect($mail['to'])->pluck('email')->filter()->implode(','),
             'cc' => collect($mail['cc'])->pluck('email')->filter()->implode(','),
             'bcc' => '',
+            'from' => $mail['senderEmail'],
+            'from_name' => $mail['senderName'],
             'subject' => $mail['subject'],
             'body' => preg_replace("/\r\n|\r|\n/", "\n", $mail['body']),
         ];
@@ -97,9 +99,7 @@ class ManifestMailService
         Mail::html($htmlBody, function ($message) use ($to, $cc, $bcc, $subject, $attachments, $fromEmail, $fromName) {
             $message->to($to)->subject($subject);
 
-            if ($fromEmail) {
-                $message->from($fromEmail, $fromName);
-            }
+            \App\Support\MailEnvelopeHelper::applySenderEnvelope($message, (string) $fromEmail, (string) $fromName);
 
             if ($cc !== []) {
                 $message->cc($cc);
@@ -168,16 +168,20 @@ class ManifestMailService
         $partyNames = Shipment::batchResolvePartyNames(collect([$shipment]));
         $consigneeParty = $this->resolveConsigneeContact($shipment, $partyNames);
 
-        $senderName = $senderName ?: ($shipment->creator?->name ?? 'Marinetrans');
-        $senderEmail = $senderEmail ?: ($shipment->creator?->email ?? config('mail.from.address', 'esea@marinetrans.net'));
+        $sender = \App\Support\MailEnvelopeHelper::resolveShipmentSender(
+            $senderName,
+            $senderEmail,
+            $shipment->creator?->name ?? 'Marinetrans',
+            $shipment->creator?->email ?? config('mail.from.address', 'esea@marinetrans.net'),
+        );
 
         return [
-            'senderName' => $senderName,
-            'senderEmail' => $senderEmail,
+            'senderName' => $sender['name'],
+            'senderEmail' => $sender['email'],
             'subject' => $this->buildSubject($shipment, $manifestData),
-            'body' => $this->buildBody($shipment, $consigneeParty, $senderName, $senderEmail),
+            'body' => $this->buildBody($shipment, $consigneeParty, $sender['name'], $sender['email']),
             'to' => $this->buildToAddresses($consigneeParty),
-            'cc' => $this->buildCcAddresses($shipment, $senderEmail, $consigneeParty),
+            'cc' => $this->buildCcAddresses($shipment, $sender['email'], $consigneeParty),
             'attachments' => $this->buildAttachments($shipment, $manifestData, $documentIds, $excludeAttachments),
         ];
     }

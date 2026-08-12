@@ -28,6 +28,7 @@ use App\Services\PreAlertMailService;
 use App\Services\PreAlertReminderMailService;
 use App\Services\ShipmentManifestPdfBuilder;
 use App\Services\ShipmentChangeLogService;
+use App\Services\ShipmentMailDispatchService;
 use App\Services\ShipmentManifestService;
 use App\Services\ShipmentPdfFingerprintService;
 use App\Services\ShipmentPreAlertService;
@@ -417,7 +418,7 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function sendPreAlertReminderMail(Request $request, $id, PreAlertReminderMailService $reminderMailService)
+    public function sendPreAlertReminderMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
     {
         $shipment = Shipment::findOrFail($id);
 
@@ -438,40 +439,25 @@ class ShipmentController extends Controller
             'files.*' => ['file', 'max:20480'],
         ]);
 
-        try {
-            $result = $reminderMailService->send(
-                $shipment,
-                auth()->user()?->name,
-                auth()->user()?->email,
-                'pre_alert',
-                [
-                    'to' => $validated['to'],
-                    'cc' => $validated['cc'] ?? '',
-                    'bcc' => $validated['bcc'] ?? '',
-                    'subject' => $validated['subject'],
-                    'body' => $validated['body'] ?? '',
-                ],
-                $this->collectUploadedMailAttachments($request)
-            );
-        } catch (\Throwable $e) {
-            Log::error('Pre-alert reminder mail send failed: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage() ?: 'Could not send reminder email.',
-            ], 400);
-        }
-
-        ShipmentPreAlertReminderSend::create([
-            'shipment_id' => $shipment->id,
-            'user_id' => auth()->id(),
-        ]);
+        $mailDispatchService->dispatchAfterResponse(
+            $request,
+            $shipment,
+            'pre_alert_reminder',
+            [
+                'to' => $validated['to'],
+                'cc' => $validated['cc'] ?? '',
+                'bcc' => $validated['bcc'] ?? '',
+                'subject' => $validated['subject'],
+                'body' => $validated['body'] ?? '',
+            ],
+            recordReminderSend: true,
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Reminder email sent successfully.',
-            'result' => $result,
-            'reminder_sent_count' => $shipment->preAlertReminderSends()->count(),
+            'queued' => true,
+            'reminder_sent_count' => $shipment->preAlertReminderSends()->count() + 1,
         ]);
     }
 
@@ -530,7 +516,7 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function sendDeliveryStatusReminderMail(Request $request, $id, PreAlertReminderMailService $reminderMailService)
+    public function sendDeliveryStatusReminderMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
     {
         $shipment = Shipment::findOrFail($id);
 
@@ -551,39 +537,24 @@ class ShipmentController extends Controller
             'files.*' => ['file', 'max:20480'],
         ]);
 
-        try {
-            $result = $reminderMailService->send(
-                $shipment,
-                auth()->user()?->name,
-                auth()->user()?->email,
-                'delivery_status',
-                [
-                    'to' => $validated['to'],
-                    'cc' => $validated['cc'] ?? '',
-                    'bcc' => $validated['bcc'] ?? '',
-                    'subject' => $validated['subject'],
-                    'body' => $validated['body'] ?? '',
-                ],
-                $this->collectUploadedMailAttachments($request)
-            );
-        } catch (\Throwable $e) {
-            Log::error('Delivery status reminder mail send failed: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage() ?: 'Could not send reminder email.',
-            ], 400);
-        }
-
-        \App\Models\ShipmentPreAlertReminderSend::create([
-            'shipment_id' => $shipment->id,
-            'user_id' => auth()->id(),
-        ]);
+        $mailDispatchService->dispatchAfterResponse(
+            $request,
+            $shipment,
+            'delivery_status',
+            [
+                'to' => $validated['to'],
+                'cc' => $validated['cc'] ?? '',
+                'bcc' => $validated['bcc'] ?? '',
+                'subject' => $validated['subject'],
+                'body' => $validated['body'] ?? '',
+            ],
+            recordReminderSend: true,
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Reminder email sent successfully.',
-            'result' => $result,
+            'queued' => true,
         ]);
     }
 
@@ -635,7 +606,7 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function sendInvoiceRequestMail(Request $request, $id, PreAlertReminderMailService $reminderMailService)
+    public function sendInvoiceRequestMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
     {
         $shipment = Shipment::findOrFail($id);
         $validated = $request->validate([
@@ -648,40 +619,25 @@ class ShipmentController extends Controller
             'files.*' => ['file', 'max:20480'],
         ]);
 
-        try {
-            $result = $reminderMailService->send(
-                $shipment,
-                auth()->user()?->name,
-                auth()->user()?->email,
-                'invoice_request',
-                [
-                    'to' => $validated['to'],
-                    'cc' => $validated['cc'] ?? '',
-                    'bcc' => $validated['bcc'] ?? '',
-                    'subject' => $validated['subject'],
-                    'body' => $validated['body'] ?? '',
-                ],
-                $this->collectUploadedMailAttachments($request)
-            );
-        } catch (\Throwable $e) {
-            Log::error('Invoice request mail send failed: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage() ?: 'Could not send invoice request email.',
-            ], 400);
-        }
-
-        ShipmentPreAlertReminderSend::create([
-            'shipment_id' => $shipment->id,
-            'user_id' => auth()->id(),
-        ]);
+        $mailDispatchService->dispatchAfterResponse(
+            $request,
+            $shipment,
+            'invoice_request',
+            [
+                'to' => $validated['to'],
+                'cc' => $validated['cc'] ?? '',
+                'bcc' => $validated['bcc'] ?? '',
+                'subject' => $validated['subject'],
+                'body' => $validated['body'] ?? '',
+            ],
+            recordReminderSend: true,
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Invoice request email sent successfully.',
-            'result' => $result,
-            'reminder_sent_count' => $shipment->preAlertReminderSends()->count(),
+            'queued' => true,
+            'reminder_sent_count' => $shipment->preAlertReminderSends()->count() + 1,
         ]);
     }
 
@@ -1512,7 +1468,7 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function sendManifestMail(Request $request, $id, ManifestMailService $manifestMailService)
+    public function sendManifestMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
     {
         $shipment = Shipment::with([
             'crrs.packages',
@@ -1536,35 +1492,25 @@ class ShipmentController extends Controller
             'files.*' => ['file', 'max:20480'],
         ]);
 
-        try {
-            $result = $manifestMailService->send(
-                $shipment,
-                auth()->user()?->name,
-                auth()->user()?->email,
-                $this->parseMailDocumentIds($request->input('document_ids')),
-                $this->parseMailExcludeAttachments($request->input('exclude_attachments')),
-                [
-                    'to' => $validated['to'],
-                    'cc' => $validated['cc'] ?? '',
-                    'bcc' => $validated['bcc'] ?? '',
-                    'subject' => $validated['subject'],
-                    'body' => $validated['body'] ?? '',
-                ],
-                $this->collectUploadedMailAttachments($request)
-            );
-        } catch (\Throwable $e) {
-            Log::error('Manifest mail send failed: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage() ?: 'Could not send manifest email.',
-            ], 400);
-        }
+        $mailDispatchService->dispatchAfterResponse(
+            $request,
+            $shipment,
+            'manifest',
+            [
+                'to' => $validated['to'],
+                'cc' => $validated['cc'] ?? '',
+                'bcc' => $validated['bcc'] ?? '',
+                'subject' => $validated['subject'],
+                'body' => $validated['body'] ?? '',
+            ],
+            $this->parseMailDocumentIds($request->input('document_ids')),
+            $this->parseMailExcludeAttachments($request->input('exclude_attachments')),
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Manifest email sent successfully.',
-            'result' => $result,
+            'queued' => true,
         ]);
     }
 
@@ -1702,7 +1648,7 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function sendPreAlertMail(Request $request, $id, PreAlertMailService $preAlertMailService)
+    public function sendPreAlertMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
     {
         $shipment = Shipment::with([
             'crrs.packages',
@@ -1732,35 +1678,25 @@ class ShipmentController extends Controller
             'files.*' => ['file', 'max:20480'],
         ]);
 
-        try {
-            $result = $preAlertMailService->send(
-                $shipment,
-                auth()->user()?->name,
-                auth()->user()?->email,
-                $this->parseMailDocumentIds($request->input('document_ids')),
-                $this->parseMailExcludeAttachments($request->input('exclude_attachments')),
-                [
-                    'to' => $validated['to'],
-                    'cc' => $validated['cc'] ?? '',
-                    'bcc' => $validated['bcc'] ?? '',
-                    'subject' => $validated['subject'],
-                    'body' => $validated['body'] ?? '',
-                ],
-                $this->collectUploadedMailAttachments($request)
-            );
-        } catch (\Throwable $e) {
-            Log::error('Pre-alert mail send failed: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage() ?: 'Could not send pre-alert email.',
-            ], 400);
-        }
+        $mailDispatchService->dispatchAfterResponse(
+            $request,
+            $shipment,
+            'pre_alert',
+            [
+                'to' => $validated['to'],
+                'cc' => $validated['cc'] ?? '',
+                'bcc' => $validated['bcc'] ?? '',
+                'subject' => $validated['subject'],
+                'body' => $validated['body'] ?? '',
+            ],
+            $this->parseMailDocumentIds($request->input('document_ids')),
+            $this->parseMailExcludeAttachments($request->input('exclude_attachments')),
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Pre-alert email sent successfully.',
-            'result' => $result,
+            'queued' => true,
         ]);
     }
 

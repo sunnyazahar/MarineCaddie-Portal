@@ -288,6 +288,33 @@
     color: #6b7280;
     font-size: 10px;
 }
+#compose-reminder-modal .compose-input.compose-input-readonly {
+    background: #f8fafc;
+    color: #475569;
+    cursor: default;
+}
+#compose-reminder-modal .compose-from-hint {
+    margin: -4px 0 10px;
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.4;
+}
+#compose-reminder-modal .btn-compose-draft {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 4px;
+    padding: 8px 14px;
+}
+#compose-reminder-modal .btn-compose-draft:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
 #compose-reminder-modal .compose-footer {
     display: flex;
     align-items: center;

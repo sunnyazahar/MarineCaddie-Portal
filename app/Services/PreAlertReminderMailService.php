@@ -127,9 +127,7 @@ class PreAlertReminderMailService
         Mail::html($htmlBody, function ($message) use ($to, $cc, $bcc, $subject, $fromEmail, $fromName, $extraAttachments) {
             $message->to($to)->subject($subject);
 
-            if ($fromEmail) {
-                $message->from($fromEmail, $fromName);
-            }
+            \App\Support\MailEnvelopeHelper::applySenderEnvelope($message, (string) $fromEmail, (string) $fromName);
 
             if ($cc !== []) {
                 $message->cc($cc);
@@ -180,6 +178,8 @@ class PreAlertReminderMailService
             'cc' => collect($mail['cc'])->pluck('email')->filter()->implode(','),
             'subject' => $mail['subject'],
             'body' => preg_replace("/\r\n|\r|\n/", "\n", $mail['body']),
+            'from' => $mail['senderEmail'],
+            'from_name' => $mail['senderName'],
         ];
     }
 
@@ -215,24 +215,28 @@ class PreAlertReminderMailService
             throw new RuntimeException('No email address found for the departure party.');
         }
 
-        $senderName = $senderName ?: ($shipment->accountManager?->name ?? $shipment->creator?->name ?? 'Marinetrans');
-        $senderEmail = $senderEmail ?: ($shipment->accountManager?->email ?? $shipment->creator?->email ?? config('mail.from.address', 'esea@marinetrans.net'));
+        $sender = \App\Support\MailEnvelopeHelper::resolveShipmentSender(
+            $senderName,
+            $senderEmail,
+            $shipment->accountManager?->name ?? $shipment->creator?->name ?? 'Marinetrans',
+            $shipment->accountManager?->email ?? $shipment->creator?->email ?? config('mail.from.address', 'esea@marinetrans.net'),
+        );
 
         return [
-            'senderName' => $senderName,
-            'senderEmail' => $senderEmail,
+            'senderName' => $sender['name'],
+            'senderEmail' => $sender['email'],
             'subject' => match ($mailType) {
                 'delivery_status' => $this->buildDeliveryStatusSubject($shipment),
                 'invoice_request' => $this->buildInvoiceRequestSubject($shipment),
                 default => $this->buildSubject($shipment),
             },
             'body' => match ($mailType) {
-                'delivery_status' => $this->buildDeliveryStatusBody($shipment, $departureParty, $senderName, $senderEmail),
-                'invoice_request' => $this->buildInvoiceRequestBody($shipment, $departureParty, $senderName, $senderEmail),
-                default => $this->buildBody($shipment, $departureParty, $senderName, $senderEmail),
+                'delivery_status' => $this->buildDeliveryStatusBody($shipment, $departureParty, $sender['name'], $sender['email']),
+                'invoice_request' => $this->buildInvoiceRequestBody($shipment, $departureParty, $sender['name'], $sender['email']),
+                default => $this->buildBody($shipment, $departureParty, $sender['name'], $sender['email']),
             },
             'to' => $this->buildToAddresses($departureParty),
-            'cc' => $this->buildCcAddresses($shipment, $senderEmail, $departureParty['email']),
+            'cc' => $this->buildCcAddresses($shipment, $sender['email'], $departureParty['email']),
         ];
     }
 

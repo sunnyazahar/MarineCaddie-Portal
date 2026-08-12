@@ -1,6 +1,41 @@
 var pendingReminderMail = null;
 var reminderContactsUrl = @json(route('api.mail-contacts'));
+var reminderComposeSender = @json([
+    'name' => auth()->user()?->name,
+    'email' => auth()->user()?->email,
+]);
 var reminderContactsSearchTimer = null;
+
+function fillReminderComposeFrom(preview) {
+    preview = preview || {};
+    var fromName = preview.from_name || reminderComposeSender.name || '';
+    var fromEmail = preview.from || reminderComposeSender.email || '';
+    var fromDisplay = fromName && fromEmail
+        ? fromName + ' <' + fromEmail + '>'
+        : (fromEmail || fromName || '');
+    $('#reminder-mail-from').val(fromDisplay);
+}
+
+function openReminderMailDraft(emlUrl) {
+    if (!emlUrl) {
+        alert('Mail draft is not available.');
+        return;
+    }
+
+    if (window.MarineMailBusy) {
+        window.MarineMailBusy.show('Opening mail app...');
+        window.setTimeout(function () {
+            window.MarineMailBusy.hide();
+        }, 8000);
+    }
+
+    var mailWindow = window.open('', '_blank');
+    if (mailWindow) {
+        mailWindow.location.href = emlUrl;
+    } else {
+        window.open(emlUrl, '_blank');
+    }
+}
 
 function closeReminderContactPickers() {
     $('#compose-reminder-modal .compose-contact-picker').removeClass('open');
@@ -276,6 +311,8 @@ $(document).on('click', '.send-reminder-btn', function(e) {
             pendingReminderMail = {
                 shipmentId: $button.data('shipment-id'),
                 sendUrl: $button.data('send-url') || null,
+                emlUrl: $button.data('eml-url') || null,
+                emlFilename: $button.data('eml-filename') || null,
                 attachments: []
             };
             $('#reminder-mail-to').val(response.preview.to || '');
@@ -283,6 +320,7 @@ $(document).on('click', '.send-reminder-btn', function(e) {
             $('#reminder-mail-bcc').val(response.preview.bcc || '');
             $('#reminder-mail-subject').val(response.preview.subject || '');
             $('#reminder-mail-body').html(plainTextToReminderHtml(response.preview.body || ''));
+            fillReminderComposeFrom(response.preview);
             renderReminderAttachments();
             $('#compose-reminder-modal').modal('show');
         })
@@ -297,6 +335,15 @@ $(document).on('click', '.send-reminder-btn', function(e) {
 $(document).on('click', '#reminder-mail-discard', function() {
     clearReminderAttachments();
     pendingReminderMail = null;
+    $('#compose-reminder-modal').modal('hide');
+});
+
+$(document).on('click', '#reminder-mail-draft', function() {
+    if (!pendingReminderMail || !pendingReminderMail.emlUrl) {
+        alert('Mail draft is not available.');
+        return;
+    }
+    openReminderMailDraft(pendingReminderMail.emlUrl);
     $('#compose-reminder-modal').modal('hide');
 });
 
@@ -333,7 +380,7 @@ $(document).on('click', '#reminder-mail-send', function() {
     var originalHtml = $button.html();
     $modal.addClass('compose-sending');
     $button.prop('disabled', true).html('<i class="ti-reload"></i> Sending...');
-    $('#reminder-mail-discard, #reminder-attachment-btn').prop('disabled', true);
+    $('#reminder-mail-discard, #reminder-mail-draft, #reminder-attachment-btn').prop('disabled', true);
 
     $.ajax({
         url: pendingReminderMail.sendUrl,
@@ -357,6 +404,14 @@ $(document).on('click', '#reminder-mail-send', function() {
                 $('.reminder-sent-count[data-shipment-id="' + shipmentId + '"]')
                     .text(response.reminder_sent_count);
             }
+            var $reminderSentDate = $('.reminder-sent-date[data-shipment-id="' + shipmentId + '"]');
+            if ($reminderSentDate.length) {
+                var today = new Date();
+                var formatted = ('0' + today.getDate()).slice(-2) + '.' +
+                    ('0' + (today.getMonth() + 1)).slice(-2) + '.' +
+                    today.getFullYear();
+                $reminderSentDate.text(formatted);
+            }
 
             if (typeof swal === 'function') {
                 swal({
@@ -375,6 +430,6 @@ $(document).on('click', '#reminder-mail-send', function() {
         .always(function() {
             $modal.removeClass('compose-sending');
             $button.prop('disabled', false).html(originalHtml);
-            $('#reminder-mail-discard, #reminder-attachment-btn').prop('disabled', false);
+            $('#reminder-mail-discard, #reminder-mail-draft, #reminder-attachment-btn').prop('disabled', false);
         });
 });
