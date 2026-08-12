@@ -116,8 +116,7 @@
                 </td>
                 <td class="header-right" style="width:38%;">
                     <div class="brand-logo">
-                        <span class="brand-marine">Marine</span><span class="brand-caddie">Caddie</span>
-                        <span class="brand-tagline">Smart Caddies, Smarter Logistics !</span>
+                        {!! \App\Support\LogoHelper::pdfImgTag('180px') !!}
                     </div>
                 </td>
             </tr>

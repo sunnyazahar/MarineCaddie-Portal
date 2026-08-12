@@ -137,11 +137,7 @@
                     opsindia@marinecaddie.com
                 </div>
                 <div class="header-right">
-                    <span
-                        style="font-size: 22px; font-weight: bold; color:#002D5B; font-family: 'Inter', sans-serif;">Marine</span><span
-                        style="font-size: 22px; font-weight: bold; color:#349DDA; font-family: 'Inter', sans-serif;">Caddie<br><i>Smart
-                            Caddies, Smarter Logistics
-                            !</i></span>
+                    <img src="{{ \App\Support\LogoHelper::publicUrl() }}" alt="MarineCaddie" style="width:160px; max-width:160px;">
                 </div>
                 <div class="clear"></div>
             </div>

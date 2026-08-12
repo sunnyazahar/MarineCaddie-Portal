@@ -247,14 +247,8 @@
             <td class="customer-info">
                 Stock list Report for {{ $reportCustomerName }}
             </td>
-            <td class="logo-container">
-                <div class="logo-text">
-                    <span
-                        style="font-size: 22px; font-weight: bold; color:#002D5B; font-family: 'Inter', sans-serif;">Marine</span><span
-                        style="font-size: 22px; font-weight: bold; color:#349DDA; font-family: 'Inter', sans-serif;">Caddie<br><i>Smart
-                            Caddies, Smarter Logistics
-                            !</i></span>
-                </div>
+            <td class="logo-container" style="text-align:right;">
+                <img src="{{ \App\Support\LogoHelper::publicUrl() }}" alt="MarineCaddie" style="width:180px; max-width:180px;">
             </td>
         </tr>
     </table>
