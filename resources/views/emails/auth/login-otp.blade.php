@@ -61,8 +61,8 @@
                                     <td class="email-content" align="center" style="padding:48px 46px;">
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                                             <tr>
-                                                <td align="center" style="width:74px; height:74px; border-radius:18px; background-color:#eef7fc; color:#073b6f; font-size:34px;">
-                                                    &#128273;
+                                                <td align="center" style="width:74px; height:74px; border-radius:18px; background-color:#eef7fc; color:#073b6f; font-size:18px; font-weight:700; letter-spacing:1px;">
+                                                    OTP
                                                 </td>
                                             </tr>
                                         </table>

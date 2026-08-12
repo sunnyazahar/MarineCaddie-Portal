@@ -180,7 +180,15 @@ class OtpController extends Controller
                             'expiresInMinutes' => self::OTP_TTL_MINUTES,
                         ],
                         function ($message) use ($email) {
-                            $message->to($email)->subject('Your MarineCaddie verification code');
+                            $fromAddress = (string) config('mail.from.address');
+                            $fromName = (string) config('mail.from.name');
+
+                            $message
+                                ->to($email)
+                                ->subject('Your MarineCaddie verification code')
+                                ->from($fromAddress, $fromName)
+                                ->replyTo($fromAddress, $fromName)
+                                ->priority(1);
                         },
                     );
 

@@ -16,14 +16,26 @@ class MailDiagnoseCommand extends Command
         $mailer = (string) config('mail.default');
         $from = (string) config('mail.from.address');
         $sendmailPath = (string) config('mail.mailers.sendmail.path');
+        $smtp = config('mail.mailers.smtp', []);
+        $username = (string) ($smtp['username'] ?? '');
+        $password = (string) ($smtp['password'] ?? '');
 
         $this->info('Environment: '.app()->environment());
         $this->info('MAIL_MAILER: '.$mailer);
         $this->info('MAIL_FROM_ADDRESS: '.$from);
         $this->info('Sendmail path: '.$sendmailPath);
 
+        if ($mailer === 'smtp') {
+            $this->info('SMTP host: '.($smtp['host'] ?? ''));
+            $this->info('SMTP port: '.($smtp['port'] ?? ''));
+            $this->info('SMTP scheme: '.(($smtp['scheme'] ?? '') ?: '(none)'));
+            $this->info('SMTP username: '.$username);
+            $this->info('SMTP password set: '.(filled($password) ? 'yes ('.strlen($password).' chars)' : 'NO — empty'));
+            $this->info('FROM matches USERNAME: '.($from === $username ? 'yes' : 'no'));
+        }
+
         if (in_array($mailer, ['log', 'array'], true)) {
-            $this->error('This mailer does not deliver to real inboxes. Set MAIL_MAILER=sendmail in .env and run php artisan config:clear');
+            $this->error('This mailer does not deliver to real inboxes. Set MAIL_MAILER=sendmail (or smtp with valid mailbox) in .env and run php artisan config:clear');
 
             return self::FAILURE;
         }
@@ -32,6 +44,12 @@ class MailDiagnoseCommand extends Command
         if ($mailer === 'sendmail' && $binary !== '' && ! is_executable($binary)) {
             $this->error("Sendmail binary is missing or not executable: {$binary}");
             $this->line('Install/configure postfix/sendmail on the server, or switch to a working SMTP mailer.');
+
+            return self::FAILURE;
+        }
+
+        if ($mailer === 'smtp' && (! filled($username) || ! filled($password))) {
+            $this->error('SMTP username/password missing in .env');
 
             return self::FAILURE;
         }
@@ -50,6 +68,8 @@ class MailDiagnoseCommand extends Command
             $this->info("Test message accepted by mailer for {$email}.");
         } catch (\Throwable $e) {
             $this->error('Test send failed: '.$e->getMessage());
+            $this->line('535 auth failed usually means: mailbox password wrong, mailbox not created, or .env password truncated by # / special chars.');
+            $this->line('Verify login in Hostinger Webmail first. Temporary fallback: MAIL_MAILER=sendmail');
 
             return self::FAILURE;
         }
