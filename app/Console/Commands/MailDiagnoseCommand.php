@@ -21,9 +21,15 @@ class MailDiagnoseCommand extends Command
         $password = (string) ($smtp['password'] ?? '');
 
         $this->info('Environment: '.app()->environment());
-        $this->info('MAIL_MAILER: '.$mailer);
+        $this->info('MAIL_MAILER: '.($mailer !== '' ? $mailer : '(empty — not set in .env)'));
         $this->info('MAIL_FROM_ADDRESS: '.$from);
         $this->info('Sendmail path: '.$sendmailPath);
+
+        if ($mailer === '') {
+            $this->error('MAIL_MAILER is missing or empty in .env. Set MAIL_MAILER=smtp or MAIL_MAILER=sendmail, then run php artisan config:clear');
+
+            return self::FAILURE;
+        }
 
         if ($mailer === 'smtp') {
             $this->info('SMTP host: '.($smtp['host'] ?? ''));
