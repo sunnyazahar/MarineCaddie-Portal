@@ -833,6 +833,60 @@
             font-size: 12px;
             cursor: pointer;
         }
+
+        .stock-totals {
+            padding: 15px;
+            display: flex;
+            gap: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #4b5563;
+            background: #fff;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .stock-repacked-section {
+            padding: 12px 15px 15px;
+            background: #fff;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .stock-repacked-heading {
+            font-size: 11px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 10px;
+        }
+
+        .stock-repacked-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .stock-repacked-field {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stock-repacked-field-label {
+            margin: 0;
+            font-size: 11px;
+            font-weight: 600;
+            color: #4b5563;
+            white-space: nowrap;
+        }
+
+        .stock-repacked-input {
+            width: 110px;
+            max-width: 100%;
+            height: 30px;
+            padding: 4px 8px;
+            font-size: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
     </style>
 @endsection
 
@@ -923,6 +977,8 @@
                                                                         'Via ship chandler',
                                                                         'On arrival',
                                                                         'Major storing',
+                                                                        'Full container load (FCL)',
+                                                                        'Less container load (LCL)',
                                                                     ];
                                                                 @endphp
                                                                 @foreach ($additionalServiceOptions as $additionalServiceOption)
@@ -1277,11 +1333,44 @@
                                                                         </tbody>
                                                                     </table>
                                                                 </div>
-                                                                <div class="p-3 d-flex justify-content-end"
-                                                                    style="border-top: 1px solid #f3f4f6;">
-                                                                    <a id="add-stock-items-btn" class="btn btn-outline-teal px-3 py-1"
-                                                                        style="font-size: 11px; height: 30px;">Add stock
-                                                                        items</a>
+                                                                <div class="stock-totals">
+                                                                    <span>Total packages: <span id="stock-total-packages">0 pcs</span></span>
+                                                                    <span>Total weight: <span id="stock-total-weight">0.00 kg</span></span>
+                                                                    <span>Total CBM: <span id="stock-total-cbm">0.00</span></span>
+                                                                    <span>Total value: <span id="stock-total-value">0.00</span></span>
+                                                                    <div class="ml-auto">
+                                                                        <button type="button" id="add-stock-items-btn" class="btn btn-outline-teal px-3 py-1 ml-2"
+                                                                            style="font-size: 11px; height: 30px;">Add stock items</button>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="stock-repacked-section">
+                                                                    <div class="stock-repacked-heading">Repacked as:</div>
+                                                                    <div class="stock-repacked-fields">
+                                                                        <div class="stock-repacked-field">
+                                                                            <label for="repacked_items" class="stock-repacked-field-label">Repacked item(s)</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                name="repacked_items"
+                                                                                id="repacked_items"
+                                                                                class="form-control stock-repacked-input"
+                                                                                inputmode="numeric"
+                                                                                autocomplete="off"
+                                                                                value="{{ old('repacked_items') }}"
+                                                                            >
+                                                                        </div>
+                                                                        <div class="stock-repacked-field">
+                                                                            <label for="repacked_weight" class="stock-repacked-field-label">Repacked weight (kg)</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                name="repacked_weight"
+                                                                                id="repacked_weight"
+                                                                                class="form-control stock-repacked-input"
+                                                                                inputmode="decimal"
+                                                                                autocomplete="off"
+                                                                                value="{{ old('repacked_weight') }}"
+                                                                            >
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div class="tab-pane" id="service-details" role="tabpanel">
@@ -2348,11 +2437,12 @@
 
             function buildSeaFreightLegRowHtml() {
                 var rowIndex = $('#sea-freight-legs-container .sea-freight-leg-row').length;
+                var firstLabel = rowIndex === 0 ? 'Bill of lading' : 'Port of departure';
                 return `
                     <div class="sea-freight-leg-row">
-                        <div class="sea-leg-field">
+                        <div class="sea-leg-field sea-leg-first-field">
                             <div class="form-group-custom mb-0">
-                                <label>Bill of lading</label>
+                                <label>${firstLabel}</label>
                                 <input type="text" name="sea_legs[${rowIndex}][bill_of_lading]" class="form-control-sm-custom">
                             </div>
                         </div>
@@ -2404,6 +2494,13 @@
                     </div>`;
             }
 
+            function updateSeaFreightLegLabels() {
+                $('#sea-freight-legs-container .sea-freight-leg-row').each(function (index) {
+                    var label = index === 0 ? 'Bill of lading' : 'Port of departure';
+                    $(this).find('.sea-leg-first-field label').text(label);
+                });
+            }
+
             $('#add-sea-freight-leg-btn').on('click', function (e) {
                 e.preventDefault();
                 var $row = $(buildSeaFreightLegRowHtml());
@@ -2414,6 +2511,7 @@
             $(document).on('click', '.remove-sea-freight-leg', function () {
                 $(this).closest('.sea-freight-leg-row').remove();
                 reindexLegRowNames('#sea-freight-legs-container', '.sea-freight-leg-row', 'sea_legs');
+                updateSeaFreightLegLabels();
             });
 
             function buildTruckLegRowHtml() {
@@ -2840,6 +2938,36 @@
                 $('#stock-items-modal').modal('show');
             });
 
+            $('#repacked_items').on('input', function() {
+                var sanitized = $(this).val().replace(/\D/g, '');
+                if ($(this).val() !== sanitized) {
+                    $(this).val(sanitized);
+                }
+            });
+
+            $('#repacked_weight').on('input', function() {
+                var val = $(this).val().replace(/[^\d.]/g, '');
+                var parts = val.split('.');
+                if (parts.length > 2) {
+                    val = parts[0] + '.' + parts.slice(1).join('');
+                }
+                if ($(this).val() !== val) {
+                    $(this).val(val);
+                }
+            }).on('blur', function() {
+                var raw = $.trim($(this).val());
+                if (raw === '' || raw === '.') {
+                    $(this).val('');
+                    return;
+                }
+                var num = parseFloat(raw);
+                if (!isNaN(num)) {
+                    $(this).val(num.toFixed(2));
+                }
+            });
+
+            refreshStockTotals();
+
             function applyStockModalFilters() {
                 var selectedHub = $('#modal-hub-filter').val();
                 var selectedCustomer = $('#modal-customer-filter').val();
@@ -2950,6 +3078,30 @@
                 updateRealtimeHubValidation();
             });
             
+            function parseStockTotalNumber(value) {
+                var parsed = parseFloat(String(value || '').replace(/[^\d.-]/g, ''));
+                return isNaN(parsed) ? 0 : parsed;
+            }
+
+            function refreshStockTotals() {
+                var totalPcs = 0;
+                var totalWeight = 0;
+                var totalCbm = 0;
+                var totalValue = 0;
+
+                $('#stock-items-table tbody tr.selected-stock-row').each(function () {
+                    totalPcs += parseStockTotalNumber($(this).attr('data-pcs'));
+                    totalWeight += parseStockTotalNumber($(this).attr('data-weight'));
+                    totalCbm += parseStockTotalNumber($(this).attr('data-cbm'));
+                    totalValue += parseStockTotalNumber($(this).attr('data-value'));
+                });
+
+                $('#stock-total-packages').text(totalPcs + ' pcs');
+                $('#stock-total-weight').text(totalWeight.toFixed(2) + ' kg');
+                $('#stock-total-cbm').text(totalCbm.toFixed(2));
+                $('#stock-total-value').text(totalValue.toFixed(2));
+            }
+
             function refreshStockItemsTable() {
                 var count = $('#stock-items-table tbody tr.selected-stock-row').length;
                 var $emptyRow = $('#stock-items-table tbody tr#empty-row');
@@ -2963,6 +3115,7 @@
                 }
 
                 $('.nav-link[href="#stock-items"]').text('Stock items (' + count + ')');
+                refreshStockTotals();
             }
 
             function appendStockRowFromModal(id) {
@@ -2987,6 +3140,10 @@
                 var weight = $modalRow.data('weight') || '—';
                 var cbm = $modalRow.data('cbm') || '—';
                 var value = $modalRow.data('value') || '—';
+                var pcsNum = parseStockTotalNumber(items);
+                var weightNum = parseStockTotalNumber(weight);
+                var cbmNum = parseStockTotalNumber(cbm);
+                var valueNum = parseStockTotalNumber(value);
                 var accountManagerId = $modalRow.attr('data-account-manager-id') || '';
                 var accountManagerName = $modalRow.attr('data-account-manager-name') || '';
                 var status = 'In Progress';
@@ -2994,6 +3151,10 @@
 
                 var rowHtml = '<tr class="selected-stock-row" data-crr-id="' + id + '"'
                     + ' data-hub-key="' + hubKey + '"'
+                    + ' data-pcs="' + pcsNum + '"'
+                    + ' data-weight="' + weightNum + '"'
+                    + ' data-cbm="' + cbmNum + '"'
+                    + ' data-value="' + valueNum + '"'
                     + ' data-account-manager-id="' + accountManagerId + '"'
                     + ' data-account-manager-name="' + accountManagerName + '">' +
                     '<td>' + hub + '</td>' +

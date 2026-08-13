@@ -6,7 +6,7 @@
                 <i class="feather icon-menu"></i>
             </a>
             <a style="display:inline-flex; align-items:center;">
-                <img src="{{ asset('files/assets/images/marinecaddie-logo.png') }}" alt="MarineCaddie" style="height:38px; width:auto; max-width:160px;">
+                {!! \App\Support\LogoHelper::imgTag('160px', 'height:38px;') !!}
             </a>
             <a class="mobile-options">
                 <i class="feather icon-more-horizontal"></i>

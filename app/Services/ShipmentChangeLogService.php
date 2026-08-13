@@ -43,6 +43,8 @@ class ShipmentChangeLogService
     'project_logistics' => 'Project logistics',
     'port_agency' => 'Port agency',
     'status' => 'Status',
+    'repacked_items' => 'Repacked items',
+    'repacked_weight' => 'Repacked weight',
   ];
 
   private const LEG_GROUPS = [

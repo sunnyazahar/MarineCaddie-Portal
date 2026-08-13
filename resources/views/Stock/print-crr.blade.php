@@ -8,7 +8,7 @@
     <style>
         @page {
             size: A4;
-            margin: 7mm 15mm;
+            margin: 7mm 15mm 18mm 15mm;
         }
 
         body {
@@ -164,13 +164,27 @@
             color: #FF6B03;
             font-weight: 650;
         }
+
+        .pdf-footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            font-size: 8px;
+            color: #333;
+            line-height: 1.35;
+        }
     </style>
 </head>
 
 <body>
+    <div class="pdf-footer">
+        {!! \App\Support\CompanyAddress::htmlBlock() !!}
+    </div>
     <div class="header">
-        <div class="header-col" style="text-align: right;">
-            <img src="{{ \App\Support\LogoHelper::publicUrl() }}" alt="MarineCaddie" style="width:180px; max-width:180px;">
+        <div class="header-col" style="width:100%; text-align: right;">
+            {!! \App\Support\LogoHelper::imgTag('180px') !!}
         </div>
     </div>
     <div class="header" style="margin-top: 70px;">

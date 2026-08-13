@@ -523,6 +523,43 @@
             background: #fff;
             border-top: 1px solid #f3f4f6;
         }
+        .stock-repacked-section {
+            padding: 12px 15px 15px;
+            background: #fff;
+            border-top: 1px solid #f3f4f6;
+        }
+        .stock-repacked-heading {
+            font-size: 11px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 10px;
+        }
+        .stock-repacked-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+        .stock-repacked-field {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .stock-repacked-field-label {
+            margin: 0;
+            font-size: 11px;
+            font-weight: 600;
+            color: #4b5563;
+            white-space: nowrap;
+        }
+        .stock-repacked-input {
+            width: 110px;
+            max-width: 100%;
+            height: 30px;
+            padding: 4px 8px;
+            font-size: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
 
         .airfreight-flight-row {
             display: flex;
@@ -5451,11 +5488,12 @@
 
         function buildSeaFreightLegRowHtml() {
             var rowIndex = $('#sea-freight-legs-container .sea-freight-leg-row').length;
+            var firstLabel = rowIndex === 0 ? 'Bill of lading' : 'Port of departure';
             return `
                 <div class="sea-freight-leg-row">
-                    <div class="sea-leg-field">
+                    <div class="sea-leg-field sea-leg-first-field">
                         <div class="form-group-custom mb-0">
-                            <label>Bill of lading</label>
+                            <label>${firstLabel}</label>
                             <input type="text" name="sea_legs[${rowIndex}][bill_of_lading]" class="form-control-sm-custom">
                         </div>
                     </div>
@@ -5507,6 +5545,13 @@
                 </div>`;
         }
 
+        function updateSeaFreightLegLabels() {
+            $('#sea-freight-legs-container .sea-freight-leg-row').each(function(index) {
+                var label = index === 0 ? 'Bill of lading' : 'Port of departure';
+                $(this).find('.sea-leg-first-field label').text(label);
+            });
+        }
+
         $('#add-sea-freight-leg-btn').on('click', function(e) {
             e.preventDefault();
             var $row = $(buildSeaFreightLegRowHtml());
@@ -5517,6 +5562,7 @@
         $(document).on('click', '.remove-sea-freight-leg', function() {
             $(this).closest('.sea-freight-leg-row').remove();
             reindexLegRowNames('#sea-freight-legs-container', '.sea-freight-leg-row', 'sea_legs');
+            updateSeaFreightLegLabels();
         });
 
         function buildTruckLegRowHtml() {
@@ -5922,8 +5968,40 @@
 
         function syncAddStockItemsButtonState() {
             var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
-            $('#add-stock-items-btn').prop('disabled', status === 'Completed' || status === 'Cancelled');
+            var isLocked = status === 'Completed' || status === 'Cancelled';
+            $('#add-stock-items-btn').prop('disabled', isLocked);
+            $('#repacked_items, #repacked_weight').prop('disabled', isLocked);
         }
+
+        $('#repacked_items').on('input', function() {
+            var sanitized = $(this).val().replace(/\D/g, '');
+            if ($(this).val() !== sanitized) {
+                $(this).val(sanitized);
+            }
+        });
+
+        $('#repacked_weight').on('input', function() {
+            var val = $(this).val().replace(/[^\d.]/g, '');
+            var parts = val.split('.');
+            if (parts.length > 2) {
+                val = parts[0] + '.' + parts.slice(1).join('');
+            }
+            if ($(this).val() !== val) {
+                $(this).val(val);
+            }
+        }).on('blur', function() {
+            var raw = $.trim($(this).val());
+            if (raw === '' || raw === '.') {
+                $(this).val('');
+                return;
+            }
+            var num = parseFloat(raw);
+            if (!isNaN(num)) {
+                $(this).val(num.toFixed(2));
+            }
+        });
+
+       
 
         function syncFinalizeTransitButtonState() {
             var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());

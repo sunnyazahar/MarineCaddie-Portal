@@ -228,16 +228,13 @@
 <body>
     <table class="footer-table">
         <tr>
-            <td class="footer-td" style="width: 40%; font-size: 8px;">
-                MarineCaddie India Private Limited<br>
-                Innov8 Aerocity, Asset-5A, Hospitality District<br>
-                Near IGI Airport, Aerocity, New Delhi-110037.<br>
+            <td class="footer-td" style="width: 50%; font-size: 8px;">
+                {!! \App\Support\CompanyAddress::htmlBlock() !!}
             </td>
-            <td class="footer-td text-center" style="width: 35%;">
+            <td class="footer-td text-center" style="width: 20%;">
 
             </td>
-            <td class="footer-td text-right" style="width: 25%; font-size: 8px;">
-                +919560773375 ops@marinecaddie.com<br>
+            <td class="footer-td text-right" style="width: 30%; font-size: 8px;">
                 Created on {{ now()->tz('Asia/Kolkata')->format('d.m.Y H:i') }} IST
             </td>
         </tr>
@@ -248,7 +245,7 @@
                 Stock list Report for {{ $reportCustomerName }}
             </td>
             <td class="logo-container" style="text-align:right;">
-                <img src="{{ \App\Support\LogoHelper::publicUrl() }}" alt="MarineCaddie" style="width:180px; max-width:180px;">
+                {!! \App\Support\LogoHelper::imgTag('180px') !!}
             </td>
         </tr>
     </table>

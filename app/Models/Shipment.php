@@ -43,6 +43,8 @@ class Shipment extends Model
         'project_logistics',
         'port_agency',
         'status',
+        'repacked_items',
+        'repacked_weight',
         'flags',
         'created_by',
     ];
@@ -60,6 +62,8 @@ class Shipment extends Model
         'skip_prealert' => 'boolean',
         'project_logistics' => 'boolean',
         'port_agency' => 'boolean',
+        'repacked_items' => 'integer',
+        'repacked_weight' => 'decimal:2',
     ];
 
     public function crrs(): BelongsToMany

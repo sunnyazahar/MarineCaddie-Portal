@@ -34,19 +34,17 @@
 <body>
 
 @php
-    $header = function () use ($headerSubtitle, $companyName, $companyAddress) {
+    $header = function () use ($headerSubtitle) {
         return '
         <table class="header-table">
             <tr>
                 <td style="width:62%;">
                     <div class="doc-title">Pre-alert</div>
                     <div class="doc-subtitle">' . e($headerSubtitle) . '</div>
-                    <div class="company">' . e($companyName) . '</div>
-                    <div class="muted">' . e($companyAddress) . '</div>
                 </td>
                 <td class="header-right" style="width:38%;">
                     <div class="brand-logo">
-                        {!! \App\Support\LogoHelper::pdfImgTag('180px') !!}
+                        ' . \App\Support\LogoHelper::imgTag('180px') . '
                     </div>
                 </td>
             </tr>
@@ -65,6 +63,10 @@
 
 <div class="page">
     {!! $header() !!}
+<br>
+    <div class="notify-title" style="margin-top:0;">Incoming shipment details.</div>
+    <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
+    <div class="vessel-heading">C/O : {{ $consigneeName }} <br> {{ $consigneeAddress }}</div>
 
     <div class="section-title">Freight details</div>
     <div class="expected-line">{{ $expectedLine }}</div>
@@ -75,18 +77,24 @@
                 <th>Port of departure</th>
                 <th>Port of destination</th>
                 <th>Shippers reference</th>
-                <th>AWB</th>
+                @if (!empty($showReferenceColumn))
+                    <th>{{ $referenceColumnLabel }}</th>
+                @endif
                 <th>Owners reference</th>
             </tr>
         </thead>
         <tbody>
+            @foreach ($freightDetailRows as $row)
             <tr>
-                <td>{{ $departurePortSimple }}</td>
-                <td>{{ $destinationPortSimple }}</td>
-                <td>{{ $shippersReference }}</td>
-                <td>{{ $awb }}</td>
-                <td>{{ $ownersReference }}</td>
+                <td>{{ $row['departure_port'] }}</td>
+                <td>{{ $row['destination_port'] }}</td>
+                <td>{{ $row['shippers_reference'] }}</td>
+                @if (!empty($showReferenceColumn))
+                    <td>{{ $row['reference'] }}</td>
+                @endif
+                <td>{{ $row['owners_reference'] }}</td>
             </tr>
+            @endforeach
         </tbody>
     </table>
 
@@ -94,25 +102,27 @@
         <thead>
             <tr>
                 <th>Service</th>
-                <th>Additional service</th>
                 <th>Departure port</th>
+                <th>Departure date</th>
                 <th>{{ $flightColumnLabel }}</th>
                 <th>Arrival date</th>
                 <th>Arrival time</th>
             </tr>
         </thead>
         <tbody>
+            @foreach ($serviceDetailRows as $row)
             <tr>
-                <td>{{ $serviceLabel }}</td>
-                <td>{{ $additionalServiceLabel }}</td>
-                <td>{{ $serviceDeparturePort }}</td>
-                <td>{{ $flightNumber }}</td>
-                <td>{{ $arrivalDate }}</td>
-                <td>{{ $arrivalTime }}</td>
+                <td>{{ $row['service'] }}</td>
+                <td>{{ $row['departure_port'] }}</td>
+                <td>{{ $row['departure_date'] ?? '—' }}</td>
+                <td>{{ $row['flight'] }}</td>
+                <td>{{ $row['arrival_date'] }}</td>
+                <td>{{ $row['arrival_time'] }}</td>
             </tr>
+            @endforeach
         </tbody>
     </table>
-
+    <br><br>
     <div class="field-block">
         <div class="field-label">Account handled by</div>
         <div>{{ $accountHandledBy }}</div>
@@ -120,39 +130,29 @@
 
     <div class="field-block">
         <div class="field-label">Issued by and shipped through</div>
-        <div style="font-weight:bold;">{{ $issuedByName }}</div>
-        <div class="address-block">{{ $issuedByAddress }}</div>
+        <div>MarineCaddie Shipping LLC <br>Email: ops@marinecaddie.com </div>
     </div>
 
-    <div class="notify-title">This is to notify incoming shipment to</div>
-    <div class="vessel-heading">{{ $vesselLine }}</div>
-
-    <div class="field-block">
-        <div class="field-label">C/O</div>
-        <div style="font-weight:bold;">{{ $consigneeName }}</div>
-        <div class="address-block">{{ $consigneeAddressBlock }}</div>
-    </div>
 </div>
 
 <div class="page page-break">
     {!! $header() !!}
 
-    <div class="notify-title">This is to notify incoming shipment to</div>
+    <div class="notify-title">This is to notify incoming shipment under</div>
+    @if (!empty($showReferenceColumn) && filled($awb) && $awb !== '—')
+        <table class="summary-table">
+            <tr><td class="summary-label">{{ $referenceColumnLabel }} {{ $awb }}</td></tr>
+        </table>
+    @endif
     <div class="vessel-heading">{{ $vesselLine }}</div>
 
     <div class="field-block">
-        <div class="field-label">C/O</div>
-        <div style="font-weight:bold;">{{ $consigneeName }}</div>
+        <div class="field-label">C/O : {{ $consigneeName }} <br> {{ $consigneeAddress }}</div>
     </div>
 
-    <table class="summary-table">
-        <tr><td class="summary-label">AWB</td><td>{{ $awb }}</td></tr>
-        <tr><td class="summary-label">Total pieces in consignment</td><td>{{ $totalPiecesLabel }}</td></tr>
-        <tr><td class="summary-label">Packed as</td><td>{{ $packedAsLabel }}</td></tr>
-        <tr><td class="summary-label">Customs value</td><td>{{ $customsValueLabel }}</td></tr>
-    </table>
 
-    <div class="vessel-heading">{{ $vesselLine }}</div>
+
+    <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
 
     <table class="data-table">
         <thead>
@@ -190,6 +190,11 @@
                 <td colspan="4"><strong>{{ $customsValueLabel }}</strong></td>
             </tr>
         </tbody>
+    </table>
+    <table class="summary-table">
+        <tr><td class="summary-label">Total pieces in consignment</td><td>{{ $totalPiecesLabel }}</td></tr>
+        <tr><td class="summary-label">Packed as</td><td>{{ $packedAsLabel }}</td></tr>
+        <tr><td class="summary-label">Customs value</td><td>{{ $customsValueLabel }}</td></tr>
     </table>
 </div>
 

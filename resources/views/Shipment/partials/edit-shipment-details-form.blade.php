@@ -16,6 +16,8 @@
         'Via ship chandler',
         'On arrival',
         'Major storing',
+        'Full container load (FCL)',
+        'Less container load (LCL)',
     ];
 @endphp
 
@@ -336,6 +338,37 @@
             <span>Total value: {{ number_format($totalValue, 2) }}</span>
             <div class="ml-auto">
                 <button type="button" id="add-stock-items-btn" class="btn btn-premium btn-outline-custom ml-2" @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif>Add stock items</button>
+            </div>
+        </div>
+        <div class="stock-repacked-section">
+            <div class="stock-repacked-heading">Repacked as:</div>
+            <div class="stock-repacked-fields">
+                <div class="stock-repacked-field">
+                    <label for="repacked_items" class="stock-repacked-field-label">Repacked item(s)</label>
+                    <input
+                        type="text"
+                        name="repacked_items"
+                        id="repacked_items"
+                        class="form-control stock-repacked-input"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        value="{{ old('repacked_items', $shipment->repacked_items) }}"
+                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif
+                    >
+                </div>
+                <div class="stock-repacked-field">
+                    <label for="repacked_weight" class="stock-repacked-field-label">Repacked weight (kg)</label>
+                    <input
+                        type="text"
+                        name="repacked_weight"
+                        id="repacked_weight"
+                        class="form-control stock-repacked-input"
+                        inputmode="decimal"
+                        autocomplete="off"
+                        value="{{ old('repacked_weight', $shipment->repacked_weight !== null ? number_format((float) $shipment->repacked_weight, 2, '.', '') : '') }}"
+                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif
+                    >
+                </div>
             </div>
         </div>
     </div>

@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Agent;
 use App\Models\Crr;
+use App\Models\Hub;
+use App\Models\Port;
 use App\Models\Shipment;
 use App\Models\ShipmentCourierLeg;
 use App\Models\ShipmentFlight;
@@ -37,6 +40,7 @@ class ShipmentPreAlertPdfBuilder
 
         $base = $this->manifestPdfBuilder->build($shipment);
         $serviceDetails = $this->buildServiceDetails($shipment);
+        $serviceDetailRows = $this->buildServiceDetailRows($shipment);
 
         $primaryVessel = $shipment->crrs->pluck('vessel_name')->filter()->first() ?? '—';
         $awb = $serviceDetails['awb'] ?? '—';
@@ -44,6 +48,14 @@ class ShipmentPreAlertPdfBuilder
         $arrivalDate = $serviceDetails['arrival_date'] ?? ($shipment->deadline_arrival?->format('d.m.Y') ?? '—');
         $arrivalTime = $serviceDetails['arrival_time'] ?? '—';
         $arrivalLabel = trim($arrivalDate . ($arrivalTime && $arrivalTime !== '—' ? ' ' . $arrivalTime : ''));
+
+        if ($serviceDetailRows !== []) {
+            $lastRow = $serviceDetailRows[array_key_last($serviceDetailRows)];
+            $arrivalDate = $lastRow['arrival_date'] ?? $arrivalDate;
+            $arrivalTime = $lastRow['arrival_time'] ?? $arrivalTime;
+            $arrivalLabel = trim($arrivalDate . ($arrivalTime && $arrivalTime !== '—' ? ' ' . $arrivalTime : ''));
+            $flightNumber = $lastRow['flight'] ?? $flightNumber;
+        }
 
         $departurePort = $this->simplePortLabel(
             $shipment->departure_port_code,
@@ -53,10 +65,13 @@ class ShipmentPreAlertPdfBuilder
         $destinationPort = $this->simplePortLabel(
             $shipment->consignee_port_code,
             $shipment->consignee_city,
-            $base['destinationPort'] ?? null
+            $base['destinationPort'] ?? null,
+            $shipment->consignee_country
         );
 
-        $serviceLabel = trim(($shipment->service ?? '—') . ($serviceDetails['service_suffix'] ?? ''));
+        $serviceLabel = filled($shipment->additional_service)
+            ? trim(($shipment->service ?? '—') . ', ' . $shipment->additional_service)
+            : ($shipment->service ?? '—');
 
         $ownerName = $shipment->crrs
             ->map(fn (Crr $crr) => $crr->customerVessel?->customer?->customer_name)
@@ -102,6 +117,39 @@ class ShipmentPreAlertPdfBuilder
         $totalPackages = (int) ($totals['packages'] ?? 0);
         $totalWeight = $totals['weight'] ?? 0;
 
+        $resolvedServiceDetailRows = $serviceDetailRows !== []
+            ? $serviceDetailRows
+            : [[
+                'service' => $serviceLabel,
+                'additional_service' => $shipment->additional_service ?: '—',
+                'departure_port' => $serviceDetails['departure_port'] ?? $departurePort,
+                'departure_date' => '—',
+                'flight' => $flightNumber,
+                'arrival_date' => $arrivalDate,
+                'arrival_time' => $arrivalTime,
+                'reference' => $awb,
+            ]];
+
+        $shippersReference = $shipment->shipment_number;
+        $ownersReference = $shipment->customer_reference ?? '—';
+        $referenceColumnLabel = $this->referenceColumnLabel($shipment->service);
+        $showReferenceColumn = $this->serviceHasReferenceColumn($shipment->service);
+
+        $freightDetailRows = [[
+            'departure_port' => $departurePort,
+            'destination_port' => $destinationPort,
+            'shippers_reference' => $shippersReference,
+            'reference' => $resolvedServiceDetailRows[0]['reference'] ?? $awb,
+            'owners_reference' => $ownersReference,
+        ]];
+
+        $awbLabels = collect($resolvedServiceDetailRows)
+            ->pluck('reference')
+            ->filter(fn ($value) => filled($value) && $value !== '—')
+            ->unique()
+            ->values();
+        $awb = $awbLabels->isNotEmpty() ? $awbLabels->first() : $awb;
+
         return array_merge($base, [
             'headerSubtitle' => $serviceLabel,
             'expectedLine' => sprintf(
@@ -111,14 +159,18 @@ class ShipmentPreAlertPdfBuilder
             ),
             'departurePortSimple' => $departurePort,
             'destinationPortSimple' => $destinationPort,
-            'shippersReference' => $shipment->shipment_number,
-            'ownersReference' => $shipment->customer_reference ?? '—',
+            'shippersReference' => $shippersReference,
+            'ownersReference' => $ownersReference,
             'awb' => $awb,
+            'referenceColumnLabel' => $referenceColumnLabel,
+            'showReferenceColumn' => $showReferenceColumn,
+            'freightDetailRows' => $freightDetailRows,
             'flightNumber' => $flightNumber,
             'serviceDeparturePort' => $serviceDetails['departure_port'] ?? $departurePort,
             'arrivalDate' => $arrivalDate,
             'arrivalTime' => $arrivalTime,
             'arrivalLabel' => $arrivalLabel,
+            'serviceDetailRows' => $resolvedServiceDetailRows,
             'accountHandledBy' => $accountHandledBy,
             'issuedByName' => $issuedByName,
             'issuedByAddress' => $issuedByAddress,
@@ -169,12 +221,14 @@ class ShipmentPreAlertPdfBuilder
                 $result['arrival_time'] = $flight->arrival_time ?: '—';
                 $result['arrival'] = $this->formatArrival($flight->arrival_date, $flight->arrival_time);
                 $result['departure_port'] = $departurePort;
-                $result['service_suffix'] = ', Normal';
+                if (filled($shipment->additional_service)) {
+                    $result['service_suffix'] = ', ' . $shipment->additional_service;
+                }
                 break;
 
             case 'Sea freight':
                 /** @var ShipmentSeaLeg|null $leg */
-                $leg = $shipment->seaLegs->first();
+                $leg = $shipment->seaLegs->sortBy('sort_order')->first();
                 if (!$leg) {
                     break;
                 }
@@ -185,6 +239,9 @@ class ShipmentPreAlertPdfBuilder
                 $result['arrival'] = $this->formatArrival($leg->eta, $leg->arrival_time);
                 $result['departure_port'] = $departurePort;
                 $result['flight_number'] = $leg->transport_vessel_name ?: '—';
+                if (filled($shipment->additional_service)) {
+                    $result['service_suffix'] = ', ' . $shipment->additional_service;
+                }
                 break;
 
             case 'Truck':
@@ -263,6 +320,152 @@ class ShipmentPreAlertPdfBuilder
     }
 
     /**
+     * @return list<array{service: string, additional_service: string, departure_port: string, departure_date: string, flight: string, arrival_date: string, arrival_time: string, reference: string}>
+     */
+    private function buildServiceDetailRows(Shipment $shipment): array
+    {
+        $departurePort = $this->simplePortLabel($shipment->departure_port_code, null, null) ?: '—';
+        $additionalService = $shipment->additional_service ?: '—';
+        $serviceBase = $shipment->service ?? '—';
+        $serviceWithAdditional = filled($shipment->additional_service)
+            ? trim($serviceBase . ', ' . $shipment->additional_service)
+            : $serviceBase;
+
+        return match ($shipment->service) {
+            'Airfreight' => $shipment->flights
+                ->sortBy('sort_order')
+                ->values()
+                ->map(function (ShipmentFlight $flight, int $index) use ($departurePort, $additionalService, $serviceWithAdditional) {
+                    $isFirstLeg = $index === 0;
+                    $legDeparturePort = $isFirstLeg
+                        ? $departurePort
+                        : $this->simplePortLabel($flight->leg_reference);
+
+                    return [
+                        'service' => $serviceWithAdditional,
+                        'additional_service' => $additionalService,
+                        'departure_port' => $legDeparturePort,
+                        'departure_date' => $this->formatDate($flight->departure_date) ?? '—',
+                        'flight' => $flight->flight_number ?: '—',
+                        'arrival_date' => $this->formatDate($flight->arrival_date) ?? '—',
+                        'arrival_time' => $flight->arrival_time ?: '—',
+                        // First leg stores AWB; later legs store next departure port in leg_reference.
+                        'reference' => $isFirstLeg ? ($flight->leg_reference ?: '—') : '—',
+                    ];
+                })
+                ->all(),
+            'Sea freight' => $shipment->seaLegs
+                ->sortBy('sort_order')
+                ->values()
+                ->map(function (ShipmentSeaLeg $leg, int $index) use ($departurePort, $additionalService, $serviceWithAdditional) {
+                    $isFirstLeg = $index === 0;
+                    $legDeparturePort = $isFirstLeg
+                        ? $departurePort
+                        : $this->simplePortLabel($leg->bill_of_lading);
+
+                    return [
+                        'service' => $serviceWithAdditional,
+                        'additional_service' => $additionalService,
+                        'departure_port' => $legDeparturePort,
+                        'departure_date' => $this->formatDate($leg->etd) ?? '—',
+                        'flight' => $leg->transport_vessel_name ?: '—',
+                        'arrival_date' => $this->formatDate($leg->eta) ?? '—',
+                        'arrival_time' => $leg->arrival_time ?: '—',
+                        // First leg stores B/L; later legs store next departure port in bill_of_lading.
+                        'reference' => $isFirstLeg ? ($leg->bill_of_lading ?: '—') : '—',
+                    ];
+                })
+                ->all(),
+            'Truck' => $shipment->truckLegs
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn (ShipmentTruckLeg $leg) => [
+                    'service' => $serviceWithAdditional,
+                    'additional_service' => $additionalService,
+                    'departure_port' => $departurePort,
+                    'departure_date' => $this->formatDate($leg->departure_date) ?? '—',
+                    'flight' => $leg->freight_company ?: '—',
+                    'arrival_date' => $this->formatDate($leg->arrival_date) ?? '—',
+                    'arrival_time' => $leg->arrival_time ?: '—',
+                    'reference' => $leg->cmr ?: '—',
+                ])
+                ->all(),
+            'Courier' => $shipment->courierLegs
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn (ShipmentCourierLeg $leg) => [
+                    'service' => $serviceWithAdditional,
+                    'additional_service' => $additionalService,
+                    'departure_port' => $departurePort,
+                    'departure_date' => $this->formatDate($leg->departure_date) ?? '—',
+                    'flight' => $leg->carrier ?: '—',
+                    'arrival_date' => $this->formatDate($leg->arrival_date) ?? '—',
+                    'arrival_time' => $leg->arrival_time ?: '—',
+                    'reference' => $leg->airway_bill ?: '—',
+                ])
+                ->all(),
+            'Release' => $shipment->releaseLegs
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn (ShipmentReleaseLeg $leg) => [
+                    'service' => $serviceWithAdditional,
+                    'additional_service' => $additionalService,
+                    'departure_port' => $departurePort,
+                    'departure_date' => '—',
+                    'flight' => $leg->freight_company ?: '—',
+                    'arrival_date' => $this->formatDate($leg->delivery_date) ?? '—',
+                    'arrival_time' => $leg->delivery_time ?: '—',
+                    'reference' => '—',
+                ])
+                ->all(),
+            'Hand Carry' => $shipment->handCarryLegs
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn (ShipmentHandCarryLeg $leg) => [
+                    'service' => $serviceWithAdditional,
+                    'additional_service' => $additionalService,
+                    'departure_port' => $departurePort,
+                    'departure_date' => $this->formatDate($leg->departure_date) ?? '—',
+                    'flight' => $leg->contact_name ?: '—',
+                    'arrival_date' => $this->formatDate($leg->arrival_date) ?? '—',
+                    'arrival_time' => $leg->arrival_time ?: '—',
+                    'reference' => '—',
+                ])
+                ->all(),
+            'On-board delivery' => $shipment->onBoardLegs
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn (ShipmentOnBoardLeg $leg) => [
+                    'service' => $serviceWithAdditional,
+                    'additional_service' => $additionalService,
+                    'departure_port' => $departurePort,
+                    'departure_date' => $this->formatDate($leg->departure_date) ?? '—',
+                    'flight' => '—',
+                    'arrival_date' => $this->formatDate($leg->delivery_date) ?? '—',
+                    'arrival_time' => $leg->delivery_time ?: '—',
+                    'reference' => '—',
+                ])
+                ->all(),
+            default => [],
+        };
+    }
+
+    private function referenceColumnLabel(?string $service): string
+    {
+        return match ($service) {
+            'Sea freight' => 'B/L',
+            'Truck' => 'CMR',
+            'Courier' => 'AWB',
+            default => 'AWB',
+        };
+    }
+
+    private function serviceHasReferenceColumn(?string $service): bool
+    {
+        return in_array($service, ['Airfreight', 'Sea freight', 'Truck', 'Courier'], true);
+    }
+
+    /**
      * @return array<int, string>
      */
     public function reminderMailServiceDetailLines(Shipment $shipment): array
@@ -281,7 +484,9 @@ class ShipmentPreAlertPdfBuilder
         $serviceDetails = $this->buildServiceDetails($shipment);
 
         $vessel = $shipment->crrs->pluck('vessel_name')->filter()->first() ?? '—';
-        $serviceLabel = trim(($shipment->service ?? '—') . ($serviceDetails['service_suffix'] ?? ''));
+        $serviceLabel = filled($shipment->additional_service)
+            ? trim(($shipment->service ?? '—') . ', ' . $shipment->additional_service)
+            : ($shipment->service ?? '—');
 
         $lines = [
             'Vessel: ' . $vessel,
@@ -425,21 +630,80 @@ class ShipmentPreAlertPdfBuilder
         return $dateLabel;
     }
 
-    private function simplePortLabel(?string $portCode, ?string $city, ?string $fullLabel): string
-    {
-        if ($portCode) {
-            return $portCode;
+    private function simplePortLabel(
+        ?string $portCode,
+        ?string $city = null,
+        ?string $fullLabel = null,
+        ?string $country = null
+    ): string {
+        $code = trim((string) $portCode);
+        $cityPart = trim((string) $city);
+        $countryPart = trim((string) $country);
+
+        if ($code !== '') {
+            $port = Port::query()
+                ->with('country')
+                ->where('iata_code', $code)
+                ->first();
+
+            if ($port) {
+                $code = $port->iata_code ?: $code;
+                if ($cityPart === '') {
+                    $cityPart = trim((string) ($port->city ?? ''));
+                }
+                if ($countryPart === '') {
+                    $countryPart = trim((string) ($port->country_name ?: $port->country?->name ?: ''));
+                }
+            } else {
+                $hub = Hub::query()
+                    ->where('port_code', $code)
+                    ->first();
+
+                if ($hub) {
+                    if ($cityPart === '') {
+                        $cityPart = trim((string) ($hub->city ?? ''));
+                    }
+                    if ($countryPart === '') {
+                        $countryPart = trim((string) ($hub->country ?? ''));
+                    }
+                } else {
+                    $agent = Agent::query()
+                        ->with('country')
+                        ->where('port_code', $code)
+                        ->first();
+
+                    if ($agent) {
+                        if ($cityPart === '') {
+                            $cityPart = trim((string) ($agent->city ?? ''));
+                        }
+                        if ($countryPart === '') {
+                            $countryPart = trim((string) ($agent->country?->name ?? ''));
+                        }
+                    }
+                }
+            }
+        } elseif (filled($fullLabel)) {
+            $parts = array_values(array_filter(array_map(
+                static fn ($part) => trim((string) $part),
+                preg_split('/\s*\/\s*/', (string) $fullLabel) ?: []
+            )));
+
+            if (count($parts) >= 3) {
+                // Manifest format is often: city / code / country
+                $cityPart = $cityPart !== '' ? $cityPart : $parts[0];
+                $code = $parts[1];
+                $countryPart = $countryPart !== '' ? $countryPart : $parts[2];
+            } elseif (count($parts) === 2) {
+                $code = $code !== '' ? $code : $parts[0];
+                $cityPart = $cityPart !== '' ? $cityPart : $parts[1];
+            } elseif (count($parts) === 1) {
+                $code = $code !== '' ? $code : $parts[0];
+            }
         }
 
-        if ($city) {
-            return $city;
-        }
+        $label = implode(' | ', array_filter([$code ?: null, $cityPart ?: null, $countryPart ?: null]));
 
-        if ($fullLabel) {
-            return trim(explode('/', $fullLabel)[0]);
-        }
-
-        return '—';
+        return $label !== '' ? $label : '—';
     }
 
     private function formatOfficeAddress($office): string

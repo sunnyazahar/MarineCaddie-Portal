@@ -21,7 +21,9 @@
             page-break-after: always;
             page-break-inside: avoid;
             position: relative;
-            height: auto;
+            min-height: 88mm;
+            padding-bottom: 14mm;
+            box-sizing: border-box;
         }
 
         .label-page:last-child {
@@ -113,6 +115,16 @@
             margin-bottom: 4mm;
         }
 
+        .label-footer {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 3mm;
+            font-size: 7px;
+            line-height: 1.3;
+            color: #333;
+        }
+
         i {
             font-family: 'Inter', sans-serif;
             font-size: 9px;
@@ -137,7 +149,7 @@
                     opsindia@marinecaddie.com
                 </div>
                 <div class="header-right">
-                    <img src="{{ \App\Support\LogoHelper::publicUrl() }}" alt="MarineCaddie" style="width:160px; max-width:160px;">
+                    {!! \App\Support\LogoHelper::imgTag('160px') !!}
                 </div>
                 <div class="clear"></div>
             </div>
@@ -193,6 +205,10 @@
                     <span class="small-value"
                         style="font-weight:bold; font-size:12px;">{{ strtoupper($crr->transit_type ?: 'ETL') }} - {{ $crr->customs_doc_reference ?: ($crr->transit_id ?: '—') }}</span>
                 </div>
+            </div>
+
+            <div class="label-footer">
+                {!! \App\Support\CompanyAddress::htmlBlock() !!}
             </div>
         </div>
     @endforeach

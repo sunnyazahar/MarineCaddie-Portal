@@ -842,7 +842,7 @@ class ShipmentController extends Controller
 
         try {
             do {
-                $shipmentNumber = 'SHIP' . str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT);
+                $shipmentNumber = $this->generateShipmentNumber();
             } while (Shipment::where('shipment_number', $shipmentNumber)->exists());
 
             $shipment = Shipment::create(array_merge(
@@ -2125,6 +2125,8 @@ class ShipmentController extends Controller
             'consignee_email' => 'nullable|email|max:255',
             'account_manager' => 'nullable|integer|exists:contacts,id',
             'status' => 'nullable|string|max:255',
+            'repacked_items' => 'nullable|integer|min:0',
+            'repacked_weight' => 'nullable|numeric|min:0',
             'special_considerations_destination' => 'nullable|string',
             'comments_departure_hub' => 'nullable|string',
             'comments_consignee' => 'nullable|string',
@@ -2273,6 +2275,8 @@ class ShipmentController extends Controller
             'consignee_email' => 'nullable|string|max:255',
             'account_manager' => 'nullable|integer|exists:contacts,id',
             'status' => 'nullable|string|max:255',
+            'repacked_items' => 'nullable|integer|min:0',
+            'repacked_weight' => 'nullable|numeric|min:0',
             'special_considerations_destination' => 'nullable|string',
             'comments_departure_hub' => 'nullable|string',
             'comments_consignee' => 'nullable|string',
@@ -2512,6 +2516,12 @@ class ShipmentController extends Controller
             'project_logistics' => $request->boolean('project_logistics'),
             'port_agency' => $request->boolean('port_agency'),
             'status' => $validated['status'] ?? $request->input('status', 'In process'),
+            'repacked_items' => array_key_exists('repacked_items', $validated)
+                ? ($validated['repacked_items'] !== null ? (int) $validated['repacked_items'] : null)
+                : null,
+            'repacked_weight' => array_key_exists('repacked_weight', $validated)
+                ? ($validated['repacked_weight'] !== null ? (float) $validated['repacked_weight'] : null)
+                : null,
         ];
 
         if (!$onlyPresent) {
@@ -2926,6 +2936,21 @@ class ShipmentController extends Controller
                 return null;
             }
         }
+    }
+
+    private function generateShipmentNumber(): string
+    {
+        $userName = (string) (auth()->user()?->name ?? '');
+        $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $userName) ?? '', 0, 3));
+
+        if (strlen($prefix) < 3) {
+            $prefix = str_pad($prefix, 3, 'X');
+        }
+
+        $random = str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+        $monthYear = now()->format('my');
+
+        return $prefix . '-' . $random . '-' . $monthYear;
     }
 
     private function irregularityHasData(array $irregularity): bool

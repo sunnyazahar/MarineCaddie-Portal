@@ -83,12 +83,9 @@ class ShipmentManifestService
         return $shipment->manifests()->latest('version')->first();
     }
 
-    private function buildPdfContent(Shipment $shipment, ?int $version = null): string
+    private function buildPdfContent(Shipment $shipment, ?int $manifestVersion = null): string
     {
-        $data = $this->pdfBuilder->build($shipment);
-        $revisionNumber = ($version !== null && $version > 1) ? ($version - 1) : null;
-        $data['revisionNumber'] = $revisionNumber;
-        $data['revisionWatermark'] = $revisionNumber ? ('Revision ' . $revisionNumber) : null;
+        $data = $this->pdfBuilder->build($shipment, $manifestVersion);
 
         $pdf = Pdf::loadView('Shipment.pdf.manifest', $data)
             ->setPaper('a4', 'portrait');

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\CompanyAddress;
 use Barryvdh\DomPDF\PDF;
 use Dompdf\Canvas;
 use Dompdf\FontMetrics;
@@ -21,15 +22,14 @@ class ShipmentPdfCompanyFooter
         $size = 7.0;
         $lineHeight = 9.0;
         $marginX = 28.35; // ~10mm
-        $bottomOffset = 36.0;
+        $bottomOffset = 42.0;
 
-        $leftLines = [
-            'MarineCaddie India Private Limited',
-            'Innov8 Aerocity, Asset-5A, Hospitality District',
-            'Near IGI Airport, Aerocity, New Delhi-110037.',
+        $leftLines = CompanyAddress::footerLeftLines();
+        $rightLines = [
+            'Phone ' . CompanyAddress::PHONE,
+            'Email ' . CompanyAddress::EMAIL,
+            'Created on ' . $createdAt,
         ];
-        $rightLine1 = '+919560773375 ops@marinecaddie.com';
-        $rightLine2 = 'Created on ' . $createdAt;
 
         $canvas->page_script(function (int $pageNumber, int $pageCount, Canvas $canvas, FontMetrics $fontMetrics) use (
             $font,
@@ -38,8 +38,7 @@ class ShipmentPdfCompanyFooter
             $marginX,
             $bottomOffset,
             $leftLines,
-            $rightLine1,
-            $rightLine2
+            $rightLines
         ) {
             $width = $canvas->get_width();
             $height = $canvas->get_height();
@@ -53,10 +52,10 @@ class ShipmentPdfCompanyFooter
             $pageLabelWidth = $fontMetrics->getTextWidth($pageLabel, $font, $size);
             $canvas->text(($width - $pageLabelWidth) / 2, $y + $lineHeight, $pageLabel, $font, $size);
 
-            $right1Width = $fontMetrics->getTextWidth($rightLine1, $font, $size);
-            $right2Width = $fontMetrics->getTextWidth($rightLine2, $font, $size);
-            $canvas->text($width - $marginX - $right1Width, $y + $lineHeight, $rightLine1, $font, $size);
-            $canvas->text($width - $marginX - $right2Width, $y + (2 * $lineHeight), $rightLine2, $font, $size);
+            foreach ($rightLines as $index => $line) {
+                $lineWidth = $fontMetrics->getTextWidth($line, $font, $size);
+                $canvas->text($width - $marginX - $lineWidth, $y + ($index * $lineHeight), $line, $font, $size);
+            }
         });
 
         $output = $dompdf->output();

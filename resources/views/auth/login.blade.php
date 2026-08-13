@@ -295,7 +295,7 @@
         <!-- Left Side: Login Form -->
         <div class="login-left">
             <div class="login-logo">
-                <img src="{{ asset('files/assets/images/marinecaddie-logo.png') }}" alt="MarineCaddie" style="max-width:260px; height:auto;">
+                {!! \App\Support\LogoHelper::imgTag('260px') !!}
             </div>
 
             <div class="login-card">

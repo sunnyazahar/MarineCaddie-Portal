@@ -26,14 +26,17 @@ class ShipmentPdfFingerprintService
     }
 
     /**
-     * Fingerprint only service type + service-detail legs.
-     * Used to decide whether a new pre-alert should be generated.
+     * Fingerprint for deciding whether a new pre-alert should be generated.
+     * Includes service type, additional service, service-detail legs, and repacked fields.
      */
     public function serviceDetailsFingerprint(Shipment $shipment): string
     {
         return $this->hash([
             'service' => $shipment->service,
+            'additional_service' => $this->normalizeValue($shipment->additional_service),
             'service_details' => $this->serviceDetailsPayload($shipment),
+            'repacked_items' => $this->normalizeValue($shipment->repacked_items),
+            'repacked_weight' => $this->normalizeValue($shipment->repacked_weight),
         ]);
     }
 
@@ -95,6 +98,8 @@ class ShipmentPdfFingerprintService
             'consignee_email',
             'location',
             'deadline_arrival',
+            'repacked_items',
+            'repacked_weight',
         ];
 
         $data = [];

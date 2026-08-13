@@ -11,6 +11,7 @@
         .header-table td { vertical-align: top; }
         .doc-title { font-size: 17px; font-weight: bold; margin: 0 0 4px; }
         .doc-subtitle { font-size: 13px; font-weight: bold; margin: 0 0 8px; }
+        .revision-highlight { color: #FD6C0A; font-weight: bold; font-size: 18px; }
         .company { font-size: 12px; font-weight: bold; }
         .muted { color: #555; font-size: 11px; }
         .header-right { text-align: right; font-size: 10px; }
@@ -69,99 +70,134 @@
             right: 0;
             bottom: 0;
         }
-        .page {
-            position: relative;
-        }
-        .revision-watermark {
-            position: absolute;
-            right: -55mm;
-            top: 50%;
-            margin-top: -20px;
-            width: 180mm;
-            text-align: center;
-            transform: rotate(-90deg);
-            transform-origin: center center;
-            z-index: 0;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-        .revision-watermark h1 {
-            margin: 0;
+        .meta-wrap { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .meta-wrap td { vertical-align: top; }
+        .meta-fields { width: 58%; }
+        .meta-barcode { width: 42%; text-align: right; padding-left: 12px; }
+        .meta-row { width: 100%; border-collapse: collapse; margin: 0 0 3px; }
+        .meta-row td { padding: 1px 0; vertical-align: top; font-size: 11px; }
+        .meta-label { width: 42%; font-weight: bold; }
+        .meta-value { width: 58%; }
+        .po-link { color: #1d4ed8; text-decoration: underline; font-size: 11px; margin: 6px 0 12px; }
+        .info-block { margin: 0 0 10px; font-size: 11px; line-height: 1.45; }
+        .info-label { font-weight: bold; display: inline; }
+        .prepare-title { font-weight: bold; margin: 12px 0 4px; font-size: 11px; }
+        .prepare-vessel { font-weight: bold; margin: 0 0 10px; font-size: 12px; }
+        .agent-note { font-size: 11px; margin: 0 0 6px; }
+        .agent-box {
+            border: none;
+            background: transparent;
             padding: 0;
-            font-family: Helvetica, Arial, sans-serif;
-            font-size: 72px;
-            font-weight: bold;
-            color: #90c0c0;
-            opacity: 0.55;
-            letter-spacing: 2px;
-            line-height: 1;
+            margin: 0 0 12px;
         }
+        .agent-box-table { width: 100%; border-collapse: collapse; }
+        .agent-box-table td { padding: 2px 0; vertical-align: top; font-size: 11px; }
+        .agent-box-label { width: 18%; font-weight: bold; }
+        .comments-title { font-size: 12px; font-weight: bold; color: #000000; margin: 10px 0 4px; }
+        .comments-body { white-space: pre-wrap; font-size: 11px; line-height: 1.45; }
     </style>
 </head>
 <body>
 
 @php
-    $header = function ($docTitle) use ($titleLine, $companyName, $companyAddress) {
+    $header = function ($docTitle, bool $showCompany = true, bool $showDocumentHandledBy = false) use ($titleLine, $companyName, $companyAddress, $documentHandledBy) {
+        $companyHtml = '';
+        if ($showCompany) {
+            $companyHtml = '
+                    <div class="company">' . e($companyName) . '</div>
+                    <div class="muted">' . e($companyAddress) . '</div>';
+        }
+
+        $documentHandledHtml = '';
+        if ($showDocumentHandledBy) {
+            $documentHandledHtml = '
+                    <div style="margin-top:4px; font-size:11px;">
+                        <strong>Document handled by</strong>:  ' . e($documentHandledBy ?? '—') . '
+                    </div>';
+        }
+
         return '
         <table class="header-table">
             <tr>
                 <td style="width:62%;">
                     <div class="doc-title">' . e($docTitle) . '</div>
-                    <div class="doc-subtitle">' . e($titleLine) . '</div> <br>
-                    <div class="company">' . e($companyName) . '</div>
-                    <div class="muted">' . e($companyAddress) . '</div>
+                    <div class="doc-subtitle">' . e($titleLine) . '</div>
+                    ' . $documentHandledHtml . '
+                    ' . $companyHtml . '
                 </td>
                 <td class="header-right" style="width:38%;">
                     <div class="brand-logo">
-                        {!! \App\Support\LogoHelper::pdfImgTag('180px') !!}
+                        ' . \App\Support\LogoHelper::imgTag('180px') . '
                     </div>
                 </td>
             </tr>
         </table>';
     };
+
+    $marineCaddieBillingAddress = 'MarineCaddie Shipping LLC, Unit No. 204 – 224, Al Safi Building, Tower 1, Deira, Dubai, United Arab Emirates, Phone +971 50 5643375, Email ops@marinecaddie.com';
+    $serviceDisplay = trim(($serviceLabel ?? '—') . (!empty($additionalServiceLabel) && $additionalServiceLabel !== '—' ? '<br>' . e($additionalServiceLabel) : ''));
 @endphp
 
-{{-- Shipment Instructions (single page) --}}
+{{-- Shipping instructions (matches reference layout) --}}
 <div class="page">
-    @if (!empty($revisionWatermark))
-        <div class="revision-watermark"><h1>{{ $revisionWatermark }}</h1></div>
+    {!! $header('Shipping instructions (' . ($serviceLabel ?? '—') . ')', false, true) !!}
+
+    <table class="meta-wrap">
+        <tr>
+            <td class="meta-fields">
+                <table class="meta-row"><tr><td class="meta-label">Attention</td><td class="meta-value">{{ $agentName }}</td></tr></table>
+                <table class="meta-row"><tr><td class="meta-label">Port of departure</td><td class="meta-value">{{ $departurePort }}</td></tr></table>
+                <table class="meta-row"><tr><td class="meta-label">Port of destination</td><td class="meta-value">{{ $destinationPort }}</td></tr></table>
+                <table class="meta-row"><tr><td class="meta-label">Cargo Location</td><td class="meta-value">{{ $shipmentLocation }}</td></tr></table>
+                <table class="meta-row"><tr><td class="meta-label">Service</td><td class="meta-value">{!! $serviceDisplay !!}</td></tr></table>
+                <table class="meta-row"><tr><td class="meta-label">PCS / Repacked as / Weight</td><td class="meta-value">{{ $pcsSummary }}</td></tr></table>
+                <table class="meta-row"><tr><td class="meta-label">Preferred shipment date</td><td class="meta-value">{{ $preferredShipmentDate }}</td></tr></table>
+                <table class="meta-row"><tr><td class="meta-label">Deadline arrival</td><td class="meta-value">{{ $deadlineArrival }}</td></tr></table>
+            </td>
+        </tr>
+    </table>
+
+    <div class="info-block">
+        <span class="info-label">Shipped through:</span> {{ $marineCaddieBillingAddress }}
+    </div>
+    <div class="info-block">
+        <span class="info-label">Invoice to:</span> {{ $marineCaddieBillingAddress }}
+    </div>
+
+    <div class="prepare-title">Please prepare shipment to:</div>
+    <div class="prepare-vessel">Vessel : {{ $vesselLine }}</div>
+
+    <div class="agent-box">
+        <table class="agent-box-table">
+            <tr>
+                <td class="agent-box-label">C/O  {{ $consigneeName }} <br> {{ $consigneeAddress }} <br> Email: {{ $consigneeEmail }} <br> Phone: {{ $consigneePhone }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="comments-title">Special considerations for destination port</div>
+    <div class="comments-body">{{ $special_considerations_destination ?: '—' }}</div>
+    <br>
+    <div class="comments-title">Comments to hub</div>
+    <div class="comments-body">{{ $commentsHub ?: '—' }}</div>
+    @if (!empty($manifestRevisionLabel))
+        <div class="revision-highlight" style="margin-top:12px;">({{ $manifestRevisionLabel }})</div>
     @endif
-    {!! $header('Shipment Instructions') !!}
-    <table class="field-table">
-        <tr><td class="field-label">Shipped through</td><td>{{ $shippedThrough }}</td></tr>
-        <tr><td class="field-label">Invoice to</td><td>{{ $invoiceTo }}</td></tr>
-    </table>
-    <div class="section-title" style="margin-top:10px;">Please prepare shipment to</div>
-    <div style="font-weight:bold;">{{ $vesselLine }}</div>
-    <table class="field-table" style="margin-top:6px;">
-        <tr><td class="field-label">C/O</td><td>{{ $consigneeName }}</td></tr>
-        <tr><td class="field-label"></td><td>{{ $consigneeAddress }}</td></tr>
-        <tr><td class="field-label">E-mail</td><td>{{ $consigneeEmail }}</td></tr>
-        <tr><td class="field-label">Phone</td><td>{{ $consigneePhone }}</td></tr>
-        <tr><td class="field-label">Contact Person</td><td>{{ $consigneeContact ?: '—' }}</td></tr>
-        <tr><td class="field-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
-        <tr><td class="field-label">Port of destination</td><td>{{ $destinationPort }}</td></tr>
-        <tr><td class="field-label">Location</td><td>{{ $shipmentLocation }}</td></tr>
-        <tr><td class="field-label">Service</td><td>{{ $serviceLabel }}</td></tr>
-        <tr><td class="field-label">Additional service</td><td>{{ $additionalServiceLabel }}</td></tr>
-        <tr><td class="field-label">PCS / Repacked as / Weight</td><td>{{ $pcsSummary }}</td></tr>
-        <tr><td class="field-label">Deadline arrival</td><td>{{ $deadlineArrival }}</td></tr>
-        <tr><td class="field-label">Document handled by</td><td>{{ $documentHandledBy }}</td></tr>
-    </table>
-    <div class="section-title" style="margin-top:10px;">Comments to hub</div>
-    <div class="comments">{{ $commentsHub ?: '—' }}</div>
 </div>
 
 {{-- Manifest / Invoice --}}
 <div class="page page-break{{ !empty($isOnBoardDelivery) ? ' page-manifest-invoice' : '' }}">
-    {!! $header('Manifest / Invoice') !!}
-    <div class="vessel-heading">{{ $vesselLine }}</div>
+    {!! $header('Manifest / Invoice', false) !!}
+    <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
+        <tr><td><span class="field-label">Shipper</span> <br> {{ $shipperLine }}</td></tr>
+        <tr><td><span class="field-label">Consignee</span> <br>{{ $consigneeLine }}</td></tr>
+    </table>
     <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
         <tr><td class="totals-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
-        <tr><td class="totals-label">Shipper</td><td>{{ $shipperLine }}</td></tr>
-        <tr><td class="totals-label">Consignee</td><td>{{ $consigneeLine }}</td></tr>
         <tr><td class="totals-label">Contact</td><td>{{ $consigneeContact }}, {{ $consigneeContactEmail }}, {{ $consigneeContactPhone }}</td></tr>
     </table>
+    <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
     <table class="data-table">
         <thead>
             <tr>
@@ -205,8 +241,7 @@
         <tr><td class="totals-label">Total weight</td><td>{{ $totals['weight'] }} kg</td></tr>
         <tr><td class="totals-label">Estimated volume weight</td><td>{{ number_format($totals['volume_weight'], 2) }} kg</td></tr>
         <tr><td class="totals-label">Total customs value</td><td>{{ $totals['customs_value'] }} {{ $totals['currency'] }}</td></tr>
-        <tr><td class="totals-label">Total CBM</td><td>{{ number_format($totals['cbm'], 2) }} m³</td></tr>
-        <tr><td class="totals-label">Total CBFT</td><td>{{ number_format($totals['cbft'], 2) }} ft³</td></tr>
+        <tr><td class="totals-label">Repacked as </td><td>{{ $totals['repacked_items'] }} item(s)  / {{ $totals['repacked_weight'] }} kg</td></tr>
     </table>
     @if (!empty($isOnBoardDelivery))
         <div class="onboard-receipt-wrap">
@@ -228,14 +263,17 @@
 
 {{-- Packing List (single page) --}}
 <div class="page page-break">
-    {!! $header('Packing List') !!}
-    <div class="vessel-heading">{{ $manifestRows->first()['vessel'] ?? $vesselLine }}</div>
-    <table class="field-table" style="margin-top:0; margin-bottom:8px;">
-        <tr><td class="field-label">Shipper</td><td>{{ $shipperLine }}</td></tr>
-        <tr><td class="field-label">Consignee</td><td>{{ $consigneeLine }}</td></tr>
-        <tr><td class="field-label">Departure</td><td>{{ $departurePort }}</td></tr>
-        <tr><td class="field-label">Destination</td><td>{{ $destinationPort }}</td></tr>
+    {!! $header('Packing List', false) !!}
+    <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
+        <tr><td><span class="field-label">Shipper</span> <br> {{ $shipperLine }}</td></tr>
+        <tr><td><span class="field-label">Consignee</span> <br>{{ $consigneeLine }}</td></tr>
     </table>
+   
+    <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
+        <tr><td class="totals-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
+        <tr><td class="totals-label">Contact</td><td>{{ $consigneeContact }}, {{ $consigneeContactEmail }}, {{ $consigneeContactPhone }}</td></tr>
+    </table>
+    <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
     <table class="data-table">
         <thead>
             <tr>

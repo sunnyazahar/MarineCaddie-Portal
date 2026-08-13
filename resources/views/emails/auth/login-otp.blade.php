@@ -45,7 +45,7 @@
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;">
                     <tr>
                         <td align="center" style="padding:0 0 24px;">
-                            <img src="https://marinecaddie.com/files/assets/images/marinecaddie-logo.png" alt="MarineCaddie" width="200" style="display:block; margin:0 auto; max-width:200px; height:auto;">
+                            {!! \App\Support\LogoHelper::imgTag('200px', 'display:block; margin:0 auto;') !!}
                         </td>
                     </tr>
                     <tr>

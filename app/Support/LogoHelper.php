@@ -7,12 +7,31 @@ class LogoHelper
     private static ?string $cachedBase64 = null;
 
     /**
-     * Returns an <img> tag with the MarineCaddie logo as a base64-encoded data URI,
-     * suitable for use inside DomPDF-rendered PDF templates.
+     * Returns an <img> tag with the MarineCaddie logo embedded as base64.
+     * Works in DomPDF, browser HTML, and email clients that allow data URIs.
+     */
+    public static function imgTag(string $width = '180px', string $extraStyle = ''): string
+    {
+        $uri = self::base64DataUri();
+
+        if ($uri === '') {
+            return '';
+        }
+
+        $style = 'width:' . $width . '; max-width:' . $width . '; height:auto;';
+        if ($extraStyle !== '') {
+            $style .= ' ' . trim($extraStyle);
+        }
+
+        return '<img src="' . $uri . '" alt="MarineCaddie" style="' . $style . '">';
+    }
+
+    /**
+     * Alias for imgTag — used in PDF templates.
      */
     public static function pdfImgTag(string $width = '180px'): string
     {
-        return '<img src="' . self::base64DataUri() . '" style="width:' . $width . '; max-width:' . $width . ';" alt="MarineCaddie">';
+        return self::imgTag($width);
     }
 
     /**
@@ -31,13 +50,5 @@ class LogoHelper
         }
 
         return self::$cachedBase64;
-    }
-
-    /**
-     * Returns the public URL for use in browser-rendered print views.
-     */
-    public static function publicUrl(): string
-    {
-        return asset('files/assets/images/marinecaddie-logo.png');
     }
 }

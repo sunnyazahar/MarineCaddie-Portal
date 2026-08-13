@@ -1,5 +1,6 @@
 @php
     $rowIndex = $index ?? 0;
+    $firstLabel = $rowIndex === 0 ? 'Bill of lading' : 'Port of departure';
     $formatLegDate = function ($value) {
         if (!$value) {
             return '';
@@ -13,9 +14,9 @@
     };
 @endphp
 <div class="sea-freight-leg-row">
-    <div class="sea-leg-field">
+    <div class="sea-leg-field sea-leg-first-field">
         <div class="form-group-custom mb-0">
-            <label>Bill of lading</label>
+            <label>{{ $firstLabel }}</label>
             <input type="text" name="sea_legs[{{ $rowIndex }}][bill_of_lading]" class="form-control-sm-custom" value="{{ old('sea_legs.' . $rowIndex . '.bill_of_lading', isset($leg) ? ($leg->bill_of_lading ?? '') : '') }}">
         </div>
     </div>

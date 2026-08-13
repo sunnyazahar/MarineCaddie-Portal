@@ -18,12 +18,19 @@ class ShipmentManifestPdfBuilder
         private ShipmentStockSnapshotService $stockSnapshotService,
     ) {}
 
-    public function build(Shipment $shipment): array
+    public function build(Shipment $shipment, ?int $manifestVersion = null): array
     {
         $shipment->loadMissing([
             'accountManager.office',
             'creator',
+            'manifests',
         ]);
+
+        $resolvedManifestVersion = $manifestVersion;
+        if ($resolvedManifestVersion === null) {
+            $latestVersion = (int) ($shipment->manifests->max('version') ?? 0);
+            $resolvedManifestVersion = $latestVersion > 0 ? $latestVersion : null;
+        }
 
         $crrs = $this->stockSnapshotService->applyResolvedStockCrrs($shipment);
         $partyNames = Shipment::batchResolvePartyNames(collect([$shipment]));
@@ -135,7 +142,8 @@ class ShipmentManifestPdfBuilder
 
         return [
             'shipment' => $shipment,
-            'titleLine' => trim(($shipment->service ?? 'Shipment') . ' ' . $shipment->shipment_number),
+            'titleLine' => 'Ref No. :' . $shipment->shipment_number,
+            'manifestRevisionLabel' => $this->formatManifestRevisionLabel($resolvedManifestVersion),
             'companyName' => $companyName,
             'companyAddress' => $companyAddress,
             'companyPhone' => $companyPhone,
@@ -152,26 +160,40 @@ class ShipmentManifestPdfBuilder
             'consigneeContact' => $shipment->consignee_att ?? '—',
             'consigneeContactEmail' => $shipment->consignee_email ?? '—',
             'consigneeContactPhone' => $consigneeParty['phone'] ?: '—',
-            'agentName' => $consigneeParty['name'] ?: '—',
-            'vesselLine' => $vesselLine,
-            'departurePort' => $this->joinParts([
+            'departurePort' => $this->formatPortLabel(
                 $shipment->departure_port_code,
-                $departureParty['name'] ?? null,
-            ], ' - ') ?: '—',
-            'destinationPort' => $this->joinParts([
+                null,
+                $departureParty,
+                null
+            ),
+            'destinationPort' => $this->formatPortLabel(
                 $shipment->consignee_port_code,
                 $shipment->consignee_city,
-            ], ' - ') ?: '—',
+                $consigneeParty,
+                $shipment->consignee_country
+            ),
+            'agentName' => $departureParty['name'] ?: '—',
+            'consigneeAgentName' => $consigneeParty['name'] ?: ($shipment->consignee_att ?? '—'),
+            'vesselLine' => $vesselLine,
             'shipmentLocation' => $shipment->location ?: '—',
+            'special_considerations_destination' => $shipment->special_considerations_destination ?? '',
             'documentHandledBy' => $handledBy,
             'serviceLabel' => $shipment->service ?? '—',
             'additionalServiceLabel' => $shipment->additional_service ?: '—',
             'isOnBoardDelivery' => ($shipment->service ?? '') === 'On-board delivery',
             'onBoardSignatory' => $this->formatOnBoardSignatory($primaryVessel),
-            'pcsSummary' => $totalPackages . ' / ' . $totalPackages . ' / ' . $totalWeight . ' kg',
+            'pcsSummary' => $totalPackages
+                . ' / '
+                . (filled($shipment->repacked_items) ? $shipment->repacked_items : $totalPackages)
+                . ' / '
+                . number_format(filled($shipment->repacked_weight) ? (float) $shipment->repacked_weight : $totalWeight, 2)
+                . ' kg',
+            'preferredShipmentDate' => $shipment->preferred_shipment_date?->format('d.m.y') ?? '—',
             'deadlineArrival' => $shipment->deadline_arrival?->format('d.m.y') ?? '—',
             'commentsHub' => $shipment->comments_departure_hub ?? '',
             'combinedPoReference' => '*' . $shipment->shipment_number . '*',
+            'combinedPoUrl' => route('shipments.combined-po-documents', $shipment->id),
+            'barcodeHtml' => \App\Support\Code39Barcode::html($shipment->shipment_number),
             'customerName' => $customerName ?: '—',
             'manifestRows' => $manifestRows,
             'packingRows' => $packingRows,
@@ -183,10 +205,33 @@ class ShipmentManifestPdfBuilder
                 'currency' => $currency,
                 'cbm' => $totalCbm,
                 'cbft' => $totalCbft,
+                'repacked_items' => filled($shipment->repacked_items) ? (int) $shipment->repacked_items : '—',
+                'repacked_weight' => filled($shipment->repacked_weight)
+                    ? number_format((float) $shipment->repacked_weight, 2)
+                    : '—',
             ],
             'shipperLine' => $this->formatContactLine($departureParty),
-            'consigneeLine' => $this->formatShipmentAddress($shipment, true),
+            'consigneeLine' => $this->formatConsigneeLine(
+                $consigneeParty['name'] ?: ($shipment->consignee_att ?? null),
+                $this->formatShipmentAddress($shipment, true)
+            ),
         ];
+    }
+
+    private function formatConsigneeLine(?string $name, string $addressLine): string
+    {
+        $name = trim((string) $name);
+        $addressLine = trim($addressLine);
+
+        if ($name !== '' && $name !== '—' && $addressLine !== '' && $addressLine !== '—') {
+            return $name . ', ' . $addressLine;
+        }
+
+        if ($name !== '' && $name !== '—') {
+            return $name;
+        }
+
+        return $addressLine !== '' ? $addressLine : '—';
     }
 
     private function resolvePartyContact(?string $composite, array $partyNames): array
@@ -314,14 +359,6 @@ class ShipmentManifestPdfBuilder
 
         $line = $this->joinParts($parts);
 
-        if ($includePhone && $shipment->location) {
-            $line .= ($line ? ', ' : '') . $shipment->location;
-        }
-
-        if ($shipment->consignee_email) {
-            $line .= ($line ? ', ' : '') . $shipment->consignee_email;
-        }
-
         return $line ?: '—';
     }
 
@@ -339,8 +376,8 @@ class ShipmentManifestPdfBuilder
     private function formatPortLabel(?string $portCode, ?string $city, ?array $party = null, ?string $country = null): string
     {
         $parts = array_filter([
-            $portCode,
             $city ?: ($party['name'] ?? null),
+            $portCode,
             $country,
         ]);
 
@@ -384,5 +421,14 @@ class ShipmentManifestPdfBuilder
             ->map(fn ($part) => trim((string) $part))
             ->filter()
             ->implode($separator);
+    }
+
+    private function formatManifestRevisionLabel(?int $manifestVersion): ?string
+    {
+        if ($manifestVersion === null || $manifestVersion <= 1) {
+            return null;
+        }
+
+        return 'Revision ' . ($manifestVersion - 1);
     }
 }
