@@ -57,13 +57,41 @@ class MailEnvelopeHelper
         return self::resolve($fallbackName, $fallbackEmail);
     }
 
+    /**
+     * Office 365 SMTP only allows sending as the authenticated mailbox.
+     * Use that address as From and keep the intended sender as Reply-To.
+     */
+    public static function smtpMailboxAddress(): string
+    {
+        if ((string) config('mail.default') !== 'smtp') {
+            return '';
+        }
+
+        $username = trim((string) config('mail.mailers.smtp.username'));
+        if ($username !== '' && filter_var($username, FILTER_VALIDATE_EMAIL)) {
+            return $username;
+        }
+
+        $from = trim((string) config('mail.from.address'));
+
+        return filter_var($from, FILTER_VALIDATE_EMAIL) ? $from : '';
+    }
+
     public static function applySenderEnvelope(mixed $message, string $fromEmail, string $fromName): void
     {
-        if ($fromEmail === '' || ! filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+        $mailbox = self::smtpMailboxAddress();
+        $envelopeFrom = $mailbox !== '' ? $mailbox : $fromEmail;
+
+        if ($envelopeFrom === '' || ! filter_var($envelopeFrom, FILTER_VALIDATE_EMAIL)) {
             return;
         }
 
-        $message->from($fromEmail, $fromName);
-        $message->replyTo($fromEmail, $fromName);
+        $message->from($envelopeFrom, $fromName);
+
+        $replyTo = $fromEmail !== '' && filter_var($fromEmail, FILTER_VALIDATE_EMAIL)
+            ? $fromEmail
+            : $envelopeFrom;
+
+        $message->replyTo($replyTo, $fromName);
     }
 }

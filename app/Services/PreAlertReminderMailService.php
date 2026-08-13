@@ -178,7 +178,7 @@ class PreAlertReminderMailService
             'cc' => collect($mail['cc'])->pluck('email')->filter()->implode(','),
             'subject' => $mail['subject'],
             'body' => preg_replace("/\r\n|\r|\n/", "\n", $mail['body']),
-            'from' => $mail['senderEmail'],
+            'from' => \App\Support\MailEnvelopeHelper::smtpMailboxAddress() ?: $mail['senderEmail'],
             'from_name' => $mail['senderName'],
         ];
     }

@@ -46,7 +46,7 @@ class ManifestMailService
             'to' => collect($mail['to'])->pluck('email')->filter()->implode(','),
             'cc' => collect($mail['cc'])->pluck('email')->filter()->implode(','),
             'bcc' => '',
-            'from' => $mail['senderEmail'],
+            'from' => \App\Support\MailEnvelopeHelper::smtpMailboxAddress() ?: $mail['senderEmail'],
             'from_name' => $mail['senderName'],
             'subject' => $mail['subject'],
             'body' => preg_replace("/\r\n|\r|\n/", "\n", $mail['body']),

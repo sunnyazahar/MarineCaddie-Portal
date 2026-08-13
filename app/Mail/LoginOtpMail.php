@@ -20,7 +20,8 @@ class LoginOtpMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $fromAddress = (string) config('mail.from.address');
+        $fromAddress = \App\Support\MailEnvelopeHelper::smtpMailboxAddress()
+            ?: (string) config('mail.from.address');
         $fromName = (string) config('mail.from.name');
 
         return new Envelope(

@@ -3326,7 +3326,7 @@
                 <div class="compose-field">
                     <input type="text" id="compose-mail-from" class="compose-input compose-input-readonly" readonly placeholder="From:">
                 </div>
-                <p class="compose-from-hint">Manifest and pre-alert emails are sent from your login email address.</p>
+                <p class="compose-from-hint">Emails are sent from the configured mailbox. Replies go to your login email.</p>
                 <div class="compose-field">
                     <input type="text" id="compose-mail-to" class="compose-input" placeholder="To:">
                 </div>
