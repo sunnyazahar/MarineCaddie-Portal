@@ -863,8 +863,52 @@
             font-weight: 500;
             padding: 0;
             max-width: 100%;
+            width: 100%;
             cursor: pointer;
             appearance: auto;
+        }
+
+        #crr-documents-panel .select2-container {
+            display: block;
+            margin-top: 4px;
+            width: 100% !important;
+        }
+
+        #crr-documents-panel .select2-container--default .select2-selection--single {
+            border: 0 !important;
+            background: transparent !important;
+            background-color: transparent !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            display: block !important;
+            align-items: unset !important;
+        }
+
+        #crr-documents-panel .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #64748b !important;
+            font-size: 11px !important;
+            font-weight: 500 !important;
+            line-height: 18px;
+            padding: 0 16px 0 0 !important;
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        #crr-documents-panel .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 18px;
+            width: 14px;
+            right: 0;
+            top: 0;
+        }
+
+        .select2-dropdown.doc-type-select2-dropdown {
+            z-index: 20060;
+            min-width: 220px;
+            font-size: 11px;
+        }
+
+        .select2-dropdown.doc-type-select2-dropdown .select2-results__options {
+            max-height: 280px;
         }
 
         .doc-side {
@@ -2554,7 +2598,7 @@
                                 <!-- Documents Panel -->
                                 <div class="panel-card" id="crr-documents-panel">
                                     @php
-                                        $crrDocTypeOptions = \App\Models\CrrDocument::fileTypeOptions();
+                                        $crrDocTypeOptions = \App\Models\CrrDocument::fileTypeOptionsWithCustom();
                                     @endphp
                                     <div class="panel-title">Documents (<span class="doc-count">{{ $crr->documents->count() }}</span>)</div>
                                     <div class="crr-docs-header">
@@ -3302,6 +3346,21 @@ function updatePackageSummary() {
             const docCountBadge = $('.doc-count');
             const crrId = "{{ $crr->id }}";
 
+            function initCrrDocTypeSelect($select) {
+                if (!$select || !$select.length) {
+                    return;
+                }
+                if ($select.hasClass('select2-hidden-accessible')) {
+                    $select.select2('destroy');
+                }
+                $select.select2({
+                    width: '100%',
+                    dropdownParent: $(document.body),
+                    minimumResultsForSearch: 0,
+                    dropdownCssClass: 'doc-type-select2-dropdown'
+                });
+            }
+
             // Click to browse
             dropzone.on('click', function (e) {
                 e.preventDefault();
@@ -3353,7 +3412,7 @@ function updatePackageSummary() {
             function buildDocTypeOptionsHtml(selectedType, typeOptions) {
                 const options = Array.isArray(typeOptions) && typeOptions.length
                     ? typeOptions
-                    : @json(\App\Models\CrrDocument::fileTypeOptions());
+                    : @json(\App\Models\CrrDocument::fileTypeOptionsWithCustom());
                 let html = '';
                 let hasSelected = false;
                 options.forEach(function (opt) {
@@ -3409,6 +3468,7 @@ function updatePackageSummary() {
                     success: function (response) {
                         $('.no-docs-msg').remove();
                         docList.append(buildDocItemHtml(response));
+                        initCrrDocTypeSelect(docList.find('.doc-item[data-id="' + response.id + '"] .doc-type-select'));
                         updateDocCount(1);
                         toastr.success('File uploaded successfully');
                     },
@@ -3418,6 +3478,10 @@ function updatePackageSummary() {
                     }
                 });
             }
+
+            $('#crr-documents-panel .doc-type-select').each(function () {
+                initCrrDocTypeSelect($(this));
+            });
 
             $(document).on('change', '#crr-documents-panel .doc-type-select', function () {
                 const $select = $(this);
@@ -3475,6 +3539,10 @@ function updatePackageSummary() {
                     },
                     success: function (response) {
                         if (response.success) {
+                            var $select = docItem.find('.doc-type-select');
+                            if ($select.hasClass('select2-hidden-accessible')) {
+                                $select.select2('destroy');
+                            }
                             docItem.fadeOut(300, function () {
                                 $(this).remove();
                                 updateDocCount(-1);

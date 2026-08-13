@@ -626,7 +626,7 @@ class CrrController extends Controller
             'file_type' => $doc->file_type,
             'is_internal' => (bool) $doc->is_internal,
             'date'      => $doc->created_at->format('d.m.Y'),
-            'type_options' => CrrDocument::fileTypeOptions(),
+            'type_options' => CrrDocument::fileTypeOptionsWithCustom(),
         ]);
     }
 
@@ -656,7 +656,7 @@ class CrrController extends Controller
         $doc = CrrDocument::findOrFail($docId);
 
         $validated = $request->validate([
-            'file_type' => ['required', 'string', 'max:100', Rule::in(CrrDocument::fileTypeOptions())],
+            'file_type' => ['required', 'string', 'max:100', Rule::in(CrrDocument::fileTypeOptionsWithCustom())],
         ]);
 
         $fileType = trim($validated['file_type']);

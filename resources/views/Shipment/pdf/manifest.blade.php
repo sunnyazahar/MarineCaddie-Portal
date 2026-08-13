@@ -26,6 +26,9 @@
         .totals-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
         .totals-table td { padding: 3px 0; }
         .totals-label { width: 38%; font-weight: bold; }
+        .party-heading { font-weight: bold; display: block; margin-bottom: 2px; }
+        .party-block { white-space: pre-wrap; word-wrap: break-word; }
+        .party-cell { padding-top: 10px; text-align: left; }
         .comments { white-space: pre-wrap; font-size: 10px; margin-top: 8px; }
         .vessel-heading { font-size: 12px; font-weight: bold; margin: 10px 0 6px; }
         .pending-eta { font-size: 10px; color: #666; margin: 6px 0 2px; }
@@ -188,14 +191,37 @@
 
 {{-- Manifest / Invoice --}}
 <div class="page page-break{{ !empty($isOnBoardDelivery) ? ' page-manifest-invoice' : '' }}">
-    {!! $header('Manifest / Invoice', false) !!}
-    <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
-        <tr><td><span class="field-label">Shipper</span> <br> {{ $shipperLine }}</td></tr>
-        <tr><td><span class="field-label">Consignee</span> <br>{{ $consigneeLine }}</td></tr>
+    <table class="header-table" style="table-layout:fixed;">
+        <tr>
+            <td style="width:62%;">
+                <div class="doc-title">Manifest / Invoice</div>
+                <div class="doc-subtitle">{{ $titleLine }}</div>
+                <div class="party-cell">
+                    <span class="party-heading">Shipper</span>
+                    <div class="party-block">{{ $shipperLine }}</div>
+                </div>
+            </td>
+            <td class="header-right" style="width:38%;">
+                <table align="right" style="width:180px; border-collapse:collapse;">
+                    <tr>
+                        <td style="text-align:left; vertical-align:top;">
+                            <div class="brand-logo">
+                                {!! \App\Support\LogoHelper::imgTag('180px') !!}
+                            </div>
+                            <div class="party-cell">
+                                <span class="party-heading">Consignee</span>
+                                <div class="party-block">{{ $consigneeLine }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
     </table>
+    <br>
     <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
         <tr><td class="totals-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
-        <tr><td class="totals-label">Contact</td><td>{{ $consigneeContact }}, {{ $consigneeContactEmail }}, {{ $consigneeContactPhone }}</td></tr>
+        <tr><td class="totals-label">Contact</td><td>{{ $consigneeContactLine }}</td></tr>
     </table>
     <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
     <table class="data-table">
@@ -263,15 +289,37 @@
 
 {{-- Packing List (single page) --}}
 <div class="page page-break">
-    {!! $header('Packing List', false) !!}
-    <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
-        <tr><td><span class="field-label">Shipper</span> <br> {{ $shipperLine }}</td></tr>
-        <tr><td><span class="field-label">Consignee</span> <br>{{ $consigneeLine }}</td></tr>
+    <table class="header-table" style="table-layout:fixed;">
+        <tr>
+            <td style="width:62%;">
+                <div class="doc-title">Packing List</div>
+                <div class="doc-subtitle">{{ $titleLine }}</div>
+                <div class="party-cell">
+                    <span class="party-heading">Shipper</span>
+                    <div class="party-block">{{ $shipperLine }}</div>
+                </div>
+            </td>
+            <td class="header-right" style="width:38%;">
+                <table align="right" style="width:180px; border-collapse:collapse;">
+                    <tr>
+                        <td style="text-align:left; vertical-align:top;">
+                            <div class="brand-logo">
+                                {!! \App\Support\LogoHelper::imgTag('180px') !!}
+                            </div>
+                            <div class="party-cell">
+                                <span class="party-heading">Consignee</span>
+                                <div class="party-block">{{ $consigneeLine }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
     </table>
-   
+    <br>
     <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
         <tr><td class="totals-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
-        <tr><td class="totals-label">Contact</td><td>{{ $consigneeContact }}, {{ $consigneeContactEmail }}, {{ $consigneeContactPhone }}</td></tr>
+        <tr><td class="totals-label">Contact</td><td>{{ $consigneeContactLine }}</td></tr>
     </table>
     <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
     <table class="data-table">

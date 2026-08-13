@@ -16,7 +16,9 @@
 
     <!-- Scripts -->
     <!-- Favicon icon -->
-    <link rel="icon" href="{{asset('files/assets/images/favicon.ico')}}" type="image/x-icon">
+    <link rel="icon" type="image/png" href="{{ asset('files/assets/images/favicon.png') }}?v=3">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('files/assets/images/favicon.png') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ asset('files/assets/images/favicon.png') }}?v=3">
     <!-- Google font-->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,800" rel="stylesheet">
     <!-- Required Fremwork -->
@@ -87,6 +89,26 @@
         .app-breadcrumb-current {
             color: #1f2937;
             font-weight: 700;
+        }
+
+        .header-navbar .navbar-wrapper .navbar-logo {
+            width: 240px;
+            padding-right: 42px;
+        }
+
+        .header-navbar .navbar-wrapper .navbar-logo .navbar-logo-link {
+            display: inline-flex !important;
+            align-items: center;
+            max-width: 160px;
+        }
+
+        .header-navbar .navbar-wrapper .navbar-logo .navbar-logo-link img,
+        .header-navbar .navbar-wrapper .navbar-logo img.marinecaddie-logo {
+            display: block !important;
+            width: 150px !important;
+            max-width: 150px !important;
+            height: 36px !important;
+            object-fit: contain;
         }
     </style>
     @include('partials.stock-status-badge-styles')

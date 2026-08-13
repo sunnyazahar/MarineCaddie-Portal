@@ -935,10 +935,49 @@
             font-weight: 500;
             padding: 0;
             max-width: 100%;
-            width: auto;
+            width: 100%;
             height: auto;
             cursor: pointer;
             appearance: auto;
+        }
+
+        #doc-panel-docs .select2-container {
+            display: block;
+            margin-top: 4px;
+            width: 100% !important;
+        }
+
+        #doc-panel-docs .select2-container .select2-selection--single {
+            border: 0 !important;
+            background: transparent !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            outline: none;
+        }
+
+        #doc-panel-docs .select2-container .select2-selection--single .select2-selection__rendered {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 18px;
+            padding: 0 16px 0 0;
+        }
+
+        #doc-panel-docs .select2-container .select2-selection--single .select2-selection__arrow {
+            height: 18px;
+            width: 14px;
+            right: 0;
+            top: 0;
+        }
+
+        .select2-dropdown.doc-type-select2-dropdown {
+            z-index: 20060;
+            min-width: 220px;
+            font-size: 11px;
+        }
+
+        .select2-dropdown.doc-type-select2-dropdown .select2-results__options {
+            max-height: 280px;
         }
 
         #doc-panel-docs .doc-type-label {
@@ -2354,7 +2393,7 @@
                                                 <div class="header-meta-group">
                                                     <div class="meta-item">
                                                         <span class="meta-label">Shipment no</span>
-                                                        <span class="meta-value">{{ $shipment->shipment_number }}</span>
+                                                        <span class="meta-value" style="color:#1887c8; font-size: 14px; font-weight: 400 !important;"><b>{{ $shipment->shipment_number }}</b></span>
                                                     </div>
                                                     <div class="meta-item">
                                                         <span class="meta-label">Creation date</span>
@@ -3804,7 +3843,25 @@
         }
 
         function buildMailAttachmentSources(coreSources) {
-            return (coreSources || []).concat(getCheckedUploadedDocumentAttachments());
+            return mergeCheckedDocumentAttachments(coreSources || []);
+        }
+
+        function mergeCheckedDocumentAttachments(attachments) {
+            var list = (attachments || []).slice();
+
+            getCheckedUploadedDocumentAttachments().forEach(function(item) {
+                var alreadyIncluded = list.some(function(existing) {
+                    return existing && existing.document_id && String(existing.document_id) === String(item.document_id);
+                });
+
+                if (!alreadyIncluded) {
+                    list.push($.extend({
+                        key: 'document-' + item.document_id
+                    }, item));
+                }
+            });
+
+            return list;
         }
 
         function buildMailEmlUrl(baseUrl, documentIds) {
@@ -4146,13 +4203,13 @@
         }
 
         function openComposeMailModal(response, mailType) {
-            var attachments = (response.attachments || []).map(function(item, index) {
+            var attachments = mergeCheckedDocumentAttachments((response.attachments || []).map(function(item, index) {
                 var copy = $.extend({}, item);
                 if (!copy.key) {
                     copy.key = copy.document_id ? ('document-' + copy.document_id) : ('attach-' + index);
                 }
                 return copy;
-            });
+            }));
 
             pendingManifestMail = {
                 type: mailType || 'manifest',
@@ -6261,7 +6318,22 @@
         var shipmentDocDropzone = $('#shipment-doc-dropzone');
         var shipmentDocFileInput = $('#shipment-doc-file-input');
         var shipmentDocList = $('#shipment-documents-list');
-        var shipmentDocumentTypeOptions = @json($shipmentDocumentTypeOptions);
+        var shipmentDocumentTypeOptions = @json($shipmentDocumentTypeOptions ?? \App\Models\ShipmentDocument::fileTypeOptions());
+
+        function initShipmentDocTypeSelect($select) {
+            if (!$select || !$select.length) {
+                return;
+            }
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+            $select.select2({
+                width: '100%',
+                dropdownParent: $(document.body),
+                minimumResultsForSearch: 0,
+                dropdownCssClass: 'doc-type-select2-dropdown'
+            });
+        }
 
         function updateShipmentDocumentTabCount() {
             var count = $('#shipment-docs-scroll .doc-item').length;
@@ -6321,8 +6393,13 @@
                     '</div>' +
                 '</div>';
             shipmentDocList.append(docHtml);
+            initShipmentDocTypeSelect(shipmentDocList.find('.shipment-uploaded-doc[data-id="' + doc.id + '"] .shipment-doc-type-select'));
             updateShipmentDocumentTabCount();
         }
+
+        $('.shipment-doc-type-select').each(function() {
+            initShipmentDocTypeSelect($(this));
+        });
 
         $(document).on('change', '.shipment-doc-type-select', function() {
             var docId = $(this).data('doc-id');
@@ -6444,7 +6521,12 @@
                 type: 'DELETE',
                 data: { _token: '{{ csrf_token() }}' },
                 success: function() {
-                    shipmentDocList.find('.shipment-uploaded-doc[data-id="' + docId + '"]').remove();
+                    var $row = shipmentDocList.find('.shipment-uploaded-doc[data-id="' + docId + '"]');
+                    var $select = $row.find('.shipment-doc-type-select');
+                    if ($select.hasClass('select2-hidden-accessible')) {
+                        $select.select2('destroy');
+                    }
+                    $row.remove();
                     updateShipmentDocumentTabCount();
                 },
                 error: function() {

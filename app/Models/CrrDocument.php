@@ -33,18 +33,46 @@ class CrrDocument extends Model
 
     public static function fileTypeOptions(): array
     {
-        return [
-            'CIPL',
-            'Customs Doc',
-            'DG docs',
-            'Fumigation certificate',
-            'Label',
-            'MSDS',
-            'Other',
-            'Picture',
-            'PO',
-            'PU Label',
-            'Unspecified',
-        ];
+        $options = array_unique(array_merge(
+            ShipmentDocument::fileTypeOptions(),
+            [
+                'CIPL',
+                'Customs Doc',
+                'Fumigation certificate',
+                'Label',
+                'Other',
+                'PU Label',
+            ]
+        ));
+
+        $options = array_values(array_filter(
+            $options,
+            static fn ($type) => $type !== 'Unspecified'
+        ));
+
+        natcasesort($options);
+        $options = array_values($options);
+        $options[] = 'Unspecified';
+
+        return $options;
+    }
+
+    public static function fileTypeOptionsWithCustom(): array
+    {
+        $defaults = self::fileTypeOptions();
+
+        $custom = self::query()
+            ->select('file_type')
+            ->distinct()
+            ->whereNotNull('file_type')
+            ->pluck('file_type')
+            ->filter(function ($type) use ($defaults) {
+                return $type !== '' && ! in_array($type, $defaults, true);
+            })
+            ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
+
+        return array_merge($defaults, $custom);
     }
 }

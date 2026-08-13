@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Hub;
 use App\Models\Office;
 use App\Models\OtherCompany;
+use App\Models\Port;
 use App\Models\Shipment;
 use App\Models\Supplier;
 use Carbon\Carbon;
@@ -160,12 +161,12 @@ class ShipmentManifestPdfBuilder
             'consigneeContact' => $shipment->consignee_att ?? '—',
             'consigneeContactEmail' => $shipment->consignee_email ?? '—',
             'consigneeContactPhone' => $consigneeParty['phone'] ?: '—',
-            'departurePort' => $this->formatPortLabel(
-                $shipment->departure_port_code,
-                null,
-                $departureParty,
-                null
-            ),
+            'consigneeContactLine' => $this->joinParts([
+                $shipment->consignee_att,
+                $shipment->consignee_email,
+                $consigneeParty['phone'] ?? null,
+            ]) ?: '—',
+            'departurePort' => $this->formatPortCodeCityCountry($shipment->departure_port_code),
             'destinationPort' => $this->formatPortLabel(
                 $shipment->consignee_port_code,
                 $shipment->consignee_city,
@@ -210,28 +211,41 @@ class ShipmentManifestPdfBuilder
                     ? number_format((float) $shipment->repacked_weight, 2)
                     : '—',
             ],
-            'shipperLine' => $this->formatContactLine($departureParty),
-            'consigneeLine' => $this->formatConsigneeLine(
-                $consigneeParty['name'] ?: ($shipment->consignee_att ?? null),
-                $this->formatShipmentAddress($shipment, true)
+            'shipperLine' => $this->formatPartyBlock($departureParty),
+            'consigneeLine' => $this->formatPartyDetails(
+                $consigneeParty['name'] ?: ($shipment->consignee_att ?? ''),
+                $this->formatShipmentAddress($shipment),
+                $shipment->consignee_email ?: ($consigneeParty['email'] ?? ''),
+                $consigneeParty['phone'] ?? ''
             ),
         ];
     }
 
-    private function formatConsigneeLine(?string $name, string $addressLine): string
+    private function formatPartyBlock(array $party): string
+    {
+        return $this->formatPartyDetails(
+            $party['name'] ?? '',
+            $party['address_line'] ?? '',
+            $party['email'] ?? '',
+            $party['phone'] ?? ''
+        );
+    }
+
+    private function formatPartyDetails(?string $name, ?string $address, ?string $email, ?string $phone): string
     {
         $name = trim((string) $name);
-        $addressLine = trim($addressLine);
+        $address = trim((string) $address);
+        $email = trim((string) $email);
+        $phone = trim((string) $phone);
 
-        if ($name !== '' && $name !== '—' && $addressLine !== '' && $addressLine !== '—') {
-            return $name . ', ' . $addressLine;
-        }
+        $lines = array_values(array_filter([
+            ($name !== '' && $name !== '—') ? $name : null,
+            ($address !== '' && $address !== '—') ? $address : null,
+            ($email !== '' && $email !== '—') ? 'Email: ' . $email : null,
+            ($phone !== '' && $phone !== '—') ? 'Phone: ' . $phone : null,
+        ]));
 
-        if ($name !== '' && $name !== '—') {
-            return $name;
-        }
-
-        return $addressLine !== '' ? $addressLine : '—';
+        return $lines !== [] ? implode("\n", $lines) : '—';
     }
 
     private function resolvePartyContact(?string $composite, array $partyNames): array
@@ -261,7 +275,7 @@ class ShipmentManifestPdfBuilder
 
         switch ($type) {
             case 'hub':
-                $hub = Hub::find($id);
+                $hub = Hub::with('contacts')->find($id);
                 if ($hub) {
                     $result['name'] = $hub->hub_name;
                     $result['address_line'] = $this->joinParts([
@@ -270,14 +284,13 @@ class ShipmentManifestPdfBuilder
                         $hub->zip_code,
                         $hub->country,
                     ]);
-                    $result['phone'] = $hub->phone_number;
-                    $result['email'] = $hub->email;
-                    $result['invoice_email'] = $hub->emails_for_invoicing ?: $hub->email;
+                    $result = $this->applyContactDetails($result, $hub, $hub->phone_number, $hub->email);
+                    $result['invoice_email'] = $hub->emails_for_invoicing ?: $result['email'];
                     $result['port_code'] = $hub->port_code;
                 }
                 break;
             case 'agent':
-                $agent = Agent::with('country')->find($id);
+                $agent = Agent::with(['country', 'contacts'])->find($id);
                 if ($agent) {
                     $result['name'] = $agent->agent_name;
                     $result['address_line'] = $this->joinParts([
@@ -286,13 +299,12 @@ class ShipmentManifestPdfBuilder
                         $agent->zip_code,
                         $agent->country?->name,
                     ]);
-                    $result['phone'] = $agent->phone;
-                    $result['email'] = $agent->email;
+                    $result = $this->applyContactDetails($result, $agent, $agent->phone, $agent->email);
                     $result['port_code'] = $agent->port_code;
                 }
                 break;
             case 'office':
-                $office = Office::with('country')->find($id);
+                $office = Office::with(['country', 'contacts'])->find($id);
                 if ($office) {
                     $result['name'] = $office->office_name;
                     $result['address_line'] = $this->joinParts([
@@ -301,21 +313,19 @@ class ShipmentManifestPdfBuilder
                         $office->zip_code,
                         $office->country?->name,
                     ]);
-                    $result['phone'] = $office->phone_number;
-                    $result['email'] = $office->email;
+                    $result = $this->applyContactDetails($result, $office, $office->phone_number, $office->email);
                     $result['port_code'] = $office->port_code ?? '';
                 }
                 break;
             case 'customer':
-                $customer = Customer::find($id);
+                $customer = Customer::with('contacts')->find($id);
                 if ($customer) {
                     $result['name'] = $customer->customer_name;
-                    $result['phone'] = $customer->phone;
-                    $result['email'] = $customer->email;
+                    $result = $this->applyContactDetails($result, $customer, $customer->phone, $customer->email);
                 }
                 break;
             case 'supplier':
-                $supplier = Supplier::find($id);
+                $supplier = Supplier::with('contacts')->find($id);
                 if ($supplier) {
                     $result['name'] = $supplier->supplier_name;
                     $result['address_line'] = $this->joinParts([
@@ -323,12 +333,11 @@ class ShipmentManifestPdfBuilder
                         $supplier->city,
                         $supplier->zip_code,
                     ]);
-                    $result['phone'] = $supplier->phone_number;
-                    $result['email'] = $supplier->email;
+                    $result = $this->applyContactDetails($result, $supplier, $supplier->phone_number, $supplier->email);
                 }
                 break;
             case 'other_company':
-                $company = OtherCompany::with('country')->find($id);
+                $company = OtherCompany::with(['country', 'contacts'])->find($id);
                 if ($company) {
                     $result['name'] = $company->company_name;
                     $result['address_line'] = $this->joinParts([
@@ -337,11 +346,47 @@ class ShipmentManifestPdfBuilder
                         $company->zip_code,
                         $company->country?->name,
                     ]);
-                    $result['phone'] = $company->phone_number;
-                    $result['email'] = $company->email;
+                    $result = $this->applyContactDetails($result, $company, $company->phone_number, $company->email);
                     $result['port_code'] = $company->port_code;
                 }
                 break;
+        }
+
+        return $result;
+    }
+
+    private function applyContactDetails(array $result, object $model, ?string $phone, ?string $email): array
+    {
+        $result['phone'] = trim((string) $phone);
+        $result['email'] = trim((string) $email);
+
+        $needsPhone = $result['phone'] === '';
+        $needsEmail = $result['email'] === '' || ! filter_var($result['email'], FILTER_VALIDATE_EMAIL);
+
+        if (! ($needsPhone || $needsEmail) || ! method_exists($model, 'contacts')) {
+            return $result;
+        }
+
+        $contacts = $model->relationLoaded('contacts')
+            ? $model->contacts
+            : $model->contacts()->get();
+
+        $main = $contacts->firstWhere('is_main_contact', true)
+            ?? $contacts->first();
+
+        if (! $main) {
+            return $result;
+        }
+
+        if ($needsPhone) {
+            $result['phone'] = trim((string) ($main->phone_number ?? ''));
+        }
+
+        if ($needsEmail) {
+            $contactEmail = trim((string) ($main->email ?? ''));
+            if ($contactEmail !== '') {
+                $result['email'] = $contactEmail;
+            }
         }
 
         return $result;
@@ -382,6 +427,45 @@ class ShipmentManifestPdfBuilder
         ]);
 
         return $this->joinParts($parts, ' / ') ?: '—';
+    }
+
+    private function formatPortCodeCityCountry(?string $portCode): string
+    {
+        $code = trim((string) $portCode);
+        $city = '';
+        $country = '';
+
+        if ($code !== '') {
+            $port = Port::query()
+                ->with('country')
+                ->where('iata_code', $code)
+                ->first();
+
+            if ($port) {
+                $code = $port->iata_code ?: $code;
+                $city = trim((string) ($port->city ?? ''));
+                $country = trim((string) ($port->country_name ?: $port->country?->name ?: ''));
+            } else {
+                $hub = Hub::query()->where('port_code', $code)->first();
+
+                if ($hub) {
+                    $city = trim((string) ($hub->city ?? ''));
+                    $country = trim((string) ($hub->country ?? ''));
+                } else {
+                    $agent = Agent::query()
+                        ->with('country')
+                        ->where('port_code', $code)
+                        ->first();
+
+                    if ($agent) {
+                        $city = trim((string) ($agent->city ?? ''));
+                        $country = trim((string) ($agent->country?->name ?? ''));
+                    }
+                }
+            }
+        }
+
+        return $this->joinParts([$code ?: null, $city ?: null, $country ?: null], ' | ') ?: '—';
     }
 
     private function formatDimensions($length, $width, $height): string

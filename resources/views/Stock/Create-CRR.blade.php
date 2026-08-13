@@ -811,8 +811,8 @@
                                                         <label class="crr-label">Delivery irregularities</label>
                                                         <select class="form-control select2-irregularities"
                                                             name="delivery_irregularities[]" >
-                                                            <option value="Yes">Yes</option>
                                                             <option value="No">No</option>
+                                                            <option value="Yes">Yes</option>
                                                         </select>
                                                     </div>
                                                     <div class="crr-field-group">

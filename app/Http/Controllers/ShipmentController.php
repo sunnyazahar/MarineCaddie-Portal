@@ -1538,7 +1538,7 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function preparePreAlertMail(Request $request, $id, PreAlertMailService $preAlertMailService)
+    public function preparePreAlertMail(Request $request, $id, PreAlertMailService $preAlertMailService, CombinedPoPdfService $combinedPoPdfService)
     {
         $shipment = Shipment::with(['manifests', 'documents', 'crrs'])->findOrFail($id);
         $this->normalizeManifestGenerationRequest($request);
@@ -1640,7 +1640,7 @@ class ShipmentController extends Controller
         return response()->json([
             'success' => true,
             'preview' => $preview,
-            'attachments' => $this->preAlertMailAttachmentSources($shipment),
+            'attachments' => $this->preAlertMailAttachmentSources($shipment, $combinedPoPdfService),
             'eml_url' => route('shipments.pre-alert-mail', $shipment->id),
             'eml_filename' => 'pre-alert-mail-' . $shipment->shipment_number . '.eml',
             'open_url' => route('shipments.pre-alert-mail.open', $shipment->id),
@@ -2424,13 +2424,13 @@ class ShipmentController extends Controller
             ];
         }
 
-        return $sources;
+        return array_merge($sources, $this->checkedShipmentDocumentAttachmentSources($shipment));
     }
 
     /**
      * @return array<int, array{url: string, filename: string}>
      */
-    private function preAlertMailAttachmentSources(Shipment $shipment): array
+    private function preAlertMailAttachmentSources(Shipment $shipment, CombinedPoPdfService $combinedPoPdfService): array
     {
         $sources = [];
         $latestPreAlert = $shipment->preAlerts->sortByDesc('version')->first();
@@ -2440,6 +2440,37 @@ class ShipmentController extends Controller
                 'key' => 'pre_alert',
                 'url' => route('shipments.pre-alerts.show', [$shipment->id, $latestPreAlert->id]),
                 'filename' => 'pre-alert-' . $shipment->shipment_number . '-' . $latestPreAlert->version . '.pdf',
+            ];
+        }
+
+        if ($combinedPoPdfService->documentsForShipment($shipment)->isNotEmpty()) {
+            $sources[] = [
+                'key' => 'combined_po',
+                'url' => route('shipments.combined-po-documents', $shipment->id),
+                'filename' => 'combined-po-documents-' . $shipment->shipment_number . '.pdf',
+            ];
+        }
+
+        return array_merge($sources, $this->checkedShipmentDocumentAttachmentSources($shipment));
+    }
+
+    /**
+     * @return array<int, array{key: string, url: string, filename: string, document_id: int}>
+     */
+    private function checkedShipmentDocumentAttachmentSources(Shipment $shipment): array
+    {
+        $sources = [];
+
+        foreach ($shipment->documents as $document) {
+            if (! $document->is_internal) {
+                continue;
+            }
+
+            $sources[] = [
+                'key' => 'document-' . $document->id,
+                'url' => $document->fileUrl(),
+                'filename' => $document->file_name,
+                'document_id' => $document->id,
             ];
         }
 

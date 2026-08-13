@@ -61,6 +61,10 @@ class ShipmentDocument extends Model
             'Scanned',
             'Shipment certificates',
             'Transport document',
+            'Ship Registry certificate',
+            'Loadline certificate',
+            'Fumigation certificate',
+            'Others',
             'Unspecified',
         ];
     }

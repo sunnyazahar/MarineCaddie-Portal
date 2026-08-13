@@ -19,6 +19,7 @@ class PreAlertMailService
     public function __construct(
         private ShipmentManifestPdfBuilder $manifestPdfBuilder,
         private ShipmentPreAlertPdfBuilder $preAlertPdfBuilder,
+        private CombinedPoPdfService $combinedPoPdfService,
         private EmlMessageBuilder $emlMessageBuilder,
     ) {}
 
@@ -519,6 +520,17 @@ class PreAlertMailService
                     'content' => (string) file_get_contents(\App\Support\PrivateDisk::path($latestPreAlert->file_path)),
                     'mime' => 'application/pdf',
                 ];
+            }
+        }
+
+        if (! isset($exclude['combined_po'])) {
+            $combinedPoAttachment = $this->combinedPoPdfService->buildAttachmentForShipment($shipment);
+            if ($combinedPoAttachment !== null) {
+                $attachments[] = $combinedPoAttachment;
+            } else {
+                foreach ($this->combinedPoPdfService->individualAttachmentsForShipment($shipment) as $poAttachment) {
+                    $attachments[] = $poAttachment;
+                }
             }
         }
 
