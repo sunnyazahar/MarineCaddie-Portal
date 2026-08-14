@@ -52,13 +52,16 @@ class OtpController extends Controller
             $user->refresh();
         }
 
-        return view('auth.otp', [
-            'maskedEmail' => $this->maskEmail((string) $user->email),
-            'resendAvailableIn' => $this->resendAvailableIn($user),
-            'localOtp' => $this->localDebugOtp($request),
-            'otpMailFailed' => (bool) $request->session()->get('login_otp_mail_failed'),
-            'otpMailError' => $request->session()->get('login_otp_mail_error'),
-        ]);
+        return response()
+            ->view('auth.otp', [
+                'maskedEmail' => $this->maskEmail((string) $user->email),
+                'resendAvailableIn' => $this->resendAvailableIn($user),
+                'localOtp' => $this->localDebugOtp($request),
+                'otpMailFailed' => (bool) $request->session()->get('login_otp_mail_failed'),
+                'otpMailError' => $request->session()->get('login_otp_mail_error'),
+            ])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function verify(Request $request, LoginActivityService $loginActivityService)

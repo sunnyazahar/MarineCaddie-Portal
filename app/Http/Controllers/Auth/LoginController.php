@@ -19,7 +19,7 @@ class LoginController extends Controller
 
     public function __construct()
     {
-        $this->middleware('guest')->except('logout');
+        $this->middleware('guest')->except(['logout', 'csrfToken']);
         $this->middleware('auth')->only('logout');
     }
 
@@ -57,9 +57,24 @@ class LoginController extends Controller
             'timezone' => $request->input('browser_timezone'),
         ]);
 
-        app(OtpController::class)->issueOtp($request);
+        $request->session()->forget('otp_verified');
 
         return redirect()->route('otp.show');
+    }
+
+    public function csrfToken()
+    {
+        return response()->json([
+            'token' => csrf_token(),
+        ]);
+    }
+
+    public function showLoginForm()
+    {
+        return response()
+            ->view('auth.login')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     protected function loggedOut(Request $request)

@@ -299,6 +299,9 @@
             </div>
 
             <div class="login-card">
+                @if (session('status'))
+                    <div class="invalid-feedback" style="margin-bottom: 14px; color: #0f766e;">{{ session('status') }}</div>
+                @endif
                 <form id="login-form" method="POST" action="{{ route('login') }}">
                     @csrf
                     <input type="hidden" id="browser-latitude" name="browser_latitude">
@@ -417,6 +420,37 @@
 
             locationButton.addEventListener('click', requestLocation);
             requestLocation();
+
+            var loginForm = document.getElementById('login-form');
+            var csrfRefreshing = false;
+            loginForm.addEventListener('submit', function(e) {
+                if (csrfRefreshing) {
+                    return;
+                }
+                e.preventDefault();
+                csrfRefreshing = true;
+                loginButton.disabled = true;
+                fetch(@json(url('/login/csrf')), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                }).then(function(response) {
+                    return response.ok ? response.json() : null;
+                }).then(function(data) {
+                    if (data && data.token) {
+                        var tokenInput = loginForm.querySelector('input[name="_token"]');
+                        if (tokenInput) {
+                            tokenInput.value = data.token;
+                        }
+                    }
+                }).catch(function() {
+                    // Continue with the existing token if refresh fails.
+                }).finally(function() {
+                    loginForm.submit();
+                });
+            });
         });
     </script>
 @endsection
