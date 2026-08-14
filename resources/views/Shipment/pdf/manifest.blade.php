@@ -95,7 +95,7 @@
         }
         .agent-box-table { width: 100%; border-collapse: collapse; }
         .agent-box-table td { padding: 2px 0; vertical-align: top; font-size: 11px; }
-        .agent-box-label { width: 18%; font-weight: bold; }
+        .agent-box-label { width: 18%; font-weight: normal; }
         .comments-title { font-size: 12px; font-weight: bold; color: #000000; margin: 10px 0 4px; }
         .comments-body { white-space: pre-wrap; font-size: 11px; line-height: 1.45; }
     </style>
@@ -218,7 +218,7 @@
     <div class="agent-box">
         <table class="agent-box-table">
             <tr>
-                <td class="agent-box-label">C/O  {{ $consigneeName }} <br> {{ $consigneeAddress }} <br> Email: {{ $consigneeEmail }} <br> Phone: {{ $consigneePhone }}
+                <td class="agent-box-label"><strong>C/O {{ $consigneeName }}</strong> <br> {{ $consigneeAddress }} <br> Email: {{ $consigneeEmail }} <br> Phone: {{ $consigneePhone }}
                 </td>
             </tr>
         </table>
