@@ -200,7 +200,7 @@ class ManifestMailService
             $destination = $manifestData['destinationPort'] ?? '—';
         }
 
-        return sprintf(
+        $subject = sprintf(
             'Manifest for Shipment Ref. %s / %s / %s / From %s / to %s',
             $shipment->shipment_number,
             $vessel,
@@ -208,6 +208,12 @@ class ManifestMailService
             $departure,
             $destination
         );
+
+        if (! empty($manifestData['manifestRevisionLabel'])) {
+            $subject = $manifestData['manifestRevisionLabel'] . ' / ' . $subject;
+        }
+
+        return $subject;
     }
 
     private function buildBody(
