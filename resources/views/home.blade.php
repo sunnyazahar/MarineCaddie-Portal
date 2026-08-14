@@ -35,7 +35,7 @@
                                     <div class="dashboard-heading">
                                         <div>
                                             <h3>Shipment Dashboard</h3>
-                                            <p>{{ $dashboard['isScoped'] ? 'Showing operations assigned to you.' : 'Global operational overview.' }}</p>
+                                            <p>Global operational overview.</p>
                                         </div>
                                         <form method="GET" action="{{ route('dashboard') }}" class="period-selector">
                                             <select name="period" class="form-control" onchange="this.form.submit()" aria-label="Dashboard period">
@@ -45,12 +45,6 @@
                                             </select>
                                         </form>
                                     </div>
-
-                                    @if(!$dashboard['hasAssignments'])
-                                        <div class="scope-alert">
-                                            No offices, hubs, agents, or suppliers are assigned to your account. Dashboard data is hidden until an administrator adds an assignment.
-                                        </div>
-                                    @endif
 
                                     @php
                                         $kpiCards = [

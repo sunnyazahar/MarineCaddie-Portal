@@ -188,20 +188,38 @@ class OperationsDashboardTest extends TestCase
         $this->assertCount(1, $dashboard['overdueShipments']);
     }
 
-    public function test_non_admin_without_assignments_fails_closed(): void
+    public function test_all_roles_see_the_same_global_dashboard_data(): void
     {
         $user = User::factory()->create(['role' => 'Operations', 'is_active' => true]);
-        $this->createCrr('STK-HIDDEN', ['status' => Crr::STATUS_ACTIVE]);
-        Shipment::create(['shipment_number' => 'SHIP-HIDDEN', 'status' => 'In transit']);
+        $this->createCrr('STK-GLOBAL', ['status' => Crr::STATUS_ACTIVE]);
+        Shipment::create(['shipment_number' => 'SHIP-GLOBAL', 'status' => 'In transit']);
 
         $dashboard = app(OperationsDashboardService::class)->build($user);
 
-        $this->assertFalse($dashboard['hasAssignments']);
-        $this->assertSame(0, $dashboard['kpis']['activeStocks']);
-        $this->assertSame(0, $dashboard['kpis']['activeShipments']);
+        $this->assertFalse($dashboard['isScoped']);
+        $this->assertTrue($dashboard['hasAssignments']);
+        $this->assertSame(1, $dashboard['kpis']['activeStocks']);
+        $this->assertSame(1, $dashboard['kpis']['activeShipments']);
     }
 
-    public function test_operations_agent_and_supplier_roles_only_receive_assigned_records(): void
+    public function test_operations_user_sees_every_shipment_not_only_their_own(): void
+    {
+        $user = User::factory()->create(['role' => 'Operations', 'is_active' => true]);
+        Shipment::create([
+            'shipment_number' => 'SHIP-OWNED',
+            'status' => 'In process',
+            'created_by' => $user->id,
+        ]);
+        Shipment::create(['shipment_number' => 'SHIP-OTHER', 'status' => 'In process']);
+
+        $service = app(OperationsDashboardService::class);
+        $dashboard = $service->build($user);
+
+        $this->assertEqualsCanonicalizing(['SHIP-OWNED', 'SHIP-OTHER'], $service->visibleShipments($user)->pluck('shipment_number')->all());
+        $this->assertSame(2, $dashboard['kpis']['activeShipments']);
+    }
+
+    public function test_operations_agent_and_supplier_roles_see_all_records(): void
     {
         $hub = Hub::withoutEvents(fn () => Hub::create(['hub_name' => 'Assigned Hub', 'code' => 'HUB-A']));
         $otherHub = Hub::withoutEvents(fn () => Hub::create(['hub_name' => 'Other Hub', 'code' => 'HUB-B']));
@@ -210,39 +228,33 @@ class OperationsDashboardTest extends TestCase
 
         $hubStock = $this->createCrr('STK-HUB', ['hub_agent' => $hub->code, 'status' => Crr::STATUS_ACTIVE]);
         $this->createCrr('STK-OTHER', ['hub_agent' => $otherHub->code, 'status' => Crr::STATUS_ACTIVE]);
-        $agentStock = $this->createCrr('STK-AGENT', ['hub_agent' => $agent->code, 'status' => Crr::STATUS_ACTIVE]);
-        $supplierStock = $this->createCrr('STK-SUPPLIER', ['supplier' => $supplier->supplier_name, 'status' => Crr::STATUS_ACTIVE]);
+        $this->createCrr('STK-AGENT', ['hub_agent' => $agent->code, 'status' => Crr::STATUS_ACTIVE]);
+        $this->createCrr('STK-SUPPLIER', ['supplier' => $supplier->supplier_name, 'status' => Crr::STATUS_ACTIVE]);
 
         $hubShipment = Shipment::create(['shipment_number' => 'SHIP-HUB', 'status' => 'In transit']);
         $hubShipment->crrs()->attach($hubStock);
         Shipment::create(['shipment_number' => 'SHIP-OTHER', 'status' => 'In transit']);
-        $agentShipment = Shipment::create([
+        Shipment::create([
             'shipment_number' => 'SHIP-AGENT',
             'status' => 'In transit',
             'departure' => 'agent:' . $agent->id,
         ]);
         $supplierShipment = Shipment::create(['shipment_number' => 'SHIP-SUPPLIER', 'status' => 'In transit']);
-        $supplierShipment->crrs()->attach($supplierStock);
+        $supplierShipment->crrs()->attach($this->createCrr('STK-SUPPLIER-LINK', ['supplier' => $supplier->supplier_name, 'status' => Crr::STATUS_ACTIVE]));
 
         $operations = User::factory()->create(['role' => 'Operations']);
-        $operations->hubs()->attach($hub);
         $accounts = User::factory()->create(['role' => 'Accounts']);
-        $accounts->hubs()->attach($hub);
         $agentUser = User::factory()->create(['role' => 'Agents']);
-        $agentUser->agents()->attach($agent);
         $supplierUser = User::factory()->create(['role' => 'Supplier']);
-        $supplierUser->suppliers()->attach($supplier);
 
         $service = app(OperationsDashboardService::class);
+        $expectedStocks = ['STK-HUB', 'STK-OTHER', 'STK-AGENT', 'STK-SUPPLIER', 'STK-SUPPLIER-LINK'];
+        $expectedShipments = ['SHIP-HUB', 'SHIP-OTHER', 'SHIP-AGENT', 'SHIP-SUPPLIER'];
 
-        $this->assertEquals(['STK-HUB'], $service->visibleCrrs($operations)->pluck('stock_number')->all());
-        $this->assertEquals(['SHIP-HUB'], $service->visibleShipments($operations)->pluck('shipment_number')->all());
-        $this->assertEquals(['STK-HUB'], $service->visibleCrrs($accounts)->pluck('stock_number')->all());
-        $this->assertEquals(['SHIP-HUB'], $service->visibleShipments($accounts)->pluck('shipment_number')->all());
-        $this->assertEquals(['STK-AGENT'], $service->visibleCrrs($agentUser)->pluck('stock_number')->all());
-        $this->assertEquals(['SHIP-AGENT'], $service->visibleShipments($agentUser)->pluck('shipment_number')->all());
-        $this->assertEquals(['STK-SUPPLIER'], $service->visibleCrrs($supplierUser)->pluck('stock_number')->all());
-        $this->assertEquals(['SHIP-SUPPLIER'], $service->visibleShipments($supplierUser)->pluck('shipment_number')->all());
+        foreach ([$operations, $accounts, $agentUser, $supplierUser] as $user) {
+            $this->assertEqualsCanonicalizing($expectedStocks, $service->visibleCrrs($user)->pluck('stock_number')->all());
+            $this->assertEqualsCanonicalizing($expectedShipments, $service->visibleShipments($user)->pluck('shipment_number')->all());
+        }
     }
 
     public function test_dashboard_renders_live_data_and_action_links(): void

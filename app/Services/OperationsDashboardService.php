@@ -61,8 +61,8 @@ class OperationsDashboardService
 
         return [
             'period' => $period,
-            'isScoped' => ! $user->isAdmin(),
-            'hasAssignments' => $user->isAdmin() || $this->hasAssignments($user),
+            'isScoped' => false,
+            'hasAssignments' => true,
             'kpis' => [
                 'activeStocks' => (clone $crrs)->whereIn('status', $activeCrrStatuses)->count(),
                 'unacceptedStocks' => (clone $crrs)
@@ -133,137 +133,13 @@ class OperationsDashboardService
         ];
     }
 
-    public function visibleCrrs(User $user): Builder
+    public function visibleCrrs(?User $user = null): Builder
     {
-        $query = Crr::query();
-
-        return $user->isAdmin() ? $query : $this->applyCrrScope($query, $user);
+        return Crr::query();
     }
 
-    public function visibleShipments(User $user): Builder
+    public function visibleShipments(?User $user = null): Builder
     {
-        $query = Shipment::query();
-
-        if ($user->isAdmin()) {
-            return $query;
-        }
-
-        if (in_array($user->role, ['Operations', 'Accounts'], true)) {
-            $officeIds = $user->offices()->pluck('offices.id');
-            $hubValues = $this->hubValues($user);
-
-            if ($officeIds->isEmpty() && $hubValues->isEmpty()) {
-                return $query->whereRaw('1 = 0');
-            }
-
-            return $query->where(function ($scope) use ($officeIds, $hubValues) {
-                if ($officeIds->isNotEmpty()) {
-                    $scope->whereHas('accountManager', fn ($manager) => $manager->whereIn('office_id', $officeIds));
-                }
-                if ($hubValues->isNotEmpty()) {
-                    $method = $officeIds->isNotEmpty() ? 'orWhereHas' : 'whereHas';
-                    $scope->{$method}('crrs', fn ($crr) => $crr->whereIn('hub_agent', $hubValues));
-                }
-            });
-        }
-
-        if ($user->role === 'Agents') {
-            $agentIds = $user->agents()->pluck('agents.id');
-            $agentValues = $this->agentValues($user);
-
-            if ($agentIds->isEmpty()) {
-                return $query->whereRaw('1 = 0');
-            }
-
-            $partyValues = $agentIds->map(fn ($id) => 'agent:' . $id);
-
-            return $query->where(function ($scope) use ($partyValues, $agentValues) {
-                $scope->whereIn('departure', $partyValues)
-                    ->orWhereIn('consignee', $partyValues)
-                    ->orWhereHas('crrs', fn ($crr) => $crr->whereIn('hub_agent', $agentValues));
-            });
-        }
-
-        if ($user->role === 'Supplier') {
-            $supplierNames = $user->suppliers()->pluck('supplier_name');
-
-            return $supplierNames->isEmpty()
-                ? $query->whereRaw('1 = 0')
-                : $query->whereHas('crrs', fn ($crr) => $crr->whereIn('supplier', $supplierNames));
-        }
-
-        return $query->whereRaw('1 = 0');
-    }
-
-    private function applyCrrScope(Builder $query, User $user): Builder
-    {
-        if (in_array($user->role, ['Operations', 'Accounts'], true)) {
-            $officeIds = $user->offices()->pluck('offices.id');
-            $hubValues = $this->hubValues($user);
-
-            if ($officeIds->isEmpty() && $hubValues->isEmpty()) {
-                return $query->whereRaw('1 = 0');
-            }
-
-            return $query->where(function ($scope) use ($officeIds, $hubValues) {
-                if ($hubValues->isNotEmpty()) {
-                    $scope->whereIn('hub_agent', $hubValues);
-                }
-                if ($officeIds->isNotEmpty()) {
-                    $method = $hubValues->isNotEmpty() ? 'orWhereHas' : 'whereHas';
-                    $scope->{$method}(
-                        'customerVessel.customer.responsible.accountManager',
-                        fn ($manager) => $manager->whereIn('office_id', $officeIds)
-                    )->orWhereHas(
-                        'customerVessel.customer.responsible.accountingUser',
-                        fn ($accountingUser) => $accountingUser->whereIn('office_id', $officeIds)
-                    );
-                }
-            });
-        }
-
-        if ($user->role === 'Agents') {
-            $values = $this->agentValues($user);
-
-            return $values->isEmpty() ? $query->whereRaw('1 = 0') : $query->whereIn('hub_agent', $values);
-        }
-
-        if ($user->role === 'Supplier') {
-            $names = $user->suppliers()->pluck('supplier_name');
-
-            return $names->isEmpty() ? $query->whereRaw('1 = 0') : $query->whereIn('supplier', $names);
-        }
-
-        return $query->whereRaw('1 = 0');
-    }
-
-    private function hasAssignments(User $user): bool
-    {
-        return match ($user->role) {
-            'Operations', 'Accounts' => $user->offices()->exists() || $user->hubs()->exists(),
-            'Agents' => $user->agents()->exists(),
-            'Supplier' => $user->suppliers()->exists(),
-            default => false,
-        };
-    }
-
-    private function hubValues(User $user)
-    {
-        return $user->hubs()
-            ->get(['hubs.code', 'hubs.hub_name'])
-            ->flatMap(fn ($hub) => [$hub->code, $hub->hub_name])
-            ->filter()
-            ->unique()
-            ->values();
-    }
-
-    private function agentValues(User $user)
-    {
-        return $user->agents()
-            ->get(['agents.code', 'agents.agent_name'])
-            ->flatMap(fn ($agent) => [$agent->code, $agent->agent_name])
-            ->filter()
-            ->unique()
-            ->values();
+        return Shipment::query();
     }
 }
