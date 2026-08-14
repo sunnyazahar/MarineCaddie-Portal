@@ -39,6 +39,7 @@ class LoginOtpMail extends Mailable
             with: [
                 'otp' => $this->otp,
                 'expiresInMinutes' => $this->expiresInMinutes,
+                'logoPath' => public_path('files/assets/images/marinecaddie-logo.png'),
             ],
         );
     }

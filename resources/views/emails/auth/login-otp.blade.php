@@ -45,7 +45,19 @@
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;">
                     <tr>
                         <td align="center" style="padding:0 0 24px;">
-                            {!! \App\Support\LogoHelper::imgTag('200px', 'display:block; margin:0 auto;') !!}
+                            @php
+                                $logoSrc = '';
+                                if (! empty($logoPath) && is_file($logoPath) && isset($message)) {
+                                    $logoSrc = $message->embed($logoPath);
+                                } elseif (! empty($logoPath) && is_file($logoPath)) {
+                                    $logoSrc = rtrim((string) config('app.url'), '/') . '/files/assets/images/marinecaddie-logo.png';
+                                }
+                            @endphp
+                            @if ($logoSrc !== '')
+                                <img src="{{ $logoSrc }}" alt="MarineCaddie" width="200" height="auto" style="display:block; margin:0 auto; width:200px; max-width:200px; height:auto; border:0; outline:none; text-decoration:none;">
+                            @else
+                                <div style="color:#0f2d55; font-size:22px; font-weight:700;">MarineCaddie</div>
+                            @endif
                         </td>
                     </tr>
                     <tr>
