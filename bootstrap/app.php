@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'otp.verified' => \App\Http\Middleware\EnsureOtpIsVerified::class,
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'ops.admin.readonly' => \App\Http\Middleware\DenyOperationsAdministrationWrite::class,
         ]);
 
         $middleware->redirectTo(

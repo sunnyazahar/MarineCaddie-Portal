@@ -439,12 +439,14 @@
                                                     <button type="button" id="btn-hub-filters-toggle" class="btn btn-outline-teal btn-sm">
                                                         <i class="ti-filter"></i> <span class="hub-filters-toggle-label">Show filters</span>
                                                     </button>
+                                                    @if($canWriteAdministration)
                                                     <div class="hub-filters-toolbar-actions">
                                                         <a class="btn btn-sm" href="{{ route('hub.create') }}"
                                                            style="font-size: 11px; padding: 6px 12px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
                                                            Add hub
                                                         </a>
                                                     </div>
+                                                    @endif
                                                 </div>
                                                 <div class="hub-filters-bar">
                                                     <div class="form-group mb-0 hub-filter-field">
@@ -494,10 +496,12 @@
                                                         <a href="#" style="border: 1px solid #ced4da; padding: 4px 10px; border-radius: 2px; color: #666; font-size: 14px;">
                                                             <i class="ti-download"></i>
                                                         </a>
+                                                        @if($canWriteAdministration)
                                                         <a class="btn btn-primary hub-add-desktop" href="{{ route('hub.create') }}"
                                                            style="font-size: 11px; padding: 6px 15px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
                                                            Add hub
                                                         </a>
+                                                        @endif
                                                     </div>
                                                 </div>
 
@@ -562,7 +566,9 @@
                                                                     </td>
                                                                     <td class="text-right">
                                                                         <a href="{{ route('hub.show', $hub->id) }}" style="color: #ccc; margin-right: 8px;"><i class="ti-pencil"></i></a>
+                                                                        @if($canWriteAdministration)
                                                                         <a href="javascript:void(0)" class="delete-hub" data-id="{{ $hub->id }}" data-name="{{ $hub->hub_name }}" style="color: #ccc;" title="Delete hub"><i class="ti-trash"></i></a>
+                                                                        @endif
                                                                     </td>
                                                                 </tr>
                                                             @endforeach

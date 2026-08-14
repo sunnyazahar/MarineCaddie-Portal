@@ -115,7 +115,8 @@
     @yield('styles')
 </head>
 
-<body>
+<body class="{{ auth()->user()?->isOperations() && request()->routeIs('offices.*', 'hub.*', 'agents.*', 'customers.*', 'contacts.*') ? 'ops-admin-readonly' : '' }}">
+    @include('layouts.partials.administration-readonly')
     <div id="app">
         <main>
             @yield('content')

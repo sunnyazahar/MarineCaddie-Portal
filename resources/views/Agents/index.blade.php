@@ -511,10 +511,12 @@
                                         <i class="ti-filter"></i> <span class="agents-filters-toggle-label">Show filters</span>
                                     </button>
                                     <div class="agents-filters-toolbar-actions">
+                                        @if($canWriteAdministration)
                                         <a class="btn btn-sm agents-add-mobile" href="{{ route('agents.create') }}"
                                             style="font-size: 11px; padding: 6px 12px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
                                             Add Agent
                                         </a>
+                                        @endif
                                     </div>
                                 </div>
                                 <!-- Filter Bar -->
@@ -565,9 +567,11 @@
                                         <label for="hide-inactive-check">Hide inactive</label>
                                     </div>
                                     <a href="#" id="clear-agent-filters" class="btn-clear-filters">Clear filters</a>
+                                    @if($canWriteAdministration)
                                     <a class="agents-add-desktop" href="{{ route('agents.create') }}">
                                         Add Agent
                                     </a>
+                                    @endif
                                 </div>
 
                                 <!-- Data Table -->
@@ -650,9 +654,11 @@
                                                         <a href="{{ route('agents.edit', ['id' => $agent->id]) }}">
                                                             <i class="ti-pencil"></i>
                                                         </a>
+                                                        @if($canWriteAdministration)
                                                         <a href="javascript:void(0)" class="delete-agent" data-id="{{ $agent->id }}" data-name="{{ $agent->agent_name }}" title="Delete agent">
                                                             <i class="ti-trash"></i>
                                                         </a>
+                                                        @endif
                                                     </div>
                                                 </td>
                                             </tr>

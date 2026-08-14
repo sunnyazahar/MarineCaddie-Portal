@@ -150,6 +150,7 @@
                     </li>
                 </ul>
             </li>
+            @if(auth()->user()?->isAdmin())
             <li class="pcoded-hasmenu {{ request()->routeIs('users.*') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="users">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="feather icon-users"></i></span>
@@ -163,6 +164,7 @@
                     </li>
                 </ul>
             </li>
+            @endif
         </ul>
 
     </div>

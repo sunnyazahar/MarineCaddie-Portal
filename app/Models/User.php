@@ -59,6 +59,16 @@ class User extends Authenticatable
         return $this->role === 'Admin';
     }
 
+    public function isOperations(): bool
+    {
+        return $this->role === 'Operations';
+    }
+
+    public function canWriteAdministration(): bool
+    {
+        return ! $this->isOperations();
+    }
+
     public function offices(): BelongsToMany
     {
         return $this->belongsToMany(Office::class, 'user_office_assignments');

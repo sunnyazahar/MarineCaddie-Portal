@@ -13,15 +13,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/otp/verify', [App\Http\Controllers\Auth\OtpController::class, 'verify'])->name('otp.verify');
     Route::post('/otp/resend', [App\Http\Controllers\Auth\OtpController::class, 'resend'])->name('otp.resend');
 
-    Route::middleware('otp.verified')->group(function () {
+    Route::middleware(['otp.verified', 'ops.admin.readonly'])->group(function () {
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard.home');
 Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
 Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
 Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.mark-read');
-Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
-Route::post('/users', [App\Http\Controllers\UserController::class, 'store'])->name('users.store');
-Route::put('/users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
+Route::middleware('admin')->group(function () {
+    Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [App\Http\Controllers\UserController::class, 'store'])->name('users.store');
+    Route::put('/users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
+});
 Route::post('/customers', [App\Http\Controllers\CustomerController::class, 'store'])->name('customers.store');
 
 Route::get('/offices', [App\Http\Controllers\OfficeController::class, 'index'])->name('offices.index');

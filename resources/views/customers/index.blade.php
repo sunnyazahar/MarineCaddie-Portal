@@ -373,7 +373,9 @@
                                                 <i class="ti-filter"></i> <span class="customers-filters-toggle-label">Show filters</span>
                                             </button>
                                             <div class="customers-filters-toolbar-actions">
+                                                @if($canWriteAdministration)
                                                 <a href="{{ route('customers.create') }}" class="btn btn-outline-primary customers-add-mobile">Add customer</a>
+                                                @endif
                                             </div>
                                         </div>
                                         <div class="customers-filters-panel">
@@ -432,9 +434,11 @@
                                                 <button class="btn btn-outline-secondary"
                                                     style="height: 28px; padding: 0 10px; border-radius: 2px;"><i
                                                         class="ti-download"></i></button>
+                                                @if($canWriteAdministration)
                                                 <a href="{{ route('customers.create') }}" class="btn btn-outline-primary"
                                                     style="height: 28px; font-size: 11px; padding: 5px 12px; border-radius: 2px;">Add
                                                     customer</a>
+                                                @endif
                                             </div>
                                         </div>
 

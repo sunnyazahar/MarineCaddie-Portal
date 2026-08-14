@@ -405,7 +405,9 @@
                                            <span class="search-text">Search</span>
                                            <input type="text" class="search-input-custom" placeholder="Type here">
                                        </div>
+                                       @if($canWriteAdministration)
                                        <a href="{{ route('offices.create') }}" class="btn-add-office">Add office</a>
+                                       @endif
                                    </div>
 
                                    <div class="offices-table-wrap">

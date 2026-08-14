@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -44,5 +45,9 @@ class AppServiceProvider extends ServiceProvider
 
         config(['app.asset_url' => $assetUrl]);
         URL::useAssetOrigin($assetUrl);
+
+        View::composer('*', function ($view) {
+            $view->with('canWriteAdministration', auth()->user()?->canWriteAdministration() ?? true);
+        });
     }
 }
