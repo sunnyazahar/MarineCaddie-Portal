@@ -453,7 +453,7 @@ class CrrController extends Controller
         $consignee = collect([$hubAgentCode, $hubAgentName])->filter()->join(' - ') ?: ($crr->hub_agent ?: '—');
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('Stock.print-labels', compact('crr', 'consignee'))
-                  ->setPaper([0, 0, 283, 425], 'portrait'); // 100mm x 150mm approx
+                  ->setPaper([0, 0, 425.20, 283.46]); // 150mm x 100mm
         return $pdf->stream('Labels-' . $crr->stock_number . '.pdf');
     }
 

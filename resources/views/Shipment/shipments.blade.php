@@ -314,14 +314,27 @@
             padding-bottom: 6px;
         }
         .shipments-filters-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            position: absolute;
+            top: 6px;
+            right: 0;
+            z-index: 50;
+        }
+        .shipments-filters-toolbar #btn-shipments-filters-toggle {
             display: none;
         }
         .shipments-filters-fields {
             width: 100%;
+            padding-right: 170px;
+            box-sizing: border-box;
+        }
+        .shipments-filters-fields-main {
+            width: 100%;
         }
         .shipments-create-desktop {
-            width: 15%;
-            padding-top: 18px;
+            display: none;
         }
 
         @media (max-width: 991.98px) {
@@ -344,9 +357,16 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                position: static;
                 gap: 8px;
                 flex-wrap: wrap;
                 padding: 4px 0 8px;
+            }
+            .shipments-filters-fields {
+                padding-right: 0;
+            }
+            .shipments-filters-toolbar #btn-shipments-filters-toggle {
+                display: inline-flex;
             }
             .shipments-filters-toolbar-actions {
                 display: flex;
@@ -414,6 +434,9 @@
 
         @media (min-width: 992px) {
             .shipments-filters-toolbar {
+                display: flex !important;
+            }
+            .shipments-filters-toolbar #btn-shipments-filters-toggle {
                 display: none !important;
             }
             .shipments-filters-fields {
@@ -642,7 +665,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-start pt-2 shipments-filters-fields">
-                                                    <div style="width: 100%;">
+                                                    <div class="shipments-filters-fields-main">
                                                         <div class="row no-gutters filter-row">
                                                             <div class="mr-2" style="margin-top: 2px;">
                                                                 <select id="filter-multiselect" multiple="multiple">

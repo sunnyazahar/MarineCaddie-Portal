@@ -39,4 +39,12 @@ class CompanyAddress
             e(self::footerContactLine()),
         ]);
     }
+
+    public static function htmlBlockAddress(): string
+    {
+        return implode('<br>', [
+            e(self::NAME),
+            e(self::footerContactLine()),
+        ]);
+    }
 }

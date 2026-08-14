@@ -10,66 +10,59 @@
             margin: 0;
         }
 
-        body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
+        html, body {
+            font-family: Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 5mm 8mm;
+            padding: 0;
             color: #000;
         }
 
         .label-page {
-            page-break-after: always;
-            page-break-inside: avoid;
-            position: relative;
-            min-height: 88mm;
-            padding-bottom: 14mm;
+            width: 150mm;
+            padding: 4mm 6mm 3mm 6mm;
             box-sizing: border-box;
+            page-break-after: always;
         }
 
         .label-page:last-child {
             page-break-after: avoid;
         }
 
-        .header {
+        .layout {
             width: 100%;
-            margin-bottom: 4mm;
+            border-collapse: collapse;
         }
 
-        .header-left {
-            float: left;
+        .layout td {
+            border: 0;
+            padding: 0;
+        }
+
+        .col-left {
             width: 50%;
-            font-size: 10px;
-            line-height: 1.2;
+            padding-right: 3mm;
+            vertical-align: top;
         }
 
-        .header-right {
-            float: right;
+        .col-right {
             width: 50%;
-            text-align: right;
-            line-height: 0.8;
+            text-align: left;
+            vertical-align: middle;
+            padding-left: 2mm;
         }
 
-        .logo-text {
-            font-weight: bold;
-            font-size: 11pt;
-            color: #002d5b;
-            letter-spacing: 0.5pt;
+        .brand img {
+            width: 52mm;
+            max-width: 52mm;
+            height: auto;
         }
 
-        .user-name {
-            font-size: 12pt;
-            margin-top: 2mm;
-        }
-
-        .clear {
-            clear: both;
-        }
-
-        .transit-type {
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 5px;
-            margin-bottom: 2mm;
+        .label-footer {
+            font-size: 6.5px;
+            line-height: 1.3;
+            color: #333;
+            text-align: left;
+            padding-top: 3mm;
         }
 
         .field-group {
@@ -79,57 +72,36 @@
         .field-label {
             font-size: 10px;
             color: #333;
-            margin-bottom: 0.5mm;
+            margin-bottom: 0.4mm;
         }
 
         .field-value {
             font-size: 11px;
             font-weight: bold;
-            line-height: 1.1;
+            line-height: 1.15;
         }
 
-        .small-field-group {
+        .meta {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 3mm;
         }
 
-        .small-row {
-            margin-bottom: 1.5mm;
+        .meta td {
+            border: 0;
+            padding: 0 0 1.4mm 0;
             font-size: 11px;
-            vertical-align: middle;
             line-height: 1.2;
+            vertical-align: top;
         }
 
-        .small-label {
-            display: inline-block;
-            width: 32mm;
-            vertical-align: middle;
+        .meta-label {
+            width: 28mm;
+            color: #000;
         }
 
-        .small-value {
+        .meta-value {
             font-weight: bold;
-            vertical-align: middle;
-        }
-
-        .footer-date {
-            font-size: 11px;
-            margin-bottom: 4mm;
-        }
-
-        .label-footer {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 3mm;
-            font-size: 7px;
-            line-height: 1.3;
-            color: #333;
-        }
-
-        i {
-            font-family: 'Inter', sans-serif;
-            font-size: 9px;
-            color: #FF6B03;
-            font-weight: 650;
         }
     </style>
 </head>
@@ -142,74 +114,67 @@
 
     @foreach($crr->packages as $index => $pkg)
         <div class="label-page">
-            <div class="header">
-                <div class="header-left">
-                    MarineCaddie India Private Limited<br>
-                    +919560773375<br>
-                    opsindia@marinecaddie.com
-                </div>
-                <div class="header-right">
-                    {!! \App\Support\LogoHelper::imgTag('160px') !!}
-                </div>
-                <div class="clear"></div>
-            </div>
+            <table class="layout">
+                <tr>
+                    <td class="col-left">
+                        <div class="field-group">
+                            <div class="field-label">Stock number</div>
+                            <div class="field-value">{{ $crr->stock_number }}</div>
+                        </div>
+                        <div class="field-group">
+                            <div class="field-label">Hub / Agent</div>
+                            <div class="field-value" style="font-size: 12px;">{{ $consignee }}</div>
+                        </div>
+                        <div class="field-group">
+                            <div class="field-label">Physical Location</div>
+                            <div class="field-value" style="font-size: 12px;">{{ $crr->location ?: '—' }}</div>
+                        </div>
+                        <div class="field-group" style="margin-top: 3mm;">
+                            <div class="field-label">To</div>
+                            <div class="field-value"> MV {{ $crr->vessel_name ?: '—' }}</div>
+                        </div>
+                        <div class="field-group">
+                            <div class="field-label">Supplier</div>
+                            <div class="field-value" style="font-size: 12px;">{{ $crr->supplier ?: '—' }}</div>
+                        </div>
 
-            <div class="field-group">
-                <div class="field-label">Stock number</div>
-                <div class="field-value">{{ $crr->stock_number }}</div>
-            </div>
-
-
-            <div class="field-group">
-                <div class="field-label">Hub / Agent</div>
-                <div class="field-value" style="font-size: 12px;">{{ $consignee }}</div>
-            </div>
-            <div class="field-group">
-                <div class="field-label">Physical Location</div>
-                <div class="field-value" style="font-size: 12px;">{{ $crr->location ?: '—' }}</div>
-            </div>
-            <div class="field-group" style="margin-top: 10px;">
-                <div class="field-label">To</div>
-                <div class="field-value"> MV {{ $crr->vessel_name ?: '—' }}</div>
-            </div>
-            <div class="field-group">
-                <div class="field-label">Supplier</div>
-                <div class="field-value" style="font-size: 12px;">{{ $crr->supplier ?: '—' }}</div>
-            </div>
-
-            <div class="small-field-group">
-                <div class="small-row">
-                    <span class="small-label">Pos</span>
-                    <span class="small-value">{{ $pkg->warehouse_location ?: ($crr->location ?: '—') }}</span>
-                </div>
-
-                <div class="small-row">
-                    <span class="small-label">Pcs</span>
-                    <span class="small-value"># {{ $index + 1 }} of {{ $totalPackages }}</span>
-                </div>
-
-                <div class="small-row">
-                    <span class="small-label">Weight</span>
-                    <span class="small-value">{{ number_format($pkg->weight, 0) }} of {{ number_format($totalWeight, 0) }}
-                        KG</span>
-                </div>
-
-                <div class="small-row">
-                    <span class="small-label">L/W/H (cm)</span>
-                    <span
-                        class="small-value">{{ number_format($pkg->length, 0) }}/{{ number_format($pkg->width, 0) }}/{{ number_format($pkg->height, 0) }}</span>
-                </div>
-
-                <div class="small-row">
-                    <span class="small-label">Transit Id</span>
-                    <span class="small-value"
-                        style="font-weight:bold; font-size:12px;">{{ strtoupper($crr->transit_type ?: 'ETL') }} - {{ $crr->customs_doc_reference ?: ($crr->transit_id ?: '—') }}</span>
-                </div>
-            </div>
-
-            <div class="label-footer">
-                {!! \App\Support\CompanyAddress::htmlBlock() !!}
-            </div>
+                        <table class="meta">
+                            <tr>
+                                <td class="meta-label">Pos</td>
+                                <td class="meta-value">{{ $pkg->warehouse_location ?: ($crr->location ?: '—') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="meta-label">Pcs</td>
+                                <td class="meta-value"># {{ $index + 1 }} of {{ $totalPackages }}</td>
+                            </tr>
+                            <tr>
+                                <td class="meta-label">Weight</td>
+                                <td class="meta-value">{{ number_format($pkg->weight, 0) }} of {{ number_format($totalWeight, 0) }} KG</td>
+                            </tr>
+                            <tr>
+                                <td class="meta-label">L/W/H (cm)</td>
+                                <td class="meta-value">{{ number_format($pkg->length, 0) }}/{{ number_format($pkg->width, 0) }}/{{ number_format($pkg->height, 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="meta-label">Transit Id</td>
+                                <td class="meta-value" style="font-size: 12px;">{{ strtoupper($crr->transit_type ?: 'ETL') }} - {{ $crr->customs_doc_reference ?: ($crr->transit_id ?: '—') }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td class="col-right">
+                        <div class="brand">
+                            <br><br>
+                            {!! \App\Support\LogoHelper::imgTag('52mm') !!}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="label-footer">
+                        <br><br><br><br><br>
+                        {!! \App\Support\CompanyAddress::htmlBlock() !!}
+                    </td>
+                </tr>
+            </table>
         </div>
     @endforeach
 </body>
