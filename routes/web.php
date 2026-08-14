@@ -265,13 +265,26 @@ Route::get('/api/mail-contacts', function (\Illuminate\Http\Request $request) {
 Route::get('/api/ports', function (\Illuminate\Http\Request $request) {
     $q = trim((string) $request->query('q', ''));
     $limit = $q === '' ? 10 : 30;
+    $qUpper = strtoupper($q);
 
     $portsQuery = \App\Models\Port::query()
         ->with('country')
         ->active()
+        ->where(function ($query) {
+            $query->where(function ($air) {
+                $air->where('type', \App\Models\Port::TYPE_AIRPORT)
+                    ->whereNotNull('iata_code')
+                    ->where('iata_code', '!=', '');
+            })->orWhere(function ($sea) {
+                $sea->where('type', \App\Models\Port::TYPE_SEAPORT)
+                    ->whereNotNull('un_locode')
+                    ->where('un_locode', '!=', '');
+            });
+        })
         ->when($q !== '', function ($query) use ($q) {
             $query->where(function ($sub) use ($q) {
                 $sub->where('iata_code', 'like', "%{$q}%")
+                    ->orWhere('un_locode', 'like', "%{$q}%")
                     ->orWhere('port_name', 'like', "%{$q}%")
                     ->orWhere('city', 'like', "%{$q}%")
                     ->orWhere('country_name', 'like', "%{$q}%");
@@ -279,15 +292,22 @@ Route::get('/api/ports', function (\Illuminate\Http\Request $request) {
         });
 
     if ($q !== '') {
-        $portsQuery->orderByRaw('CASE WHEN iata_code = ? THEN 0 ELSE 1 END', [strtoupper($q)]);
+        $portsQuery->orderByRaw(
+            'CASE WHEN iata_code = ? THEN 0 WHEN un_locode = ? THEN 1 ELSE 2 END',
+            [$qUpper, $qUpper]
+        );
     }
 
     $ports = $portsQuery
-        ->orderBy('iata_code')
+        ->orderByRaw("COALESCE(NULLIF(iata_code, ''), un_locode)")
         ->limit($limit)
         ->get()
         ->map(function (\App\Models\Port $port) {
-            $code = $port->iata_code ?? '';
+            $code = $port->displayCode() ?? '';
+            if ($code === '') {
+                return null;
+            }
+
             return [
                 'id' => $code,
                 'text' => trim($code . ($port->city ? ', ' . $port->city : '')),
@@ -297,6 +317,7 @@ Route::get('/api/ports', function (\Illuminate\Http\Request $request) {
                 'country' => $port->country?->name ?? $port->country_name,
             ];
         })
+        ->filter()
         ->values();
 
     return response()->json(['results' => $ports]);

@@ -11,18 +11,17 @@ use Illuminate\Support\Str;
 class ImportPortsCommand extends Command
 {
     protected $signature = 'ports:import
-                            {--path= : CSV path (default: database/data/port_codes.csv)}
-                            {--fresh : Truncate ports table before import}';
+                            {--path= : CSV/XLSX path (airports: database/data/port_codes.csv, seaports: eximguru_ports.csv)}
+                            {--fresh : Delete matching port type rows before import}';
 
-    protected $description = 'Import airport IATA codes from port_codes CSV into ports, mapped to countries';
+    protected $description = 'Import airport or seaport codes into ports, mapped to the countries table';
 
     public function handle(): int
     {
-        $path = $this->option('path')
-            ?: database_path('data/port_codes.csv');
+        $path = $this->resolveImportPath((string) ($this->option('path') ?: ''));
 
-        if (! is_readable($path)) {
-            $this->error("CSV not readable: {$path}");
+        if ($path === null || ! is_readable($path)) {
+            $this->error('CSV not readable: '.($this->option('path') ?: 'default path'));
 
             return self::FAILURE;
         }
@@ -34,11 +33,6 @@ class ImportPortsCommand extends Command
         $byName = $countries->keyBy(fn (Country $c) => $this->normalizeName($c->name));
 
         $aliases = $this->countryAliases();
-
-        if ($this->option('fresh')) {
-            DB::table('ports')->delete();
-            $this->warn('Cleared existing ports rows.');
-        }
 
         $handle = fopen($path, 'r');
         if ($handle === false) {
@@ -55,8 +49,21 @@ class ImportPortsCommand extends Command
             return self::FAILURE;
         }
 
-        $header = array_map(fn ($h) => Str::of((string) $h)->trim()->lower()->toString(), $header);
+        $header = array_map(function ($h) {
+            $h = preg_replace('/^\xEF\xBB\xBF/', '', (string) $h) ?? (string) $h;
+
+            return Str::of($h)->trim()->lower()->toString();
+        }, $header);
         $index = array_flip($header);
+
+        $isSeaportFile = isset($index['port_code'], $index['port_name'], $index['country'])
+            && ! isset($index['iata_code']);
+
+        if ($isSeaportFile) {
+            fclose($handle);
+
+            return $this->importSeaports($path, $byIso, $byName, $aliases);
+        }
 
         foreach (['iata_code', 'port_name', 'country_name'] as $required) {
             if (! isset($index[$required])) {
@@ -65,6 +72,11 @@ class ImportPortsCommand extends Command
 
                 return self::FAILURE;
             }
+        }
+
+        if ($this->option('fresh')) {
+            DB::table('ports')->where('type', Port::TYPE_AIRPORT)->delete();
+            $this->warn('Cleared existing airport rows.');
         }
 
         $created = 0;
@@ -101,13 +113,10 @@ class ImportPortsCommand extends Command
             }
 
             $attributes = [
-                'icao_code' => null,
-                'un_locode' => null,
                 'port_name' => $portName,
                 'city' => $this->extractCity($portName),
                 'country_name' => $country?->name ?? $countryName,
                 'country_code' => $countryCode,
-                'flag' => $country?->flag_emoji,
                 'country_id' => $country?->id,
                 'is_active' => true,
             ];
@@ -199,6 +208,157 @@ class ImportPortsCommand extends Command
     }
 
     /**
+     * @param  \Illuminate\Support\Collection<string, Country>  $byIso
+     * @param  \Illuminate\Support\Collection<string, Country>  $byName
+     */
+    private function importSeaports(string $path, $byIso, $byName, array $aliases): int
+    {
+        if ($this->option('fresh')) {
+            DB::table('ports')->where('type', Port::TYPE_SEAPORT)->delete();
+            $this->warn('Cleared existing seaport rows.');
+        }
+
+        $handle = fopen($path, 'r');
+        if ($handle === false) {
+            $this->error("Could not open: {$path}");
+
+            return self::FAILURE;
+        }
+
+        $header = fgetcsv($handle);
+        $header = array_map(function ($h) {
+            $h = preg_replace('/^\xEF\xBB\xBF/', '', (string) $h) ?? (string) $h;
+
+            return Str::of($h)->trim()->lower()->toString();
+        }, $header ?: []);
+        $index = array_flip($header);
+
+        $created = 0;
+        $updated = 0;
+        $skipped = 0;
+        $unmappedCountries = [];
+        $now = now();
+        $buffer = [];
+        $seen = [];
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $code = strtoupper(trim((string) ($row[$index['port_code'] ?? ''] ?? '')));
+            $portName = trim((string) ($row[$index['port_name']] ?? ''));
+            $excelCountry = trim((string) ($row[$index['country']] ?? ''));
+
+            if ($code === 'NULL') {
+                $code = '';
+            }
+
+            if ($portName === '' || str_starts_with($portName, '.') || $excelCountry === '') {
+                $skipped++;
+                continue;
+            }
+
+            if (! preg_match('/^[A-Z]{2}[A-Z0-9]{3,6}$/', $code)) {
+                $skipped++;
+                continue;
+            }
+
+            [$country, $countryCode, $countryName] = $this->resolveCountry(
+                $excelCountry,
+                $aliases,
+                $byIso,
+                $byName
+            );
+
+            if ($country === null || $countryCode === null) {
+                $unmappedCountries[$excelCountry] = ($unmappedCountries[$excelCountry] ?? 0) + 1;
+                $skipped++;
+                continue;
+            }
+
+            $key = Port::TYPE_SEAPORT.'|'.$code;
+            $payload = [
+                'type' => Port::TYPE_SEAPORT,
+                'iata_code' => null,
+                'un_locode' => $code,
+                'port_name' => $portName,
+                'city' => $portName,
+                'country_name' => $country->name,
+                'country_code' => $countryCode,
+                'country_id' => $country->id,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+
+            if (isset($seen[$key])) {
+                $updated++;
+            } else {
+                $seen[$key] = true;
+                $created++;
+            }
+
+            $buffer[$key] = $payload;
+
+            if (count($buffer) >= 500) {
+                $this->upsertSeaports(array_values($buffer));
+                $buffer = [];
+            }
+        }
+
+        fclose($handle);
+
+        if ($buffer !== []) {
+            $this->upsertSeaports(array_values($buffer));
+        }
+
+        $this->info('Seaport import finished from '.$path);
+        $this->line("Upserted unique locodes: {$created}");
+        $this->line("Duplicate locodes in file (last row kept): {$updated}");
+        $this->line("Skipped: {$skipped}");
+        $this->line('Total seaports in DB: '.Port::seaports()->count());
+
+        if ($unmappedCountries !== []) {
+            arsort($unmappedCountries);
+            $this->warn('Unmapped Excel countries (not in countries table, skipped):');
+            foreach ($unmappedCountries as $name => $count) {
+                $this->line("  {$name}: {$count}");
+            }
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    private function upsertSeaports(array $rows): void
+    {
+        Port::query()->upsert(
+            $rows,
+            ['type', 'un_locode'],
+            ['port_name', 'city', 'country_name', 'country_code', 'country_id', 'is_active', 'updated_at']
+        );
+    }
+
+    private function resolveImportPath(string $path): ?string
+    {
+        if ($path === '') {
+            return database_path('data/port_codes.csv');
+        }
+
+        if (! str_starts_with($path, '/')) {
+            $path = base_path($path);
+        }
+
+        if (str_ends_with(strtolower($path), '.xlsx')) {
+            $csv = preg_replace('/\.xlsx$/i', '.csv', $path);
+            if (is_string($csv) && is_readable($csv)) {
+                return $csv;
+            }
+        }
+
+        return $path;
+    }
+
+    /**
      * Excel country label => ISO 3166-1 alpha-2.
      * Used when the label does not exactly match countries.name.
      *
@@ -222,6 +382,23 @@ class ImportPortsCommand extends Command
             'channel islands' => 'GB',
 
             'korea south' => 'KR',
+            'korea, republic of' => 'KR',
+            'korea, democratic people\'s republic of' => 'KP',
+            'iran, islamic republic of' => 'IR',
+            'russian federation' => 'RU',
+            'libyan arab jamahiriya' => 'LY',
+            'brunei darussalam' => 'BN',
+            'viet nam' => 'VN',
+            'bolivia, plurinational state of' => 'BO',
+            'venezuela, bolivarian republic of' => 'VE',
+            'tanzania, united republic of' => 'TZ',
+            'moldova, republic of' => 'MD',
+            'macedonia, the former yugoslav republic of' => 'MK',
+            'taiwan, province of china' => 'TW',
+            'congo, the democratic republic of the' => 'CD',
+            'lao people\'s democratic republic' => 'LA',
+            'syrian arab republic' => 'SY',
+            "cote d'ivoire" => 'CI',
             'south korea' => 'KR',
             'north korea' => 'KP',
 
