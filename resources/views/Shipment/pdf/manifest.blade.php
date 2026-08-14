@@ -11,7 +11,7 @@
         .header-table td { vertical-align: top; }
         .doc-title { display: block; font-size: 17px; font-weight: bold; margin: 0 0 10px; }
         .doc-subtitle { display: block; font-size: 13px; font-weight: bold; margin: 8px 0 8px; }
-        .revision-highlight { color: #FD6C0A; font-weight: bold; font-size: 18px; }
+        .revision-highlight { color: #FD6C0A; font-weight: bold; font-size: 18px; margin: 0 0 4px; }
         .company { font-size: 12px; font-weight: bold; }
         .muted { color: #555; font-size: 11px; }
         .header-right { text-align: right; font-size: 10px; }
@@ -97,13 +97,13 @@
         .agent-box-table td { padding: 2px 0; vertical-align: top; font-size: 11px; }
         .agent-box-label { width: 18%; font-weight: normal; }
         .comments-title { font-size: 12px; font-weight: bold; color: #000000; margin: 10px 0 4px; }
-        .comments-body { white-space: pre-wrap; font-size: 11px; line-height: 1.45; }
+        .comments-body { white-space: pre-wrap; font-size: 11px; line-height: 1.45; color: #dc2626; }
     </style>
 </head>
 <body>
 
 @php
-    $header = function ($docTitle, bool $showCompany = true, bool $showDocumentHandledBy = false) use ($titleLine, $companyName, $companyAddress, $documentHandledBy) {
+    $header = function ($docTitle, bool $showCompany = true, bool $showDocumentHandledBy = false) use ($titleLine, $companyName, $companyAddress, $documentHandledBy, $manifestRevisionLabel) {
         $companyHtml = '';
         if ($showCompany) {
             $companyHtml = '
@@ -119,10 +119,16 @@
                     </div>';
         }
 
+        $revisionHtml = '';
+        if (! empty($manifestRevisionLabel)) {
+            $revisionHtml = '<div class="revision-highlight">(' . e($manifestRevisionLabel) . ')</div>';
+        }
+
         return '
         <table class="header-table">
             <tr>
                 <td style="width:62%;">
+                    ' . $revisionHtml . '
                     <div class="doc-title">' . e($docTitle) . '</div>
                     <br>
                     <div class="doc-subtitle">' . e($titleLine) . '</div>
@@ -186,9 +192,9 @@
     $serviceDisplay = trim(($serviceLabel ?? '—') . (!empty($additionalServiceLabel) && $additionalServiceLabel !== '—' ? '<br>' . e($additionalServiceLabel) : ''));
 @endphp
 
-{{-- Shipping instructions (matches reference layout) --}}
+{{-- Shipping Instructions (matches reference layout) --}}
 <div class="page">
-    {!! $header('Shipping instructions (' . ($serviceLabel ?? '—') . ')', false, true) !!}
+    {!! $header('Shipping Instructions (' . ($serviceLabel ?? '—') . ')', false, true) !!}
 
     <table class="meta-wrap">
         <tr>
@@ -218,7 +224,13 @@
     <div class="agent-box">
         <table class="agent-box-table">
             <tr>
-                <td class="agent-box-label"><strong>C/O {{ $consigneeName }}</strong> <br> {{ $consigneeAddress }} <br> Email: {{ $consigneeEmail }} <br> Phone: {{ $consigneePhone }}
+                <td class="agent-box-label">
+                    <strong>C/O {{ $consigneeName }}</strong>
+                    @if (empty($isOnBoardDelivery))
+                        <br> {{ $consigneeAddress }}
+                    @endif
+                    <br> Email: {{ $consigneeEmail }}
+                    <br> Phone: {{ $consigneePhone }}
                 </td>
             </tr>
         </table>
@@ -229,9 +241,6 @@
     <br>
     <div class="comments-title">Comments to hub</div>
     <div class="comments-body">{{ $commentsHub ?: '—' }}</div>
-    @if (!empty($manifestRevisionLabel))
-        <div class="revision-highlight" style="margin-top:12px;">({{ $manifestRevisionLabel }})</div>
-    @endif
 </div>
 
 {{-- Manifest / Invoice --}}
