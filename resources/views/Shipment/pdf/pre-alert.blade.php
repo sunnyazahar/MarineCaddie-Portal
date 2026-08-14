@@ -23,7 +23,7 @@
         .field-block { margin: 10px 0; font-size: 11px; }
         .field-label { font-weight: bold; margin-bottom: 4px; }
         .address-block { white-space: pre-wrap; font-size: 11px; margin-top: 4px; }
-        .notify-title { font-size: 12px; font-weight: bold; margin: 12px 0 6px; }
+        .notify-title { font-size: 12px; font-weight: normal; margin: 12px 0 6px; }
         .vessel-heading { font-size: 12px; font-weight: bold; margin: 10px 0 6px; }
         .summary-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 11px; }
         .summary-table td { padding: 4px 0; vertical-align: top; }
@@ -65,11 +65,13 @@
     {!! $header() !!}
 <br>
     <div class="notify-title" style="margin-top:0;">Incoming shipment details.</div>
-    <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
-    <div class="vessel-heading">C/O : {{ $consigneeName }} <br> {{ $consigneeAddress }}</div>
+    <div class="vessel-heading">{{ $vesselLine }}</div>
+    <div class="address-block"><strong>C/O {{ $consigneeName }}</strong> <br> {{ $consigneeAddress }}</div>
 
     <div class="section-title">Freight details</div>
-    <div class="expected-line">{{ $expectedLine }}</div>
+    <div class="expected-line">
+        Shipment is expected on <strong>{{ $arrivalDate }} in {{ $destinationPortSimple }}</strong> with the below details
+    </div>
 
     <table class="data-table">
         <thead>
@@ -147,12 +149,8 @@
     <div class="vessel-heading">{{ $vesselLine }}</div>
 
     <div class="field-block">
-        <div class="field-label">C/O : {{ $consigneeName }} <br> {{ $consigneeAddress }}</div>
+        <div class="address-block"><strong>C/O {{ $consigneeName }}</strong> <br> {{ $consigneeAddress }}</div>
     </div>
-
-
-
-    <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
 
     <table class="data-table">
         <thead>

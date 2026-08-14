@@ -143,7 +143,7 @@ class ShipmentManifestPdfBuilder
 
         return [
             'shipment' => $shipment,
-            'titleLine' => 'Ref No. :' . $shipment->shipment_number,
+            'titleLine' => 'Ref No. ' . $shipment->shipment_number,
             'manifestRevisionLabel' => $this->formatManifestRevisionLabel($resolvedManifestVersion),
             'companyName' => $companyName,
             'companyAddress' => $companyAddress,

@@ -192,7 +192,7 @@ class PreAlertMailService
             'subject' => $this->buildSubject($shipment, $manifestData),
             'body' => $this->buildBody($shipment, $manifestData, $consigneeParty, $sender['name'], $sender['email']),
             'to' => $this->buildToAddresses($consigneeParty),
-            'cc' => $this->buildCcAddresses($shipment, $sender['email']),
+            'cc' => $this->buildCcAddresses($sender['email']),
             'attachments' => $this->buildAttachments($shipment, $manifestData, $documentIds, $excludeAttachments),
         ];
     }
@@ -479,25 +479,19 @@ class PreAlertMailService
     /**
      * @return array<int, array{name?: string, email: string}>
      */
-    private function buildCcAddresses(Shipment $shipment, string $senderEmail): array
+    /**
+     * @return array<int, array{name?: string, email: string}>
+     */
+    private function buildCcAddresses(string $senderEmail): array
     {
-        $addresses = [];
-
-        if ($shipment->accountManager?->email && $shipment->accountManager->email !== $senderEmail) {
-            $addresses[] = [
-                'name' => $shipment->accountManager->name,
-                'email' => $shipment->accountManager->email,
-            ];
+        $email = trim($senderEmail);
+        if ($email === '') {
+            return [];
         }
 
-        if ($shipment->consignee_email && !collect($addresses)->contains('email', $shipment->consignee_email)) {
-            $addresses[] = [
-                'name' => $shipment->consignee_att ?? '',
-                'email' => $shipment->consignee_email,
-            ];
-        }
-
-        return $addresses;
+        return [[
+            'email' => $email,
+        ]];
     }
 
     /**

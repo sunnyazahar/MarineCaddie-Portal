@@ -181,7 +181,7 @@ class ManifestMailService
             'subject' => $this->buildSubject($shipment, $manifestData),
             'body' => $this->buildBody($shipment, $consigneeParty, $sender['name'], $sender['email']),
             'to' => $this->buildToAddresses($consigneeParty),
-            'cc' => $this->buildCcAddresses($shipment, $sender['email'], $consigneeParty),
+            'cc' => $this->buildCcAddresses($sender['email']),
             'attachments' => $this->buildAttachments($shipment, $manifestData, $documentIds, $excludeAttachments),
         ];
     }
@@ -281,35 +281,19 @@ class ManifestMailService
     /**
      * @return array<int, array{name?: string, email: string}>
      */
-    private function buildCcAddresses(Shipment $shipment, string $senderEmail, array $consigneeParty): array
+    /**
+     * @return array<int, array{name?: string, email: string}>
+     */
+    private function buildCcAddresses(string $senderEmail): array
     {
-        $addresses = [];
-        $toEmail = $consigneeParty['email'] ?? '';
-        $seen = [];
-
-        $addAddress = function (?string $name, ?string $email) use (&$addresses, &$seen): void {
-            $email = trim((string) $email);
-            if ($email === '' || isset($seen[$email])) {
-                return;
-            }
-
-            $seen[$email] = true;
-            $addresses[] = [
-                'name' => $name ?? '',
-                'email' => $email,
-            ];
-        };
-
-        $addAddress('', $senderEmail);
-
-        if ($shipment->accountManager?->email) {
-            $addAddress($shipment->accountManager->name, $shipment->accountManager->email);
+        $email = trim($senderEmail);
+        if ($email === '') {
+            return [];
         }
 
-        $addAddress($consigneeParty['name'] ?? $shipment->consignee_att, $toEmail);
-        $addAddress($shipment->consignee_att, $shipment->consignee_email);
-
-        return $addresses;
+        return [[
+            'email' => $email,
+        ]];
     }
 
     /**

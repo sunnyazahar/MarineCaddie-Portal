@@ -9,8 +9,8 @@
         .page-break { page-break-before: always; }
         .header-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
         .header-table td { vertical-align: top; }
-        .doc-title { font-size: 17px; font-weight: bold; margin: 0 0 4px; }
-        .doc-subtitle { font-size: 13px; font-weight: bold; margin: 0 0 8px; }
+        .doc-title { display: block; font-size: 17px; font-weight: bold; margin: 0 0 10px; }
+        .doc-subtitle { display: block; font-size: 13px; font-weight: bold; margin: 8px 0 8px; }
         .revision-highlight { color: #FD6C0A; font-weight: bold; font-size: 18px; }
         .company { font-size: 12px; font-weight: bold; }
         .muted { color: #555; font-size: 11px; }
@@ -124,6 +124,7 @@
             <tr>
                 <td style="width:62%;">
                     <div class="doc-title">' . e($docTitle) . '</div>
+                    <br>
                     <div class="doc-subtitle">' . e($titleLine) . '</div>
                     ' . $documentHandledHtml . '
                     ' . $companyHtml . '
@@ -132,6 +133,50 @@
                     <div class="brand-logo">
                         ' . \App\Support\LogoHelper::imgTag('180px') . '
                     </div>
+                </td>
+            </tr>
+        </table>';
+    };
+
+    $partyHeader = function (string $docTitle) use ($titleLine, $shipperLine, $consigneeLine) {
+        return '
+        <table class="header-table" style="table-layout:fixed;">
+            <tr>
+                <td style="width:62%;">
+                    <div class="doc-title">' . e($docTitle) . '</div>
+                </td>
+                <td class="header-right" style="width:38%;">
+                    <table align="right" style="width:180px; border-collapse:collapse;">
+                        <tr>
+                            <td style="text-align:left; vertical-align:top;">
+                                <div class="brand-logo">
+                                    ' . \App\Support\LogoHelper::imgTag('180px') . '
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <br>
+                    <div class="doc-subtitle">' . e($titleLine) . '</div>
+                </td>
+            </tr>
+            <tr>
+                <td style="width:62%;" class="party-cell">
+                    <span class="party-heading">Shipper</span>
+                    <div class="party-block">' . e($shipperLine) . '</div>
+                </td>
+                <td class="header-right party-cell" style="width:38%;">
+                    <table align="right" style="width:180px; border-collapse:collapse;">
+                        <tr>
+                            <td style="text-align:left; vertical-align:top;">
+                                <span class="party-heading">Consignee</span>
+                                <div class="party-block">' . e($consigneeLine) . '</div>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
         </table>';
@@ -168,7 +213,7 @@
     </div>
 
     <div class="prepare-title">Please prepare shipment to:</div>
-    <div class="prepare-vessel">Vessel : {{ $vesselLine }}</div>
+    <div class="prepare-vessel">{{ $vesselLine }}</div>
 
     <div class="agent-box">
         <table class="agent-box-table">
@@ -191,39 +236,13 @@
 
 {{-- Manifest / Invoice --}}
 <div class="page page-break{{ !empty($isOnBoardDelivery) ? ' page-manifest-invoice' : '' }}">
-    <table class="header-table" style="table-layout:fixed;">
-        <tr>
-            <td style="width:62%;">
-                <div class="doc-title">Manifest / Invoice</div>
-                <div class="doc-subtitle">{{ $titleLine }}</div>
-                <div class="party-cell">
-                    <span class="party-heading">Shipper</span>
-                    <div class="party-block">{{ $shipperLine }}</div>
-                </div>
-            </td>
-            <td class="header-right" style="width:38%;">
-                <table align="right" style="width:180px; border-collapse:collapse;">
-                    <tr>
-                        <td style="text-align:left; vertical-align:top;">
-                            <div class="brand-logo">
-                                {!! \App\Support\LogoHelper::imgTag('180px') !!}
-                            </div>
-                            <div class="party-cell">
-                                <span class="party-heading">Consignee</span>
-                                <div class="party-block">{{ $consigneeLine }}</div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+    {!! $partyHeader('Manifest / Invoice') !!}
     <br>
     <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
         <tr><td class="totals-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
         <tr><td class="totals-label">Contact</td><td>{{ $consigneeContactLine }}</td></tr>
     </table>
-    <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
+    <div class="vessel-heading">{{ $vesselLine }}</div>
     <table class="data-table">
         <thead>
             <tr>
@@ -289,39 +308,13 @@
 
 {{-- Packing List (single page) --}}
 <div class="page page-break">
-    <table class="header-table" style="table-layout:fixed;">
-        <tr>
-            <td style="width:62%;">
-                <div class="doc-title">Packing List</div>
-                <div class="doc-subtitle">{{ $titleLine }}</div>
-                <div class="party-cell">
-                    <span class="party-heading">Shipper</span>
-                    <div class="party-block">{{ $shipperLine }}</div>
-                </div>
-            </td>
-            <td class="header-right" style="width:38%;">
-                <table align="right" style="width:180px; border-collapse:collapse;">
-                    <tr>
-                        <td style="text-align:left; vertical-align:top;">
-                            <div class="brand-logo">
-                                {!! \App\Support\LogoHelper::imgTag('180px') !!}
-                            </div>
-                            <div class="party-cell">
-                                <span class="party-heading">Consignee</span>
-                                <div class="party-block">{{ $consigneeLine }}</div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+    {!! $partyHeader('Packing List') !!}
     <br>
     <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
         <tr><td class="totals-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
         <tr><td class="totals-label">Contact</td><td>{{ $consigneeContactLine }}</td></tr>
     </table>
-    <div class="vessel-heading">Vessel : {{ $vesselLine }}</div>
+    <div class="vessel-heading">{{ $vesselLine }}</div>
     <table class="data-table">
         <thead>
             <tr>
