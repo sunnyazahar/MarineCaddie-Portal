@@ -42,7 +42,7 @@ class ShipmentPreAlertPdfBuilder
         $serviceDetails = $this->buildServiceDetails($shipment);
         $serviceDetailRows = $this->buildServiceDetailRows($shipment);
 
-        $primaryVessel = $shipment->crrs->pluck('vessel_name')->filter()->first() ?? '—';
+        $primaryVessel = $this->formatMotorVesselName($shipment->crrs->pluck('vessel_name')->filter()->first());
         $awb = $serviceDetails['awb'] ?? '—';
         $flightNumber = $serviceDetails['flight_number'] ?? '—';
         $arrivalDate = $serviceDetails['arrival_date'] ?? ($shipment->deadline_arrival?->format('d.m.Y') ?? '—');
@@ -489,7 +489,7 @@ class ShipmentPreAlertPdfBuilder
             : ($shipment->service ?? '—');
 
         $lines = [
-            'Vessel: ' . $vessel,
+            'Vessel: ' . $this->formatMotorVesselName($vessel),
             'Service: ' . $serviceLabel,
         ];
 
@@ -608,6 +608,11 @@ class ShipmentPreAlertPdfBuilder
             'Delivery date: ' . $this->displayValue($leg ? $this->formatDate($leg->delivery_date) : null),
             'Delivery time: ' . $this->displayValue($leg?->delivery_time),
         ];
+    }
+
+    public function formatMotorVesselName(?string $vesselName): string
+    {
+        return $this->manifestPdfBuilder->formatMotorVesselName($vesselName);
     }
 
     private function displayValue(mixed $value): string

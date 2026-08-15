@@ -47,13 +47,13 @@ class ShipmentManifestPdfBuilder
         $volumeWeight = round($totalCbm * 167, 2);
         $totalCbft = round($totalCbm * 35.315, 2);
 
-        $primaryVessel = $crrs->pluck('vessel_name')->filter()->first();
+        $primaryVessel = $this->formatMotorVesselName($crrs->pluck('vessel_name')->filter()->first());
         $vesselInfo = $crrs
             ->map(fn (Crr $crr) => $crr->customerVessel)
             ->filter()
             ->first();
 
-        $vesselLine = $primaryVessel ?? '—';
+        $vesselLine = $primaryVessel;
         if ($vesselInfo?->vessel_imo) {
             $vesselLine .= ' (IMO: ' . $vesselInfo->vessel_imo . ')';
         }
@@ -71,7 +71,7 @@ class ShipmentManifestPdfBuilder
                 : ($crr->po_numbers ?? '—');
 
             return [
-                'vessel' => $crr->vessel_name ?? '—',
+                'vessel' => $this->formatMotorVesselName($crr->vessel_name),
                 'supplier' => $crr->supplier ?? '—',
                 'po_number' => $poNumbers ?: '—',
                 'items' => $crr->packages->count(),
@@ -417,7 +417,7 @@ class ShipmentManifestPdfBuilder
         return $this->joinParts($segments) ?: '—';
     }
 
-    private function formatPortCodeCityCountry(?string $portCode, ?string $fallbackCity = null, ?string $fallbackCountry = null): string
+    public function formatPortCodeCityCountry(?string $portCode, ?string $fallbackCity = null, ?string $fallbackCountry = null): string
     {
         $parts = $this->resolvePortCodeParts($portCode);
         $city = trim((string) $fallbackCity);
@@ -553,17 +553,23 @@ class ShipmentManifestPdfBuilder
         return $value !== null && $value !== '' ? (string) round((float) $value, 0) : '—';
     }
 
-    private function formatOnBoardSignatory(?string $vesselName): string
+    public function formatMotorVesselName(?string $vesselName): string
     {
         $vessel = trim((string) $vesselName);
-
-        if ($vessel === '') {
-            $vessel = '—';
-        } elseif (! preg_match('/^MV\b/i', $vessel)) {
-            $vessel = 'MV ' . $vessel;
+        if ($vessel === '' || $vessel === '—') {
+            return '—';
         }
 
-        return 'Master / Chief Engineer of ' . $vessel;
+        if (preg_match('/^(M\/V|M\.V\.|MV)\b/i', $vessel)) {
+            return (string) preg_replace('/^(M\/V|M\.V\.|MV)\b/i', 'M/V', $vessel, 1);
+        }
+
+        return 'M/V ' . $vessel;
+    }
+
+    private function formatOnBoardSignatory(?string $vesselName): string
+    {
+        return 'Master / Chief Engineer of ' . $this->formatMotorVesselName($vesselName);
     }
 
     private function joinParts(array $parts, string $separator = ', '): string

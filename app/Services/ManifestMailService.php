@@ -229,7 +229,7 @@ class ManifestMailService
             'Please prepare ' . $service . ' to ' . $destination . ' and provide service details.',
             '',
             '',
-            'Service Details:',
+            '**Service Details:**',
             '',
         ];
 
@@ -237,7 +237,7 @@ class ManifestMailService
 
         array_push($lines,
             '',
-            'Deadline ' . $deadline,
+            '**Deadline ' . $deadline.'**',
             '',
             '',
             '',

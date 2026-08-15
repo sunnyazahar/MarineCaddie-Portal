@@ -98,6 +98,7 @@ class PreAlertMailService
         $attachments = array_merge($mail['attachments'], $extraAttachments);
         $normalizedBody = preg_replace("/\r\n|\r|\n/", "\n", $body) ?? '';
         $htmlBody = nl2br(e($normalizedBody), false);
+        $htmlBody = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $htmlBody) ?? $htmlBody;
         $fromEmail = $mail['senderEmail'] ?: config('mail.from.address');
         $fromName = $mail['senderName'] ?: config('mail.from.name');
 
@@ -225,30 +226,38 @@ class PreAlertMailService
         string $senderEmail
     ): string {
         $consigneeName = $consigneeParty['name'] ?: ($shipment->consignee_att ?: 'Sir/Madam');
-        $destination = $this->buildDestinationLabel($shipment);
+        $destination = $this->manifestPdfBuilder->formatPortCodeCityCountry(
+            $shipment->consignee_port_code,
+            $shipment->consignee_city,
+            $shipment->consignee_country
+        );
         $service = $shipment->service ?? 'shipment';
 
         $lines = [
             'To ' . $consigneeName,
             '',
-            'Please find attached pre-alert for ' . $service . ' to ' . $destination,
+            'Please find attached pre-alert for incoming ' . $service . ' to ' . $destination,
             '',
             '',
-            'Shipment Details:',
+            '**Shipment Details:**',
             'Shipment Ref. ' . $shipment->shipment_number,
             'From: ' . ($manifestData['departurePort'] ?? '—'),
             'To: ' . $destination,
-            'Vessel: ' . ($manifestData['vesselLine'] ?? '—'),
+            'Vessel: ' . $this->preAlertPdfBuilder->formatMotorVesselName(
+                $manifestData['vesselLine'] ?? $shipment->crrs->pluck('vessel_name')->filter()->first()
+            ),
             'Total packages: ' . ($manifestData['totals']['packages'] ?? '—'),
             'Total weight: ' . ($manifestData['totals']['weight'] ?? '—') . ' kg',
             'Total CBM: ' . ($manifestData['totals']['cbm'] ?? '—'),
             '',
         ];
 
-        $lines[] = 'Service Details:';
+        $lines[] = '**Service Details:**';
         $lines[] = '';
         $serviceDetailLines = $this->preAlertPdfBuilder->reminderMailServiceDetailLines($shipment);
         array_push($lines, ...array_slice($serviceDetailLines, 2));
+        $lines[] = '';
+        array_push($lines, ...$this->buildShippedToLines($shipment, $manifestData, $consigneeParty));
         $lines[] = '';
 
         $lines[] = 'Please do the needful.';
@@ -262,17 +271,36 @@ class PreAlertMailService
         return implode("\r\n", $lines);
     }
 
-    private function buildDestinationLabel(Shipment $shipment): string
+    /**
+     * @param  array{name?: string, email?: string, phone?: string}  $consigneeParty
+     * @return array<int, string>
+     */
+    private function buildShippedToLines(Shipment $shipment, array $manifestData, array $consigneeParty): array
     {
-        $portAndCity = collect([
-            $shipment->consignee_port_code,
-            $shipment->consignee_city,
-        ])->filter()->implode(' - ');
+        $name = trim((string) (
+            $consigneeParty['name']
+            ?: $shipment->consignee_att
+            ?: ($manifestData['consigneeName'] ?? '')
+        ));
+        $address = trim((string) ($manifestData['consigneeAddress'] ?? ''));
+        $email = trim((string) (
+            $shipment->consignee_email
+            ?: ($consigneeParty['email'] ?? '')
+            ?: ($manifestData['consigneeEmail'] ?? '')
+        ));
+        $phone = trim((string) (
+            ($consigneeParty['phone'] ?? '')
+            ?: ($manifestData['consigneePhone'] ?? '')
+            ?: ($manifestData['consigneeContactPhone'] ?? '')
+        ));
 
-        return collect([
-            $portAndCity,
-            $shipment->location,
-        ])->filter()->implode(' / ') ?: '—';
+        return [
+            '**Shipped to:**',
+            '' . ($name !== '' && $name !== '—' ? $name : '—'),
+            '' . ($address !== '' && $address !== '—' ? $address : '—'),
+            'email: ' . ($email !== '' && $email !== '—' ? $email : '—'),
+            'phone: ' . ($phone !== '' && $phone !== '—' ? $phone : '—'),
+        ];
     }
 
     private function buildServiceDetailsSection(Shipment $shipment): string

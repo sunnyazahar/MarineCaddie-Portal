@@ -2272,6 +2272,7 @@
             color: #64748b;
             line-height: 1.4;
         }
+        #compose-manifest-mail-modal .btn-compose-discard {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -2282,11 +2283,16 @@
             font-weight: 500;
             border-radius: 4px;
             padding: 8px 14px;
+            cursor: pointer;
         }
         #compose-manifest-mail-modal .btn-compose-discard:hover {
             background: #dc2626;
             border-color: #dc2626;
             color: #fff;
+        }
+        #compose-manifest-mail-modal .btn-compose-discard:disabled {
+            opacity: .7;
+            cursor: not-allowed;
         }
         #compose-manifest-mail-modal .btn-compose-draft {
             display: inline-flex;
@@ -3390,7 +3396,7 @@
                 </div>
             </div>
             <div class="compose-footer">
-                <button type="button" class="btn-compose-discard" id="compose-mail-discard">
+                <button type="button" class="btn-compose-discard" id="compose-mail-discard" data-dismiss="modal">
                     <i class="ti-close"></i> Discard
                 </button>
                 <div class="compose-footer-right">
@@ -4037,11 +4043,16 @@
         });
 
         function plainTextToEditorHtml(text) {
-            return $('<div>').text(text || '').html().replace(/\n/g, '<br>');
+            return $('<div>').text(text || '').html()
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
         }
 
         function editorHtmlToPlainText(html) {
             var $tmp = $('<div>').html(html || '');
+            $tmp.find('strong, b').each(function() {
+                $(this).replaceWith('**' + $(this).text() + '**');
+            });
             $tmp.find('br').replaceWith('\n');
             $tmp.find('div, p, li').each(function() {
                 $(this).append('\n');
@@ -4363,7 +4374,10 @@
 
         $(document).on('click', '#compose-mail-discard', function() {
             pendingManifestMail = null;
-            $('#compose-manifest-mail-modal').modal('hide');
+            $('#compose-mail-to, #compose-mail-cc, #compose-mail-bcc, #compose-mail-subject').val('');
+            $('#compose-mail-body').html('');
+            $('#compose-attachment-list').empty();
+            $('#compose-manifest-mail-modal').removeClass('compose-sending').modal('hide');
         });
 
         $(document).on('click', '#compose-mail-draft', function() {
