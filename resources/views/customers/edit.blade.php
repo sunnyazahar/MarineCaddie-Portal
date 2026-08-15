@@ -76,9 +76,9 @@
         .form-group { margin-bottom: 12px; }
         .form-group label {
             display: block;
-            font-size: 10px;
+            font-size: 13px;
             font-weight: 600;
-            color: #555;
+            color: #3c485a;
             margin-bottom: 4px;
             text-transform: none;
         }

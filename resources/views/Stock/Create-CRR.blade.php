@@ -75,8 +75,8 @@
 
         .crr-label {
             display: block;
-            font-size: 11px;
-            color: #666;
+            font-size: 13px;
+            color: #3c485a;
             margin-bottom: 3px;
         }
 

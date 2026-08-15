@@ -52,9 +52,9 @@
 
         .form-group label {
             display: block;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 500;
-            color: #555;
+            color: #3c485a;
             margin-bottom: 4px;
             text-transform: none;
         }

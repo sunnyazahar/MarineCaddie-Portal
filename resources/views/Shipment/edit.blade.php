@@ -444,8 +444,8 @@
             margin-bottom: 12px;
         }
         .form-group-custom label {
-            font-size: 10px;
-            color: #6b7280;
+            font-size: 13px;
+            color: #3c485a;
             margin-bottom: 4px;
             display: block;
         }

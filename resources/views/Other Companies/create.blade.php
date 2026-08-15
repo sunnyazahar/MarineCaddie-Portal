@@ -37,8 +37,8 @@
             margin-bottom: 15px;
         }
         .form-label-custom {
-            font-size: 11px;
-            color: #666;
+            font-size: 13px;
+            color: #3c485a;
             margin-bottom: 4px;
             display: block;
         }

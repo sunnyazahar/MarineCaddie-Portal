@@ -66,9 +66,9 @@
             gap: 5px;
         }
         .form-label-custom {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 500;
-            color: #262626;
+            color: #3c485a;
             margin-bottom: 0;
         }
         .form-input-custom {

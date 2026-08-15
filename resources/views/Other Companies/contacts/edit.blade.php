@@ -17,8 +17,8 @@
         }
 
         .form-label-custom {
-            font-size: 11px;
-            color: #1b5e6f;
+            font-size: 13px;
+            color: #3c485a;
             margin-bottom: 8px;
             display: block;
             font-weight: 600;

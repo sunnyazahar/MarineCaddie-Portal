@@ -197,7 +197,7 @@
             display: block;
         }
         .label-normal {
-            color: #555;
+            color: #3c485a;
             font-weight: 500;
             font-size: 13px;
             margin-bottom: 5px;

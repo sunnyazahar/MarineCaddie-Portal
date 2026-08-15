@@ -48,9 +48,9 @@
         }
 
         .form-label-custom {
-            font-size: 11px;
-            font-weight: 600;
-            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+            color: #3c485a;
             margin-bottom: 4px;
             display: block;
         }

@@ -388,9 +388,9 @@
 
         .form-label-custom {
             display: block;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 600;
-            color: #1b5e6f;
+            color: #3c485a;
             margin-bottom: 6px;
         }
 

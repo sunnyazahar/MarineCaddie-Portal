@@ -228,8 +228,8 @@
 
         /* Form Styling Overrides */
         .form-group label {
-            font-size: 11px;
-            color: #888;
+            font-size: 13px;
+            color: #3c485a;
             margin-bottom: 5px;
             font-weight: 500;
         }

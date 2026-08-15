@@ -213,8 +213,8 @@
             margin-bottom: 10px;
         }
         .form-label-custom {
-            font-size: 12px;
-            color: #666;
+            font-size: 13px;
+            color: #3c485a;
             margin-bottom: 5px;
             display: block;
         }
