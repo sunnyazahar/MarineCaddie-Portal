@@ -20,14 +20,14 @@
         .office-table th {
             text-align: left;
             padding: 12px 15px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             color: #374151;
             border-bottom: 1px solid #e5e7eb;
         }
         .office-table td {
             padding: 12px 15px;
-            font-size: 12px;
+            font-size: 13px;
             color: #4b5563;
             border-bottom: 1px solid #f3f4f6;
             vertical-align: middle;

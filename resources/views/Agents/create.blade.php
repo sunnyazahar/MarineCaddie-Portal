@@ -70,7 +70,7 @@
         }
 
         .form-label-custom {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 500;
             color: #262626;
             margin-bottom: 0;

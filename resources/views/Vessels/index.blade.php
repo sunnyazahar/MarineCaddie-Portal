@@ -19,7 +19,7 @@
         .table-other-companies th {
             text-align: left;
             padding: 8px 5px;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 600;
             color: #1b5e6f;
             border-bottom: 1px solid #eee;
@@ -28,7 +28,7 @@
         }
         .table-other-companies td {
             padding: 4px 8px;
-            font-size: 11px;
+            font-size: 13px !important;
             color: #333;
             border-bottom: 1px solid #f0f0f0;
             border-right: 1px solid #f0f0f0;
@@ -241,7 +241,7 @@
 
         #vessels-table th,
         #vessels-table td {
-            font-size: 11px !important;
+            font-size: 13px !important;
             line-height: 1.35;
             white-space: nowrap;
         }
@@ -483,7 +483,7 @@
                                                                     <td>{{ $vessel->vessel }}</td>
                                                                     <td>{{ $vessel->vessel_imo }}</td>
                                                                     <td>{{ $vessel->vessel_type_alias }}</td>
-                                                                    <td style="font-size: 10px; color: #555;">{{ $vessel->customer->customer_name ?? '-' }}</td>
+                                                                    <td style="color: #555;">{{ $vessel->customer->customer_name ?? '-' }}</td>
                                                                 </tr>
                                                             @endforeach
                                                         </tbody>

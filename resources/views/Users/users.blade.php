@@ -373,7 +373,7 @@
 
         #offices-table th,
         #offices-table td {
-            font-size: 12px !important;
+            font-size: 13px !important;
             white-space: nowrap;
         }
 

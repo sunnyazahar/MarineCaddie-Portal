@@ -30,7 +30,7 @@
         }
         .table-other-companies td {
             padding: 8px 10px;
-            font-size: 11px;
+            font-size: 13px;
             color: #333;
             border-bottom: 1px solid #f0f0f0;
             border-right: 1px solid #f0f0f0;

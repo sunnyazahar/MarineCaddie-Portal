@@ -26,7 +26,7 @@
             z-index: 100 !important;
             background-color: #fdfdfd !important;
             color: #374151;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 600;
             padding: 10px 8px;
             border-bottom: 2px solid #dee2e6 !important;
@@ -37,7 +37,7 @@
         }
         #offices-table tbody td {
             padding: 6px 8px !important;
-            font-size: 11px;
+            font-size: 13px;
             color: #1f2937;
             border-bottom: 1px solid #f3f4f6;
             vertical-align: middle;

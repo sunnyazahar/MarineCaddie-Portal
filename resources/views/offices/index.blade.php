@@ -15,7 +15,7 @@
         #offices-table tbody td {
             padding: 4px 5px !important;
             vertical-align: middle !important;
-            font-size: 12px;
+            font-size: 13px;
             white-space: normal !important;
         }
         .btn-teal {

@@ -18,7 +18,7 @@
         }
         .office-table tbody td {
             padding: 6px 8px;
-            font-size: 11px;
+            font-size: 13px;
             color: #1f2937;
             border-bottom: 1px solid #f3f4f6;
             vertical-align: middle;

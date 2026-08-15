@@ -201,7 +201,7 @@
 
         .table-agents td {
             padding: 6px 10px;
-            font-size: 11px;
+            font-size: 13px;
             color: #333;
             border-bottom: 1px solid #f9f9f9;
             vertical-align: middle;

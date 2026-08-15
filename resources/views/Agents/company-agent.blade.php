@@ -194,7 +194,7 @@
             max-width: 400px;
         }
         .form-label-custom {
-            font-size: 11px;
+            font-size: 13px;
             color: #666;
             margin-bottom: 4px;
             display: block;
