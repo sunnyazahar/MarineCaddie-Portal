@@ -1791,6 +1791,20 @@
                 return hubKeys.length > 1;
             }
 
+            function selectedStocksHaveInProgress($checked) {
+                var found = false;
+
+                $checked.each(function() {
+                    var status = String($(this).closest('tr').attr('data-status') || '').trim().toLowerCase();
+                    if (status === 'in progress') {
+                        found = true;
+                        return false;
+                    }
+                });
+
+                return found;
+            }
+
             function updateBulkFooter() {
                 var $checked = $('.row-checkbox:checked');
                 var count = $checked.length;
@@ -1821,12 +1835,18 @@
                 $('#bulk-stat-cbm').text(totalCbm.toFixed(2) + ' CBM');
 
                 var hasMixedHubs = selectedStocksHaveMixedHubs($checked);
+                var hasInProgress = selectedStocksHaveInProgress($checked);
                 var $createShipmentBtn = $('#bulk-create-shipment');
-                $createShipmentBtn.prop('disabled', hasMixedHubs);
-                $createShipmentBtn.attr(
-                    'title',
-                    hasMixedHubs ? 'All selected stock items must belong to the same hub.' : ''
-                );
+                var createShipmentTitle = '';
+
+                if (hasInProgress) {
+                    createShipmentTitle = 'In Progress stock cannot be used to create a shipment.';
+                } else if (hasMixedHubs) {
+                    createShipmentTitle = 'All selected stock items must belong to the same hub.';
+                }
+
+                $createShipmentBtn.prop('disabled', hasMixedHubs || hasInProgress);
+                $createShipmentBtn.attr('title', createShipmentTitle);
 
                 $('#stock-bulk-footer').show();
                 $('body').addClass('stock-bulk-footer-visible');

@@ -2190,11 +2190,11 @@ class ShipmentController extends Controller
 
         $invalidCount = Crr::query()
             ->whereIn('id', $crrIds)
-            ->whereIn('status', [Crr::STATUS_COMPLETED, Crr::STATUS_CANCELLED])
+            ->whereIn('status', [Crr::STATUS_IN_PROGRESS, Crr::STATUS_COMPLETED, Crr::STATUS_CANCELLED])
             ->count();
 
         if ($invalidCount > 0) {
-            $validator->errors()->add('crr_ids', 'Completed and cancelled stock items cannot be added to a shipment.');
+            $validator->errors()->add('crr_ids', 'In Progress, completed and cancelled stock items cannot be added to a shipment.');
         }
     }
 
