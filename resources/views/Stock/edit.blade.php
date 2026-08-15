@@ -1929,9 +1929,9 @@
                                                     <div class="row">
                                                         <div class="col-sm-4">
                                                             <div class="field-group">
-                                                                <label class="field-label">Currency</label>
+                                                                <label class="field-label">Currency <span class="text-danger">*</span></label>
                                                                 <select class="field-input select2" name="currency"
-                                                                    id="edit_currency_select">
+                                                                    id="edit_currency_select" required>
                                                                     <option value=""></option>
                                                                     @foreach($countries->whereNotNull('currency')->unique('currency')->sortBy('currency') as $country)
                                                                         <option value="{{ $country->currency }}"
@@ -1944,10 +1944,10 @@
                                                         </div>
                                                         <div class="col-sm-4">
                                                             <div class="field-group">
-                                                                <label class="field-label">Customs value</label>
+                                                                <label class="field-label">Customs value <span class="text-danger">*</span></label>
                                                                 <input type="text" step="0.01" class="field-input"
                                                                     name="customs_value" id="edit_customs_value"
-                                                                    value="{{ $crr->customs_value }}">
+                                                                    value="{{ $crr->customs_value }}" required>
                                                             </div>
 
                                                         </div>
@@ -4326,8 +4326,36 @@ function updatePackageSummary() {
             var $rows = $('#packagesTable tbody tr:not(.empty-row):not(.dgr-sub-row):not(.irregularity-sub-row)');
             var message = '';
             var incomplete = false;
+            var $currency = $('#edit_currency_select');
+            var $customsValue = $('#edit_customs_value');
+            var $currencySelection = $currency.next('.select2-container').find('.select2-selection');
 
             $rows.find('.pkg-l, .pkg-w, .pkg-h, .pkg-weight').css('border-color', '');
+            $customsValue.css('border-color', '');
+            $currencySelection.css('border-color', '');
+
+            if (!$.trim(String($currency.val() || ''))) {
+                e.preventDefault();
+                $currencySelection.css('border-color', '#dc3545');
+                $errorText.text('Currency is required.');
+                $errorBox.show();
+                $('html, body').animate({
+                    scrollTop: $currency.closest('.field-group').offset().top - 100
+                }, 300);
+                return false;
+            }
+
+            var customsValue = $.trim(String($customsValue.val() || ''));
+            if (customsValue === '' || isNaN(parseFloat(customsValue))) {
+                e.preventDefault();
+                $customsValue.css('border-color', '#dc3545');
+                $errorText.text('Customs value is required.');
+                $errorBox.show();
+                $('html, body').animate({
+                    scrollTop: $customsValue.offset().top - 100
+                }, 300);
+                return false;
+            }
 
             if ($rows.length === 0) {
                 message = 'Please add at least one package with Length, Width, Height and Weight before saving.';

@@ -79,6 +79,8 @@ class CrrController extends Controller
     {
         $validated = $request->validate([
             'hub_agent' => ['required', 'string', 'max:50', 'regex:/[A-Za-z0-9]/'],
+            'currency' => ['required', 'string', 'max:10'],
+            'customs_value' => ['required', 'numeric'],
             'status' => ['nullable', 'integer', \Illuminate\Validation\Rule::in(array_keys(Crr::getStatusLabels()))],
             'actual_delivery_date' => ['nullable', 'required_if:status,' . Crr::STATUS_ACTIVE, 'date'],
             'packages' => ['required', 'array', 'min:1'],
@@ -87,6 +89,9 @@ class CrrController extends Controller
             'packages.*.height' => ['required', 'numeric', 'gt:0'],
             'packages.*.weight' => ['required', 'numeric', 'gt:0'],
         ], [
+            'currency.required' => 'Currency is required.',
+            'customs_value.required' => 'Customs value is required.',
+            'customs_value.numeric' => 'Customs value must be a number.',
             'actual_delivery_date.required_if' => 'Actual delivery date is required when status is Stock.',
             'packages.required' => 'Please add at least one package before saving.',
             'packages.min' => 'Please add at least one package before saving.',
@@ -147,8 +152,8 @@ class CrrController extends Controller
                 'customs_lot_number'      => $request->input('customs_lot_number'),
                 'country_of_origin'       => $request->input('country_of_origin'),
                 'hs_code'                 => $request->input('hs_code'),
-                'currency'                => $request->input('currency'),
-                'customs_value'           => $request->input('customs_value')           ?: null,
+                'currency'                => $validated['currency'],
+                'customs_value'           => $validated['customs_value'],
                 'priority'                => $request->input('priority'),
                 'status'                  => $request->input('status', Crr::STATUS_PENDING),
                 'flags'                   => Crr::defaultFlags(),
@@ -249,13 +254,18 @@ class CrrController extends Controller
         $crr->load(['packages', 'costs']);
         $changeLogSnapshot = $changeLogService->captureSnapshot($crr);
 
-        $request->validate([
+        $validated = $request->validate([
+            'currency' => ['required', 'string', 'max:10'],
+            'customs_value' => ['required', 'numeric'],
             'packages' => ['required', 'array', 'min:1'],
             'packages.*.length' => ['required', 'numeric', 'gt:0'],
             'packages.*.width' => ['required', 'numeric', 'gt:0'],
             'packages.*.height' => ['required', 'numeric', 'gt:0'],
             'packages.*.weight' => ['required', 'numeric', 'gt:0'],
         ], [
+            'currency.required' => 'Currency is required.',
+            'customs_value.required' => 'Customs value is required.',
+            'customs_value.numeric' => 'Customs value must be a number.',
             'packages.required' => 'Please add at least one package before saving.',
             'packages.min' => 'Please add at least one package before saving.',
             'packages.*.length.required' => 'Package length is required.',
@@ -301,8 +311,8 @@ class CrrController extends Controller
                 'customs_lot_number'      => $request->input('customs_lot_number'),
                 'country_of_origin'       => $request->input('country_of_origin'),
                 'hs_code'                 => $request->input('hs_code'),
-                'currency'                => $request->input('currency'),
-                'customs_value'           => $request->input('customs_value')           ?: null,
+                'currency'                => $validated['currency'],
+                'customs_value'           => $validated['customs_value'],
                 'priority'                => $request->input('priority'),
                 'internal_comments'       => $request->input('internal_comments'),
                 'customs_value_usd'       => $request->input('customs_value_usd'),

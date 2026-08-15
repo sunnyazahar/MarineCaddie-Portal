@@ -88,7 +88,8 @@ class ShipmentPreAlertPdfBuilder
         $issuedByName = $office?->office_name ?? $base['companyName'] ?? 'Marinetrans';
         $issuedByAddress = $this->formatOfficeAddress($office) ?: ($base['companyAddress'] ?? '—');
 
-        $preAlertRows = $shipment->crrs->map(function (Crr $crr) {
+        $currencyRates = $this->manifestPdfBuilder->currencyRatesByCode();
+        $preAlertRows = $shipment->crrs->map(function (Crr $crr) use ($currencyRates) {
             $poNumbers = is_array($crr->po_numbers)
                 ? implode(', ', $crr->po_numbers)
                 : ($crr->po_numbers ?? '—');
@@ -98,15 +99,15 @@ class ShipmentPreAlertPdfBuilder
                 $description .= "\nHsCode: " . $crr->hs_code;
             }
 
+            $customsUsd = $this->manifestPdfBuilder->convertCustomsValueToUsd($crr, $currencyRates);
+
             return [
                 'supplier' => $crr->supplier ?? '—',
                 'po_number' => $poNumbers ?: '—',
                 'items' => $crr->packages->count(),
                 'weight' => round((float) $crr->packages->sum('weight'), 2),
                 'cbm' => round((float) $crr->packages->sum('cbm'), 2),
-                'customs_value' => $crr->customs_value
-                    ? number_format((float) $crr->customs_value, 2) . ' ' . ($crr->currency ?? 'USD')
-                    : '—',
+                'customs_value' => number_format($customsUsd, 2) . ' USD',
                 'description' => $description,
                 'stock_number' => $crr->stock_number ?? '—',
                 'location' => $crr->location ?: '—',

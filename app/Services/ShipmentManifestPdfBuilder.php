@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Agent;
+use App\Models\Country;
 use App\Models\Crr;
 use App\Models\Customer;
 use App\Models\Hub;
@@ -15,6 +16,9 @@ use Carbon\Carbon;
 
 class ShipmentManifestPdfBuilder
 {
+    /** @var array<string, float>|null */
+    private ?array $currencyRatesByCode = null;
+
     public function __construct(
         private ShipmentStockSnapshotService $stockSnapshotService,
     ) {}
@@ -42,8 +46,11 @@ class ShipmentManifestPdfBuilder
         $totalPackages = $packages->count();
         $totalWeight = round((float) $packages->sum('weight'), 2);
         $totalCbm = round((float) $packages->sum('cbm'), 2);
-        $totalCustomsValue = round((float) $crrs->sum('customs_value'), 2);
-        $currency = $crrs->first()?->currency ?? 'USD';
+        $currencyRates = $this->currencyRatesByCode();
+        $totalCustomsValue = round($crrs->sum(
+            fn (Crr $crr) => $this->convertCustomsValueToUsd($crr, $currencyRates)
+        ), 2);
+        $currency = 'USD';
         $volumeWeight = round($totalCbm * 167, 2);
         $totalCbft = round($totalCbm * 35.315, 2);
 
@@ -65,7 +72,7 @@ class ShipmentManifestPdfBuilder
             ->unique()
             ->implode(', ');
 
-        $manifestRows = $crrs->map(function (Crr $crr) {
+        $manifestRows = $crrs->map(function (Crr $crr) use ($currencyRates) {
             $poNumbers = is_array($crr->po_numbers)
                 ? implode(', ', $crr->po_numbers)
                 : ($crr->po_numbers ?? '—');
@@ -77,8 +84,8 @@ class ShipmentManifestPdfBuilder
                 'items' => $crr->packages->count(),
                 'weight' => round((float) $crr->packages->sum('weight'), 2),
                 'cbm' => round((float) $crr->packages->sum('cbm'), 2),
-                'customs_value' => number_format((float) ($crr->customs_value ?? 0), 2),
-                'currency' => $crr->currency ?? 'USD',
+                'customs_value' => number_format($this->convertCustomsValueToUsd($crr, $currencyRates), 2),
+                'currency' => 'USD',
                 'description' => $crr->content ?? 'Shipspares',
                 'stock_number' => $crr->stock_number ?? '—',
                 'transit_id' => $crr->transit_id ?? '',
@@ -239,7 +246,7 @@ class ShipmentManifestPdfBuilder
 
         $lines = array_values(array_filter([
             ($name !== '' && $name !== '—') ? $name : null,
-            ($address !== '' && $address !== '—') ? $address : null,
+            ($address !== '' && $address !== '—') ? wordwrap($address, 32, "\n", true) : null,
             ($email !== '' && $email !== '—') ? 'Email: ' . $email : null,
             ($phone !== '' && $phone !== '—') ? 'Phone: ' . $phone : null,
         ]));
@@ -565,6 +572,55 @@ class ShipmentManifestPdfBuilder
         }
 
         return 'M/V ' . $vessel;
+    }
+
+    /**
+     * OpenER-API stores 1 USD = X local units in countries.currency_value.
+     *
+     * @return array<string, float>
+     */
+    public function currencyRatesByCode(): array
+    {
+        if ($this->currencyRatesByCode !== null) {
+            return $this->currencyRatesByCode;
+        }
+
+        $this->currencyRatesByCode = Country::query()
+            ->whereNotNull('currency')
+            ->where('currency', '!=', '')
+            ->whereNotNull('currency_value')
+            ->get(['currency', 'currency_value'])
+            ->groupBy(fn (Country $country) => strtoupper(trim((string) $country->currency)))
+            ->map(fn ($rows) => (float) $rows->first()->currency_value)
+            ->all();
+
+        return $this->currencyRatesByCode;
+    }
+
+    /**
+     * @param  array<string, float>|null  $rates
+     */
+    public function convertCustomsValueToUsd(Crr $crr, ?array $rates = null): float
+    {
+        $amount = (float) ($crr->customs_value ?? 0);
+        $currency = strtoupper(trim((string) ($crr->currency ?? 'USD')));
+
+        if ($currency === '' || $currency === 'USD') {
+            return round($amount, 2);
+        }
+
+        $rates ??= $this->currencyRatesByCode();
+        $rate = (float) ($rates[$currency] ?? 0);
+        if ($rate > 0) {
+            return round($amount / $rate, 2);
+        }
+
+        $storedUsd = (float) ($crr->customs_value_usd ?? 0);
+        if ($storedUsd > 0) {
+            return round($storedUsd, 2);
+        }
+
+        return round($amount, 2);
     }
 
     private function formatOnBoardSignatory(?string $vesselName): string

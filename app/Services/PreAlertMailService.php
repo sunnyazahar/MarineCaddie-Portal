@@ -298,8 +298,8 @@ class PreAlertMailService
             '**Shipped to:**',
             '' . ($name !== '' && $name !== '—' ? $name : '—'),
             '' . ($address !== '' && $address !== '—' ? $address : '—'),
-            'email: ' . ($email !== '' && $email !== '—' ? $email : '—'),
-            'phone: ' . ($phone !== '' && $phone !== '—' ? $phone : '—'),
+            'Email: ' . ($email !== '' && $email !== '—' ? $email : '—'),
+            'Phone: ' . ($phone !== '' && $phone !== '—' ? $phone : '—'),
         ];
     }
 

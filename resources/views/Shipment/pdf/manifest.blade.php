@@ -21,14 +21,22 @@
         .field-table td { padding: 3px 0; vertical-align: top; }
         .field-label { width: 30%; font-weight: bold; }
         .data-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
-        .data-table th, .data-table td { border: 1px solid #000000; padding: 5px 4px; text-align: left; }
+        .data-table th, .data-table td { border: 0.5px solid #ccc; padding: 5px 4px; text-align: left; }
         .data-table th { background: #f3f4f6; font-weight: bold; }
         .totals-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
         .totals-table td { padding: 3px 0; }
         .totals-label { width: 38%; font-weight: bold; }
         .party-heading { font-weight: bold; display: block; margin-bottom: 2px; }
-        .party-block { white-space: pre-wrap; word-wrap: break-word; }
+        .party-block {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            width: 250px;
+            line-height: 1.15;
+        }
+        .party-block br { line-height: 1.15; margin: 0; padding: 0; }
         .party-cell { padding-top: 10px; text-align: left; }
+        .party-inner { width: 250px; border-collapse: collapse; }
         .comments { white-space: pre-wrap; font-size: 10px; margin-top: 8px; }
         .vessel-heading { font-size: 12px; font-weight: bold; margin: 10px 0 6px; }
         .pending-eta { font-size: 10px; color: #666; margin: 6px 0 2px; }
@@ -53,7 +61,7 @@
         }
         .onboard-receipt-line {
             width: 50%;
-            border-top: 1px dashed rgb(0, 0, 0);
+            border-top: 1px dashed #9ca3af;
             margin: 0 0 10px;
         }
         .onboard-receipt-signatory {
@@ -171,15 +179,21 @@
             </tr>
             <tr>
                 <td style="width:62%;" class="party-cell">
-                    <span class="party-heading">Shipper</span>
-                    <div class="party-block">' . e($shipperLine) . '</div>
+                    <table class="party-inner">
+                        <tr>
+                            <td style="text-align:left; vertical-align:top; width:180px;">
+                                <span class="party-heading">Shipper</span>
+                                <div class="party-block">' . nl2br(e($shipperLine), false) . '</div>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
                 <td class="header-right party-cell" style="width:38%;">
-                    <table align="right" style="width:180px; border-collapse:collapse;">
+                    <table align="right" class="party-inner">
                         <tr>
-                            <td style="text-align:left; vertical-align:top;">
+                            <td style="text-align:left; vertical-align:top; width:180px;">
                                 <span class="party-heading">Consignee</span>
-                                <div class="party-block">' . e($consigneeLine) . '</div>
+                                <div class="party-block">' . nl2br(e($consigneeLine), false) . '</div>
                             </td>
                         </tr>
                     </table>

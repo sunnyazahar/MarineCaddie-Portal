@@ -93,6 +93,7 @@ class ManifestMailService
         $attachments = array_merge($mail['attachments'], $extraAttachments);
         $normalizedBody = preg_replace("/\r\n|\r|\n/", "\n", $body) ?? '';
         $htmlBody = nl2br(e($normalizedBody), false);
+        $htmlBody = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $htmlBody) ?? $htmlBody;
         $fromEmail = $mail['senderEmail'] ?: config('mail.from.address');
         $fromName = $mail['senderName'] ?: config('mail.from.name');
 

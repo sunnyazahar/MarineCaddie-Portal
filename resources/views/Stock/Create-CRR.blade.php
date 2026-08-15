@@ -972,9 +972,9 @@
                                                     <div class="row">
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label">Currency</label>
+                                                                <label class="crr-label">Currency <span class="text-danger">*</span></label>
                                                                 <select class="form-control select2" name="currency"
-                                                                    id="currency_select">
+                                                                    id="currency_select" required>
                                                                     <option></option>
                                                                     @foreach($countries->whereNotNull('currency')->unique('currency')->sortBy('currency') as $country)
                                                                         <option value="{{ $country->currency }}"
@@ -987,9 +987,9 @@
                                                         </div>
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label">Customs value</label>
+                                                                <label class="crr-label">Customs value <span class="text-danger">*</span></label>
                                                                 <input type="text" step="0.01" class="crr-input"
-                                                                    name="customs_value">
+                                                                    name="customs_value" id="customs_value" required>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2265,11 +2265,39 @@
                 var $actualDelivery = $('#actual_delivery_date');
                 var $actualErrorBox = $('#actual-delivery-validation-error');
                 var $actualErrorText = $('#actual-delivery-validation-error-text');
+                var $currency = $('#currency_select');
+                var $customsValue = $('#customs_value');
+                var $currencySelection = $currency.next('.select2-container').find('.select2-selection');
 
                 $rows.find('.pkg-l, .pkg-w, .pkg-h, .pkg-weight').css('border-color', '');
                 $actualDelivery.css('border-color', '');
                 $actualErrorText.text('');
                 $actualErrorBox.hide();
+                $customsValue.css('border-color', '');
+                $currencySelection.css('border-color', '');
+
+                if (!$.trim(String($currency.val() || ''))) {
+                    e.preventDefault();
+                    $currencySelection.css('border-color', '#dc3545');
+                    $errorText.text('Currency is required.');
+                    $errorBox.show();
+                    $('html, body').animate({
+                        scrollTop: $currency.closest('.crr-field-group').offset().top - 100
+                    }, 300);
+                    return false;
+                }
+
+                var customsValue = $.trim(String($customsValue.val() || ''));
+                if (customsValue === '' || isNaN(parseFloat(customsValue))) {
+                    e.preventDefault();
+                    $customsValue.css('border-color', '#dc3545');
+                    $errorText.text('Customs value is required.');
+                    $errorBox.show();
+                    $('html, body').animate({
+                        scrollTop: $customsValue.offset().top - 100
+                    }, 300);
+                    return false;
+                }
 
                 if ($rows.length === 0) {
                     message = 'Please add at least one package with Length, Width, Height and Weight before saving.';
