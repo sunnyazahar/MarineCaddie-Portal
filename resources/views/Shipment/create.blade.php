@@ -3070,7 +3070,7 @@
             
             // Select all checkboxes in modal
             $('#modal-select-all').on('change', function() {
-                $('.modal-row-checkbox').prop('checked', $(this).prop('checked'));
+                $('#stock-items-modal-table tbody tr:visible .modal-row-checkbox:not(:disabled)').prop('checked', $(this).prop('checked'));
                 updateRealtimeHubValidation();
             });
 
@@ -3177,12 +3177,17 @@
             $('#modal-add-selected').on('click', function() {
                 clearStockModalError();
                 var selectedIds = [];
-                $('.modal-row-checkbox:checked').each(function() {
+                $('.modal-row-checkbox:checked:not(:disabled)').each(function() {
+                    var $row = $(this).closest('tr');
+                    var status = String($row.attr('data-status') || '').trim().toLowerCase();
+                    if (status === 'in progress') {
+                        return;
+                    }
                     selectedIds.push($(this).val());
                 });
 
                 if (selectedIds.length === 0) {
-                    alert('Please select at least one stock item.');
+                    showStockModalError('Please select at least one stock item.');
                     return;
                 }
 
@@ -3466,7 +3471,12 @@
                                     data-weight="{{ $totalWeight > 0 ? number_format($totalWeight, 2, '.', '') : '' }}"
                                     data-cbm="{{ $crr->cbm ?? '' }}"
                                     data-value="{{ $crr->customs_value ? number_format($crr->customs_value, 2, '.', '') : '' }}">
-                                    <td class="text-center"><input type="checkbox" class="modal-row-checkbox" value="{{ $crr->id }}"></td>
+                                    <td class="text-center">
+                                        <input type="checkbox"
+                                            class="modal-row-checkbox"
+                                            value="{{ $crr->id }}"
+                                            @if((int) $crr->status === \App\Models\Crr::STATUS_IN_PROGRESS) disabled title="In Progress stock cannot be added to a shipment." @endif>
+                                    </td>
                                     <td>{{ $crr->hub_code ?? '—' }}</td>
                                     <td>
                                         <div class="d-flex align-items-center justify-content-between">

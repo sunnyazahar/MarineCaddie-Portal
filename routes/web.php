@@ -165,7 +165,7 @@ Route::get('/create-shipment', function (\Illuminate\Http\Request $request) {
 
     if ($preselectedCrrIds !== []) {
         $preselectedCrrIds = \App\Models\Crr::query()
-            ->selectableForShipment()
+            ->attachableToShipment()
             ->whereIn('id', $preselectedCrrIds)
             ->pluck('id')
             ->map(fn ($id) => (int) $id)

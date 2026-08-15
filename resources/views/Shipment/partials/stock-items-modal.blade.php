@@ -145,7 +145,12 @@
                                     data-weight="{{ $totalWeight > 0 ? number_format($totalWeight, 2, '.', '') : '' }}"
                                     data-cbm="{{ $crr->cbm ?? '' }}"
                                     data-value="{{ $crr->customs_value ? number_format($crr->customs_value, 2, '.', '') : '' }}">
-                                    <td class="text-center"><input type="checkbox" class="modal-row-checkbox" value="{{ $crr->id }}"></td>
+                                    <td class="text-center">
+                                        <input type="checkbox"
+                                            class="modal-row-checkbox"
+                                            value="{{ $crr->id }}"
+                                            @if((int) $crr->status === \App\Models\Crr::STATUS_IN_PROGRESS) disabled title="In Progress stock cannot be added to a shipment." @endif>
+                                    </td>
                                     <td>{{ $crr->hub_code ?: ($crr->hub_agent ?: '—') }}</td>
                                     <td>
                                         <div class="d-flex align-items-center justify-content-between">

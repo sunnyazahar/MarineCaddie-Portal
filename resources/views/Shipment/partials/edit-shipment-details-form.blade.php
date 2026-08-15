@@ -227,7 +227,7 @@
         </div>
         <div class="form-group-custom">
             <label>Comments to departure hub</label>
-            <textarea name="comments_departure_hub" class="form-control" style="font-size: 11px; height: 50px;">{{ old('comments_departure_hub', $shipment->comments_departure_hub) }}</textarea>
+            <textarea name="comments_departure_hub" id="comments_departure_hub" class="form-control" style="font-size: 11px; height: 50px;">{{ old('comments_departure_hub', $shipment->comments_departure_hub) }}</textarea>
             <div class="checkbox-fade fade-in-primary mt-1">
                 <label>
                     <input type="checkbox" name="skip_instruction_hub" value="1" {{ old('skip_instruction_hub', $shipment->skip_instruction_hub) ? 'checked' : '' }}>

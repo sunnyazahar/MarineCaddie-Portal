@@ -5992,6 +5992,33 @@
             return !hasMismatch;
         }
 
+        function stockRowConsigneeSummary(row) {
+            var $row = $(row);
+            var stockNo = $.trim($row.find('td').eq(4).text()) || '—';
+            var vessel = $.trim($row.find('td').eq(1).text()) || '—';
+            var pcs = $.trim($row.find('td').eq(5).text()) || '0';
+            var weight = $.trim($row.find('td').eq(6).text()) || '0';
+
+            return stockNo + ' / ' + vessel + ' / ' + pcs + ' pcs / ' + weight + ' kg';
+        }
+
+        function appendCommentsToDepartureHub(lines) {
+            var summaries = (lines || []).filter(function(line) {
+                return $.trim(String(line || '')) !== '';
+            });
+            if (!summaries.length) {
+                return;
+            }
+
+            var $field = $('#comments_departure_hub, textarea[name="comments_departure_hub"]').first();
+            if (!$field.length) {
+                return;
+            }
+
+            var existing = $.trim($field.val() || '');
+            $field.val(existing ? existing + '\n' + summaries.join('\n') : summaries.join('\n'));
+        }
+
         function refreshStockItemsTable() {
             var count = $('#stock-items-table tbody tr.selected-stock-row').length;
             $('.stock-tab[data-panel="stock-panel-items"]').text('Stock items (' + count + ')');
@@ -6127,7 +6154,7 @@
         }
 
         function updateModalSelectAllState() {
-            var $visible = $('#stock-items-modal-table tbody tr:visible .modal-row-checkbox');
+            var $visible = $('#stock-items-modal-table tbody tr:visible .modal-row-checkbox:not(:disabled)');
             var $checkedVisible = $visible.filter(':checked');
             $('#modal-select-all').prop('checked', $visible.length > 0 && $visible.length === $checkedVisible.length);
         }
@@ -6234,7 +6261,7 @@
         });
 
         $('#modal-select-all').on('change', function() {
-            $('#stock-items-modal-table tbody tr:visible .modal-row-checkbox').prop('checked', $(this).prop('checked'));
+            $('#stock-items-modal-table tbody tr:visible .modal-row-checkbox:not(:disabled)').prop('checked', $(this).prop('checked'));
             updateModalRowHighlights();
             updateRealtimeHubValidation();
         });
@@ -6248,20 +6275,25 @@
         $('#modal-add-selected').on('click', function() {
             clearStockModalError();
             var selectedIds = [];
-            $('.modal-row-checkbox:checked').each(function() {
+            $('.modal-row-checkbox:checked:not(:disabled)').each(function() {
+                var $row = $(this).closest('tr');
+                var status = String($row.attr('data-status') || '').trim().toLowerCase();
+                if (status === 'in progress') {
+                    return;
+                }
                 selectedIds.push(String($(this).val()));
             });
+
+            if (selectedIds.length === 0) {
+                showStockModalError('Please select at least one stock item.');
+                return;
+            }
 
             if (!updateRealtimeHubValidation()) {
                 return;
             }
 
-            $('#stock-items-table tbody tr.selected-stock-row').each(function() {
-                var id = String($(this).attr('data-crr-id'));
-                if (selectedIds.indexOf(id) === -1) {
-                    $(this).remove();
-                }
-            });
+            var addedLines = [];
 
             $('#empty-row').remove();
             selectedIds.forEach(function(id) {
@@ -6290,14 +6322,19 @@
                     '<td style="text-align:center;"><button type="button" class="btn btn-link btn-sm p-0 remove-stock-item"><i class="ti-trash text-muted"></i></button></td>' +
                     '</tr>';
                 $('#stock-items-table tbody').append(rowHtml);
+                var $addedRow = $('#stock-items-table tbody tr.selected-stock-row[data-crr-id="' + id + '"]').last();
+                addedLines.push('Added stock: ' + stockRowConsigneeSummary($addedRow));
             });
+            appendCommentsToDepartureHub(addedLines);
             refreshStockItemsTable();
             syncCrrHiddenInputs();
             $('#stock-items-modal').modal('hide');
         });
 
         $(document).on('click', '.remove-stock-item', function() {
-            $(this).closest('tr.selected-stock-row').remove();
+            var $row = $(this).closest('tr.selected-stock-row');
+            appendCommentsToDepartureHub(['Removed stock: ' + stockRowConsigneeSummary($row)]);
+            $row.remove();
             refreshStockItemsTable();
             syncCrrHiddenInputs();
         });

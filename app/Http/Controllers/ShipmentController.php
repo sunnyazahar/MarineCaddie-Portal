@@ -1099,7 +1099,7 @@ class ShipmentController extends Controller
         }
 
         $fingerprintService->prepareForFingerprint($shipment);
-        $serviceDetailsFingerprintBefore = $fingerprintService->serviceDetailsFingerprint($shipment);
+        $preAlertFingerprintBefore = $fingerprintService->preAlertFingerprint($shipment);
 
         try {
             DB::transaction(function () use ($shipment, $request, $validated) {
@@ -1153,7 +1153,7 @@ class ShipmentController extends Controller
         $preAlertCreated = false;
 
         if (
-            $fingerprintService->serviceDetailsFingerprint($shipment) !== $serviceDetailsFingerprintBefore
+            $fingerprintService->preAlertFingerprint($shipment) !== $preAlertFingerprintBefore
             || ! $shipment->preAlerts()->exists()
         ) {
             try {
@@ -1958,7 +1958,7 @@ class ShipmentController extends Controller
     public function update(Request $request, $id, ShipmentPdfFingerprintService $fingerprintService, ShipmentChangeLogService $changeLogService)
     {
         $shipment = Shipment::findOrFail($id);
-        $validated = $this->validateShipmentRequest($request);
+        $validated = $this->validateShipmentRequest($request, $shipment);
 
         $shipment->load([
             'crrs',
@@ -1977,13 +1977,13 @@ class ShipmentController extends Controller
 
         $fingerprintService->prepareForFingerprint($shipment);
         $manifestFingerprintBefore = $fingerprintService->manifestFingerprint($shipment);
+        $preAlertFingerprintBefore = $fingerprintService->preAlertFingerprint($shipment);
         $serviceDetailsFingerprintBefore = $fingerprintService->serviceDetailsFingerprint($shipment);
+        $previousCrrIds = $shipment->crrs->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
 
         DB::beginTransaction();
 
         try {
-            $previousCrrIds = $shipment->crrs()->pluck('crrs.id')->all();
-
             $shipment->update($this->buildShipmentAttributes($request, $validated, onlyPresent: true));
 
             if (! in_array($shipment->status, ['Completed', 'Cancelled'], true)) {
@@ -2043,7 +2043,17 @@ class ShipmentController extends Controller
         ]);
         $changeLogService->logChangesFromSnapshot($freshShipment, $changeLogSnapshot, $partyNamesBefore);
 
-        if ($fingerprintService->manifestFingerprint($freshShipment) !== $manifestFingerprintBefore) {
+        $currentCrrIds = $freshShipment->crrs->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+        $previousSorted = $previousCrrIds;
+        $currentSorted = $currentCrrIds;
+        sort($previousSorted);
+        sort($currentSorted);
+        $stocksChanged = $previousSorted !== $currentSorted;
+
+        if (
+            $stocksChanged
+            || $fingerprintService->manifestFingerprint($freshShipment) !== $manifestFingerprintBefore
+        ) {
             try {
                 $manifest = app(ShipmentManifestService::class)->generate($freshShipment);
                 if ($manifest) {
@@ -2060,10 +2070,21 @@ class ShipmentController extends Controller
 
         if (
             \App\Services\ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails($freshShipment)
-            && $fingerprintService->serviceDetailsFingerprint($freshShipment) !== $serviceDetailsFingerprintBefore
+            && (
+                $stocksChanged
+                || $fingerprintService->preAlertFingerprint($freshShipment) !== $preAlertFingerprintBefore
+                || $fingerprintService->serviceDetailsFingerprint($freshShipment) !== $serviceDetailsFingerprintBefore
+            )
         ) {
             try {
-                app(ShipmentPreAlertService::class)->generate($freshShipment);
+                $preAlert = app(ShipmentPreAlertService::class)->generate($freshShipment);
+                if ($preAlert) {
+                    $changeLogService->log(
+                        $freshShipment,
+                        $preAlert->version > 1 ? 'Pre-alert revision created' : 'Pre-alert generated',
+                        $preAlert->version > 1 ? 'Revision ' . $preAlert->version : $preAlert->file_name . '.pdf'
+                    );
+                }
             } catch (\Throwable $e) {
                 Log::warning('Pre-alert generation after shipment save failed: ' . $e->getMessage());
             }
@@ -2083,7 +2104,7 @@ class ShipmentController extends Controller
             ->with('success', $message);
     }
 
-    private function validateShipmentRequest(Request $request): array
+    private function validateShipmentRequest(Request $request, ?Shipment $shipment = null): array
     {
         $rules = [
             'departure' => 'nullable|string|max:255',
@@ -2172,24 +2193,33 @@ class ShipmentController extends Controller
 
         $validator = validator($request->all(), $rules);
 
-        $validator->after(function ($validator) use ($request) {
+        $validator->after(function ($validator) use ($request, $shipment) {
             $crrIds = array_values(array_unique($request->input('crr_ids', [])));
 
-            $this->validateSelectableCrrsForShipment($crrIds, $validator);
+            $this->validateSelectableCrrsForShipment($crrIds, $validator, $shipment);
             $this->validateSingleHubForSelectedCrrs($crrIds, $validator);
         });
 
         return $validator->validate();
     }
 
-    private function validateSelectableCrrsForShipment(array $crrIds, \Illuminate\Contracts\Validation\Validator $validator): void
+    private function validateSelectableCrrsForShipment(array $crrIds, \Illuminate\Contracts\Validation\Validator $validator, ?Shipment $shipment = null): void
     {
         if (empty($crrIds)) {
             return;
         }
 
+        $attachedIds = $shipment
+            ? $shipment->crrs()->pluck('crrs.id')->map(fn ($id) => (int) $id)->all()
+            : [];
+        $newCrrIds = array_values(array_diff(array_map('intval', $crrIds), $attachedIds));
+
+        if ($newCrrIds === []) {
+            return;
+        }
+
         $invalidCount = Crr::query()
-            ->whereIn('id', $crrIds)
+            ->whereIn('id', $newCrrIds)
             ->whereIn('status', [Crr::STATUS_IN_PROGRESS, Crr::STATUS_COMPLETED, Crr::STATUS_CANCELLED])
             ->count();
 
