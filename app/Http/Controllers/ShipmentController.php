@@ -2078,26 +2078,9 @@ class ShipmentController extends Controller
             ]);
         }
 
-        return $this->redirectAfterShipmentSave($request, $shipment, $message);
-    }
-
-    private function redirectAfterShipmentSave(Request $request, Shipment $shipment, string $message)
-    {
-        $redirectTo = $request->input('redirect_after_save');
-        if (is_string($redirectTo) && $redirectTo !== '' && $this->isSafeAppRedirect($redirectTo)) {
-            return redirect($redirectTo)->with('success', $message);
-        }
-
-        return redirect()->route('shipments')->with('success', $message);
-    }
-
-    private function isSafeAppRedirect(string $url): bool
-    {
-        if (! str_starts_with($url, '/') || str_starts_with($url, '//')) {
-            return false;
-        }
-
-        return true;
+        return redirect()
+            ->route('shipments.edit', $shipment->id)
+            ->with('success', $message);
     }
 
     private function validateShipmentRequest(Request $request): array

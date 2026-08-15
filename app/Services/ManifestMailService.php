@@ -190,18 +190,14 @@ class ManifestMailService
     {
         $vessel = $shipment->crrs->pluck('vessel_name')->filter()->first() ?? '—';
         $service = $shipment->service ?? '—';
-        $departure = $manifestData['departurePort'] ?? ($shipment->departure_port_code ?: '—');
-        $destination = collect([
+        $departure = $this->manifestPdfBuilder->formatPortCity($shipment->departure_port_code);
+        $destination = $this->manifestPdfBuilder->formatPortCity(
             $shipment->consignee_port_code,
-            $shipment->consignee_city,
-        ])->filter()->implode(' - ');
-
-        if ($destination === '') {
-            $destination = $manifestData['destinationPort'] ?? '—';
-        }
+            $shipment->consignee_city
+        );
 
         $subject = sprintf(
-            'Manifest for Shipment Ref. %s / %s / %s / From %s / to %s',
+            'Manifest for Shipment Ref. %s / %s / %s / From %s to %s',
             $shipment->shipment_number,
             $vessel,
             $service,

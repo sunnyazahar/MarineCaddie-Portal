@@ -531,7 +531,7 @@ class ShipmentPreAlertPdfBuilder
 
         return [
             'B/L: ' . $this->displayValue($leg?->bill_of_lading),
-            'Vessel name: ' . $this->displayValue($leg?->transport_vessel_name),
+            'Vessel Name: ' . $this->displayValue($leg?->transport_vessel_name),
             'Departure date: ' . $this->displayValue($leg ? $this->formatDate($leg->etd) : null),
             'Arrival date: ' . $this->displayArrivalDate($leg?->eta, $leg?->arrival_time),
         ];

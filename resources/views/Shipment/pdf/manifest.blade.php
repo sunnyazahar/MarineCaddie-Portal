@@ -245,7 +245,7 @@
 
 {{-- Manifest / Invoice --}}
 <div class="page page-break{{ !empty($isOnBoardDelivery) ? ' page-manifest-invoice' : '' }}">
-    {!! $partyHeader('Manifest / Invoice') !!}
+    {!! $partyHeader('Shipping / Invoice') !!}
     <br>
     <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
         <tr><td class="totals-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
@@ -281,7 +281,7 @@
             </tr>
             @endforeach
             <tr>
-                <td colspan="2"><strong>Total {{ $manifestRows->first()['vessel'] ?? $vesselLine }}</strong></td>
+                <td colspan="2"><strong>Total </strong></td>
                 <td><strong>{{ $totals['packages'] }} pcs</strong></td>
                 <td><strong>{{ $totals['weight'] }} kg</strong></td>
                 <td><strong>{{ number_format($totals['cbm'], 2) }} CBM</strong></td>

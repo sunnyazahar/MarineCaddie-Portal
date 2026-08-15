@@ -5460,7 +5460,7 @@
                     </div>
                     <div class="flight-field">
                         <div class="form-group-custom mb-0">
-                            <label>Flight number</label>
+                            <label>Flight Number</label>
                             <input type="text" name="flights[${rowIndex}][flight_number]" class="form-control-sm-custom">
                         </div>
                     </div>

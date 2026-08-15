@@ -167,10 +167,9 @@ class ShipmentManifestPdfBuilder
                 $consigneeParty['phone'] ?? null,
             ]) ?: '—',
             'departurePort' => $this->formatPortCodeCityCountry($shipment->departure_port_code),
-            'destinationPort' => $this->formatPortLabel(
+            'destinationPort' => $this->formatPortCodeCityCountry(
                 $shipment->consignee_port_code,
                 $shipment->consignee_city,
-                $consigneeParty,
                 $shipment->consignee_country
             ),
             'agentName' => $departureParty['name'] ?: '—',
@@ -418,54 +417,122 @@ class ShipmentManifestPdfBuilder
         return $this->joinParts($segments) ?: '—';
     }
 
-    private function formatPortLabel(?string $portCode, ?string $city, ?array $party = null, ?string $country = null): string
+    private function formatPortCodeCityCountry(?string $portCode, ?string $fallbackCity = null, ?string $fallbackCountry = null): string
     {
-        $parts = array_filter([
-            $city ?: ($party['name'] ?? null),
-            $portCode,
-            $country,
-        ]);
+        $parts = $this->resolvePortCodeParts($portCode);
+        $city = trim((string) $fallbackCity);
+        if ($city === '' || $this->looksLikePortCode($city)) {
+            $city = $parts['city'];
+        }
+        if ($city === '' || $this->looksLikePortCode($city)) {
+            $city = $this->portCityAlias($parts['code']) ?: $this->portCityAlias($portCode);
+        }
 
-        return $this->joinParts($parts, ' / ') ?: '—';
+        $country = $parts['country'] !== '' ? $parts['country'] : trim((string) $fallbackCountry);
+
+        return $this->joinParts([
+            $parts['code'] ?: null,
+            ($city !== '' && ! $this->looksLikePortCode($city)) ? $city : null,
+            $country ?: null,
+        ], ' | ') ?: '—';
     }
 
-    private function formatPortCodeCityCountry(?string $portCode): string
+    public function formatPortCity(?string $portCode, ?string $fallbackCity = null): string
+    {
+        $parts = $this->resolvePortCodeParts($portCode);
+        $candidates = [
+            trim((string) $fallbackCity),
+            $parts['city'],
+            $this->portCityAlias($parts['code']),
+            $this->portCityAlias($portCode),
+        ];
+
+        foreach ($candidates as $candidate) {
+            $city = trim((string) $candidate);
+            if ($city !== '' && ! $this->looksLikePortCode($city)) {
+                return $city;
+            }
+        }
+
+        return '—';
+    }
+
+    private function looksLikePortCode(string $value): bool
+    {
+        return (bool) preg_match('/^[A-Z0-9]{3,8}$/', $value);
+    }
+
+    private function portCityAlias(?string $code): string
+    {
+        $key = strtoupper(preg_replace('/\d+$/', '', trim((string) $code)) ?: '');
+        $aliases = [
+            'JNPT' => 'Nhava Sheva',
+            'INNSA' => 'Nhava Sheva',
+        ];
+
+        if (isset($aliases[strtoupper(trim((string) $code))])) {
+            return $aliases[strtoupper(trim((string) $code))];
+        }
+
+        return $aliases[$key] ?? '';
+    }
+
+    /**
+     * @return array{code: string, city: string, country: string}
+     */
+    private function resolvePortCodeParts(?string $portCode): array
     {
         $code = trim((string) $portCode);
         $city = '';
         $country = '';
 
-        if ($code !== '') {
-            $port = Port::query()
-                ->with('country')
-                ->where('iata_code', $code)
-                ->first();
+        if ($code === '') {
+            return ['code' => '', 'city' => '', 'country' => ''];
+        }
 
-            if ($port) {
-                $code = $port->iata_code ?: $code;
-                $city = trim((string) ($port->city ?? ''));
-                $country = trim((string) ($port->country_name ?: $port->country?->name ?: ''));
+        $port = Port::query()
+            ->with('country')
+            ->where(function ($query) use ($code) {
+                $query->where('iata_code', $code)
+                    ->orWhere('un_locode', $code)
+                    ->orWhere('port_name', $code);
+            })
+            ->first();
+
+        if (! $port) {
+            $locodePrefix = preg_replace('/\d+$/', '', $code);
+            if (is_string($locodePrefix) && $locodePrefix !== '' && $locodePrefix !== $code) {
+                $port = Port::query()
+                    ->with('country')
+                    ->where('un_locode', 'like', $locodePrefix . '%')
+                    ->first();
+            }
+        }
+
+        if ($port) {
+            $code = $port->displayCode() ?: $code;
+            $city = trim((string) ($port->city ?: $port->port_name ?: ''));
+            $country = trim((string) ($port->country_name ?: $port->country?->name ?: ''));
+        } else {
+            $hub = Hub::query()->where('port_code', $code)->first();
+
+            if ($hub) {
+                $city = trim((string) ($hub->city ?? ''));
+                $country = trim((string) ($hub->country ?? ''));
             } else {
-                $hub = Hub::query()->where('port_code', $code)->first();
+                $agent = Agent::query()
+                    ->with('country')
+                    ->where('port_code', $code)
+                    ->first();
 
-                if ($hub) {
-                    $city = trim((string) ($hub->city ?? ''));
-                    $country = trim((string) ($hub->country ?? ''));
-                } else {
-                    $agent = Agent::query()
-                        ->with('country')
-                        ->where('port_code', $code)
-                        ->first();
-
-                    if ($agent) {
-                        $city = trim((string) ($agent->city ?? ''));
-                        $country = trim((string) ($agent->country?->name ?? ''));
-                    }
+                if ($agent) {
+                    $city = trim((string) ($agent->city ?? ''));
+                    $country = trim((string) ($agent->country?->name ?? ''));
                 }
             }
         }
 
-        return $this->joinParts([$code ?: null, $city ?: null, $country ?: null], ' | ') ?: '—';
+        return ['code' => $code, 'city' => $city, 'country' => $country];
     }
 
     private function formatDimensions($length, $width, $height): string
