@@ -201,8 +201,11 @@ class PreAlertMailService
     {
         $vessel = $shipment->crrs->pluck('vessel_name')->filter()->first() ?? '—';
         $service = $shipment->service ?? '—';
-        $departure = $manifestData['departurePort'] ?? '—';
-        $destination = $this->buildDestinationLabel($shipment);
+        $departure = $this->manifestPdfBuilder->formatPortCity($shipment->departure_port_code);
+        $destination = $this->manifestPdfBuilder->formatPortCity(
+            $shipment->consignee_port_code,
+            $shipment->consignee_city
+        );
 
         return sprintf(
             'Pre-alert for Ref. %s / %s / %s / From %s to %s',

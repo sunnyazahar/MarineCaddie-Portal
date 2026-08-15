@@ -181,7 +181,7 @@
             </tr>
             @endforeach
             <tr>
-                <td colspan="2"><strong>Total {{ $primaryVessel }}</strong></td>
+                <td colspan="2"><strong>Total</strong></td>
                 <td><strong>{{ $totalPiecesLabel }}</strong></td>
                 <td><strong>{{ $totals['weight'] ?? 0 }} kg</strong></td>
                 <td><strong>{{ number_format((float) ($totals['cbm'] ?? 0), 2) }} CBM</strong></td>
