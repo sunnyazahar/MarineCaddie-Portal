@@ -21,7 +21,7 @@
         .field-table td { padding: 3px 0; vertical-align: top; }
         .field-label { width: 30%; font-weight: bold; }
         .data-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
-        .data-table th, .data-table td { border: 0.5px solid #ccc; padding: 5px 4px; text-align: left; }
+        .data-table th, .data-table td { border: 1px solid #000000; padding: 5px 4px; text-align: left; }
         .data-table th { background: #f3f4f6; font-weight: bold; }
         .totals-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
         .totals-table td { padding: 3px 0; }
@@ -53,7 +53,7 @@
         }
         .onboard-receipt-line {
             width: 50%;
-            border-top: 1px dashed #9ca3af;
+            border-top: 1px dashed rgb(0, 0, 0);
             margin: 0 0 10px;
         }
         .onboard-receipt-signatory {

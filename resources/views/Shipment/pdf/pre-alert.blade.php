@@ -18,7 +18,7 @@
         .section-title { font-size: 13px; font-weight: bold; margin: 12px 0 8px; }
         .expected-line { margin: 0 0 10px; font-size: 11px; }
         .data-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
-        .data-table th, .data-table td { border: 0.5px solid #ccc; padding: 5px 4px; text-align: left; vertical-align: top; }
+        .data-table th, .data-table td { border: 1px solid #000000; padding: 5px 4px; text-align: left; vertical-align: top; }
         .data-table th { background: #f3f4f6; font-weight: bold; }
         .field-block { margin: 10px 0; font-size: 11px; }
         .field-label { font-weight: bold; margin-bottom: 4px; }
