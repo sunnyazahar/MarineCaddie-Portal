@@ -427,6 +427,10 @@
                                                             <label class="form-label-custom">Special considerations for destination</label>
                                                             <textarea name="special_considerations" class="form-textarea-custom"></textarea>
                                                         </div>
+                                                        <div class="form-group-custom">
+                                                            <label class="form-label-custom">Contact Person <span class="text-danger">*</span></label>
+                                                            <input type="text" name="contact_person" class="form-input-custom" value="{{ old('contact_person') }}" required>
+                                                        </div>
                                                     </div>
 
                                                     <!-- Column 2: Supplier address -->
@@ -688,6 +692,9 @@
                         required: true,
                         minlength: 2
                     },
+                    contact_person: {
+                        required: true
+                    },
                     email: {
                         multiEmail: true
                     }
@@ -695,6 +702,9 @@
                 messages: {
                     supplier_name: {
                         required: "Please enter the supplier name"
+                    },
+                    contact_person: {
+                        required: "Please enter the contact person"
                     },
                     email: {
                         multiEmail: "Please enter valid email address(es), separated by comma or semicolon"

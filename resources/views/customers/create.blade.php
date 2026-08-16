@@ -570,6 +570,10 @@
                                                             class="form-control">{{ old('special_considerations') }}</textarea>
                                                     </div>
                                                     <div class="form-group">
+                                                        <label>Contact Person <span class="text-danger">*</span></label>
+                                                        <input type="text" name="contact_person" class="form-control" value="{{ old('contact_person') }}" required>
+                                                    </div>
+                                                    <div class="form-group">
                                                         <label>UN / LOCODE</label>
                                                         <select name="un_locode" class="form-control select2-field">
                                                             <option></option>
@@ -1062,6 +1066,7 @@
             $("#customerForm").validate({
                 rules: {
                     customer_name: "required",
+                    contact_person: "required",
                     email: {
                         required: true,
                         multiEmail: true
@@ -1086,6 +1091,7 @@
                 },
                 messages: {
                     customer_name: "Please enter customer name",
+                    contact_person: "Please enter the contact person",
                     email: "Please enter valid email address(es), separated by comma or semicolon",
                     street_address: "Please enter street address",
                     city: "Please enter city",

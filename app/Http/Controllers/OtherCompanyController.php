@@ -39,12 +39,13 @@ class OtherCompanyController extends Controller
             'company_type' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone_number' => 'nullable|string|max:255',
+            'contact_person' => 'required|string|max:255',
             'country_id' => 'nullable|exists:countries,id',
             'office_country_id' => 'nullable|exists:countries,id',
         ]);
 
         OtherCompany::create($request->only([
-            'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'email',
+            'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'contact_person', 'email',
             'remarks', 'special_considerations', 'street_address', 'city', 'district_state', 'zip_code',
             'country_id', 'port_code', 'office_street_address', 'office_city', 'office_district_state',
             'office_zip_code', 'office_country_id', 'vat_number', 'eori_number', 'currency', 'un_locode',
@@ -73,6 +74,7 @@ class OtherCompanyController extends Controller
                 'company_type'      => 'nullable|string|max:255',
                 'email'             => 'nullable|email|max:255',
                 'phone_number'      => 'nullable|string|max:255',
+                'contact_person'    => 'required|string|max:255',
                 'country_id'        => 'nullable|exists:countries,id',
                 'office_country_id' => 'nullable|exists:countries,id',
             ]);
@@ -82,7 +84,7 @@ class OtherCompanyController extends Controller
         }
 
         $otherCompany->fill($request->only([
-            'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'email',
+            'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'contact_person', 'email',
             'remarks', 'special_considerations', 'street_address', 'city', 'district_state', 'zip_code',
             'country_id', 'port_code', 'office_street_address', 'office_city', 'office_district_state',
             'office_zip_code', 'office_country_id', 'vat_number', 'eori_number', 'currency', 'un_locode',

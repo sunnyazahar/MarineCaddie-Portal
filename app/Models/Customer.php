@@ -11,7 +11,7 @@ class Customer extends Model
     use TracksUserAudit, LogsFieldChanges;
 
     protected $fillable = [
-        'customer_name', 'customer_number', 'customer_group_id', 'phone', 'email',
+        'customer_name', 'customer_number', 'customer_group_id', 'phone', 'contact_person', 'email',
         'internal_shipment', 'remarks', 'special_considerations', 'un_locode',
         'show_transport_details', 'esea_store_stock_only', 'logo',
         'created_by', 'updated_by',

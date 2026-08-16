@@ -18,6 +18,7 @@ class Hub extends Model
         'code',
         'code_description',
         'phone_number',
+        'contact_person',
         'email',
         'is_gts_company',
         'remarks',

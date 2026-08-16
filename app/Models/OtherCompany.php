@@ -13,7 +13,7 @@ class OtherCompany extends Model
     use SoftDeletes, TracksUserAudit, LogsFieldChanges;
 
     protected $fillable = [
-        'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'email', 'remarks', 'special_considerations',
+        'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'contact_person', 'email', 'remarks', 'special_considerations',
         'street_address', 'city', 'district_state', 'zip_code', 'country_id', 'port_code',
         'office_street_address', 'office_city', 'office_district_state', 'office_zip_code', 'office_country_id',
         'vat_number', 'eori_number', 'currency', 'un_locode',

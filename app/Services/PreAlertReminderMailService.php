@@ -13,6 +13,7 @@ class PreAlertReminderMailService
 {
     public function __construct(
         private ShipmentPreAlertPdfBuilder $preAlertPdfBuilder,
+        private ShipmentManifestPdfBuilder $manifestPdfBuilder,
         private EmlMessageBuilder $emlMessageBuilder,
     ) {}
 
@@ -242,15 +243,19 @@ class PreAlertReminderMailService
 
     private function buildSubject(Shipment $shipment): string
     {
-        $vessel = $shipment->crrs->pluck('vessel_name')->filter()->first() ?? '—';
         $service = $shipment->service ?? '—';
+        $departure = $this->manifestPdfBuilder->formatPortCity($shipment->departure_port_code);
+        $destination = $this->manifestPdfBuilder->formatPortCity(
+            $shipment->consignee_port_code,
+            $shipment->consignee_city
+        );
 
         return sprintf(
-            'Reminder: Outgoing shipment details %s/ %s/ MT REF: %s / %s',
-            $vessel,
+            'Reminder:Outgoing shipment details / %s / MC REF: %s / %s to %s',
             $service,
             $shipment->shipment_number,
-            $this->buildDestinationLabel($shipment)
+            $departure,
+            $destination
         );
     }
 
@@ -288,15 +293,19 @@ class PreAlertReminderMailService
 
     private function buildDeliveryStatusSubject(Shipment $shipment): string
     {
-        $vessel = $shipment->crrs->pluck('vessel_name')->filter()->first() ?? '—';
         $service = $shipment->service ?? '—';
+        $departure = $this->manifestPdfBuilder->formatPortCity($shipment->departure_port_code);
+        $destination = $this->manifestPdfBuilder->formatPortCity(
+            $shipment->consignee_port_code,
+            $shipment->consignee_city
+        );
 
         return sprintf(
-            'Delivery status request - %s/ %s/ MT REF: %s / %s',
-            $vessel,
+            'Delivery status request / %s/ MC REF: %s / %s to %s',
             $service,
             $shipment->shipment_number,
-            $this->buildDeliveryDestinationLabel($shipment)
+            $departure,
+            $destination
         );
     }
 

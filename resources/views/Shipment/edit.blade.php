@@ -5084,10 +5084,11 @@
             $('#consignee-country').val(data.country || '').trigger('change');
             setPortCodeSelect($('#consignee-port-code'), data.port_code || '');
             $('#consignee-email').val(data.email || '');
+            $('#consignee-att').val(data.contact_person || '');
             $('textarea[name="special_considerations_destination"]').val(data.special_considerations || '');
             applyConsigneeCode(data);
         }).on('select2:clear', function() {
-            $('#consignee-address, #consignee-city, #consignee-district, #consignee-zip, #location, #consignee-email').val('');
+            $('#consignee-address, #consignee-city, #consignee-district, #consignee-zip, #location, #consignee-email, #consignee-att').val('');
             setPortCodeSelect($('#consignee-port-code'), '');
             $('#consignee-country').val('').trigger('change');
             $('#consignee-party-code').val('');
@@ -6038,6 +6039,23 @@
         }
 
         $('#shipment-edit-form').on('submit', function(e) {
+            var contactPerson = $.trim($('#consignee-att').val() || '');
+            if (!contactPerson) {
+                e.preventDefault();
+                if (typeof swal === 'function') {
+                    swal({
+                        title: 'Validation error',
+                        text: 'Please enter the contact person.',
+                        type: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    alert('Please enter the contact person.');
+                }
+                $('#consignee-att').focus();
+                return false;
+            }
+
             var selectedHubKeys = [];
             $('#stock-items-table tbody tr.selected-stock-row').each(function() {
                 var hubKey = getHubKeyFromSelectedStockRow($(this));

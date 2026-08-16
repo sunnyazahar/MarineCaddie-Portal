@@ -589,7 +589,11 @@
 
                                                             <div class="form-group-custom">
                                                                 <label class="form-label-custom">Special considerations for destination</label>
-                                                                <textarea name="special_considerations" class="form-textarea-custom">{{ $supplier->special_considerations }}</textarea>
+                                                                <textarea name="special_considerations" class="form-textarea-custom">{{ old('special_considerations', $supplier->special_considerations) }}</textarea>
+                                                            </div>
+                                                            <div class="form-group-custom">
+                                                                <label class="form-label-custom">Contact Person <span class="text-danger">*</span></label>
+                                                                <input type="text" name="contact_person" class="form-input-custom" value="{{ old('contact_person', $supplier->contact_person) }}" required>
                                                             </div>
                                                         </div>
 
@@ -797,9 +801,45 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 
     <script>
         $(document).ready(function() {
+            $('#edit-supplier-form').validate({
+                rules: {
+                    supplier_name: {
+                        required: true,
+                        minlength: 2
+                    },
+                    contact_person: {
+                        required: true
+                    }
+                },
+                messages: {
+                    supplier_name: {
+                        required: "Please enter the supplier name"
+                    },
+                    contact_person: {
+                        required: "Please enter the contact person"
+                    }
+                },
+                errorElement: 'span',
+                errorPlacement: function(error, element) {
+                    error.addClass('help-block');
+                    if (element.parent('.input-with-icon').length) {
+                        error.insertAfter(element.parent());
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function(element) {
+                    $(element).addClass('error');
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass('error');
+                }
+            });
+
             // Initialize Select2 with flags
             function formatState(state) {
                 if (!state.id) {

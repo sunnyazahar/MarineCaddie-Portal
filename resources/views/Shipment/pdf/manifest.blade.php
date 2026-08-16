@@ -245,6 +245,7 @@
                     @endif
                     <br> Email: {{ $consigneeEmail }}
                     <br> Phone: {{ $consigneePhone }}
+                    <br> Contact person: {{ $consigneeContact }}
                 </td>
             </tr>
         </table>
@@ -263,7 +264,7 @@
     <br>
     <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
         <tr><td class="totals-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
-        <tr><td class="totals-label">Contact</td><td>{{ $consigneeContactLine }}</td></tr>
+        <tr><td class="totals-label">Port of destination</td><td>{{ $destinationPort }}</td></tr>
     </table>
     <div class="vessel-heading">{{ $vesselLine }}</div>
     <table class="data-table">
@@ -335,7 +336,7 @@
     <br>
     <table class="totals-table" style="margin-top:0; margin-bottom:10px;">
         <tr><td class="totals-label">Port of departure</td><td>{{ $departurePort }}</td></tr>
-        <tr><td class="totals-label">Contact</td><td>{{ $consigneeContactLine }}</td></tr>
+        <tr><td class="totals-label">Port of destination</td><td>{{ $destinationPort }}</td></tr>
     </table>
     <div class="vessel-heading">{{ $vesselLine }}</div>
     <table class="data-table">

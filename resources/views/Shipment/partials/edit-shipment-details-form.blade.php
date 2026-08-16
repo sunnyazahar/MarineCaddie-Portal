@@ -189,8 +189,8 @@
             </select>
         </div>
         <div class="form-group-custom">
-            <label>Contact person</label>
-            <input type="text" name="consignee_att" class="form-control-sm-custom" value="{{ old('consignee_att', $shipment->consignee_att) }}">
+            <label>Contact person <span class="text-danger">*</span></label>
+            <input type="text" id="consignee-att" name="consignee_att" class="form-control-sm-custom" value="{{ old('consignee_att', $shipment->consignee_att) }}" required>
         </div>
         <div class="form-group-custom">
             <label>Port code</label>

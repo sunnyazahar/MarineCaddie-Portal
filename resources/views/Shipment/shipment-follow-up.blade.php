@@ -111,9 +111,20 @@
             border-color: #008080;
             background-color: transparent;
         }
-        .btn-outline-teal:hover {
-            background-color: #008080;
-            color: white;
+        .btn-outline-teal:hover,
+        .btn-outline-teal:focus,
+        .btn-outline-teal:active,
+        .send-reminder-btn:hover,
+        .send-reminder-btn:focus,
+        .send-reminder-btn:active {
+            background-color: #008080 !important;
+            border-color: #008080 !important;
+            color: #ffffff !important;
+        }
+        .send-reminder-btn {
+            color: #008080 !important;
+            border-color: #008080 !important;
+            background-color: #ffffff !important;
         }
         .followup-filters-toolbar {
             display: none;
@@ -1082,7 +1093,7 @@
                                                                 <td>
                                                                     <button type="button"
                                                                         class="btn btn-outline-teal py-1 pl-2 pr-2 send-reminder-btn"
-                                                                        style="font-size: 10px; height: 24px; border-color: #ddd; color: #666;"
+                                                                        style="font-size: 10px; height: 24px;"
                                                                         data-shipment-id="{{ $shipment->id }}"
                                                                         data-preview-url="{{ route('shipments.delivery-status-reminder-mail.preview', $shipment->id) }}"
                                                                         data-send-url="{{ route('shipments.delivery-status-reminder-mail.send', $shipment->id) }}"
@@ -1263,6 +1274,7 @@
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
+                "order": [],
                 "autoWidth": false,
                 "scrollX": true,
                 "columnDefs": [

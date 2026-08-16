@@ -126,7 +126,7 @@ class ShipmentController extends Controller
         ])
             ->withCount('preAlertReminderSends as reminder_sent_count')
             ->where('status', '!=', 'Completed')
-            ->latest()
+            ->orderByDesc('id')
             ->get();
 
         $partyNames = Shipment::batchResolvePartyNames($shipments);
@@ -187,7 +187,7 @@ class ShipmentController extends Controller
         ])
             ->withMax('preAlertReminderSends as last_reminder_sent_at', 'created_at')
             ->whereNotIn('status', ['Completed', 'Draft'])
-            ->latest()
+            ->orderByDesc('id')
             ->get();
 
         $partyNames = Shipment::batchResolvePartyNames($shipments);
@@ -338,7 +338,7 @@ class ShipmentController extends Controller
             });
         }
 
-        $shipments = $query->latest()->get();
+        $shipments = $query->orderByDesc('id')->get();
         $partyNames = Shipment::batchResolvePartyNames($shipments);
         $vesselCustomerMap = Shipment::batchResolveVesselCustomerNames($shipments);
 
@@ -2125,7 +2125,7 @@ class ShipmentController extends Controller
             'consignee_country' => 'nullable|string|max:255',
             'consignee_port_code' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
-            'consignee_att' => 'nullable|string|max:255',
+            'consignee_att' => 'required|string|max:255',
             'consignee_email' => 'nullable|email|max:255',
             'account_manager' => 'nullable|integer|exists:contacts,id',
             'status' => 'nullable|string|max:255',
@@ -2191,7 +2191,9 @@ class ShipmentController extends Controller
             'on_board_legs.*.delivery_time' => 'nullable|string|max:5',
         ];
 
-        $validator = validator($request->all(), $rules);
+        $validator = validator($request->all(), $rules, [], [
+            'consignee_att' => 'contact person',
+        ]);
 
         $validator->after(function ($validator) use ($request, $shipment) {
             $crrIds = array_values(array_unique($request->input('crr_ids', [])));

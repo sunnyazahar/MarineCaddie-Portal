@@ -287,7 +287,7 @@
     <!-- Pre-loader end -->
     @include('layouts.partials.pcoded-shell-start')
                                         <div class="card">
-                                            <form action="{{ route('other-companies.store') }}" method="POST">
+                                            <form action="{{ route('other-companies.store') }}" method="POST" id="companyCreateForm">
                                                 @csrf
                                                 <div class="form-pillar-container">
                                                     <!-- Column 1: Company information -->
@@ -338,6 +338,10 @@
                                                         <div class="form-group-custom">
                                                             <label class="form-label-custom">Special considerations for destination</label>
                                                             <textarea name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
+                                                        </div>
+                                                        <div class="form-group-custom">
+                                                            <label class="form-label-custom">Contact Person <span class="text-danger">*</span></label>
+                                                            <input type="text" name="contact_person" class="form-input-custom" value="{{ old('contact_person') }}" required>
                                                         </div>
                                                     </div>
 
@@ -497,9 +501,40 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 
     <script>
         $(document).ready(function() {
+            $('#companyCreateForm').validate({
+                rules: {
+                    company_name: {
+                        required: true
+                    },
+                    contact_person: {
+                        required: true
+                    }
+                },
+                messages: {
+                    company_name: {
+                        required: "Please enter the company name"
+                    },
+                    contact_person: {
+                        required: "Please enter the contact person"
+                    }
+                },
+                errorElement: 'div',
+                errorClass: 'error-message',
+                errorPlacement: function (error, element) {
+                    error.insertAfter(element);
+                },
+                highlight: function (element) {
+                    $(element).addClass("error");
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass("error");
+                }
+            });
+
             $('select.select2-company-type').select2({
                 placeholder: 'Select company type',
                 allowClear: false,

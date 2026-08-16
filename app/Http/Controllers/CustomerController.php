@@ -83,6 +83,7 @@ class CustomerController extends Controller
         $validatedData = $request->validate([
             'customer_name' => 'required|string|max:150',
             'email' => ['required', 'string', 'max:500', $this->multipleEmailsValidator()],
+            'contact_person' => 'required|string|max:255',
             'street_address' => 'required|string',
             'city' => 'required|string',
             'country' => 'required',
@@ -108,6 +109,7 @@ class CustomerController extends Controller
                 'customer_number' => $request->customer_number_fm,
                 'customer_group_id' => $customerGroupId,
                 'phone' => $request->phone_number,
+                'contact_person' => $request->contact_person,
                 'email' => $request->email,
                 'internal_shipment' => $request->internal_shipment,
                 'remarks' => $request->remarks,
@@ -246,6 +248,7 @@ class CustomerController extends Controller
         $validatedData = $request->validate([
             'customer_name' => 'required|string|max:150',
             'email' => ['required', 'string', 'max:500', $this->multipleEmailsValidator()],
+            'contact_person' => 'required|string|max:255',
             'street_address' => 'required|string',
             'city' => 'required|string',
             'country' => 'required',
@@ -283,6 +286,7 @@ class CustomerController extends Controller
                 'customer_number' => $request->customer_number_fm,
                 'customer_group_id' => $customerGroupId,
                 'phone' => $request->phone_number,
+                'contact_person' => $request->contact_person,
                 'email' => $request->email,
                 'internal_shipment' => $request->internal_shipment,
                 'remarks' => $request->remarks,

@@ -415,6 +415,7 @@ Route::get('/api/consignees', function (\Illuminate\Http\Request $request) {
                 'port_code' => $h->port_code,
                 'code' => $h->code,
                 'email' => $h->email,
+                'contact_person' => $h->contact_person,
                 'special_considerations' => $h->special_considerations,
             ];
         });
@@ -436,6 +437,7 @@ Route::get('/api/consignees', function (\Illuminate\Http\Request $request) {
                 'port_code' => $a->port_code,
                 'code' => $a->code,
                 'email' => $a->email,
+                'contact_person' => $a->contact_person,
                 'special_considerations' => $a->special_considerations,
             ];
         });
@@ -456,7 +458,8 @@ Route::get('/api/consignees', function (\Illuminate\Http\Request $request) {
                 'country' => optional($o->country)->name,
                 'port_code' => $o->port_code,
                 'code' => $o->office_short_name,
-                'email' => $o->email
+                'email' => $o->email,
+                'contact_person' => null,
             ];
         });
 
@@ -476,6 +479,7 @@ Route::get('/api/consignees', function (\Illuminate\Http\Request $request) {
                 'country' => optional($oc->country)->name,
                 'port_code' => $oc->port_code,
                 'email' => $oc->email,
+                'contact_person' => $oc->contact_person,
                 'special_considerations' => $oc->special_considerations,
             ];
         });
@@ -496,6 +500,7 @@ Route::get('/api/consignees', function (\Illuminate\Http\Request $request) {
                 'country' => optional($s->country)->name,
                 'port_code' => $s->port_code,
                 'email' => $s->email,
+                'contact_person' => $s->contact_person,
                 'special_considerations' => $s->special_considerations,
             ];
         });
@@ -517,6 +522,7 @@ Route::get('/api/consignees', function (\Illuminate\Http\Request $request) {
                 'country' => $address ? optional($address->country)->name : null,
                 'port_code' => $address ? $address->port_code : null,
                 'email' => $c->email,
+                'contact_person' => $c->contact_person,
                 'special_considerations' => $c->special_considerations,
             ];
         });

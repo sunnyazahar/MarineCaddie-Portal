@@ -173,7 +173,11 @@ class ShipmentManifestPdfBuilder
                 $shipment->consignee_email,
                 $consigneeParty['phone'] ?? null,
             ]) ?: '—',
-            'departurePort' => $this->formatPortCodeCityCountry($shipment->departure_port_code),
+            'departurePort' => $this->formatPortCodeCityCountry(
+                $shipment->departure_port_code,
+                $departureParty['city'] ?? null,
+                $departureParty['country'] ?? null
+            ),
             'destinationPort' => $this->formatPortCodeCityCountry(
                 $shipment->consignee_port_code,
                 $shipment->consignee_city,
@@ -222,7 +226,8 @@ class ShipmentManifestPdfBuilder
                 $consigneeParty['name'] ?: ($shipment->consignee_att ?? ''),
                 $this->formatShipmentAddress($shipment),
                 $shipment->consignee_email ?: ($consigneeParty['email'] ?? ''),
-                $consigneeParty['phone'] ?? ''
+                $consigneeParty['phone'] ?? '',
+                $shipment->consignee_att ?? ''
             ),
         ];
     }
@@ -237,18 +242,20 @@ class ShipmentManifestPdfBuilder
         );
     }
 
-    private function formatPartyDetails(?string $name, ?string $address, ?string $email, ?string $phone): string
+    private function formatPartyDetails(?string $name, ?string $address, ?string $email, ?string $phone, ?string $contactPerson = null): string
     {
         $name = trim((string) $name);
         $address = trim((string) $address);
         $email = trim((string) $email);
         $phone = trim((string) $phone);
+        $contactPerson = trim((string) $contactPerson);
 
         $lines = array_values(array_filter([
             ($name !== '' && $name !== '—') ? $name : null,
             ($address !== '' && $address !== '—') ? wordwrap($address, 32, "\n", true) : null,
             ($email !== '' && $email !== '—') ? 'Email: ' . $email : null,
             ($phone !== '' && $phone !== '—') ? 'Phone: ' . $phone : null,
+            ($contactPerson !== '' && $contactPerson !== '—') ? 'Contact person: ' . $contactPerson : null,
         ]));
 
         return $lines !== [] ? implode("\n", $lines) : '—';
@@ -263,6 +270,8 @@ class ShipmentManifestPdfBuilder
             'email' => '',
             'invoice_email' => '',
             'port_code' => '',
+            'city' => '',
+            'country' => '',
         ];
 
         if (!$composite) {
@@ -293,6 +302,8 @@ class ShipmentManifestPdfBuilder
                     $result = $this->applyContactDetails($result, $hub, $hub->phone_number, $hub->email);
                     $result['invoice_email'] = $hub->emails_for_invoicing ?: $result['email'];
                     $result['port_code'] = $hub->port_code;
+                    $result['city'] = trim((string) ($hub->city ?? ''));
+                    $result['country'] = trim((string) ($hub->country ?? ''));
                 }
                 break;
             case 'agent':
@@ -307,6 +318,8 @@ class ShipmentManifestPdfBuilder
                     ]);
                     $result = $this->applyContactDetails($result, $agent, $agent->phone, $agent->email);
                     $result['port_code'] = $agent->port_code;
+                    $result['city'] = trim((string) ($agent->city ?? ''));
+                    $result['country'] = trim((string) ($agent->country?->name ?? ''));
                 }
                 break;
             case 'office':
@@ -321,6 +334,8 @@ class ShipmentManifestPdfBuilder
                     ]);
                     $result = $this->applyContactDetails($result, $office, $office->phone_number, $office->email);
                     $result['port_code'] = $office->port_code ?? '';
+                    $result['city'] = trim((string) ($office->city ?? ''));
+                    $result['country'] = trim((string) ($office->country?->name ?? ''));
                 }
                 break;
             case 'customer':
@@ -354,6 +369,8 @@ class ShipmentManifestPdfBuilder
                     ]);
                     $result = $this->applyContactDetails($result, $company, $company->phone_number, $company->email);
                     $result['port_code'] = $company->port_code;
+                    $result['city'] = trim((string) ($company->city ?? ''));
+                    $result['country'] = trim((string) ($company->country?->name ?? ''));
                 }
                 break;
         }

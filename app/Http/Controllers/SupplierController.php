@@ -28,6 +28,7 @@ class SupplierController extends Controller
             'supplier_name' => 'required|string|max:255',
             'email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
             'phone_number' => 'nullable|string|max:255',
+            'contact_person' => 'required|string|max:255',
         ]);
 
         $supplier = Supplier::create($request->all());
@@ -68,6 +69,7 @@ class SupplierController extends Controller
                 'supplier_name' => 'required|string|max:255',
                 'email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
                 'phone_number' => 'nullable|string|max:255',
+                'contact_person' => 'required|string|max:255',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $e->redirectTo(route('suppliers.edit', $id) . '#' . $activeTab);

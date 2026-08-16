@@ -774,6 +774,10 @@
                                                                                 <input type="checkbox" name="show_pre_alert" id="show_pre_alert" value="1" {{ $hub->show_pre_alert ? 'checked' : '' }}>
                                                                                 <label class="form-label-custom" for="show_pre_alert">Show pre-alert warning when items in shipment are not scanned</label>
                                                                             </div>
+                                                                            <div class="form-group-custom">
+                                                                                <label class="form-label-custom">Contact Person <span class="text-danger">*</span></label>
+                                                                                <input type="text" name="contact_person" class="form-input-custom" value="{{ old('contact_person', $hub->contact_person) }}" required>
+                                                                            </div>
                                                                         </div>
 
                                                                         <!-- Pillar 2: Hub address -->
@@ -1721,6 +1725,9 @@
                         required: true,
                         minlength: 3
                     },
+                    contact_person: {
+                        required: true
+                    },
                     email: {
                         multiEmail: true
                     },
@@ -1732,6 +1739,9 @@
                     hub_name: {
                         required: "Please enter the hub name",
                         minlength: "Hub name must be at least 3 characters"
+                    },
+                    contact_person: {
+                        required: "Please enter the contact person"
                     },
                     email: {
                         multiEmail: "Please enter valid email address(es), separated by comma or semicolon"

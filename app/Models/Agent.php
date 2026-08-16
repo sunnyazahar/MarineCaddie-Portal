@@ -18,6 +18,7 @@ class Agent extends Model
         'code',
         'code_description',
         'phone',
+        'contact_person',
         'email',
         'remarks',
         'special_considerations',

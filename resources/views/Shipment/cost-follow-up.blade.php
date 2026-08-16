@@ -78,9 +78,20 @@
             border-color: #008080;
             background-color: transparent;
         }
-        .btn-outline-teal:hover {
-            background-color: #008080;
-            color: white;
+        .btn-outline-teal:hover,
+        .btn-outline-teal:focus,
+        .btn-outline-teal:active,
+        .send-reminder-btn:hover,
+        .send-reminder-btn:focus,
+        .send-reminder-btn:active {
+            background-color: #008080 !important;
+            border-color: #008080 !important;
+            color: #ffffff !important;
+        }
+        .send-reminder-btn {
+            color: #008080 !important;
+            border-color: #008080 !important;
+            background-color: #ffffff !important;
         }
         .custom-row {
             display: flex;
@@ -882,6 +893,7 @@
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
+                "order": [],
                 "autoWidth": false,
                 "scrollX": true,
                 "columnDefs": [
@@ -990,7 +1002,7 @@
                     '<span' + delDateStyle + '>' + escapeHtml(row.del_date) + '</span>',
                     '<span class="' + escapeHtml(row.status_badge_class) + '" style="padding: 4px 8px; font-weight: 500;">' + escapeHtml(row.status) + '</span>',
                     '<span class="reminder-sent-count" data-shipment-id="' + escapeHtml(row.id) + '">' + escapeHtml(row.reminder_sent_count || 0) + '</span>',
-                    '<button type="button" class="btn btn-outline-teal py-1 px-2 send-reminder-btn" style="font-size: 11px; height: 26px; border-color: #ddd; background: #fff;"'
+                    '<button type="button" class="btn btn-outline-teal py-1 px-2 send-reminder-btn" style="font-size: 11px; height: 26px;"'
                         + ' data-shipment-id="' + escapeHtml(row.id) + '"'
                         + ' data-preview-url="' + escapeHtml(row.preview_url) + '"'
                         + ' data-send-url="' + escapeHtml(row.send_url) + '"'

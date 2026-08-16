@@ -1153,9 +1153,9 @@
                                                             </select>
                                                         </div>
                                                         <div class="form-group mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Contact person</label>
-                                                            <input type="text" name="consignee_att" class="form-control filter-input"
-                                                                placeholder="" value="{{ old('consignee_att') }}">
+                                                            <label class="mb-0" style="font-size: 11px;">Contact person <span class="text-danger">*</span></label>
+                                                            <input type="text" id="consignee-att" name="consignee_att" class="form-control filter-input"
+                                                                placeholder="" value="{{ old('consignee_att') }}" required>
                                                         </div>
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Port code</label>
@@ -2065,6 +2065,7 @@
                 $('#consignee-country').val(data.country || '').trigger('change');
                 setPortCodeSelect($('#consignee-port-code'), data.port_code || '');
                 $('#consignee-email').val(data.email || '');
+                $('#consignee-att').val(data.contact_person || '');
                 $('textarea[name="special_considerations_destination"]').val(data.special_considerations || '');
             }).on('select2:clear', function (e) {
                 $('#consignee-address').val('');
@@ -2075,6 +2076,7 @@
                 setPortCodeSelect($('#consignee-port-code'), '');
                 $('#location').val('');
                 $('#consignee-email').val('');
+                $('#consignee-att').val('');
                 $('textarea[name="special_considerations_destination"]').val('');
             });
 
@@ -3234,6 +3236,13 @@
             });
 
             $('#shipment-form').on('submit', function() {
+                var contactPerson = $.trim($('#consignee-att').val() || '');
+                if (!contactPerson) {
+                    showValidationSwal('Please enter the contact person.');
+                    $('#consignee-att').focus();
+                    return false;
+                }
+
                 var selectedHubKeys = [];
                 $('#stock-items-table tbody tr.selected-stock-row').each(function () {
                     var hubKey = getHubKeyFromSelectedStockRow($(this));

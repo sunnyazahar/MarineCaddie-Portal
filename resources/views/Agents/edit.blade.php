@@ -611,6 +611,10 @@
                                                             in
                                                             shipment are not scanned</label>
                                                     </div>
+                                                    <div class="form-group-custom">
+                                                        <label class="form-label-custom">Contact Person <span class="text-danger">*</span></label>
+                                                        <input type="text" name="contact_person" class="form-input-custom" value="{{ old('contact_person', $agent->contact_person) }}" required>
+                                                    </div>
                                                 </div>
 
                                                 <!-- Column 2: Agent address & Office address -->
@@ -1463,9 +1467,42 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 
     <script>
         $(document).ready(function () {
+            $('#agentEditForm').validate({
+                rules: {
+                    agent_name: {
+                        required: true,
+                        minlength: 3
+                    },
+                    contact_person: {
+                        required: true
+                    }
+                },
+                messages: {
+                    agent_name: {
+                        required: "Please enter the agent name",
+                        minlength: "Agent name must be at least 3 characters"
+                    },
+                    contact_person: {
+                        required: "Please enter the contact person"
+                    }
+                },
+                errorElement: 'div',
+                errorClass: 'error-message',
+                errorPlacement: function (error, element) {
+                    error.insertAfter(element);
+                },
+                highlight: function (element) {
+                    $(element).addClass("error");
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass("error");
+                }
+            });
+
             // Initialize Select2 for standard filters
             $('.select2').select2({
                 placeholder: "Click here",
