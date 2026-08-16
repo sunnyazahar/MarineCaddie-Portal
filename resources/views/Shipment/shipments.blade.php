@@ -50,6 +50,40 @@
             vertical-align: middle;
             white-space: nowrap !important;
         }
+        #offices-table .consignee-row {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            width: max-content;
+            min-width: max-content;
+            white-space: nowrap !important;
+        }
+        #offices-table .consignee-hub-agent {
+            font-weight: 600;
+            font-size: 12px;
+            color: #05354B;
+        }
+        #offices-table .consignee-hub-icon {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 14px !important;
+            width: 14px !important;
+            min-width: 14px !important;
+            margin: 0 6px 0 0 !important;
+            font-size: 12px;
+            color: #05354B;
+            line-height: 1;
+        }
+        #offices-table .consignee-hub-icon-spacer {
+            visibility: hidden;
+        }
+        #offices-table .consignee-hub-agent-text {
+            display: inline-block !important;
+            white-space: nowrap !important;
+            line-height: 1.2;
+        }
         #offices-table th, #offices-table td {
             white-space: nowrap !important; 
         }
@@ -840,6 +874,7 @@
                                                             @forelse ($shipments as $shipment)
                                                             @php
                                                                 $consigneeDisplay = $shipment->partyDisplay($shipment->consignee, $partyNames);
+                                                                $consigneeType = explode(':', (string) $shipment->consignee, 2)[0];
                                                                 $customerNames = $shipment->customerNamesFromVessels($vesselCustomerMap ?? []);
                                                                 $customerDisplay = $shipment->formatNamesDisplay($customerNames);
                                                                 $customerDisplayShort = $shipment->formatNamesDisplayShort($customerNames);
@@ -889,7 +924,15 @@
                                                                         {{ $shipment->service_reference_display }}
                                                                     @endif
                                                                 </td>
-                                                                <td>{{ $consigneeDisplay }}</td>
+                                                                <td>
+                                                                    @if ($consigneeType === 'hub')
+                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-home consignee-hub-icon" title="Hub"></i><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                    @elseif ($consigneeType === 'agent')
+                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-user consignee-hub-icon" title="Agent"></i><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                    @else
+                                                                        <span class="consignee-row"><span class="consignee-hub-icon consignee-hub-icon-spacer"></span><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                    @endif
+                                                                </td>
                                                                 <td>{{ $shipment->departure_port_code ?: '—' }}</td>
                                                                 <td>{{ $shipment->destination_display }}</td>
                                                                 <td>{{ $shipment->deadline_arrival?->format('d.m.Y') ?? '—' }}</td>
@@ -1074,7 +1117,10 @@
                 "autoWidth": false,
                 "scrollY": '50vh',
                 "scrollX": true,
-                "scrollCollapse": true
+                "scrollCollapse": true,
+                "columnDefs": [
+                    { "targets": 5, "width": "220px" }
+                ]
             });
 
             function getShipmentsTableScrollHeight() {

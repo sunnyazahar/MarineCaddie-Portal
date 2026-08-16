@@ -32,6 +32,40 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        #offices-table .consignee-row {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            width: max-content;
+            min-width: max-content;
+            white-space: nowrap !important;
+        }
+        #offices-table .consignee-hub-agent {
+            font-weight: 600;
+            font-size: 12px;
+            color: #05354B;
+        }
+        #offices-table .consignee-hub-icon {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 14px !important;
+            width: 14px !important;
+            min-width: 14px !important;
+            margin: 0 6px 0 0 !important;
+            font-size: 12px;
+            color: #05354B;
+            line-height: 1;
+        }
+        #offices-table .consignee-hub-icon-spacer {
+            visibility: hidden;
+        }
+        #offices-table .consignee-hub-agent-text {
+            display: inline-block !important;
+            white-space: nowrap !important;
+            line-height: 1.2;
+        }
         #offices-table th, #offices-table td {
             white-space: nowrap !important;
             box-sizing: border-box !important;
@@ -47,7 +81,7 @@
         #offices-table th:nth-child(5),
         #offices-table td:nth-child(5) { width: 130px; min-width: 130px; max-width: 130px; }
         #offices-table th:nth-child(6),
-        #offices-table td:nth-child(6) { width: 120px; min-width: 120px; max-width: 120px; }
+        #offices-table td:nth-child(6) { width: 200px; min-width: 200px; max-width: 200px; }
         #offices-table th:nth-child(7),
         #offices-table td:nth-child(7) { width: 70px; min-width: 70px; max-width: 70px; }
         #offices-table th:nth-child(8),
@@ -902,7 +936,7 @@
                     { "targets": 2, "width": "130px" },
                     { "targets": 3, "width": "100px" },
                     { "targets": 4, "width": "130px" },
-                    { "targets": 5, "width": "120px" },
+                    { "targets": 5, "width": "200px" },
                     { "targets": 6, "width": "70px" },
                     { "targets": 7, "width": "70px" },
                     { "targets": 8, "width": "90px" },
@@ -980,6 +1014,18 @@
                     || filters.port_destination !== '';
             }
 
+            function consigneeCellHtml(row) {
+                var name = escapeHtml(row.consignee);
+                var type = String(row.consignee_type || '');
+                if (type === 'hub') {
+                    return '<span class="consignee-row consignee-hub-agent"><i class="ti-home consignee-hub-icon" title="Hub"></i><span class="consignee-hub-agent-text">' + name + '</span></span>';
+                }
+                if (type === 'agent') {
+                    return '<span class="consignee-row consignee-hub-agent"><i class="ti-user consignee-hub-icon" title="Agent"></i><span class="consignee-hub-agent-text">' + name + '</span></span>';
+                }
+                return '<span class="consignee-row"><span class="consignee-hub-icon consignee-hub-icon-spacer"></span><span class="consignee-hub-agent-text">' + name + '</span></span>';
+            }
+
             function buildRowHtml(row) {
                 var shipmentCell = '<div class="d-flex align-items-center">'
                     + '<a href="' + escapeHtml(row.edit_url) + '">' + escapeHtml(row.shipment_number) + '</a>'
@@ -994,7 +1040,7 @@
                     escapeHtml(row.vessel),
                     escapeHtml(row.service),
                     escapeHtml(row.service_reference),
-                    escapeHtml(row.consignee),
+                    consigneeCellHtml(row),
                     escapeHtml(row.departure),
                     escapeHtml(row.destination),
                     escapeHtml(row.etd),

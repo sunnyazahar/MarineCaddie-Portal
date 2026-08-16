@@ -47,6 +47,40 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        #offices-table .consignee-row {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            width: max-content;
+            min-width: max-content;
+            white-space: nowrap !important;
+        }
+        #offices-table .consignee-hub-agent {
+            font-weight: 600;
+            font-size: 12px;
+            color: #05354B;
+        }
+        #offices-table .consignee-hub-icon {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 14px !important;
+            width: 14px !important;
+            min-width: 14px !important;
+            margin: 0 6px 0 0 !important;
+            font-size: 12px;
+            color: #05354B;
+            line-height: 1;
+        }
+        #offices-table .consignee-hub-icon-spacer {
+            visibility: hidden;
+        }
+        #offices-table .consignee-hub-agent-text {
+            display: inline-block !important;
+            white-space: nowrap !important;
+            line-height: 1.2;
+        }
         #offices-table th,
         #offices-table td {
             white-space: nowrap !important;
@@ -64,7 +98,7 @@
         #offices-table th:nth-child(4),
         #offices-table td:nth-child(4) { width: 90px; min-width: 90px; }
         #offices-table th:nth-child(5),
-        #offices-table td:nth-child(5) { width: 140px; min-width: 140px; }
+        #offices-table td:nth-child(5) { width: 200px; min-width: 200px; }
         #offices-table th:nth-child(6),
         #offices-table td:nth-child(6) { width: 90px; min-width: 90px; }
         #offices-table th:nth-child(7),
@@ -1046,6 +1080,7 @@
                                                             @php
                                                                 $departureDisplay = $shipment->departure_port_code ?: $shipment->partyDisplay($shipment->departure, $partyNames);
                                                                 $consigneeDisplay = $shipment->partyDisplay($shipment->consignee, $partyNames);
+                                                                $consigneeType = explode(':', (string) $shipment->consignee, 2)[0];
                                                                 $etd = $shipment->service_etd;
                                                                 $eta = $shipment->service_eta;
                                                                 $etaOverdue = $eta && $eta->startOfDay()->lte(now()->startOfDay());
@@ -1073,7 +1108,15 @@
                                                                 <td>{{ $shipment->customer_display }}</td>
                                                                 <td>{{ $shipment->vessel_display }}</td>
                                                                 <td>{{ $shipment->service ?? '—' }}</td>
-                                                                <td>{{ $consigneeDisplay }}</td>
+                                                                <td>
+                                                                    @if ($consigneeType === 'hub')
+                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-home consignee-hub-icon" title="Hub"></i><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                    @elseif ($consigneeType === 'agent')
+                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-user consignee-hub-icon" title="Agent"></i><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                    @else
+                                                                        <span class="consignee-row"><span class="consignee-hub-icon consignee-hub-icon-spacer"></span><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                    @endif
+                                                                </td>
                                                                 <td>{{ $departureDisplay ?: '—' }}</td>
                                                                 <td>{{ $shipment->destination_display }}</td>
                                                                 <td>{{ $etd?->format('d.m.Y') ?? '—' }}</td>

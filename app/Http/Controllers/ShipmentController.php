@@ -361,6 +361,7 @@ class ShipmentController extends Controller
                 'service' => $shipment->service ?? '—',
                 'service_reference' => $shipment->service_reference_display,
                 'consignee' => $consigneeDisplay,
+                'consignee_type' => explode(':', (string) $shipment->consignee, 2)[0],
                 'departure' => $departureDisplay ?: '—',
                 'destination' => $shipment->destination_display,
                 'etd' => $etd?->format('d.m.Y') ?? '—',
