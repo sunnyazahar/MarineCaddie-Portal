@@ -12,51 +12,153 @@
     <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
     <style>
         /* High Density Table Styles */
-        #offices-table {
+        .card .card-block table tr {
+            padding-bottom: 5px;
+        }
+        #offices-table,
+        #offices-table.dataTable {
+            display: block !important;
             width: 100% !important;
-            border-collapse: separate !important;
+            margin: 0 !important;
+            border-collapse: unset !important;
             border-spacing: 0 !important;
-            min-width: 0;
         }
-        @media (min-width: 1200px) {
-            #offices-table {
-                min-width: 1400px;
-            }
+        #offices-table > thead {
+            display: grid !important;
+            grid-template-columns:
+                minmax(110px, 1.1fr)
+                minmax(130px, 1.4fr)
+                minmax(70px, 0.9fr)
+                minmax(100px, 1.1fr)
+                minmax(80px, 1fr)
+                minmax(140px, 1.5fr)
+                minmax(70px, 0.7fr)
+                minmax(70px, 0.8fr)
+                minmax(80px, 0.8fr)
+                minmax(90px, 0.9fr)
+                minmax(80px, 0.9fr);
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 6 !important;
+            background: #f4f7fb !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-bottom: 1px dotted #e0e0e0;
         }
-        .table-scroll-wrapper #offices-table,
-        .dataTables_wrapper #offices-table {
-            min-width: 1100px;
+        #offices-table > thead tr {
+            display: contents !important;
+        }
+        #offices-table > tbody {
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+        #offices-table > tbody tr {
+            display: grid !important;
+            grid-template-columns:
+                minmax(110px, 1.1fr)
+                minmax(130px, 1.4fr)
+                minmax(70px, 0.9fr)
+                minmax(100px, 1.1fr)
+                minmax(80px, 1fr)
+                minmax(140px, 1.5fr)
+                minmax(70px, 0.7fr)
+                minmax(70px, 0.8fr)
+                minmax(80px, 0.8fr)
+                minmax(90px, 0.9fr)
+                minmax(80px, 0.9fr);
+            margin: 0 !important;
+            align-items: center;
+            border-bottom: 1px dotted #e0e0e0;
         }
         #offices-table thead th {
-            position: relative !important;
-            top: auto !important;
-            z-index: auto !important;
-            background-color: #fdfdfd !important;
+            padding: 10px 5px !important;
+            display: flex !important;
+            align-items: center;
+            box-sizing: border-box !important;
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0 !important;
+            border: none !important;
+            line-height: 1.2 !important;
+            font-size: 13px !important;
+            min-height: 0 !important;
+        }
+         #offices-table tbody td {
+            display: flex !important;
+            align-items: center;
+            box-sizing: border-box !important;
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0 !important;
+            border: none !important;
+            padding: 4px 8px !important;
+            line-height: 1.2 !important;
+            font-size: 13px !important;
+            min-height: 0 !important;
+        }
+        #offices-table thead th {
+            position: static !important;
+            background: #f4f7fb !important;
             color: #374151;
-            font-size: 13px;
             font-weight: 600;
-            padding: 10px 8px;
-            border-bottom: 2px solid #dee2e6 !important;
-            border-top: 1px solid #e5e7eb !important;
-            white-space: nowrap;
             text-transform: none;
             box-shadow: none;
         }
         #offices-table tbody td {
-            padding: 6px 8px !important;
-            font-size: 13px;
             color: #1f2937;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: middle;
-            white-space: nowrap !important;
+            background: #fff;
+            min-width: 0;
+        }
+        #offices-table .cell-ellipsis {
+            display: block;
+            min-width: 0;
+            flex: 1 1 0%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+        #offices-table tbody td .label {
+            margin: 0 !important;
+            padding: 2px 8px !important;
+            font-size: 11px !important;
+            line-height: 1.2 !important;
+        }
+        #offices-table td[colspan],
+        #offices-table td.dataTables_empty {
+            grid-column: 1 / -1;
+        }
+        table.dataTable thead .sorting:before,
+        table.dataTable thead .sorting:after,
+        table.dataTable thead .sorting_asc:before,
+        table.dataTable thead .sorting_asc:after,
+        table.dataTable thead .sorting_desc:before,
+        table.dataTable thead .sorting_desc:after {
+            display: none !important;
+        }
+        table.dataTable thead .sorting,
+        table.dataTable thead .sorting_asc,
+        table.dataTable thead .sorting_desc,
+        table.dataTable thead .sorting_asc_disabled,
+        table.dataTable thead .sorting_desc_disabled {
+            background-image: none !important;
+            padding-right: 8px !important;
+        }
+        #offices-table td.consignee-cell {
+            overflow: hidden;
         }
         #offices-table .consignee-row {
             display: flex !important;
             flex-direction: row !important;
             flex-wrap: nowrap !important;
             align-items: center !important;
-            width: max-content;
-            min-width: max-content;
+            max-width: 220px;
+            min-width: 0;
+            overflow: hidden;
             white-space: nowrap !important;
         }
         #offices-table .consignee-hub-agent {
@@ -64,28 +166,29 @@
             font-size: 12px;
             color: #05354B;
         }
-        #offices-table .consignee-hub-icon {
-            display: inline-flex !important;
+        #offices-table .consignee-icon-slot {
+            display: flex !important;
             align-items: center;
             justify-content: center;
-            flex: 0 0 14px !important;
-            width: 14px !important;
-            min-width: 14px !important;
-            margin: 0 6px 0 0 !important;
+            flex: 0 0 16px !important;
+            width: 16px !important;
+            min-width: 16px !important;
+            height: 12px;
+            margin-right: 6px;
+        }
+        #offices-table .consignee-icon-slot i {
             font-size: 12px;
             color: #05354B;
             line-height: 1;
         }
-        #offices-table .consignee-hub-icon-spacer {
-            visibility: hidden;
-        }
         #offices-table .consignee-hub-agent-text {
-            display: inline-block !important;
+            display: block !important;
+            flex: 1 1 auto;
+            min-width: 0 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
             white-space: nowrap !important;
             line-height: 1.2;
-        }
-        #offices-table th, #offices-table td {
-            white-space: nowrap !important; 
         }
         .btn-teal {
             background-color: #008080;
@@ -501,38 +604,10 @@
         .shipments-table-area .table-scroll-wrapper {
             flex: 1;
             min-height: 0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            overflow: auto !important;
+            display: block;
             width: 100%;
             position: relative;
-        }
-        .shipments-table-area .dataTables_scroll {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
-            height: 100% !important;
-            width: 100%;
-        }
-        .shipments-table-area .dataTables_scrollHead {
-            flex-shrink: 0 !important;
-            position: relative !important;
-            overflow: hidden !important;
-            background: #fdfdfd;
-            border-bottom: 2px solid #dee2e6;
-            z-index: 5;
-        }
-        .shipments-table-area .dataTables_scrollHeadInner,
-        .shipments-table-area .dataTables_scrollHead table {
-            width: 100% !important;
-        }
-        .shipments-table-area .dataTables_scrollBody {
-            flex: 1 1 auto !important;
-            min-height: 0 !important;
-            overflow-x: auto !important;
-            overflow-y: auto !important;
-            margin-top: -10px !important;
         }
 
         .pagination-sticky-footer {
@@ -896,45 +971,54 @@
                                                                 data-creation-date="{{ $shipment->created_at?->format('Y-m-d') ?? '' }}"
                                                                 data-status="{{ $shipment->status ?? '' }}"
                                                             >
-                                                                <td>
+                                                                <td title="{{ $shipment->shipment_number }}">
                                                                     <a href="{{ route('shipments.edit', $shipment->id) }}" class="text-primary">{{ $shipment->shipment_number }}</a>
                                                                     @if ($shipment->hasOpenIrregularities())
                                                                         <i class="ti-alert text-danger ml-2" title="Open irregularities"></i>
                                                                     @endif
                                                                 </td>
-                                                                <td>
+                                                                <td title="{{ $customerDisplay }}">
                                                                     @if ($customerNames->count() > 2)
-                                                                        <span title="{{ $customerDisplay }}" style="cursor: help;">{{ $customerDisplayShort }}</span>
+                                                                        <span class="cell-ellipsis" title="{{ $customerDisplay }}" style="cursor: help;">{{ $customerDisplayShort }}</span>
                                                                     @else
-                                                                        {{ $customerDisplay }}
+                                                                        <span class="cell-ellipsis">{{ $customerDisplay }}</span>
                                                                     @endif
                                                                 </td>
-                                                                <td>
+                                                                <td title="{{ $shipment->vessel_display }}">
                                                                     @if ($shipment->vessel_names->count() > 2)
                                                                         <span title="{{ $shipment->vessel_display }}" style="cursor: help;">{{ $shipment->vessel_display_short }}</span>
                                                                     @else
                                                                         {{ $shipment->vessel_display }}
                                                                     @endif
                                                                 </td>
-                                                                <td>{{ $shipment->service ?? '—' }}</td>
-                                                                <td>
+                                                                <td title="{{ $shipment->service ?? '—' }}">{{ $shipment->service ?? '—' }}</td>
+                                                                <td title="{{ $serviceReferenceDisplay }}">
                                                                     @if ($shipment->service_reference_values->count() > 2)
                                                                         <span title="{{ $shipment->service_reference_display }}" style="cursor: help;">{{ $shipment->service_reference_display_short }}</span>
                                                                     @else
                                                                         {{ $shipment->service_reference_display }}
                                                                     @endif
                                                                 </td>
-                                                                <td>
+                                                                <td class="consignee-cell">
                                                                     @if ($consigneeType === 'hub')
-                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-home consignee-hub-icon" title="Hub"></i><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                        <span class="consignee-row consignee-hub-agent">
+                                                                            <span class="consignee-icon-slot"><i class="ti-home" title="Hub"></i></span>
+                                                                            <span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span>
+                                                                        </span>
                                                                     @elseif ($consigneeType === 'agent')
-                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-user consignee-hub-icon" title="Agent"></i><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                        <span class="consignee-row consignee-hub-agent">
+                                                                            <span class="consignee-icon-slot"><i class="ti-user" title="Agent"></i></span>
+                                                                            <span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span>
+                                                                        </span>
                                                                     @else
-                                                                        <span class="consignee-row"><span class="consignee-hub-icon consignee-hub-icon-spacer"></span><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                        <span class="consignee-row">
+                                                                            <span class="consignee-icon-slot"></span>
+                                                                            <span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span>
+                                                                        </span>
                                                                     @endif
                                                                 </td>
-                                                                <td>{{ $shipment->departure_port_code ?: '—' }}</td>
-                                                                <td>{{ $shipment->destination_display }}</td>
+                                                                <td title="{{ $shipment->departure_port_code ?: '—' }}">{{ $shipment->departure_port_code ?: '—' }}</td>
+                                                                <td title="{{ $shipment->destination_display }}">{{ $shipment->destination_display }}</td>
                                                                 <td>{{ $shipment->deadline_arrival?->format('d.m.Y') ?? '—' }}</td>
                                                                 <td>{{ $shipment->pre_alert_reminder?->format('d.m.Y') ?? '—' }}</td>
                                                                 <td><label class="{{ $shipment->statusBadgeClass() }}">{{ $shipment->status }}</label></td>
@@ -1114,22 +1198,14 @@
                 "searching": false,
                 "ordering": true,
                 "order": [],
-                "autoWidth": false,
-                "scrollY": '50vh',
-                "scrollX": true,
-                "scrollCollapse": true,
-                "columnDefs": [
-                    { "targets": 5, "width": "220px" }
-                ]
+                "autoWidth": false
             });
 
             function getShipmentsTableScrollHeight() {
                 var isMobile = isShipmentsMobile();
                 var $tableArea = $('.shipments-table-area');
-                var $scrollHead = $('.dataTables_scrollHead');
                 var areaHeight = $tableArea.length ? $tableArea.innerHeight() : 0;
-                var headHeight = $scrollHead.length ? $scrollHead.outerHeight() : 40;
-                var available = areaHeight - headHeight - 2;
+                var available = areaHeight - 2;
 
                 if (isMobile) {
                     var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
@@ -1141,7 +1217,7 @@
                 }
 
                 if (available < 180) {
-                    var topOffset = $scrollHead.length ? $scrollHead.offset().top : 220;
+                    var topOffset = $tableArea.length ? $tableArea.offset().top : 220;
                     var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
                     available = window.innerHeight - topOffset - paginationHeight - 4;
                 }
@@ -1151,14 +1227,10 @@
 
             function adjustShipmentsTableLayout() {
                 var height = getShipmentsTableScrollHeight();
-                var $scrollBody = $('.dataTables_scrollBody');
-
-                $scrollBody.css({
+                $('.shipments-table-area .table-scroll-wrapper').css({
                     height: height + 'px',
                     maxHeight: height + 'px'
                 });
-
-                table.columns.adjust();
             }
 
             $('#btn-shipments-filters-toggle').on('click', function () {

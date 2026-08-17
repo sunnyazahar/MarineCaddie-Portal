@@ -12,8 +12,11 @@
     <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
     <style>
         .office-table {
-            width: 100%;
-            border-collapse: collapse;
+            width: 1980px !important;
+            min-width: 1980px !important;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 0;
             background: #fff;
         }
         .office-table tbody td {
@@ -23,9 +26,50 @@
             border-bottom: 1px solid #f3f4f6;
             vertical-align: middle;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .office-table th, .office-table td {
-            white-space: nowrap; 
+            white-space: nowrap;
+        }
+        .office-table .cell-ellipsis {
+            display: block;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .office-table td.stock-no-cell {
+            max-width: none;
+            overflow: hidden;
+        }
+        .office-table .stock-no-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-width: 0;
+            max-width: 100%;
+        }
+        .office-table .stock-no-row a {
+            min-width: 0;
+            flex: 1 1 0%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .office-table .stock-no-flags {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
+        }
+        .office-table td.dataTables_empty,
+        .office-table td[colspan] {
+            overflow: visible;
+            white-space: normal;
+            text-overflow: clip;
         }
         .btn-teal {
             background-color: #008080;
@@ -469,6 +513,7 @@
                 flex: 1 1 auto;
                 min-height: 45vh;
             }
+            .stocks-table-area .table-scroll-wrapper,
             .stocks-table-area .dataTables_scrollBody {
                 overflow-x: auto !important;
                 -webkit-overflow-scrolling: touch;
@@ -504,54 +549,10 @@
         .stocks-table-area .table-scroll-wrapper {
             flex: 1;
             min-height: 0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .stocks-table-area .dataTables_scroll {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
-            height: 100% !important;
-        }
-        .stocks-table-area .dataTables_scrollHead {
-            flex-shrink: 0 !important;
-            position: relative !important;
-            overflow: hidden !important;
-            background: #fdfdfd;
-            border-bottom: 2px solid #dee2e6;
-            z-index: 5;
-            margin-bottom: 0 !important;
-        }
-        .stocks-table-area .dataTables_scrollBody {
-            flex: 1 1 auto !important;
-            min-height: 0 !important;
-            overflow-x: auto !important;
-            overflow-y: auto !important;
-            margin-top: 0 !important;
-            border-top: none !important;
-        }
-        /* Collapse the cloned/hidden header inside the scroll body to remove the gap */
-        .stocks-table-area .dataTables_scrollBody > table > thead,
-        .stocks-table-area .dataTables_scrollBody thead {
-            height: 0 !important;
-            line-height: 0 !important;
-            visibility: collapse !important;
-        }
-        .stocks-table-area .dataTables_scrollBody thead tr,
-        .stocks-table-area .dataTables_scrollBody thead th {
-            height: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-            border: none !important;
-            line-height: 0 !important;
-            font-size: 0 !important;
-            overflow: hidden !important;
-        }
-        .stocks-table-area .dataTables_scrollBody thead th:before,
-        .stocks-table-area .dataTables_scrollBody thead th:after {
-            display: none !important;
+            overflow: auto !important;
+            display: block;
+            width: 100%;
+            position: relative;
         }
 
         /* Table visibility fixes */
@@ -563,30 +564,57 @@
             position: relative;
         }
         .office-table {
-            min-width: 0;
+            width: 1980px !important;
+            min-width: 1980px !important;
+            max-width: none !important;
             border-collapse: separate;
             border-spacing: 0;
-            width: 100% !important;
-        }
-        @media (min-width: 1200px) {
-            .office-table {
-                min-width: 1500px;
-            }
+            table-layout: fixed;
         }
         .table-scroll-wrapper .office-table {
-            min-width: 1100px;
+            width: 1980px !important;
+            min-width: 1980px !important;
         }
-        .dataTables_scroll {
-            width: 100%;
-        }
-        .dataTables_scrollHeadInner,
-        .dataTables_scrollHead table {
-            width: 100% !important;
+        .office-table th:nth-child(1),
+        .office-table td:nth-child(1) { width: 40px; min-width: 40px; }
+        .office-table th:nth-child(2),
+        .office-table td:nth-child(2) { width: 90px; min-width: 90px; }
+        .office-table th:nth-child(3),
+        .office-table td:nth-child(3) { width: 180px; min-width: 180px; }
+        .office-table th:nth-child(4),
+        .office-table td:nth-child(4) { width: 240px; min-width: 240px; }
+        .office-table th:nth-child(5),
+        .office-table td:nth-child(5) { width: 180px; min-width: 180px; }
+        .office-table th:nth-child(6),
+        .office-table td:nth-child(6) { width: 110px; min-width: 110px; }
+        .office-table th:nth-child(7),
+        .office-table td:nth-child(7) { width: 200px; min-width: 200px; }
+        .office-table th:nth-child(8),
+        .office-table td:nth-child(8) { width: 200px; min-width: 200px; }
+        .office-table th:nth-child(9),
+        .office-table td:nth-child(9) { width: 60px; min-width: 60px; }
+        .office-table th:nth-child(10),
+        .office-table td:nth-child(10) { width: 90px; min-width: 90px; }
+        .office-table th:nth-child(11),
+        .office-table td:nth-child(11) { width: 100px; min-width: 100px; }
+        .office-table th:nth-child(12),
+        .office-table td:nth-child(12) { width: 60px; min-width: 60px; }
+        .office-table th:nth-child(13),
+        .office-table td:nth-child(13) { width: 130px; min-width: 130px; }
+        .office-table th:nth-child(14),
+        .office-table td:nth-child(14) { width: 150px; min-width: 150px; }
+        .office-table th:nth-child(15),
+        .office-table td:nth-child(15) { width: 120px; min-width: 120px; }
+        .office-table thead {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+            background-color: #fdfdfd !important;
         }
         .office-table thead th {
-            position: relative !important;
-            top: auto !important;
-            z-index: auto !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 21 !important;
             background-color: #fdfdfd !important;
             color: #374151;
             font-size: 11px;
@@ -596,7 +624,7 @@
             border-top: 1px solid #e5e7eb !important;
             white-space: nowrap;
             text-transform: none;
-            box-shadow: none;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
         }
         /* Hide sorting icons for checkbox column */
         .office-table thead th:first-child:after,
@@ -948,6 +976,23 @@
                                                 <div class="stocks-table-area">
                                                 <table id="offices-table"
                                                         class="office-table">
+                                                        <colgroup>
+                                                            <col style="width: 40px">
+                                                            <col style="width: 90px">
+                                                            <col style="width: 180px">
+                                                            <col style="width: 240px">
+                                                            <col style="width: 180px">
+                                                            <col style="width: 110px">
+                                                            <col style="width: 200px">
+                                                            <col style="width: 200px">
+                                                            <col style="width: 60px">
+                                                            <col style="width: 90px">
+                                                            <col style="width: 100px">
+                                                            <col style="width: 60px">
+                                                            <col style="width: 130px">
+                                                            <col style="width: 150px">
+                                                            <col style="width: 120px">
+                                                        </colgroup>
                                                         <thead>
                                                             <tr>
                                                                 <th><input type="checkbox"></th>
@@ -1012,12 +1057,12 @@
                                                                 data-dgr="{{ $hasDgr ? 'Yes' : '' }}"
                                                                 data-oversized="{{ $isOversized ? 'Yes' : '' }}"
                                                             >
-                                                                 <td class="text-center"><input type="checkbox" class="row-checkbox" value="{{ $crr->id }}"></td>
-                                                                <td>{{ $crr->hub_code ?? '—' }}</td>
-                                                                <td>
-                                                                    <div class="d-flex align-items-center justify-content-between">
-                                                                        <a href="{{ route('stocks.edit', $crr->id) }}" style="color: #008080; font-weight: 500;">{{ $crr->stock_number }}</a>
-                                                                        <div class="d-flex align-items-center" style="gap: 8px;">
+                                                                <td class="text-center"><input type="checkbox" class="row-checkbox" value="{{ $crr->id }}"></td>
+                                                                <td title="{{ $crr->hub_code ?? '—' }}"><span class="cell-ellipsis">{{ $crr->hub_code ?? '—' }}</span></td>
+                                                                <td class="stock-no-cell">
+                                                                    <div class="stock-no-row">
+                                                                        <a href="{{ route('stocks.edit', $crr->id) }}" style="color: #008080; font-weight: 500;" title="{{ $crr->stock_number }}">{{ $crr->stock_number }}</a>
+                                                                        <div class="stock-no-flags">
                                                                             @if($crr->is_landed_goods)
                                                                                 <span class="landed-badge" title="Landed Goods">Landed</span>
                                                                             @endif
@@ -1039,17 +1084,17 @@
                                                                         </div>
                                                                     </div>
                                                                 </td>
-                                                                <td>{{ $customerName ?: '—' }}</td>
-                                                                <td>{{ $crr->vessel_name ?? '—' }}</td>
-                                                                <td>{{ $crr->expected_delivery_date ?? '—' }}</td>
-                                                                <td style="max-width: 150px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;display: block;">{{ $poNumbers ?: '—' }}</td>
-                                                                <td>{{ $crr->supplier ?? '—' }}</td>
+                                                                <td title="{{ $customerName ?: '—' }}"><span class="cell-ellipsis">{{ $customerName ?: '—' }}</span></td>
+                                                                <td title="{{ $crr->vessel_name ?? '—' }}"><span class="cell-ellipsis">{{ $crr->vessel_name ?? '—' }}</span></td>
+                                                                <td title="{{ $crr->expected_delivery_date ?? '—' }}"><span class="cell-ellipsis">{{ $crr->expected_delivery_date ?? '—' }}</span></td>
+                                                                <td title="{{ $poNumbers ?: '—' }}"><span class="cell-ellipsis">{{ $poNumbers ?: '—' }}</span></td>
+                                                                <td title="{{ $crr->supplier ?? '—' }}"><span class="cell-ellipsis">{{ $crr->supplier ?? '—' }}</span></td>
                                                                 <td class="text-center">{{ $totalItems }}</td>
                                                                 <td class="text-right">{{ $totalWeight > 0 ? number_format($totalWeight, 2) : '—' }}</td>
                                                                 <td class="text-right">{{ $crr->customs_value ? number_format($crr->customs_value, 2) : '—' }}</td>
-                                                                <td>{{ $crr->currency ?? '—' }}</td>
-                                                                <td>{{ $crr->transit_id ?? '—' }}</td>
-                                                                <td>{{ $crr->internal_shipment ?? '—' }}</td>
+                                                                <td title="{{ $crr->currency ?? '—' }}"><span class="cell-ellipsis">{{ $crr->currency ?? '—' }}</span></td>
+                                                                <td title="{{ $crr->transit_id ?? '—' }}"><span class="cell-ellipsis">{{ $crr->transit_id ?? '—' }}</span></td>
+                                                                <td title="{{ $crr->internal_shipment ?? '—' }}"><span class="cell-ellipsis">{{ $crr->internal_shipment ?? '—' }}</span></td>
                                                                 <td>
                                                                     <span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span>
                                                                 </td>
@@ -1278,28 +1323,28 @@
                 "ordering": true,
                 "order": [],
                 "autoWidth": false,
-                "scrollY": '50vh',
-                "scrollX": true,
-                "scrollCollapse": true,
                 "columnDefs": [
                     { "orderable": false, "targets": [0] },
-                    { "searchable": false, "targets": [0] }
+                    { "searchable": false, "targets": [0] },
+                    { "targets": 0, "width": "40px" },
+                    { "targets": 3, "width": "240px" },
+                    { "targets": 4, "width": "180px" },
+                    { "targets": 6, "width": "200px" },
+                    { "targets": 7, "width": "200px" }
                 ]
             });
 
             function getStockTableScrollHeight() {
                 var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
                 var $tableArea = $('.stocks-table-area');
-                var $scrollHead = $('.dataTables_scrollHead');
                 var areaHeight = $tableArea.length ? $tableArea.innerHeight() : 0;
-                var headHeight = $scrollHead.length ? $scrollHead.outerHeight() : 40;
-                var available = areaHeight - headHeight - 2;
+                var available = areaHeight - 2;
+                var bulkHeight = $('body').hasClass('stock-bulk-footer-visible')
+                    ? ($('#stock-bulk-footer').outerHeight() || 56)
+                    : 0;
 
                 if (isMobile) {
                     var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
-                    var bulkHeight = $('body').hasClass('stock-bulk-footer-visible')
-                        ? ($('#stock-bulk-footer').outerHeight() || 56)
-                        : 0;
                     var topOffset = $tableArea.length && $tableArea.offset()
                         ? $tableArea.offset().top
                         : 160;
@@ -1308,12 +1353,9 @@
                 }
 
                 if (available < 180) {
-                    var topOffsetFallback = $scrollHead.length ? $scrollHead.offset().top : 220;
+                    var topOffsetFallback = $tableArea.length ? $tableArea.offset().top : 220;
                     var paginationHeightFallback = $('.pagination-sticky-footer').outerHeight() || 48;
-                    var bulkHeightFallback = $('body').hasClass('stock-bulk-footer-visible')
-                        ? ($('#stock-bulk-footer').outerHeight() || 56)
-                        : 0;
-                    available = window.innerHeight - topOffsetFallback - paginationHeightFallback - bulkHeightFallback - 4;
+                    available = window.innerHeight - topOffsetFallback - paginationHeightFallback - bulkHeight - 4;
                 }
 
                 return Math.max(180, available);
@@ -1321,14 +1363,10 @@
 
             function adjustStockTableLayout() {
                 var height = getStockTableScrollHeight();
-                var $scrollBody = $('.dataTables_scrollBody');
-
-                $scrollBody.css({
+                $('.stocks-table-area .table-scroll-wrapper').css({
                     height: height + 'px',
                     maxHeight: height + 'px'
                 });
-
-                table.columns.adjust();
             }
 
             $('#btn-stocks-filters-toggle').on('click', function () {

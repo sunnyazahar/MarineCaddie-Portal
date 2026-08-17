@@ -17,14 +17,27 @@
         /* High Density Table Styles */
         #offices-table {
             width: 100% !important;
-            min-width: 1410px;
+            min-width: 1580px;
             table-layout: fixed;
-            border-collapse: collapse !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+        }
+        .followup-table-area,
+        .followup-table-area.table-responsive,
+        .card-block > .table-responsive,
+        .dt-responsive.table-responsive {
+            overflow: visible !important;
+        }
+        #offices-table thead {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+            background-color: #fdfdfd !important;
         }
         #offices-table thead th {
             position: sticky !important;
             top: 0 !important;
-            z-index: 100 !important;
+            z-index: 21 !important;
             background-color: #fdfdfd !important;
             color: #374151;
             font-size: 13px;
@@ -52,8 +65,10 @@
             flex-direction: row !important;
             flex-wrap: nowrap !important;
             align-items: center !important;
-            width: max-content;
-            min-width: max-content;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow: hidden;
             white-space: nowrap !important;
         }
         #offices-table .consignee-hub-agent {
@@ -65,21 +80,26 @@
             display: inline-flex !important;
             align-items: center;
             justify-content: center;
-            flex: 0 0 14px !important;
-            width: 14px !important;
-            min-width: 14px !important;
-            margin: 0 6px 0 0 !important;
+            flex: 0 0 12px !important;
+            width: 12px !important;
+            min-width: 12px !important;
+            margin: 0 4px 0 0 !important;
             font-size: 12px;
             color: #05354B;
             line-height: 1;
         }
-        #offices-table .consignee-hub-icon-spacer {
-            visibility: hidden;
-        }
         #offices-table .consignee-hub-agent-text {
-            display: inline-block !important;
+            display: block !important;
+            flex: 1 1 0%;
+            min-width: 0 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
             white-space: nowrap !important;
             line-height: 1.2;
+        }
+        #offices-table td.consignee-cell {
+            overflow: hidden;
+            padding-left: 8px !important;
         }
         #offices-table th,
         #offices-table td {
@@ -96,9 +116,9 @@
         #offices-table th:nth-child(3),
         #offices-table td:nth-child(3) { width: 130px; min-width: 130px; }
         #offices-table th:nth-child(4),
-        #offices-table td:nth-child(4) { width: 90px; min-width: 90px; }
+        #offices-table td:nth-child(4) { width: 160px; min-width: 160px; }
         #offices-table th:nth-child(5),
-        #offices-table td:nth-child(5) { width: 200px; min-width: 200px; }
+        #offices-table td:nth-child(5) { width: 240px; min-width: 240px; }
         #offices-table th:nth-child(6),
         #offices-table td:nth-child(6) { width: 90px; min-width: 90px; }
         #offices-table th:nth-child(7),
@@ -115,18 +135,15 @@
         #offices-table td:nth-child(12) { width: 90px; min-width: 90px; }
         #offices-table th:nth-child(13),
         #offices-table td:nth-child(13) { width: 110px; min-width: 110px; }
+        .followup-table-area {
+            min-height: 0;
+        }
         .table-scroll-wrapper {
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: calc(100vh - 200px);
+            overflow: auto !important;
+            max-height: calc(100vh - 280px);
             width: 100%;
             position: relative;
             -webkit-overflow-scrolling: touch;
-        }
-        .table-scroll-wrapper .office-table,
-        .dataTables_wrapper .office-table,
-        #offices-table {
-            min-width: 1100px;
         }
         .dataTables_wrapper {
             width: 100%;
@@ -880,6 +897,10 @@
         @keyframes reminder-spin {
             to { transform: rotate(360deg); }
         }
+
+        .table thead th {
+            padding: 10px 5px;
+        }
     </style>
     @include('partials.searchable-filter-multiselect-styles')
 @endsection
@@ -1041,14 +1062,14 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                                <div class="dt-responsive table-responsive">
+                                                <div class="followup-table-area">
                                                     <table id="offices-table" class="table office-table mb-0">
                                                         <colgroup>
                                                             <col style="width: 120px">
                                                             <col style="width: 160px">
                                                             <col style="width: 130px">
-                                                            <col style="width: 90px">
-                                                            <col style="width: 140px">
+                                                            <col style="width: 160px">
+                                                            <col style="width: 240px">
                                                             <col style="width: 90px">
                                                             <col style="width: 90px">
                                                             <col style="width: 80px">
@@ -1108,13 +1129,13 @@
                                                                 <td>{{ $shipment->customer_display }}</td>
                                                                 <td>{{ $shipment->vessel_display }}</td>
                                                                 <td>{{ $shipment->service ?? '—' }}</td>
-                                                                <td>
+                                                                <td class="consignee-cell" title="{{ $consigneeDisplay }}">
                                                                     @if ($consigneeType === 'hub')
-                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-home consignee-hub-icon" title="Hub"></i><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-home consignee-hub-icon" title="Hub"></i><span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span></span>
                                                                     @elseif ($consigneeType === 'agent')
-                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-user consignee-hub-icon" title="Agent"></i><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-user consignee-hub-icon" title="Agent"></i><span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span></span>
                                                                     @else
-                                                                        <span class="consignee-row"><span class="consignee-hub-icon consignee-hub-icon-spacer"></span><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
+                                                                        <span class="consignee-row"><span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span></span>
                                                                     @endif
                                                                 </td>
                                                                 <td>{{ $departureDisplay ?: '—' }}</td>
@@ -1319,8 +1340,9 @@
                 "ordering": true,
                 "order": [],
                 "autoWidth": false,
-                "scrollX": true,
                 "columnDefs": [
+                    { "targets": 3, "width": "160px" },
+                    { "targets": 4, "width": "240px" },
                     { "targets": [10, 11, 12], "orderable": false }
                 ],
                 "language": {
@@ -1328,11 +1350,25 @@
                         "previous": "<",
                         "next": ">"
                     }
-                },
-                "drawCallback": function() {
-                    this.api().columns.adjust();
                 }
             });
+
+            function getFollowupTableScrollHeight() {
+                var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
+                var $wrapper = $('.table-scroll-wrapper');
+                var topOffset = $wrapper.length && $wrapper.offset()
+                    ? $wrapper.offset().top
+                    : 220;
+                return Math.max(180, window.innerHeight - topOffset - paginationHeight - 8);
+            }
+
+            function adjustFollowupTableLayout() {
+                var height = getFollowupTableScrollHeight();
+                $('.table-scroll-wrapper').css({
+                    height: height + 'px',
+                    maxHeight: height + 'px'
+                });
+            }
 
             $('#btn-followup-filters-toggle').on('click', function () {
                 $('body').toggleClass('followup-filters-open');
@@ -1342,20 +1378,22 @@
                 if (isOpen) {
                     ensureFollowupMobileFiltersVisible();
                 }
-                setTimeout(function () {
-                    table.columns.adjust();
-                }, 50);
+                setTimeout(adjustFollowupTableLayout, 50);
+                setTimeout(adjustFollowupTableLayout, 200);
             });
 
             $(window).on('resize', function() {
                 toggleFilterVisibility();
                 ensureFollowupMobileFiltersVisible();
-                table.columns.adjust();
+                adjustFollowupTableLayout();
             });
 
-            setTimeout(function () {
-                table.columns.adjust();
-            }, 100);
+            table.on('draw', function() {
+                adjustFollowupTableLayout();
+            });
+
+            setTimeout(adjustFollowupTableLayout, 100);
+            setTimeout(adjustFollowupTableLayout, 400);
 
             function rowData($row, key) {
                 return String($row.attr('data-' + key) || '');

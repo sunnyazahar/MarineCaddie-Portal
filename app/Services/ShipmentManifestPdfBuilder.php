@@ -261,7 +261,7 @@ class ShipmentManifestPdfBuilder
         return $lines !== [] ? implode("\n", $lines) : '—';
     }
 
-    private function resolvePartyContact(?string $composite, array $partyNames): array
+    public function resolvePartyContact(?string $composite, array $partyNames): array
     {
         $result = [
             'name' => '',

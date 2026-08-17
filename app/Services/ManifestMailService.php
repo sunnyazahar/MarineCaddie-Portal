@@ -167,7 +167,7 @@ class ManifestMailService
 
         $manifestData = $this->manifestPdfBuilder->build($shipment);
         $partyNames = Shipment::batchResolvePartyNames(collect([$shipment]));
-        $consigneeParty = $this->resolveConsigneeContact($shipment, $partyNames);
+        $departureParty = $this->manifestPdfBuilder->resolvePartyContact($shipment->departure, $partyNames);
 
         $sender = \App\Support\MailEnvelopeHelper::resolveShipmentSender(
             $senderName,
@@ -180,8 +180,8 @@ class ManifestMailService
             'senderName' => $sender['name'],
             'senderEmail' => $sender['email'],
             'subject' => $this->buildSubject($shipment, $manifestData),
-            'body' => $this->buildBody($shipment, $consigneeParty, $sender['name'], $sender['email']),
-            'to' => $this->buildToAddresses($consigneeParty),
+            'body' => $this->buildBody($shipment, $departureParty, $sender['name'], $sender['email']),
+            'to' => $this->buildToAddresses($departureParty),
             'cc' => $this->buildCcAddresses($sender['email']),
             'attachments' => $this->buildAttachments($shipment, $manifestData, $documentIds, $excludeAttachments),
         ];
@@ -215,17 +215,17 @@ class ManifestMailService
 
     private function buildBody(
         Shipment $shipment,
-        array $consigneeParty,
+        array $departureParty,
         string $senderName,
         string $senderEmail
     ): string {
-        $consigneeName = $consigneeParty['name'] ?: ($shipment->consignee_att ?: 'Sir/Madam');
+        $departureName = $departureParty['name'] ?: 'Sir/Madam';
         $destination = $this->buildDestinationLabel($shipment);
         $service = $shipment->service ?? 'shipment';
         $deadline = $shipment->deadline_arrival?->format('d.m.Y') ?? '—';
 
         $lines = [
-            'To ' . $consigneeName,
+            'To ' . $departureName,
             '',
             'Please prepare ' . $service . ' to ' . $destination . ' and provide service details.',
             '',
@@ -267,23 +267,20 @@ class ManifestMailService
     /**
      * @return array<int, array{name?: string, email: string}>
      */
-    private function buildToAddresses(array $consigneeParty): array
+    private function buildToAddresses(array $party): array
     {
         $addresses = [];
 
-        if (!empty($consigneeParty['email'])) {
+        if (! empty($party['email'])) {
             $addresses[] = [
-                'name' => $consigneeParty['name'] ?? '',
-                'email' => $consigneeParty['email'],
+                'name' => $party['name'] ?? '',
+                'email' => $party['email'],
             ];
         }
 
         return $addresses;
     }
 
-    /**
-     * @return array<int, array{name?: string, email: string}>
-     */
     /**
      * @return array<int, array{name?: string, email: string}>
      */
@@ -376,54 +373,5 @@ class ManifestMailService
         }
 
         return $attachments;
-    }
-
-    private function resolveConsigneeContact(Shipment $shipment, array $partyNames): array
-    {
-        $composite = $shipment->consignee;
-        $result = [
-            'name' => '',
-            'email' => $shipment->consignee_email ?? '',
-        ];
-
-        if (!$composite) {
-            return $result;
-        }
-
-        if (!str_contains($composite, ':')) {
-            $result['name'] = $partyNames[$composite] ?? $composite;
-
-            return $result;
-        }
-
-        [$type, $id] = explode(':', $composite, 2);
-        $id = (int) $id;
-        $result['name'] = $partyNames[$composite] ?? $composite;
-
-        switch ($type) {
-            case 'agent':
-                $agent = \App\Models\Agent::find($id);
-                if ($agent) {
-                    $result['name'] = $agent->agent_name;
-                    $result['email'] = $agent->email ?: $result['email'];
-                }
-                break;
-            case 'hub':
-                $hub = \App\Models\Hub::find($id);
-                if ($hub) {
-                    $result['name'] = $hub->hub_name;
-                    $result['email'] = $hub->email ?: $result['email'];
-                }
-                break;
-            case 'office':
-                $office = \App\Models\Office::find($id);
-                if ($office) {
-                    $result['name'] = $office->office_name;
-                    $result['email'] = $office->email ?: $result['email'];
-                }
-                break;
-        }
-
-        return $result;
     }
 }

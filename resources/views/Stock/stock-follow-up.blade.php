@@ -13,24 +13,30 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/css/sweetalert.css') }}" />
     <style>
         .office-table {
-            width: 100%;
-            border-collapse: collapse;
+            width: 1900px !important;
+            min-width: 1900px !important;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 0;
             background: #fff;
         }
         .office-table th {
             text-align: left;
-            padding: 12px 15px;
+            padding: 10px 8px;
             font-size: 13px;
             font-weight: 600;
             color: #374151;
             border-bottom: 1px solid #e5e7eb;
         }
         .office-table td {
-            padding: 12px 15px;
+            padding: 6px 8px;
             font-size: 13px;
             color: #4b5563;
             border-bottom: 1px solid #f3f4f6;
             vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .btn-teal {
             background-color: #008080;
@@ -320,27 +326,84 @@
         .dt-responsive {
             width: 100%;
         }
+        .stock-followup-table-area {
+            min-height: 0;
+        }
         .table-scroll-wrapper {
             width: 100%;
-            overflow-x: auto;
-            max-height: 800px;
-            overflow-y: auto;
+            overflow: auto !important;
+            max-height: calc(100vh - 280px);
             -webkit-overflow-scrolling: touch;
             border-bottom: 1px solid #e5e7eb;
+            position: relative;
         }
         .office-table {
-            min-width: 0;
-            border-collapse: separate; /* Required for sticky borders */
+            width: 1900px !important;
+            min-width: 1900px !important;
+            max-width: none !important;
+            table-layout: fixed;
+            border-collapse: separate;
             border-spacing: 0;
         }
-        @media (min-width: 1200px) {
-            .office-table {
-                min-width: 1500px;
-            }
+        .office-table th:nth-child(1),
+        .office-table td:nth-child(1) { width: 90px; min-width: 90px; }
+        .office-table th:nth-child(2),
+        .office-table td:nth-child(2) { width: 180px; min-width: 180px; }
+        .office-table th:nth-child(3),
+        .office-table td:nth-child(3) { width: 240px; min-width: 240px; }
+        .office-table th:nth-child(4),
+        .office-table td:nth-child(4) { width: 180px; min-width: 180px; }
+        .office-table th:nth-child(5),
+        .office-table td:nth-child(5) { width: 200px; min-width: 200px; }
+        .office-table th:nth-child(6),
+        .office-table td:nth-child(6) { width: 180px; min-width: 180px; }
+        .office-table th:nth-child(7),
+        .office-table td:nth-child(7) { width: 60px; min-width: 60px; }
+        .office-table th:nth-child(8),
+        .office-table td:nth-child(8) { width: 80px; min-width: 80px; }
+        .office-table th:nth-child(9),
+        .office-table td:nth-child(9) { width: 110px; min-width: 110px; }
+        .office-table th:nth-child(10),
+        .office-table td:nth-child(10) { width: 140px; min-width: 140px; }
+        .office-table th:nth-child(11),
+        .office-table td:nth-child(11) { width: 140px; min-width: 140px; }
+        .office-table th:nth-child(12),
+        .office-table td:nth-child(12) { width: 90px; min-width: 90px; }
+        .office-table th:nth-child(13),
+        .office-table td:nth-child(13) { width: 110px; min-width: 110px; }
+        .office-table th:nth-child(14),
+        .office-table td:nth-child(14) { width: 90px; min-width: 90px; }
+        .office-table .cell-ellipsis {
+            display: block;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
         }
-        .table-scroll-wrapper .office-table,
-        .dataTables_wrapper .office-table {
-            min-width: 1100px;
+        .office-table td.stock-no-cell {
+            overflow: hidden;
+        }
+        .office-table .stock-no-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-width: 0;
+            max-width: 100%;
+        }
+        .office-table .stock-no-row a {
+            min-width: 0;
+            flex: 1 1 0%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .office-table .stock-no-flags {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
         }
 
         .stock-followup-filters {
@@ -400,14 +463,20 @@
                 padding-right: 8px !important;
             }
         }
+        .office-table thead {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+            background-color: #fdfdfd !important;
+        }
         .office-table thead th {
             position: sticky !important;
             top: 0 !important;
             background-color: #fdfdfd !important;
-            z-index: 100 !important;
+            z-index: 21 !important;
             border-top: 1px solid #e5e7eb !important;
             border-bottom: 2px solid #dee2e6 !important;
-            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); 
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
         }
         .office-table th, .office-table td {
             white-space: nowrap; 
@@ -523,8 +592,24 @@
                                                 </div>
 
                                                 <!-- Data Table -->
-                                                <div class="table-scroll-wrapper" style="background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                                    <table id="offices-table" class="office-table d-table">
+                                                <div class="stock-followup-table-area" style="background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                                    <table id="offices-table" class="office-table">
+                                                        <colgroup>
+                                                            <col style="width: 90px">
+                                                            <col style="width: 180px">
+                                                            <col style="width: 240px">
+                                                            <col style="width: 180px">
+                                                            <col style="width: 200px">
+                                                            <col style="width: 180px">
+                                                            <col style="width: 60px">
+                                                            <col style="width: 80px">
+                                                            <col style="width: 110px">
+                                                            <col style="width: 140px">
+                                                            <col style="width: 140px">
+                                                            <col style="width: 90px">
+                                                            <col style="width: 110px">
+                                                            <col style="width: 90px">
+                                                        </colgroup>
                                                         <thead>
                                                             <tr>
                                                                 <th>Hub</th>
@@ -569,11 +654,11 @@
                                                                 data-customer="{{ $customerName }}"
                                                                 data-has-etl="{{ $isEtl ? '1' : '0' }}"
                                                             >
-                                                                <td>{{ $crr->hub_code ?? ($crr->hub_agent ?? '—') }}</td>
-                                                                <td>
-                                                                    <div class="d-flex align-items-center justify-content-between">
-                                                                        <a href="{{ route('stocks.edit', $crr->id) }}" style="color: #0ea5e9;">{{ $crr->stock_number }}</a>
-                                                                        <div class="d-flex align-items-center" style="gap: 8px;">
+                                                                <td title="{{ $crr->hub_code ?? ($crr->hub_agent ?? '—') }}"><span class="cell-ellipsis">{{ $crr->hub_code ?? ($crr->hub_agent ?? '—') }}</span></td>
+                                                                <td class="stock-no-cell">
+                                                                    <div class="stock-no-row">
+                                                                        <a href="{{ route('stocks.edit', $crr->id) }}" style="color: #0ea5e9;" title="{{ $crr->stock_number }}">{{ $crr->stock_number }}</a>
+                                                                        <div class="stock-no-flags">
                                                                             @if($crr->is_landed_goods)
                                                                                 <span class="badge-landed" title="Landed Goods">Landed</span>
                                                                             @endif
@@ -595,28 +680,32 @@
                                                                         </div>
                                                                     </div>
                                                                 </td>
-                                                                <td>{{ $customerName ?: '—' }}</td>
-                                                                <td>{{ $crr->vessel_name ?? '—' }}</td>
-                                                                <td>
+                                                                <td title="{{ $customerName ?: '—' }}"><span class="cell-ellipsis">{{ $customerName ?: '—' }}</span></td>
+                                                                <td title="{{ $crr->vessel_name ?? '—' }}"><span class="cell-ellipsis">{{ $crr->vessel_name ?? '—' }}</span></td>
+                                                                <td title="{{ $poNumbers ? implode(', ', $poNumbers) : '—' }}">
+                                                                    <span class="cell-ellipsis">
                                                                     @forelse ($poNumbers as $poNumber)
                                                                         <span class="po-badge">{{ $poNumber }}</span>
                                                                     @empty
                                                                         —
                                                                     @endforelse
+                                                                    </span>
                                                                 </td>
-                                                                <td>{{ $crr->supplier ?? '—' }}</td>
+                                                                <td title="{{ $crr->supplier ?? '—' }}"><span class="cell-ellipsis">{{ $crr->supplier ?? '—' }}</span></td>
                                                                 <td class="text-center">{{ $totalItems ?: '—' }}</td>
                                                                 <td class="text-center">{{ $totalWeight > 0 ? number_format((float) $totalWeight, 1) : '—' }}</td>
-                                                                <td class="text-right">{{ $valueDisplay }}</td>
-                                                                <td>
+                                                                <td class="text-right" title="{{ $valueDisplay }}"><span class="cell-ellipsis">{{ $valueDisplay }}</span></td>
+                                                                <td title="{{ $crr->shipments->pluck('shipment_number')->filter()->implode(', ') ?: '—' }}">
+                                                                    <span class="cell-ellipsis">
                                                                     @forelse ($crr->shipments as $shipment)
                                                                         <span class="shipment-badge">{{ $shipment->shipment_number }}</span>
                                                                     @empty
                                                                         —
                                                                     @endforelse
+                                                                    </span>
                                                                 </td>
-                                                                <td>{{ $crr->registeredBy?->name ?? '—' }}</td>
-                                                                <td>{{ $isEtl ? 'ETL' : ($crr->internal_shipment ?: '—') }}</td>
+                                                                <td title="{{ $crr->registeredBy?->name ?? '—' }}"><span class="cell-ellipsis">{{ $crr->registeredBy?->name ?? '—' }}</span></td>
+                                                                <td title="{{ $isEtl ? 'ETL' : ($crr->internal_shipment ?: '—') }}"><span class="cell-ellipsis">{{ $isEtl ? 'ETL' : ($crr->internal_shipment ?: '—') }}</span></td>
                                                                 <td><span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span></td>
                                                                 <td class="text-center">
                                                                     <button type="button"
@@ -693,12 +782,37 @@
                 "responsive": false,
                 "searching": true,
                 "ordering": true,
+                "order": [],
                 "autoWidth": false,
-                "scrollX": true,
                 "columnDefs": [
-                    { "orderable": false, "targets": [13] }
+                    { "orderable": false, "targets": [13] },
+                    { "targets": 2, "width": "240px" },
+                    { "targets": 4, "width": "200px" },
+                    { "targets": 5, "width": "180px" }
                 ]
             });
+
+            function getFollowupTableScrollHeight() {
+                var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
+                var $wrapper = $('.table-scroll-wrapper');
+                var topOffset = $wrapper.length && $wrapper.offset()
+                    ? $wrapper.offset().top
+                    : 220;
+                return Math.max(180, window.innerHeight - topOffset - paginationHeight - 8);
+            }
+
+            function adjustFollowupTableLayout() {
+                var height = getFollowupTableScrollHeight();
+                $('.stock-followup-table-area .table-scroll-wrapper').css({
+                    height: height + 'px',
+                    maxHeight: height + 'px'
+                });
+            }
+
+            $(window).on('resize', adjustFollowupTableLayout);
+            table.on('draw', adjustFollowupTableLayout);
+            setTimeout(adjustFollowupTableLayout, 100);
+            setTimeout(adjustFollowupTableLayout, 400);
 
             $('#filter-account-manager, #filter-customer').on('change', function() {
                 table.draw();
