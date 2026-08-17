@@ -1081,6 +1081,7 @@ class ShipmentController extends Controller
             'created' => $manifestCreated,
             'manifests' => $manifests->map(fn (ShipmentManifest $manifest) => $this->manifestToArray($manifest)),
             'document_count' => $this->shipmentDocumentCount($shipment, $combinedPoPdfService),
+            'manifest_mail_pending' => $shipment->fresh('manifests')->needsManifestMailSend(),
         ]);
     }
 
@@ -1177,6 +1178,7 @@ class ShipmentController extends Controller
             'created' => $preAlertCreated,
             'pre_alerts' => $preAlerts->map(fn (ShipmentPreAlert $preAlert) => $this->preAlertToArray($preAlert)),
             'document_count' => $this->shipmentDocumentCount($shipment, $combinedPoPdfService),
+            'pre_alert_mail_pending' => $shipment->fresh('preAlerts')->needsPreAlertMailSend(),
         ]);
     }
 
@@ -1220,6 +1222,9 @@ class ShipmentController extends Controller
                 'user' => $changeLog->user?->name ?? 'System',
                 'timestamp' => $changeLog->created_at->format('d.m.Y H:i'),
             ] : null,
+            'manifest_mail_pending' => $shipment
+                ? $shipment->fresh('manifests')->needsManifestMailSend()
+                : false,
         ]);
     }
 
@@ -1263,6 +1268,9 @@ class ShipmentController extends Controller
                 'user' => $changeLog->user?->name ?? 'System',
                 'timestamp' => $changeLog->created_at->format('d.m.Y H:i'),
             ] : null,
+            'pre_alert_mail_pending' => $shipment
+                ? $shipment->fresh('preAlerts')->needsPreAlertMailSend()
+                : false,
         ]);
     }
 
@@ -1469,7 +1477,7 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function sendManifestMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
+    public function sendManifestMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService, ShipmentChangeLogService $changeLogService)
     {
         $shipment = Shipment::with([
             'crrs.packages',
@@ -1508,10 +1516,28 @@ class ShipmentController extends Controller
             $this->parseMailExcludeAttachments($request->input('exclude_attachments')),
         );
 
+        $latestManifest = $shipment->latestManifest();
+        if ($latestManifest) {
+            $latestManifest->markMailSent();
+        }
+
+        $description = $latestManifest
+            ? $latestManifest->displayLabel() . ' · To ' . $validated['to']
+            : 'To ' . $validated['to'];
+        $changeLog = $changeLogService->log($shipment, 'Manifest email sent', $description);
+        $changeLog->load('user');
+
         return response()->json([
             'success' => true,
             'message' => 'Manifest email sent successfully.',
             'queued' => true,
+            'manifest_mail_pending' => false,
+            'change_log' => [
+                'title' => $changeLog->title,
+                'description' => $changeLog->description,
+                'user' => $changeLog->user?->name ?? 'System',
+                'timestamp' => $changeLog->created_at->format('d.m.Y H:i'),
+            ],
         ]);
     }
 
@@ -1649,7 +1675,7 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function sendPreAlertMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
+    public function sendPreAlertMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService, ShipmentChangeLogService $changeLogService)
     {
         $shipment = Shipment::with([
             'crrs.packages',
@@ -1694,10 +1720,28 @@ class ShipmentController extends Controller
             $this->parseMailExcludeAttachments($request->input('exclude_attachments')),
         );
 
+        $latestPreAlert = $shipment->latestPreAlert();
+        if ($latestPreAlert) {
+            $latestPreAlert->markMailSent();
+        }
+
+        $description = $latestPreAlert
+            ? $latestPreAlert->displayLabel() . ' · To ' . $validated['to']
+            : 'To ' . $validated['to'];
+        $changeLog = $changeLogService->log($shipment, 'Pre-alert email sent', $description);
+        $changeLog->load('user');
+
         return response()->json([
             'success' => true,
             'message' => 'Pre-alert email sent successfully.',
             'queued' => true,
+            'pre_alert_mail_pending' => false,
+            'change_log' => [
+                'title' => $changeLog->title,
+                'description' => $changeLog->description,
+                'user' => $changeLog->user?->name ?? 'System',
+                'timestamp' => $changeLog->created_at->format('d.m.Y H:i'),
+            ],
         ]);
     }
 
@@ -2094,9 +2138,13 @@ class ShipmentController extends Controller
         $message = 'Shipment ' . $shipment->shipment_number . ' updated successfully.';
 
         if ($request->expectsJson()) {
+            $freshShipment->loadMissing(['manifests', 'preAlerts']);
+
             return response()->json([
                 'success' => true,
                 'message' => $message,
+                'manifest_mail_pending' => $freshShipment->needsManifestMailSend(),
+                'pre_alert_mail_pending' => $freshShipment->needsPreAlertMailSend(),
             ]);
         }
 

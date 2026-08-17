@@ -1121,6 +1121,98 @@
             border-color: #008080;
             color: #008080;
         }
+        #send-manifest-btn.send-manifest-pending,
+        #send-prealert-btn.send-prealert-pending {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 55%, #115e59 100%) !important;
+            border: 2px solid rgba(255, 255, 255, 0.55) !important;
+            color: #fff !important;
+            box-shadow:
+                0 0 0 4px rgba(13, 148, 136, 0.18),
+                0 6px 16px rgba(15, 118, 110, 0.35);
+            animation: send-mail-btn-pulse 1.8s ease-in-out infinite;
+            overflow: hidden;
+            transform-origin: center;
+        }
+        #send-manifest-btn.send-manifest-pending::before,
+        #send-prealert-btn.send-prealert-pending::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                110deg,
+                transparent 0%,
+                transparent 40%,
+                rgba(255, 255, 255, 0.35) 50%,
+                transparent 60%,
+                transparent 100%
+            );
+            transform: translateX(-120%);
+            animation: send-mail-btn-shine 2.4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        #send-manifest-btn.send-manifest-pending::after,
+        #send-prealert-btn.send-prealert-pending::after {
+            content: '';
+            position: absolute;
+            inset: -5px;
+            border-radius: 10px;
+            border: 2px solid rgba(153, 246, 228, 0.55);
+            box-shadow: 0 0 12px rgba(45, 212, 191, 0.35);
+            animation: send-mail-btn-ring 1.8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        #send-manifest-btn.send-manifest-pending:hover,
+        #send-prealert-btn.send-prealert-pending:hover {
+            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: #fff !important;
+        }
+        #send-manifest-btn:disabled,
+        #send-prealert-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: none;
+            animation: none;
+            transform: none;
+        }
+        #send-manifest-btn:disabled::before,
+        #send-prealert-btn:disabled::before,
+        #send-manifest-btn:disabled::after,
+        #send-prealert-btn:disabled::after {
+            display: none;
+        }
+        @keyframes send-mail-btn-pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow:
+                    0 0 0 4px rgba(13, 148, 136, 0.16),
+                    0 6px 14px rgba(15, 118, 110, 0.28);
+            }
+            50% {
+                transform: scale(1.04);
+                box-shadow:
+                    0 0 0 7px rgba(13, 148, 136, 0.1),
+                    0 8px 20px rgba(15, 118, 110, 0.4);
+            }
+        }
+        @keyframes send-mail-btn-shine {
+            0%, 35% { transform: translateX(-120%); }
+            65%, 100% { transform: translateX(120%); }
+        }
+        @keyframes send-mail-btn-ring {
+            0%, 100% {
+                opacity: 0.7;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.03);
+            }
+        }
         /* Select2 Style Overrides - Robust Reset for Background */
         .master-container .select2-container--default .select2-selection--single,
         .master-container .select2-container--default .select2-selection--multiple,
@@ -2461,10 +2553,24 @@
                                                     </div>
                                                 </div>
                                                 <div class="header-actions">
-                                                    <button type="button" id="send-manifest-btn" class="btn btn-premium btn-outline-custom"
+                                                    @php
+                                                        $manifestMailPending = $shipment->needsManifestMailSend();
+                                                        $preAlertMailPending = $shipment->needsPreAlertMailSend();
+                                                    @endphp
+                                                    <button type="button"
+                                                        id="send-manifest-btn"
+                                                        class="btn btn-premium btn-outline-custom{{ $manifestMailPending ? ' send-manifest-pending' : '' }}"
                                                         data-eml-url="{{ route('shipments.manifest-mail', $shipment->id) }}"
-                                                        data-eml-filename="manifest-mail-{{ $shipment->shipment_number }}.eml">Send manifest</button>
-                                                    <button type="button" id="send-prealert-btn" class="btn btn-premium btn-outline-custom">Send pre-alert</button>
+                                                        data-eml-filename="manifest-mail-{{ $shipment->shipment_number }}.eml"
+                                                        data-manifest-mail-pending="{{ $manifestMailPending ? '1' : '0' }}"
+                                                        @disabled(! $manifestMailPending)
+                                                        title="{{ $manifestMailPending ? 'New manifest ready — send email' : 'Send manifest after a new manifest is generated' }}">Send manifest</button>
+                                                    <button type="button"
+                                                        id="send-prealert-btn"
+                                                        class="btn btn-premium btn-outline-custom{{ $preAlertMailPending ? ' send-prealert-pending' : '' }}"
+                                                        data-pre-alert-mail-pending="{{ $preAlertMailPending ? '1' : '0' }}"
+                                                        @disabled(! $preAlertMailPending)
+                                                        title="{{ $preAlertMailPending ? 'New pre-alert ready — send email' : 'Send pre-alert after a new pre-alert is generated' }}">Send pre-alert</button>
                                                     <button type="button" id="finalize-shipment-btn" class="btn btn-premium btn-outline-custom">Finalize shipment</button>
                                                     <div class="dropdown-more-container d-none">
                                                         <button type="button" class="btn btn-premium btn-teal" id="btn-more-actions"><i class="ti-more-alt"></i></button>
@@ -3699,6 +3805,8 @@
         var manifestMailPreview = @json($manifestMailPreview);
         var preAlertMailPreview = @json($preAlertMailPreview ?? null);
         var manifestPrepareUrl = @json(route('shipments.manifest-mail.prepare', $shipment->id));
+        var manifestMailPending = @json((bool) $shipment->needsManifestMailSend());
+        var preAlertMailPending = @json((bool) $shipment->needsPreAlertMailSend());
         var shipmentComposeSender = @json([
             'name' => auth()->user()?->name,
             'email' => auth()->user()?->email,
@@ -3711,6 +3819,54 @@
         var combinedPoDocumentCount = {{ $combinedPoDocuments->count() > 0 ? 1 : 0 }};
         var uploadedDocumentCount = {{ $shipment->documents->count() }};
         var preAlertDocumentCount = {{ $shipment->preAlerts->count() }};
+
+        function setManifestMailPendingState(isPending) {
+            manifestMailPending = !!isPending;
+            var $btn = $('#send-manifest-btn');
+            if (!$btn.length) {
+                return;
+            }
+
+            $btn
+                .toggleClass('send-manifest-pending', manifestMailPending)
+                .attr('data-manifest-mail-pending', manifestMailPending ? '1' : '0')
+                .prop('disabled', !manifestMailPending)
+                .attr('title', manifestMailPending
+                    ? 'New manifest ready — send email'
+                    : 'Send manifest after a new manifest is generated');
+        }
+
+        function restoreSendManifestButton(originalText) {
+            var $btn = $('#send-manifest-btn');
+            if (originalText) {
+                $btn.text(originalText);
+            }
+            setManifestMailPendingState(manifestMailPending);
+        }
+
+        function setPreAlertMailPendingState(isPending) {
+            preAlertMailPending = !!isPending;
+            var $btn = $('#send-prealert-btn');
+            if (!$btn.length) {
+                return;
+            }
+
+            $btn
+                .toggleClass('send-prealert-pending', preAlertMailPending)
+                .attr('data-pre-alert-mail-pending', preAlertMailPending ? '1' : '0')
+                .prop('disabled', !preAlertMailPending)
+                .attr('title', preAlertMailPending
+                    ? 'New pre-alert ready — send email'
+                    : 'Send pre-alert after a new pre-alert is generated');
+        }
+
+        function restoreSendPreAlertButton(originalText) {
+            var $btn = $('#send-prealert-btn');
+            if (originalText) {
+                $btn.text(originalText);
+            }
+            setPreAlertMailPendingState(preAlertMailPending);
+        }
 
         function updateDocumentsTabCount(totalCount) {
             $('#documents-tab-label').text('Documents (' + totalCount + ')');
@@ -3767,6 +3923,9 @@
             }).done(function(response) {
                 $('.shipment-manifest-doc[data-id="' + manifestId + '"]').remove();
                 updateShipmentDocumentTabCount();
+                if (response && typeof response.manifest_mail_pending !== 'undefined') {
+                    setManifestMailPendingState(!!response.manifest_mail_pending);
+                }
                 prependShipmentChangeLog(response && response.change_log);
             });
         });
@@ -3787,6 +3946,9 @@
                 $('.shipment-prealert-doc[data-id="' + preAlertId + '"]').remove();
                 preAlertDocumentCount = $('.shipment-prealert-doc').length;
                 updateShipmentDocumentTabCount();
+                if (response && typeof response.pre_alert_mail_pending !== 'undefined') {
+                    setPreAlertMailPendingState(!!response.pre_alert_mail_pending);
+                }
                 prependShipmentChangeLog(response && response.change_log);
             });
         });
@@ -4475,6 +4637,14 @@
                     $modal.modal('hide');
                     pendingManifestMail = null;
 
+                    if (mailType === 'manifest') {
+                        setManifestMailPendingState(false);
+                    } else if (mailType === 'prealert') {
+                        setPreAlertMailPendingState(false);
+                    }
+
+                    prependShipmentChangeLog(response.change_log);
+
                     if (typeof swal === 'function') {
                         swal({
                             title: 'Email sent',
@@ -4619,13 +4789,13 @@
                 .done(function(response) {
                     if (!response || !response.success || !response.preview) {
                         alert((response && response.message) || 'Could not prepare manifest email.');
-                        $btn.prop('disabled', false).text(originalText);
+                        restoreSendManifestButton(originalText);
                         return;
                     }
 
                     manifestMailPreview = response.preview;
                     openComposeManifestModal(response);
-                    $btn.prop('disabled', false).text(originalText);
+                    restoreSendManifestButton(originalText);
                 })
                 .fail(function(xhr) {
                     var message = 'Could not prepare manifest email.';
@@ -4633,7 +4803,7 @@
                         message = xhr.responseJSON.message;
                     }
                     alert(message);
-                    $btn.prop('disabled', false).text(originalText);
+                    restoreSendManifestButton(originalText);
                 });
         });
 
@@ -4740,13 +4910,13 @@
                         } else {
                             alert(failMessage);
                         }
-                        $btn.prop('disabled', false).text(originalText);
+                        restoreSendPreAlertButton(originalText);
                         return;
                     }
 
                     preAlertMailPreview = response.preview;
                     openComposeMailModal(response, 'prealert');
-                    $btn.prop('disabled', false).text(originalText);
+                    restoreSendPreAlertButton(originalText);
                 })
                 .fail(function(xhr) {
                     var message = 'Could not prepare pre-alert email.';
@@ -4763,7 +4933,7 @@
                     } else {
                         alert(message);
                     }
-                    $btn.prop('disabled', false).text(originalText);
+                    restoreSendPreAlertButton(originalText);
                 });
         });
 

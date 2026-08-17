@@ -13,11 +13,30 @@ class ShipmentPreAlert extends Model
         'file_name',
         'file_path',
         'form_hash',
+        'mail_sent_at',
+    ];
+
+    protected $casts = [
+        'mail_sent_at' => 'datetime',
     ];
 
     public function shipment(): BelongsTo
     {
         return $this->belongsTo(Shipment::class);
+    }
+
+    public function isMailPending(): bool
+    {
+        return $this->mail_sent_at === null;
+    }
+
+    public function markMailSent(): void
+    {
+        if ($this->mail_sent_at !== null) {
+            return;
+        }
+
+        $this->forceFill(['mail_sent_at' => now()])->save();
     }
 
     public function fileUrl(): string

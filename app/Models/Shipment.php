@@ -86,9 +86,35 @@ class Shipment extends Model
         return $this->hasMany(ShipmentManifest::class)->orderBy('version');
     }
 
+    public function latestManifest(): ?ShipmentManifest
+    {
+        return $this->manifests->sortByDesc('version')->first()
+            ?? $this->manifests()->latest('version')->first();
+    }
+
+    public function needsManifestMailSend(): bool
+    {
+        $latest = $this->latestManifest();
+
+        return $latest !== null && $latest->isMailPending();
+    }
+
     public function preAlerts(): HasMany
     {
         return $this->hasMany(ShipmentPreAlert::class)->orderBy('version');
+    }
+
+    public function latestPreAlert(): ?ShipmentPreAlert
+    {
+        return $this->preAlerts->sortByDesc('version')->first()
+            ?? $this->preAlerts()->latest('version')->first();
+    }
+
+    public function needsPreAlertMailSend(): bool
+    {
+        $latest = $this->latestPreAlert();
+
+        return $latest !== null && $latest->isMailPending();
     }
 
     public function preAlertReminderSends(): HasMany
