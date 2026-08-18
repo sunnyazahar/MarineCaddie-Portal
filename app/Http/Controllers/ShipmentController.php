@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agent;
+use App\Support\ListSearch;
 use App\Models\Contact;
 use App\Models\Country;
 use App\Models\Crr;
+use App\Models\Customer;
 use App\Models\Hub;
 use App\Models\Office;
+use App\Models\OtherCompany;
+use App\Models\Supplier;
 use App\Models\Shipment;
 use App\Models\ShipmentDocument;
 use App\Models\ShipmentManifest;
@@ -44,61 +48,71 @@ use Illuminate\Validation\Rule;
 
 class ShipmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $shipments = Shipment::with([
-            'crrs.customerVessel.customer',
-            'accountManager.office',
-            'creator',
-            'irregularities',
-            'flights',
-            'seaLegs',
-            'truckLegs',
-            'courierLegs',
-            'releaseLegs',
-        ])->orderByDesc('id')->get();
+        $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
 
-        $partyNames = Shipment::batchResolvePartyNames($shipments);
-        $vesselCustomerMap = Shipment::batchResolveVesselCustomerNames($shipments);
+        $query = Shipment::query()
+            ->with([
+                'crrs.customerVessel.customer',
+                'accountManager.office',
+                'creator',
+                'irregularities',
+                'flights',
+                'seaLegs',
+                'truckLegs',
+                'courierLegs',
+                'releaseLegs',
+            ]);
 
-        $customers = $shipments
-            ->flatMap(fn (Shipment $shipment) => $shipment->customerNamesFromVessels($vesselCustomerMap))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $this->applyShipmentIndexFilters($query, $request);
 
-        $vessels = $shipments
-            ->flatMap(fn (Shipment $shipment) => $shipment->crrs->pluck('vessel_name'))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $shipments = $query->orderByDesc('id')->paginate($perPage);
+        $shipmentRows = $shipments->getCollection();
+        $partyNames = Shipment::batchResolvePartyNames($shipmentRows);
+        $vesselCustomerMap = Shipment::batchResolveVesselCustomerNames($shipmentRows);
 
-        $services = $shipments->pluck('service')->filter()->unique()->sort()->values();
-        $statuses = $shipments->pluck('status')->filter()->unique()->sort()->values();
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Shipment.partials.rows', compact('shipments', 'partyNames', 'vesselCustomerMap'))->render(),
+                'pagination' => (string) $shipments->links(),
+                'total' => $shipments->total(),
+            ]);
+        }
 
-        $departureOptions = $shipments
-            ->pluck('departure_port_code')
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $customers = DB::table('customers')
+            ->select('customer_name')
+            ->whereNotNull('customer_name')
+            ->distinct()
+            ->orderBy('customer_name')
+            ->pluck('customer_name');
+
+        $vessels = DB::table('customer_vessels')
+            ->select('vessel')
+            ->whereNotNull('vessel')
+            ->where('vessel', '!=', '')
+            ->distinct()
+            ->orderBy('vessel')
+            ->pluck('vessel');
+
+        $services = Shipment::query()->whereNotNull('service')->distinct()->orderBy('service')->pluck('service');
+        $statuses = Shipment::query()->whereNotNull('status')->distinct()->orderBy('status')->pluck('status');
+        $departureOptions = Shipment::query()->whereNotNull('departure_port_code')->distinct()->orderBy('departure_port_code')->pluck('departure_port_code');
 
         $accountManagers = Contact::query()
-            ->whereIn('id', $shipments->pluck('account_manager_id')->filter()->unique())
+            ->whereIn('id', Shipment::query()->whereNotNull('account_manager_id')->distinct()->pluck('account_manager_id'))
             ->orderBy('name')
-            ->get();
+            ->get(['id', 'name', 'office_id']);
 
         $creators = User::query()
-            ->whereIn('id', $shipments->pluck('created_by')->filter()->unique())
+            ->whereIn('id', Shipment::query()->whereNotNull('created_by')->distinct()->pluck('created_by'))
             ->orderBy('name')
-            ->get();
+            ->get(['id', 'name']);
 
         $offices = Office::query()
             ->whereIn('id', $accountManagers->pluck('office_id')->filter()->unique())
             ->orderBy('office_name')
-            ->get();
+            ->get(['id', 'office_name']);
 
         return view('Shipment.shipments', compact(
             'shipments',
@@ -115,9 +129,12 @@ class ShipmentController extends Controller
         ));
     }
 
-    public function preAlertReminders()
+    public function preAlertReminders(Request $request)
     {
-        $shipments = Shipment::with([
+        $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
+        $baseQuery = Shipment::query()->where('status', '!=', 'Completed');
+
+        $query = Shipment::with([
             'crrs.packages',
             'crrs.customerVessel.customer',
             'accountManager.office',
@@ -125,53 +142,36 @@ class ShipmentController extends Controller
             'irregularities',
         ])
             ->withCount('preAlertReminderSends as reminder_sent_count')
-            ->where('status', '!=', 'Completed')
-            ->orderByDesc('id')
-            ->get();
+            ->where('status', '!=', 'Completed');
 
-        $partyNames = Shipment::batchResolvePartyNames($shipments);
+        $this->applyShipmentFollowUpFilters($query, $request);
 
-        $customers = $shipments
-            ->flatMap(fn (Shipment $shipment) => $shipment->crrs->map(
-                fn (Crr $crr) => $crr->customerVessel?->customer?->customer_name
-            ))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $shipments = $query->orderByDesc('id')->paginate($perPage);
+        $shipmentRows = $shipments->getCollection();
+        $partyNames = Shipment::batchResolvePartyNames($shipmentRows);
 
-        $vessels = $shipments
-            ->flatMap(fn (Shipment $shipment) => $shipment->crrs->pluck('vessel_name'))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-        $statuses = $shipments->pluck('status')->filter()->unique()->sort()->values();
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Shipment.partials.pre-alert-rows', compact('shipments', 'partyNames'))->render(),
+                'pagination' => (string) $shipments->links(),
+                'total' => $shipments->total(),
+            ]);
+        }
 
-        $accountManagers = Contact::query()
-            ->whereIn('id', $shipments->pluck('account_manager_id')->filter()->unique())
-            ->orderBy('name')
-            ->get();
+        $options = $this->shipmentFollowUpFilterOptions($baseQuery);
 
-        $creators = User::query()
-            ->whereIn('id', $shipments->pluck('created_by')->filter()->unique())
-            ->orderBy('name')
-            ->get();
-
-        return view('Shipment.pre-alert-reminders', compact(
-            'shipments',
-            'partyNames',
-            'customers',
-            'vessels',
-            'statuses',
-            'accountManagers',
-            'creators',
-        ));
+        return view('Shipment.pre-alert-reminders', array_merge($options, [
+            'shipments' => $shipments,
+            'partyNames' => $partyNames,
+        ]));
     }
 
-    public function shipmentFollowUp()
+    public function shipmentFollowUp(Request $request)
     {
-        $shipments = Shipment::with([
+        $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
+        $baseQuery = Shipment::query()->whereNotIn('status', ['Completed', 'Draft']);
+
+        $query = Shipment::with([
             'crrs.packages',
             'crrs.customerVessel.customer',
             'accountManager.office',
@@ -186,90 +186,36 @@ class ShipmentController extends Controller
             'onBoardLegs',
         ])
             ->withMax('preAlertReminderSends as last_reminder_sent_at', 'created_at')
-            ->whereNotIn('status', ['Completed', 'Draft'])
-            ->orderByDesc('id')
-            ->get();
+            ->whereNotIn('status', ['Completed', 'Draft']);
 
-        $partyNames = Shipment::batchResolvePartyNames($shipments);
+        $this->applyShipmentFollowUpFilters($query, $request);
 
-        $customers = $shipments
-            ->flatMap(fn (Shipment $shipment) => $shipment->crrs->map(
-                fn (Crr $crr) => $crr->customerVessel?->customer?->customer_name
-            ))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $shipments = $query->orderByDesc('id')->paginate($perPage);
+        $shipmentRows = $shipments->getCollection();
+        $partyNames = Shipment::batchResolvePartyNames($shipmentRows);
 
-        $vessels = $shipments
-            ->flatMap(fn (Shipment $shipment) => $shipment->crrs->pluck('vessel_name'))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-        $statuses = $shipments->pluck('status')->filter()->unique()->sort()->values();
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Shipment.partials.follow-up-rows', compact('shipments', 'partyNames'))->render(),
+                'pagination' => (string) $shipments->links(),
+                'total' => $shipments->total(),
+            ]);
+        }
 
-        $accountManagers = Contact::query()
-            ->whereIn('id', $shipments->pluck('account_manager_id')->filter()->unique())
-            ->orderBy('name')
-            ->get();
+        $options = $this->shipmentFollowUpFilterOptions($baseQuery);
 
-        $creators = User::query()
-            ->whereIn('id', $shipments->pluck('created_by')->filter()->unique())
-            ->orderBy('name')
-            ->get();
-
-        return view('Shipment.shipment-follow-up', compact(
-            'shipments',
-            'partyNames',
-            'customers',
-            'vessels',
-            'statuses',
-            'accountManagers',
-            'creators',
-        ));
+        return view('Shipment.shipment-follow-up', array_merge($options, [
+            'shipments' => $shipments,
+            'partyNames' => $partyNames,
+        ]));
     }
 
     public function costFollowUp()
     {
-        $shipmentsForOptions = Shipment::with('crrs.customerVessel.customer')
-            ->where('status', '!=', 'Cancelled')
-            ->get(['id', 'account_manager_id', 'created_by', 'status']);
+        $baseQuery = Shipment::query()->where('status', '!=', 'Cancelled');
+        $options = $this->shipmentFollowUpFilterOptions($baseQuery);
 
-        $vesselCustomerMap = Shipment::batchResolveVesselCustomerNames($shipmentsForOptions);
-
-        $customers = $shipmentsForOptions
-            ->flatMap(fn (Shipment $shipment) => $shipment->customerNamesFromVessels($vesselCustomerMap))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-
-        $vessels = $shipmentsForOptions
-            ->flatMap(fn (Shipment $shipment) => $shipment->crrs->pluck('vessel_name'))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-        $statuses = $shipmentsForOptions->pluck('status')->filter()->unique()->sort()->values();
-
-        $accountManagers = Contact::query()
-            ->whereIn('id', $shipmentsForOptions->pluck('account_manager_id')->filter()->unique())
-            ->orderBy('name')
-            ->get();
-
-        $creators = User::query()
-            ->whereIn('id', $shipmentsForOptions->pluck('created_by')->filter()->unique())
-            ->orderBy('name')
-            ->get();
-
-        return view('Shipment.cost-follow-up', compact(
-            'customers',
-            'vessels',
-            'statuses',
-            'accountManagers',
-            'creators',
-        ));
+        return view('Shipment.cost-follow-up', $options);
     }
 
     public function costFollowUpSearch(Request $request)
@@ -282,7 +228,8 @@ class ShipmentController extends Controller
         $shipmentNo = trim((string) $request->input('shipment_no', ''));
         $portDestination = trim((string) $request->input('port_destination', ''));
 
-        $hasFilter = $accountManagers || $customers || $vessels || $creators || $statuses || $shipmentNo !== '' || $portDestination !== '';
+        $hasFilter = $accountManagers || $customers || $vessels || $creators || $statuses
+            || ListSearch::prefix($shipmentNo) || ListSearch::prefix($portDestination);
 
         if (! $hasFilter) {
             return response()->json(['data' => []]);
@@ -305,40 +252,9 @@ class ShipmentController extends Controller
             ->withCount('preAlertReminderSends as reminder_sent_count')
             ->where('status', '!=', 'Cancelled');
 
-        if ($shipmentNo !== '') {
-            $query->where('shipment_number', 'like', '%' . $shipmentNo . '%');
-        }
+        $this->applyShipmentFollowUpFilters($query, $request);
 
-        if ($accountManagers) {
-            $query->whereHas('accountManager', fn ($q) => $q->whereIn('name', $accountManagers));
-        }
-
-        if ($creators) {
-            $query->whereHas('creator', fn ($q) => $q->whereIn('name', $creators));
-        }
-
-        if ($statuses) {
-            $query->whereIn('status', $statuses);
-        }
-
-        if ($vessels) {
-            $query->whereHas('crrs', fn ($q) => $q->whereIn('vessel_name', $vessels));
-        }
-
-        if ($customers) {
-            $query->whereHas('crrs.customerVessel.customer', fn ($q) => $q->whereIn('customer_name', $customers));
-        }
-
-        if ($portDestination !== '') {
-            $like = '%' . $portDestination . '%';
-            $query->where(function ($q) use ($like) {
-                $q->where('consignee_port_code', 'like', $like)
-                    ->orWhere('consignee_city', 'like', $like)
-                    ->orWhere('consignee_country', 'like', $like);
-            });
-        }
-
-        $shipments = $query->orderByDesc('id')->get();
+        $shipments = $query->orderByDesc('id')->limit(250)->get();
         $partyNames = Shipment::batchResolvePartyNames($shipments);
         $vesselCustomerMap = Shipment::batchResolveVesselCustomerNames($shipments);
 
@@ -3055,5 +2971,169 @@ class ShipmentController extends Controller
         }
 
         return false;
+    }
+
+    private function applyShipmentFollowUpFilters($query, Request $request): void
+    {
+        $shipmentNo = trim((string) $request->input('shipment_no', $request->input('shipment_number', '')));
+        $destination = trim((string) $request->input('port_destination', $request->input('destination', '')));
+
+        $request->merge([
+            'shipment_number' => $shipmentNo,
+            'destination' => $destination,
+        ]);
+
+        $this->applyShipmentIndexFilters($query, $request);
+
+        if ($request->boolean('show_etl')) {
+            $query->whereHas('crrs', fn ($q) => $q->whereRaw('UPPER(internal_shipment) = ?', ['ETL']));
+        }
+    }
+
+    private function shipmentFollowUpFilterOptions($baseQuery): array
+    {
+        $customers = DB::table('customers')
+            ->select('customer_name')
+            ->whereNotNull('customer_name')
+            ->distinct()
+            ->orderBy('customer_name')
+            ->pluck('customer_name');
+
+        $vessels = DB::table('customer_vessels')
+            ->select('vessel')
+            ->whereNotNull('vessel')
+            ->where('vessel', '!=', '')
+            ->distinct()
+            ->orderBy('vessel')
+            ->pluck('vessel');
+
+        $statuses = (clone $baseQuery)->whereNotNull('status')->distinct()->orderBy('status')->pluck('status');
+
+        $accountManagers = Contact::query()
+            ->whereIn('id', (clone $baseQuery)->whereNotNull('account_manager_id')->distinct()->pluck('account_manager_id'))
+            ->orderBy('name')
+            ->get();
+
+        $creators = User::query()
+            ->whereIn('id', (clone $baseQuery)->whereNotNull('created_by')->distinct()->pluck('created_by'))
+            ->orderBy('name')
+            ->get();
+
+        return compact('customers', 'vessels', 'statuses', 'accountManagers', 'creators');
+    }
+
+    private function applyShipmentIndexFilters($query, Request $request): void
+    {
+        $customers = array_values(array_filter((array) $request->input('customer', [])));
+        $vessels = array_values(array_filter((array) $request->input('vessel', [])));
+        $departurePorts = array_values(array_filter((array) $request->input('departure_port_code', [])));
+        $accountManagers = array_values(array_filter((array) $request->input('account_manager', [])));
+        $creators = array_values(array_filter((array) $request->input('created_by', [])));
+        $offices = array_values(array_filter((array) $request->input('office', [])));
+        $services = array_values(array_filter((array) $request->input('service', [])));
+        $statuses = array_values(array_filter((array) $request->input('status', [])));
+        $shipmentNumber = trim((string) $request->input('shipment_number', ''));
+        $serviceReference = trim((string) $request->input('service_reference', ''));
+        $poNumber = trim((string) $request->input('po_number', ''));
+        $consignee = trim((string) $request->input('consignee', ''));
+        $destination = trim((string) $request->input('destination', ''));
+        $creationDate = trim((string) $request->input('creation_date', ''));
+
+        $shipmentNumberLike = ListSearch::prefix($shipmentNumber);
+        $destinationLike = ListSearch::prefix($destination);
+        $serviceReferenceLike = ListSearch::prefix($serviceReference);
+        $consigneeLike = ListSearch::prefix($consignee);
+        $poExact = mb_strlen($poNumber) >= 3 ? $poNumber : '';
+
+        $query
+            ->when($shipmentNumberLike, fn ($q, $pattern) => $q->where('shipment_number', 'like', $pattern))
+            ->when($customers, fn ($q) => $q->whereHas('crrs.customerVessel.customer', fn ($sub) => $sub->whereIn('customer_name', $customers)))
+            ->when($vessels, function ($q) use ($vessels) {
+                $q->whereHas('crrs', function ($sub) use ($vessels) {
+                    $sub->whereIn('vessel_name', $vessels)
+                        ->orWhereHas('customerVessel', function ($cv) use ($vessels) {
+                            $cv->whereIn('vessel', $vessels)
+                                ->orWhereIn('vessel_name_alias', $vessels);
+                        });
+                });
+            })
+            ->when($departurePorts, fn ($q) => $q->whereIn('departure_port_code', $departurePorts))
+            ->when($accountManagers, fn ($q) => $q->whereHas('accountManager', fn ($sub) => $sub->whereIn('name', $accountManagers)))
+            ->when($creators, fn ($q) => $q->whereHas('creator', fn ($sub) => $sub->whereIn('name', $creators)))
+            ->when($offices, fn ($q) => $q->whereHas('accountManager.office', fn ($sub) => $sub->whereIn('office_name', $offices)))
+            ->when($services, fn ($q) => $q->whereIn('service', $services))
+            ->when($statuses, fn ($q) => $q->whereIn('status', $statuses))
+            ->when($creationDate !== '', fn ($q) => $q->whereDate('created_at', $creationDate))
+            ->when($poExact !== '', fn ($q) => $q->whereHas('crrs', fn ($sub) => $sub->whereJsonContains('po_numbers', $poExact)))
+            ->when($destinationLike, function ($q, $pattern) use ($destination) {
+                if (preg_match('/^[A-Za-z0-9]{2,8}$/', $destination)) {
+                    $q->where('consignee_port_code', 'like', $pattern);
+
+                    return;
+                }
+
+                $q->where(function ($sub) use ($pattern) {
+                    $sub->where('consignee_port_code', 'like', $pattern)
+                        ->orWhere('consignee_city', 'like', $pattern)
+                        ->orWhere('consignee_country', 'like', $pattern);
+                });
+            })
+            ->when($serviceReferenceLike, function ($q, $pattern) {
+                $q->where(function ($sub) use ($pattern) {
+                    $sub->whereHas('flights', fn ($leg) => $leg->where('leg_reference', 'like', $pattern))
+                        ->orWhereHas('courierLegs', fn ($leg) => $leg->where('airway_bill', 'like', $pattern))
+                        ->orWhereHas('seaLegs', fn ($leg) => $leg->where('bill_of_lading', 'like', $pattern))
+                        ->orWhereHas('truckLegs', function ($leg) use ($pattern) {
+                            $leg->where('cmr', 'like', $pattern)->orWhere('freight_company', 'like', $pattern);
+                        })
+                        ->orWhereHas('releaseLegs', fn ($leg) => $leg->where('freight_company', 'like', $pattern));
+                });
+            })
+            ->when($consigneeLike, function ($q, $pattern) use ($consignee) {
+                $keys = $this->consigneeKeysMatching($consignee);
+                $q->where(function ($sub) use ($pattern, $keys) {
+                    $sub->where('consignee', 'like', $pattern)
+                        ->orWhere('consignee_city', 'like', $pattern)
+                        ->orWhere('consignee_country', 'like', $pattern)
+                        ->orWhere('consignee_port_code', 'like', $pattern)
+                        ->orWhere('consignee_address', 'like', $pattern)
+                        ->orWhere('consignee_att', 'like', $pattern);
+
+                    if ($keys) {
+                        $sub->orWhereIn('consignee', $keys);
+                    }
+                });
+            });
+    }
+
+    private function consigneeKeysMatching(string $term): array
+    {
+        $like = ListSearch::prefix($term);
+        if ($like === null) {
+            return [];
+        }
+
+        $keys = [];
+
+        foreach (Hub::query()->where('hub_name', 'like', $like)->pluck('id') as $id) {
+            $keys[] = 'hub:' . $id;
+        }
+        foreach (Agent::query()->where('agent_name', 'like', $like)->pluck('id') as $id) {
+            $keys[] = 'agent:' . $id;
+        }
+        foreach (Customer::query()->where('customer_name', 'like', $like)->pluck('id') as $id) {
+            $keys[] = 'customer:' . $id;
+        }
+        foreach (Office::query()->where('office_name', 'like', $like)->pluck('id') as $id) {
+            $keys[] = 'office:' . $id;
+        }
+        foreach (Supplier::query()->where('supplier_name', 'like', $like)->pluck('id') as $id) {
+            $keys[] = 'supplier:' . $id;
+        }
+        foreach (OtherCompany::query()->where('company_name', 'like', $like)->pluck('id') as $id) {
+            $keys[] = 'other_company:' . $id;
+        }
+
+        return $keys;
     }
 }

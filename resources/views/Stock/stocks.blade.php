@@ -903,13 +903,13 @@
                                                             <div id="col-Stock-number" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Stock no.</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Service-reference" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Service ref.</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div class="custom-col d-flex justify-content-end" style="flex: 0 0 auto; margin-left: auto;">
@@ -924,25 +924,25 @@
                                                             <div id="col-PO-number" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">PO no.</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="full PO no.">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Supplier" class="custom-col" style="flex: 0 0 250px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Supplier</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 250px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Shipment no.</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Transit-id" class="custom-col" style="flex: 0 0 250px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Transit id</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Account-manager" class="custom-col" style="flex: 0 0 200px;">
@@ -1013,101 +1013,13 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            @forelse($crrs as $crr)
-                                                            @php
-                                                                $status = $crr->status ?? 'Pending';
-                                                                $statusLabel = \App\Models\Crr::getStatusLabels()[$crr->status] ?? 'Unknown';
-                                                                $customerName = $crr->customerVessel?->customer?->customer_name ?? '';
-                                                                $accountManager = $crr->accountManagerName() ?? '';
-                                                                $officeName = $crr->customerVessel?->customer?->responsible?->accountManager?->office?->office_name ?? '';
-                                                                $poNumbers = is_array($crr->po_numbers) ? implode(', ', $crr->po_numbers) : ($crr->po_numbers ?? '');
-                                                                $totalItems = $crr->packages->count();
-                                                                $totalWeight = $crr->packages->sum('weight');
-                                                                $totalCbm = $crr->packages->sum('cbm');
-                                                                $hasDgr = $crr->packages->where('is_dgr', true)->isNotEmpty();
-                                                                $hasDocs = $crr->documents->isNotEmpty();
-                                                                $isNotStackable = $crr->packages->where('is_not_stackable', true)->isNotEmpty();
-                                                                $hasMedicine = $crr->packages->where('is_medicine', true)->isNotEmpty();
-                                                                $hasDeliveryIrreg = is_array($crr->delivery_irregularities) && in_array('Yes', $crr->delivery_irregularities);
-                                                                $isOversized = $crr->packages->contains(function ($pkg) {
-                                                                    return (float) ($pkg->length ?? 0) >= 120
-                                                                        || (float) ($pkg->width ?? 0) >= 120
-                                                                        || (float) ($pkg->height ?? 0) >= 120;
-                                                                });
-                                                            @endphp
-                                                            <tr
-                                                                data-customer="{{ $customerName }}"
-                                                                data-vessel="{{ $crr->vessel_name ?? '' }}"
-                                                                data-hub-agent="{{ $crr->hub_code ?? '' }}"
-                                                                data-hub-agent-raw="{{ $crr->hub_agent ?? '' }}"
-                                                                data-status="{{ $statusLabel }}"
-                                                                data-account-manager="{{ $accountManager }}"
-                                                                data-office="{{ $officeName }}"
-                                                                data-stock-number="{{ $crr->stock_number ?? '' }}"
-                                                                data-po-numbers="{{ $poNumbers }}"
-                                                                data-supplier="{{ $crr->supplier ?? '' }}"
-                                                                data-service-reference="{{ $crr->supplier_reference ?? '' }}"
-                                                                data-shipment="{{ $crr->internal_shipment ?? '' }}"
-                                                                data-transit-id="{{ $crr->transit_id ?? '' }}"
-                                                                data-items="{{ $totalItems }}"
-                                                                data-weight="{{ $totalWeight > 0 ? number_format($totalWeight, 2, '.', '') : '0' }}"
-                                                                data-cbm="{{ $totalCbm > 0 ? number_format($totalCbm, 2, '.', '') : '0' }}"
-                                                                data-value="{{ $crr->customs_value !== null ? number_format((float) $crr->customs_value, 2, '.', '') : '' }}"
-                                                                data-currency="{{ $crr->currency ?? '' }}"
-                                                                data-dgr="{{ $hasDgr ? 'Yes' : '' }}"
-                                                                data-oversized="{{ $isOversized ? 'Yes' : '' }}"
-                                                            >
-                                                                <td class="text-center"><input type="checkbox" class="row-checkbox" value="{{ $crr->id }}"></td>
-                                                                <td title="{{ $crr->hub_code ?? '—' }}"><span class="cell-ellipsis">{{ $crr->hub_code ?? '—' }}</span></td>
-                                                                <td class="stock-no-cell">
-                                                                    <div class="stock-no-row">
-                                                                        <a href="{{ route('stocks.edit', $crr->id) }}" style="color: #008080; font-weight: 500;" title="{{ $crr->stock_number }}">{{ $crr->stock_number }}</a>
-                                                                        <div class="stock-no-flags">
-                                                                            @if($crr->is_landed_goods)
-                                                                                <span class="landed-badge" title="Landed Goods">Landed</span>
-                                                                            @endif
-                                                                            @if($hasDgr)
-                                                                                <i class="icofont icofont-warning text-danger" title="Dangerous Goods" style="font-size: 15px;"></i>
-                                                                            @endif
-                                                                            @if($hasDocs)
-                                                                                <i class="icofont icofont-file-alt text-muted" title="Documents Attached" style="font-size: 15px; color: #64748b !important;"></i>
-                                                                            @endif
-                                                                            @if($hasMedicine)
-                                                                                <i class="icofont icofont-first-aid text-success" title="Medicine" style="font-size: 15px;"></i>
-                                                                            @endif
-                                                                            @if($hasDeliveryIrreg) 
-                                                                                <i class="icofont icofont-info-circle text-pending" title="Delivery irregularities - missing info" style="font-size: 15px;"></i>
-                                                                            @endif
-                                                                            @if($isNotStackable)
-                                                                                <i class="icofont icofont-info-square text-warning" title="Non-Stackable Content" style="font-size: 15px;"></i>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td title="{{ $customerName ?: '—' }}"><span class="cell-ellipsis">{{ $customerName ?: '—' }}</span></td>
-                                                                <td title="{{ $crr->vessel_name ?? '—' }}"><span class="cell-ellipsis">{{ $crr->vessel_name ?? '—' }}</span></td>
-                                                                <td title="{{ $crr->expected_delivery_date ?? '—' }}"><span class="cell-ellipsis">{{ $crr->expected_delivery_date ?? '—' }}</span></td>
-                                                                <td title="{{ $poNumbers ?: '—' }}"><span class="cell-ellipsis">{{ $poNumbers ?: '—' }}</span></td>
-                                                                <td title="{{ $crr->supplier ?? '—' }}"><span class="cell-ellipsis">{{ $crr->supplier ?? '—' }}</span></td>
-                                                                <td class="text-center">{{ $totalItems }}</td>
-                                                                <td class="text-right">{{ $totalWeight > 0 ? number_format($totalWeight, 2) : '—' }}</td>
-                                                                <td class="text-right">{{ $crr->customs_value ? number_format($crr->customs_value, 2) : '—' }}</td>
-                                                                <td title="{{ $crr->currency ?? '—' }}"><span class="cell-ellipsis">{{ $crr->currency ?? '—' }}</span></td>
-                                                                <td title="{{ $crr->transit_id ?? '—' }}"><span class="cell-ellipsis">{{ $crr->transit_id ?? '—' }}</span></td>
-                                                                <td title="{{ $crr->internal_shipment ?? '—' }}"><span class="cell-ellipsis">{{ $crr->internal_shipment ?? '—' }}</span></td>
-                                                                <td>
-                                                                    <span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span>
-                                                                </td>
-                                                            </tr>
-                                                            @empty
-                                                            <tr>
-                                                                <td colspan="15" class="text-center py-4 text-muted" style="font-size: 12px;">
-                                                                    No stock entries found. <a href="{{ route('create-crr') }}" style="color: #008080;">Create a CRR</a> to get started.
-                                                                </td>
-                                                            </tr>
-                                                            @endforelse
+                                                            @include('Stock.partials.rows')
+
                                                         </tbody>
                                                     </table>
+                                                </div>
+                                                <div id="stocks-pagination" class="mt-3">
+                                                    {{ $crrs->links() }}
                                                 </div>
                                             </div>
                                         </div>
@@ -1178,6 +1090,7 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
+    @include('partials.searchable-filter-multiselect-script')
 
     <script>
         $(document).ready(function() {
@@ -1209,6 +1122,21 @@
                     });
 
                     return labels.join(', ');
+                },
+                onChange: function() {
+                    if (window.stocksListFilters) {
+                        window.stocksListFilters.load(1);
+                    }
+                },
+                onSelectAll: function() {
+                    if (window.stocksListFilters) {
+                        window.stocksListFilters.load(1);
+                    }
+                },
+                onDeselectAll: function() {
+                    if (window.stocksListFilters) {
+                        window.stocksListFilters.load(1);
+                    }
                 }
             });
 
@@ -1317,9 +1245,10 @@
             var table = $('#offices-table').DataTable({
                 "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
                 "lengthChange": false,
-                "pageLength": 200,
+                "paging": false,
+                "info": false,
                 "responsive": false,
-                "searching": true,
+                "searching": false,
                 "ordering": true,
                 "order": [],
                 "autoWidth": false,
@@ -1392,162 +1321,38 @@
             setTimeout(adjustStockTableLayout, 100);
             setTimeout(adjustStockTableLayout, 400);
 
-            function getFilterText(selector) {
-                return String($(selector).val() || '').toLowerCase().trim();
-            }
-
-            function matchesSelectedValues(selectedValues, rowValue) {
-                if (!selectedValues || selectedValues.length === 0) {
-                    return true;
+            window.stocksListFilters = bindAjaxListFilters({
+                tableSelector: '#offices-table',
+                paginationSelector: '#stocks-pagination',
+                indexUrl: @json(route('stocks')),
+                existingTable: table,
+                getParams: function (page) {
+                    return {
+                        hub_agent: $('#col-Hub-Agent select').val() || [],
+                        customer: $('#col-Customer select').val() || [],
+                        vessel: $('#col-Vessel select').val() || [],
+                        status: $('#col-Status select').val() || [],
+                        account_manager: $('#col-Account-manager select').val() || [],
+                        office: $('#col-Office select').val() || [],
+                        stock_number: $.trim($('#col-Stock-number input').val() || ''),
+                        po_number: $.trim($('#col-PO-number input').val() || ''),
+                        supplier: $.trim($('#col-Supplier input').val() || ''),
+                        supplier_reference: $.trim($('#col-Service-reference input').val() || ''),
+                        shipment: $.trim($('#col-Shipment-no input').val() || ''),
+                        transit_id: $.trim($('#col-Transit-id input').val() || ''),
+                        page: page || 1
+                    };
+                },
+                textSelectors: '#col-Stock-number input, #col-PO-number input, #col-Supplier input, #col-Service-reference input, #col-Shipment-no input, #col-Transit-id input',
+                resetFields: function () {
+                    clearSearchableFilterMultiselect('.stock-filter-multiselect', false);
+                    $('#col-Stock-number input, #col-PO-number input, #col-Supplier input, #col-Service-reference input, #col-Shipment-no input, #col-Transit-id input').val('');
+                },
+                afterDraw: function () {
+                    $('#offices-table thead input[type="checkbox"]').prop('checked', false);
+                    updateBulkFooter();
+                    adjustStockTableLayout();
                 }
-
-                return selectedValues.indexOf(String(rowValue || '')) !== -1;
-            }
-
-            function matchesContains(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
-                }
-
-                return String(rowValue || '').toLowerCase().indexOf(filterValue) !== -1;
-            }
-
-            function rowData($row, key) {
-                return String($row.attr('data-' + key) || '');
-            }
-
-            function matchesHubAgent(selectedValues, rowHub, rowHubRaw) {
-                if (!selectedValues || selectedValues.length === 0) {
-                    return true;
-                }
-
-                return selectedValues.some(function(value) {
-                    return value === String(rowHub || '') || value === String(rowHubRaw || '');
-                });
-            }
-
-            function hasNonStatusStockFilters() {
-                var multiSelects = [
-                    '#col-Hub-Agent select',
-                    '#col-Customer select',
-                    '#col-Vessel select',
-                    '#col-Account-manager select',
-                    '#col-Office select'
-                ];
-                for (var i = 0; i < multiSelects.length; i++) {
-                    var selected = $(multiSelects[i]).val() || [];
-                    if (selected.length > 0) {
-                        return true;
-                    }
-                }
-
-                var textInputs = [
-                    '#col-Stock-number input',
-                    '#col-PO-number input',
-                    '#col-Supplier input',
-                    '#col-Service-reference input',
-                    '#col-Shipment-no input',
-                    '#col-Transit-id input'
-                ];
-                for (var j = 0; j < textInputs.length; j++) {
-                    if (getFilterText(textInputs[j])) {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            $('#col-Customer select, #col-Vessel select, #col-Hub-Agent select, #col-Status select, #col-Account-manager select, #col-Office select, #col-PO-number input, #col-Supplier input, #col-Stock-number input, #col-Service-reference input, #col-Shipment-no input, #col-Transit-id input').on('change keyup', function() {
-                table.draw();
-            });
-
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                if (settings.nTable.id !== 'offices-table') {
-                    return true;
-                }
-
-                var row = table.row(dataIndex).node();
-                if (!row) {
-                    return true;
-                }
-
-                var $row = $(row);
-                var status = rowData($row, 'status');
-                var selectedStatuses = $('#col-Status select').val() || [];
-
-                // Hide Completed/Cancelled by default; show them when Status is filtered
-                // or when any other list filter/search is active.
-                if (selectedStatuses.length > 0) {
-                    if (!matchesSelectedValues(selectedStatuses, status)) {
-                        return false;
-                    }
-                } else if (!hasNonStatusStockFilters() && (status === 'Completed' || status === 'Cancelled')) {
-                    return false;
-                }
-
-                if (!matchesHubAgent(
-                    $('#col-Hub-Agent select').val() || [],
-                    rowData($row, 'hub-agent'),
-                    rowData($row, 'hub-agent-raw')
-                )) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Customer select').val() || [], rowData($row, 'customer'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Vessel select').val() || [], rowData($row, 'vessel'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Account-manager select').val() || [], rowData($row, 'account-manager'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Office select').val() || [], rowData($row, 'office'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-Stock-number input'), rowData($row, 'stock-number'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-PO-number input'), rowData($row, 'po-numbers'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-Supplier input'), rowData($row, 'supplier'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-Service-reference input'), rowData($row, 'service-reference'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-Shipment-no input'), rowData($row, 'shipment'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-Transit-id input'), rowData($row, 'transit-id'))) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            table.draw();
-
-            $('.clear-filters').on('click', function(e) {
-                e.preventDefault();
-                $('.stock-filter-multiselect').each(function() {
-                    $(this).multiselect('deselectAll', false);
-                    $(this).multiselect('updateButtonText');
-                    $(this).trigger('change');
-                });
-                $('.filter-input:not(select)').val('').trigger('keyup');
-                table.columns().search('').draw();
             });
 
             $(document).on('change', '.dataTables_scrollHead thead input[type="checkbox"], #offices-table thead input[type="checkbox"]', function() {

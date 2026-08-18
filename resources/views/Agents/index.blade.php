@@ -169,6 +169,87 @@
             /* Aligned with other items */
         }
 
+        .filter-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            height: 32px;
+            background: #fff;
+            overflow: visible;
+            width: 100%;
+        }
+        .filter-group .filter-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 0;
+            padding: 0 10px;
+            white-space: nowrap;
+            font-weight: 500;
+            border-right: 1px solid #e2e8f0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            min-width: fit-content;
+        }
+        .filter-group .filter-input {
+            border: none !important;
+            box-shadow: none !important;
+            height: 100% !important;
+            font-size: 11px;
+            padding: 0 10px !important;
+            background: transparent !important;
+            width: 100%;
+            color: #1e293b;
+        }
+        .filter-group .multiselect-native-select {
+            flex: 1;
+            min-width: 0;
+        }
+        .filter-group .multiselect-native-select .btn-group {
+            width: 100%;
+        }
+        .filter-group .multiselect-native-select .multiselect {
+            height: 30px;
+            padding: 4px 26px 4px 10px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 0;
+            background: #fff;
+            color: #1e293b;
+            font-size: 11px;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .filter-group .multiselect-native-select .multiselect-container {
+            width: max(100%, 280px);
+            max-height: 420px;
+            overflow-y: auto;
+            padding: 6px 0;
+            z-index: 1050;
+        }
+        .filter-group .multiselect-native-select .multiselect-container .input-group {
+            width: calc(100% - 12px);
+            margin: 0 6px 6px;
+        }
+        .filter-group .multiselect-native-select .multiselect-container label {
+            padding-top: 7px;
+            padding-bottom: 7px;
+            color: #263238;
+            font-size: 12px;
+            white-space: normal;
+        }
+        .filter-group .multiselect-native-select .multiselect-container input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #176b87;
+        }
+        .filter-group .multiselect-native-select .multiselect-container .multiselect-reset a {
+            color: #176b87;
+            font-weight: 600;
+        }
+
         .btn-add-agent {
             height: 28px;
             padding: 0 12px;
@@ -521,46 +602,49 @@
                                 </div>
                                 <!-- Filter Bar -->
                                 <div class="filter-row">
-                                    <div class="filter-item">
-                                        <label class="filter-label-custom">Name</label>
-                                        <div class="input-group-custom">
-                                            <input type="text" id="filter-agent-name" class="filter-input-custom has-append"
-                                                placeholder="type here" style="width: 120px;">
-                                            <button class="btn-input-append" type="button"><i class="ti-layout-grid3"></i></button>
+                                    <div class="filter-item" style="width: 180px;">
+                                        <div class="filter-group">
+                                            <span class="filter-label">Name</span>
+                                            <input type="text" id="filter-agent-name" class="form-control filter-input" placeholder="type here">
                                         </div>
                                     </div>
-                                    <div class="filter-item" style="margin-left: 15px;">
-                                        <label class="filter-label-custom">Code</label>
-                                        <input type="text" id="filter-agent-code" class="filter-input-custom" placeholder="type here"
-                                            style="width: 100px;">
+                                    <div class="filter-item" style="width: 150px;">
+                                        <div class="filter-group">
+                                            <span class="filter-label">Code</span>
+                                            <input type="text" id="filter-agent-code" class="form-control filter-input" placeholder="type here">
+                                        </div>
                                     </div>
-                                    <div class="filter-item" style="margin-left: 15px;">
-                                        <label class="filter-label-custom">Address</label>
-                                        <input type="text" id="filter-agent-address" class="filter-input-custom" placeholder="type here"
-                                            style="width: 180px;">
+                                    <div class="filter-item" style="width: 200px;">
+                                        <div class="filter-group">
+                                            <span class="filter-label">Address</span>
+                                            <input type="text" id="filter-agent-address" class="form-control filter-input" placeholder="type here">
+                                        </div>
                                     </div>
-                                    <div class="filter-item" style="margin-left: 15px;">
-                                        <label class="filter-label-custom">City</label>
-                                        <input type="text" id="filter-agent-city" class="filter-input-custom" placeholder="type here"
-                                            style="width: 150px;">
+                                    <div class="filter-item" style="width: 180px;">
+                                        <div class="filter-group">
+                                            <span class="filter-label">City</span>
+                                            <input type="text" id="filter-agent-city" class="form-control filter-input" placeholder="type here">
+                                        </div>
                                     </div>
-                                    <div class="filter-item" style="margin-left: 15px;">
-                                        <label class="filter-label-custom">Country</label>
-                                        <select id="filter-agent-country" class="filter-input-custom select2" style="width: 150px;">
-                                            <option value=""></option>
-                                            @foreach ($countries as $country)
-                                                <option value="{{ $country }}">{{ $country }}</option>
-                                            @endforeach
-                                        </select>
+                                    <div class="filter-item" style="width: 200px;">
+                                        <div class="filter-group">
+                                            <span class="filter-label">Country</span>
+                                            <select id="filter-agent-country" class="form-control filter-input agent-filter-multiselect" multiple="multiple">
+                                                @foreach ($countries as $country)
+                                                    <option value="{{ $country }}">{{ $country }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="filter-item" style="margin-left: 15px;">
-                                        <label class="filter-label-custom">Type</label>
-                                        <select id="filter-agent-type" class="filter-input-custom select2" style="width: 120px;">
-                                            <option value=""></option>
-                                            @foreach ($agentTypes as $type)
-                                                <option value="{{ $type }}">{{ ucfirst(str_replace('_', ' ', $type)) }}</option>
-                                            @endforeach
-                                        </select>
+                                    <div class="filter-item" style="width: 180px;">
+                                        <div class="filter-group">
+                                            <span class="filter-label">Type</span>
+                                            <select id="filter-agent-type" class="form-control filter-input agent-filter-multiselect" multiple="multiple">
+                                                @foreach ($agentTypes as $type)
+                                                    <option value="{{ $type }}">{{ ucfirst(str_replace('_', ' ', $type)) }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="filter-checkbox-group">
                                         <input type="checkbox" id="hide-inactive-check" checked>
@@ -591,86 +675,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @forelse($agents as $agent)
-                                            @php
-                                                $addressSearch = trim(implode(' ', array_filter([
-                                                    $agent->agent_address,
-                                                    $agent->office_address,
-                                                    $agent->district_state,
-                                                    $agent->zip_code,
-                                                ])));
-                                                $countryName = $agent->country->name ?? '';
-                                                $typeLabel = $agent->agent_type ? ucfirst(str_replace('_', ' ', $agent->agent_type)) : '';
-                                                $isInactive = ! ($agent->is_active ?? true);
-                                            @endphp
-                                            <tr
-                                                data-agent-name="{{ $agent->agent_name }}"
-                                                data-code="{{ $agent->code }}"
-                                                data-address="{{ $addressSearch }}"
-                                                data-city="{{ $agent->city }}"
-                                                data-country="{{ $countryName }}"
-                                                data-agent-type="{{ $agent->agent_type }}"
-                                                data-is-inactive="{{ $isInactive ? '1' : '0' }}"
-                                            >
-                                                <td>
-                                                    <a href="{{ route('agents.edit', ['id' => $agent->id]) }}" class="agent-link">
-                                                        {{ $agent->agent_name }}
-                                                    </a>
-                                                </td>
-                                                <td>{{ $agent->code }}</td>
-                                                <td>{{ $agent->city }}</td>
-                                                <td>
-                                                    @if($countryName)
-                                                        @if(!empty($agent->country->flag_url))
-                                                            <img src="{{ $agent->country->flag_url }}" class="country-flag" alt="">
-                                                        @endif
-                                                        {{ $countryName }}
-                                                    @else
-                                                        —
-                                                    @endif
-                                                </td>
-                                                <td>{{ $agent->phone }}</td>
-                                                <td>
-                                                    @if($agent->email)
-                                                        <a href="mailto:{{ $agent->email }}" class="company-link">{{ $agent->email }}</a>
-                                                    @else
-                                                        —
-                                                    @endif
-                                                </td>
-                                                <td>{{ $typeLabel ?: '—' }}</td>
-                                                <td>
-                                                    <button type="button"
-                                                        class="agent-status-toggle {{ $isInactive ? 'is-inactive' : 'is-active' }}"
-                                                        data-id="{{ $agent->id }}"
-                                                        data-name="{{ $agent->agent_name }}"
-                                                        data-status="{{ $isInactive ? 'inactive' : 'active' }}"
-                                                        data-url="{{ route('agents.status.update', $agent->id) }}"
-                                                        title="Click to change status">
-                                                        {{ $isInactive ? 'Inactive' : 'Active' }}
-                                                    </button>
-                                                </td>
-                                                <td>
-                                                    <div class="action-icons">
-                                                        <a href="{{ route('agents.edit', ['id' => $agent->id]) }}">
-                                                            <i class="ti-pencil"></i>
-                                                        </a>
-                                                        @if($canWriteAdministration)
-                                                        <a href="javascript:void(0)" class="delete-agent" data-id="{{ $agent->id }}" data-name="{{ $agent->agent_name }}" title="Delete agent">
-                                                            <i class="ti-trash"></i>
-                                                        </a>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            @empty
-                                            <tr>
-                                                <td colspan="9" style="text-align:center; padding:40px; color:#9ca3af;">
-                                                    No agents found.
-                                                </td>
-                                            </tr>
-                                            @endforelse
+                                            @include('Agents.partials.rows')
                                         </tbody>
                                     </table>
+                                </div>
+                                <div id="agents-pagination" class="mt-3 px-3 pb-2">
+                                    {{ $agents->links() }}
                                 </div>
                             </div>
                             <!-- Page-body end -->
@@ -734,32 +744,133 @@
 
     <script>
         $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Click here",
-                allowClear: true,
-                width: 'resolve'
-            });
+            var agentsIndexUrl = @json(route('agents.index'));
+            var table = null;
+            var searchTimer = null;
+            var filtersReady = false;
+            var requestToken = 0;
+            var suppressFilterLoad = false;
 
-            var table = $('#agents-table').DataTable({
-                "dom": 'rt<"d-flex flex-wrap justify-content-between align-items-center"ip>',
-                "lengthChange": false,
-                "pageLength": 25,
-                "responsive": false,
-                "searching": false,
-                "ordering": true,
-                "autoWidth": false,
-                "scrollX": true,
-                "columnDefs": [
-                    { "orderable": false, "targets": [8] }
-                ],
-                "language": {
-                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                    "paginate": {
-                        "previous": "<",
-                        "next": ">"
+            function shouldLoadFilters() {
+                return filtersReady && !suppressFilterLoad;
+            }
+
+            $('.agent-filter-multiselect').multiselect({
+                enableCaseInsensitiveFiltering: true,
+                includeResetOption: true,
+                resetText: 'Clear',
+                filterPlaceholder: 'Type here',
+                maxHeight: 420,
+                buttonWidth: '100%',
+                nonSelectedText: 'Click here',
+                numberDisplayed: 1,
+                nSelectedText: 'selected',
+                buttonText: function (options) {
+                    if (options.length === 0) {
+                        return 'Click here';
+                    }
+
+                    var firstSelection = $(options[0]).text();
+                    return options.length === 1 ? firstSelection : firstSelection + ', ...';
+                },
+                buttonTitle: function (options) {
+                    var labels = [];
+                    options.each(function () {
+                        labels.push($(this).text());
+                    });
+
+                    return labels.join(', ');
+                },
+                onChange: function () {
+                    if (shouldLoadFilters()) {
+                        loadAgents(1);
+                    }
+                },
+                onSelectAll: function () {
+                    if (shouldLoadFilters()) {
+                        loadAgents(1);
+                    }
+                },
+                onDeselectAll: function () {
+                    if (shouldLoadFilters()) {
+                        loadAgents(1);
                     }
                 }
             });
+
+            function initAgentsTable() {
+                if ($.fn.DataTable.isDataTable('#agents-table')) {
+                    return $('#agents-table').DataTable();
+                }
+
+                return $('#agents-table').DataTable({
+                    "dom": 'rt',
+                    "lengthChange": false,
+                    "paging": false,
+                    "info": false,
+                    "responsive": false,
+                    "searching": false,
+                    "ordering": true,
+                    "autoWidth": false,
+                    "scrollX": true,
+                    "columnDefs": [
+                        { "orderable": false, "targets": [8] }
+                    ],
+                    "language": {
+                        "emptyTable": "No agents found."
+                    }
+                });
+            }
+
+            table = initAgentsTable();
+
+            function currentFilterParams(page) {
+                return {
+                    name: $.trim($('#filter-agent-name').val() || ''),
+                    code: $.trim($('#filter-agent-code').val() || ''),
+                    address: $.trim($('#filter-agent-address').val() || ''),
+                    city: $.trim($('#filter-agent-city').val() || ''),
+                    country: $('#filter-agent-country').val() || [],
+                    type: $('#filter-agent-type').val() || [],
+                    hide_inactive: $('#hide-inactive-check').is(':checked') ? 1 : 0,
+                    page: page || 1
+                };
+            }
+
+            function replaceAgentRows(html, paginationHtml) {
+                table = initAgentsTable();
+                table.clear();
+
+                var $rows = $('<table><tbody>' + html + '</tbody></table>').find('tr').filter(function () {
+                    return $(this).find('td[colspan]').length === 0;
+                });
+
+                if ($rows.length) {
+                    table.rows.add($rows);
+                }
+
+                table.draw(false);
+                table.columns.adjust();
+                $('#agents-pagination').html(paginationHtml || '');
+            }
+
+            function loadAgents(page) {
+                var params = currentFilterParams(page);
+                var token = ++requestToken;
+
+                $.ajax({
+                    url: agentsIndexUrl,
+                    method: 'GET',
+                    data: params,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).done(function (response) {
+                    if (token !== requestToken) {
+                        return;
+                    }
+
+                    replaceAgentRows(response.html, response.pagination);
+                });
+            }
 
             $('#btn-agents-filters-toggle').on('click', function () {
                 $('body').toggleClass('agents-filters-open');
@@ -767,96 +878,92 @@
                 $(this).toggleClass('is-open', isOpen);
                 $(this).find('.agents-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
                 setTimeout(function () {
-                    table.columns.adjust();
+                    if (table) {
+                        table.columns.adjust();
+                    }
                 }, 50);
             });
 
             $(window).on('resize', function () {
-                table.columns.adjust();
+                if (table) {
+                    table.columns.adjust();
+                }
             });
 
             setTimeout(function () {
-                table.columns.adjust();
+                if (table) {
+                    table.columns.adjust();
+                }
             }, 100);
 
-            function rowData($row, key) {
-                return String($row.attr('data-' + key) || '');
-            }
-
-            function getFilterText(selector) {
-                return String($(selector).val() || '').toLowerCase().trim();
-            }
-
-            function matchesContains(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
+            $('#filter-agent-name, #filter-agent-code, #filter-agent-address, #filter-agent-city').on('input keyup', function (e) {
+                if (e.type === 'keyup' && e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(searchTimer);
+                    loadAgents(1);
+                    return;
                 }
 
-                return String(rowValue || '').toLowerCase().indexOf(filterValue) !== -1;
-            }
-
-            function matchesExact(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
-                }
-
-                return String(rowValue || '') === filterValue;
-            }
-
-            $('#filter-agent-name, #filter-agent-code, #filter-agent-address, #filter-agent-city, #filter-agent-country, #filter-agent-type, #hide-inactive-check').on('change keyup', function () {
-                table.draw();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function () {
+                    loadAgents(1);
+                }, 200);
             });
 
-            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-                if (settings.nTable.id !== 'agents-table') {
-                    return true;
-                }
-
-                var row = table.row(dataIndex).node();
-                if (!row) {
-                    return true;
-                }
-
-                var $row = $(row);
-
-                if ($('#hide-inactive-check').is(':checked') && rowData($row, 'is-inactive') === '1') {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-agent-name'), rowData($row, 'agent-name'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-agent-code'), rowData($row, 'code'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-agent-address'), rowData($row, 'address'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-agent-city'), rowData($row, 'city'))) {
-                    return false;
-                }
-
-                if (!matchesExact($('#filter-agent-country').val(), rowData($row, 'country'))) {
-                    return false;
-                }
-
-                if (!matchesExact($('#filter-agent-type').val(), rowData($row, 'agent-type'))) {
-                    return false;
-                }
-
-                return true;
+            $('#hide-inactive-check').on('change', function () {
+                loadAgents(1);
             });
 
-            $('#clear-agent-filters').on('click', function (e) {
+            $('#agents-pagination').on('click', 'a', function (e) {
+                var href = $(this).attr('href');
+                if (!href || href === '#') {
+                    return;
+                }
+
                 e.preventDefault();
-                $('#filter-agent-name, #filter-agent-code, #filter-agent-address, #filter-agent-city').val('');
-                $('#filter-agent-country, #filter-agent-type').val(null).trigger('change');
-                $('#hide-inactive-check').prop('checked', true);
-                table.search('').columns().search('').draw();
+                var page = new URL(href, window.location.origin).searchParams.get('page') || 1;
+                loadAgents(page);
             });
+
+            function resetAgentFilterFields() {
+                $('#filter-agent-name, #filter-agent-code, #filter-agent-address, #filter-agent-city').val('');
+                $('.agent-filter-multiselect').each(function () {
+                    var $select = $(this);
+                    $select.find('option').prop('selected', false);
+                    $select.val([]);
+                    $select.multiselect('clearSelection');
+                    $select.closest('.multiselect-native-select').find('.multiselect-search').val('');
+                    $select.closest('.multiselect-native-select').find('li.multiselect-filter-hidden')
+                        .removeClass('multiselect-filter-hidden')
+                        .show();
+                });
+                $('#hide-inactive-check').prop('checked', true);
+            }
+
+            $(document).on('click', '#clear-agent-filters', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                clearTimeout(searchTimer);
+                suppressFilterLoad = true;
+                resetAgentFilterFields();
+                suppressFilterLoad = false;
+                loadAgents(1);
+                return false;
+            });
+
+            $(document).on('click', '.filter-item .multiselect-reset a', function () {
+                if (!shouldLoadFilters()) {
+                    return;
+                }
+
+                setTimeout(function () {
+                    loadAgents(1);
+                }, 0);
+            });
+
+            setTimeout(function () {
+                filtersReady = true;
+            }, 200);
 
             $(document).on('click', '.agent-status-toggle', function () {
                 var $button = $(this);

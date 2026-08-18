@@ -9,9 +9,36 @@ use App\Models\Country;
 
 class SupplierController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::with('country')->get();
+        $search = trim((string) $request->input('search', ''));
+        $perPage = max(10, min(100, (int) $request->input('per_page', 25)));
+        $searchLike = \App\Support\ListSearch::contains($search);
+
+        $suppliers = Supplier::query()
+            ->with('country')
+            ->when($searchLike, function ($query, $pattern) {
+                $query->where(function ($sub) use ($pattern) {
+                    $sub->where('supplier_name', 'like', $pattern)
+                        ->orWhere('supplier_address', 'like', $pattern)
+                        ->orWhere('city', 'like', $pattern)
+                        ->orWhere('email', 'like', $pattern)
+                        ->orWhere('phone_number', 'like', $pattern)
+                        ->orWhere('contact_person', 'like', $pattern)
+                        ->orWhereHas('country', fn ($country) => $country->where('name', 'like', $pattern));
+                });
+            })
+            ->orderBy('supplier_name')
+            ->paginate($perPage);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Suppliers.partials.rows', compact('suppliers'))->render(),
+                'pagination' => (string) $suppliers->links(),
+                'total' => $suppliers->total(),
+            ]);
+        }
+
         return view('Suppliers.index', compact('suppliers'));
     }
 

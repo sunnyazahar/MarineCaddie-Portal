@@ -572,6 +572,9 @@
                                        </tbody>
                                    </table>
                                    </div>
+                                   <div class="mt-3">
+                                       {{ $users->links() }}
+                                   </div>
 
                                    <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
                                        <div class="modal-dialog modal-dialog-centered" role="document">
@@ -1150,7 +1153,8 @@
 
             var table = $('#offices-table').DataTable({
                 "dom": 't',
-                "pageLength": 100,
+                "paging": false,
+                "info": false,
                 "ordering": true,
                 "autoWidth": false,
                 "responsive": false,

@@ -16,19 +16,37 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->ensureAdmin();
 
+        $search = trim((string) $request->query('search', ''));
+        $role = trim((string) $request->query('role', ''));
+        $status = $request->query('status');
+        $perPage = max(10, min(100, (int) $request->query('per_page', 25)));
+
+        $users = User::query()
+            ->with(['offices:id,office_name', 'hubs:id,hub_name,code', 'agents:id,agent_name,code', 'suppliers:id,supplier_name'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('phone_number', 'like', '%' . $search . '%');
+                });
+            })
+            ->when($role !== '', fn ($query) => $query->where('role', $role))
+            ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', (bool) $status))
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString();
+
         return view('Users.users', [
-            'users' => User::query()
-                ->with(['offices:id,office_name', 'hubs:id,hub_name,code', 'agents:id,agent_name,code', 'suppliers:id,supplier_name'])
-                ->orderBy('name')
-                ->get(),
+            'users' => $users,
             'assignmentOffices' => Office::query()->orderBy('office_name')->get(['id', 'office_name']),
             'assignmentHubs' => Hub::query()->orderBy('hub_name')->get(['id', 'hub_name', 'code']),
             'assignmentAgents' => Agent::query()->orderBy('agent_name')->get(['id', 'agent_name', 'code']),
             'assignmentSuppliers' => Supplier::query()->orderBy('supplier_name')->get(['id', 'supplier_name']),
+            'userRoles' => ['Admin', 'Operations', 'Agents', 'Accounts', 'Supplier'],
         ]);
     }
 

@@ -9,15 +9,51 @@ use App\Models\Country;
 
 class OtherCompanyController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $companies = OtherCompany::with('country')->orderBy('company_name')->get();
+        $name = trim((string) $request->input('name', ''));
+        $code = trim((string) $request->input('code', ''));
+        $address = trim((string) $request->input('address', ''));
+        $city = trim((string) $request->input('city', ''));
+        $countriesFilter = array_values(array_filter((array) $request->input('country', [])));
+        $perPage = max(10, min(100, (int) $request->input('per_page', 25)));
 
-        $countries = $companies
-            ->map(fn ($company) => $company->country?->name)
-            ->filter()
-            ->unique()
-            ->sort()
+        $nameLike = \App\Support\ListSearch::contains($name);
+        $codeLike = \App\Support\ListSearch::contains($code);
+        $addressLike = \App\Support\ListSearch::contains($address);
+        $cityLike = \App\Support\ListSearch::contains($city);
+
+        $companies = OtherCompany::query()
+            ->with('country')
+            ->when($nameLike, fn ($query, $pattern) => $query->where('company_name', 'like', $pattern))
+            ->when($codeLike, fn ($query, $pattern) => $query->where('code', 'like', $pattern))
+            ->when($cityLike, fn ($query, $pattern) => $query->where('city', 'like', $pattern))
+            ->when($addressLike, function ($query, $pattern) {
+                $query->where(function ($sub) use ($pattern) {
+                    $sub->where('street_address', 'like', $pattern)
+                        ->orWhere('office_street_address', 'like', $pattern)
+                        ->orWhere('district_state', 'like', $pattern)
+                        ->orWhere('zip_code', 'like', $pattern);
+                });
+            })
+            ->when($countriesFilter, fn ($query) => $query->whereHas('country', fn ($sub) => $sub->whereIn('name', $countriesFilter)))
+            ->orderBy('company_name')
+            ->paginate($perPage);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Other Companies.partials.rows', compact('companies'))->render(),
+                'pagination' => (string) $companies->links(),
+                'total' => $companies->total(),
+            ]);
+        }
+
+        $countries = OtherCompany::query()
+            ->join('countries', 'countries.id', '=', 'other_companies.country_id')
+            ->whereNotNull('countries.name')
+            ->distinct()
+            ->orderBy('countries.name')
+            ->pluck('countries.name')
             ->values();
 
         return view('Other Companies.index', compact('companies', 'countries'));

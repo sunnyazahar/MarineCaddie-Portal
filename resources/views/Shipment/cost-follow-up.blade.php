@@ -659,7 +659,7 @@
                                                             <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Shipment no</span>
-                                                                    <input type="text" id="filter-shipment-no" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" id="filter-shipment-no" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
 
@@ -688,7 +688,7 @@
                                                             <div id="col-Port-of-destination" class="custom-col" style="flex: 0 0 220px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Port of destination</span>
-                                                                    <input type="text" id="filter-port-destination" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" id="filter-port-destination" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
 
@@ -813,10 +813,6 @@
     <script>
         $(document).ready(function() {
             $('body').addClass('cost-follow-up-list-page');
-
-            initializeSearchableFilterMultiselect(
-                '#filter-account-manager, #filter-customer, #filter-vessel, #filter-status, #filter-created-by'
-            );
 
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
@@ -1063,6 +1059,10 @@
             }
 
             function fetchFilteredShipments() {
+                if (!table) {
+                    return;
+                }
+
                 var filters = getActiveFilters();
 
                 if (!hasActiveFilters(filters)) {
@@ -1081,7 +1081,7 @@
                     url: searchUrl,
                     method: 'GET',
                     data: filters,
-                    traditional: true,
+                    traditional: false,
                     dataType: 'json'
                 }).done(function(response) {
                     var rows = (response && response.data) ? response.data : [];
@@ -1107,8 +1107,21 @@
                 searchTimer = setTimeout(fetchFilteredShipments, 300);
             }
 
+            initializeSearchableFilterMultiselect(
+                '#filter-account-manager, #filter-customer, #filter-vessel, #filter-status, #filter-created-by',
+                {
+                    onChange: function () { scheduleFetch(); },
+                    onSelectAll: function () { scheduleFetch(); },
+                    onDeselectAll: function () { scheduleFetch(); }
+                }
+            );
+
             $('#filter-shipment-no, #filter-port-destination').on('keyup input', scheduleFetch);
             $('#filter-customer, #filter-vessel, #filter-account-manager, #filter-status, #filter-created-by').on('change', scheduleFetch);
+
+            $(document).on('click', '.multiselect-reset a', function () {
+                setTimeout(scheduleFetch, 0);
+            });
 
             $('.clear-filters').on('click', function(e) {
                 e.preventDefault();

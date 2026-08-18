@@ -260,6 +260,86 @@
             flex: 0 0 auto;
             margin-bottom: 0;
         }
+        .hub-filters-bar .hub-filter-field-country {
+            width: 200px;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            height: 32px;
+            background: #fff;
+            overflow: visible;
+            width: 100%;
+        }
+        .filter-group .filter-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 0;
+            padding: 0 10px;
+            white-space: nowrap;
+            font-weight: 500;
+            border-right: 1px solid #e2e8f0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            min-width: fit-content;
+        }
+        .filter-group .filter-input {
+            border: none !important;
+            box-shadow: none !important;
+            height: 100% !important;
+            font-size: 11px;
+            padding: 0 10px !important;
+            background: transparent !important;
+            width: 100%;
+            color: #1e293b;
+        }
+        .filter-group .multiselect-native-select {
+            flex: 1;
+            min-width: 0;
+        }
+        .filter-group .multiselect-native-select .btn-group {
+            width: 100%;
+        }
+        .filter-group .multiselect-native-select .multiselect {
+            height: 30px;
+            padding: 4px 26px 4px 10px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 0;
+            background: #fff;
+            color: #1e293b;
+            font-size: 11px;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .filter-group .multiselect-native-select .multiselect-container {
+            width: max(100%, 280px);
+            max-height: 420px;
+            overflow-y: auto;
+            padding: 6px 0;
+            z-index: 1050;
+        }
+        .filter-group .multiselect-native-select .multiselect-container .input-group {
+            width: calc(100% - 12px);
+            margin: 0 6px 6px;
+        }
+        .filter-group .multiselect-native-select .multiselect-container label {
+            padding-top: 7px;
+            padding-bottom: 7px;
+        }
+        .filter-group .multiselect-native-select .multiselect-container input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #176b87;
+        }
+        .filter-group .multiselect-native-select .multiselect-container .multiselect-reset a {
+            color: #176b87;
+            font-weight: 600;
+        }
         .hub-filters-bar .hub-filter-field-sm {
             width: 120px;
         }
@@ -320,7 +400,8 @@
                 color: #fff !important;
             }
             .hub-filters-bar .hub-filter-field,
-            .hub-filters-bar .hub-filter-field-sm {
+            .hub-filters-bar .hub-filter-field-sm,
+            .hub-filters-bar .hub-filter-field-country {
                 width: 100% !important;
                 max-width: 100% !important;
                 flex: 0 0 auto !important;
@@ -474,14 +555,15 @@
                                                         <input type="text" id="filter-hub-city" class="form-control filter-input" placeholder="type here">
                                                     </div>
 
-                                                    <div class="form-group mb-0 hub-filter-field">
-                                                        <span class="filter-label">Country</span>
-                                                        <select id="filter-hub-country" class="form-control filter-input select2">
-                                                            <option value=""></option>
-                                                            @foreach ($countries as $country)
-                                                                <option value="{{ $country }}">{{ $country }}</option>
-                                                            @endforeach
-                                                        </select>
+                                                    <div class="form-group mb-0 hub-filter-field hub-filter-field-country">
+                                                        <div class="filter-group">
+                                                            <span class="filter-label">Country</span>
+                                                            <select id="filter-hub-country" class="form-control filter-input hub-filter-multiselect" multiple="multiple">
+                                                                @foreach ($countries as $country)
+                                                                    <option value="{{ $country }}">{{ $country }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
                                                     </div>
 
                                                     <div class="hub-filter-meta">
@@ -520,60 +602,12 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            @foreach($hubs as $hub)
-                                                                @php
-                                                                    $addressSearch = trim(implode(' ', array_filter([
-                                                                        $hub->hub_address,
-                                                                        $hub->office_address,
-                                                                        $hub->district_state,
-                                                                        $hub->zip_code,
-                                                                    ])));
-                                                                    $isInactive = (bool) $hub->hide_in_portal;
-                                                                @endphp
-                                                                <tr
-                                                                    data-hub-name="{{ $hub->hub_name }}"
-                                                                    data-code="{{ $hub->code }}"
-                                                                    data-address="{{ $addressSearch }}"
-                                                                    data-city="{{ $hub->city }}"
-                                                                    data-country="{{ $hub->country }}"
-                                                                    data-is-inactive="{{ $isInactive ? '1' : '0' }}"
-                                                                >
-                                                                    <td><a href="{{ route('hub.show', $hub->id) }}" style="color: #3b82f6;">{{ $hub->hub_name }}</a></td>
-                                                                    <td>{{ $hub->code }}</td>
-                                                                    <td>{{ $hub->city }}</td>
-                                                                    <td>
-                                                                        @if($hub->country)
-                                                                            @if(!empty($countryFlags[$hub->country]))
-                                                                                <img src="{{ $countryFlags[$hub->country] }}" class="country-flag" alt="">
-                                                                            @endif
-                                                                            {{ $hub->country }}
-                                                                        @else
-                                                                            —
-                                                                        @endif
-                                                                    </td>
-                                                                    <td>{{ $hub->phone_number }}</td>
-                                                                    <td>{{ $hub->email }}</td>
-                                                                    <td>
-                                                                        <button type="button"
-                                                                            class="hub-status-toggle {{ $isInactive ? 'is-inactive' : 'is-active' }}"
-                                                                            data-id="{{ $hub->id }}"
-                                                                            data-name="{{ $hub->hub_name }}"
-                                                                            data-status="{{ $isInactive ? 'inactive' : 'active' }}"
-                                                                            data-url="{{ route('hub.status.update', $hub->id) }}"
-                                                                            title="Click to change status">
-                                                                            {{ $isInactive ? 'Inactive' : 'Active' }}
-                                                                        </button>
-                                                                    </td>
-                                                                    <td class="text-right">
-                                                                        <a href="{{ route('hub.show', $hub->id) }}" style="color: #ccc; margin-right: 8px;"><i class="ti-pencil"></i></a>
-                                                                        @if($canWriteAdministration)
-                                                                        <a href="javascript:void(0)" class="delete-hub" data-id="{{ $hub->id }}" data-name="{{ $hub->hub_name }}" style="color: #ccc;" title="Delete hub"><i class="ti-trash"></i></a>
-                                                                        @endif
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
+                                                            @include('hub.partials.rows')
                                                         </tbody>
                                                     </table>
+                                                </div>
+                                                <div id="hubs-pagination" class="mt-3 px-3 pb-2">
+                                                    {{ $hubs->links() }}
                                                 </div>
                                             </div>
                                         </div>
@@ -636,32 +670,149 @@
 
     <script>
         $(document).ready(function() {
-            $('.select2').select2({
-                placeholder: "Click here",
-                allowClear: true,
-                width: '100%'
-            });
+            var hubsIndexUrl = @json(route('hub.index'));
+            var table = null;
+            var searchTimer = null;
+            var filtersReady = false;
+            var requestToken = 0;
+            var suppressFilterLoad = false;
+            var currentPage = 1;
 
-            var table = $('#offices-table').DataTable({
-                "dom": '<"hub-table-wrap"rt><"d-flex flex-wrap justify-content-between align-items-center"ip>',
-                "lengthChange": false,
-                "pageLength": 25,
-                "responsive": false,
-                "searching": false,
-                "ordering": true,
-                "autoWidth": false,
-                "scrollX": true,
-                "columnDefs": [
-                    { "orderable": false, "targets": [7] }
-                ],
-                "language": {
-                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                    "paginate": {
-                        "previous": "<",
-                        "next": ">"
+            function shouldLoadFilters() {
+                return filtersReady && !suppressFilterLoad;
+            }
+
+            $('.hub-filter-multiselect').multiselect({
+                enableCaseInsensitiveFiltering: true,
+                includeResetOption: true,
+                resetText: 'Clear',
+                filterPlaceholder: 'Type here',
+                maxHeight: 420,
+                buttonWidth: '100%',
+                nonSelectedText: 'Click here',
+                numberDisplayed: 1,
+                nSelectedText: 'selected',
+                buttonText: function (options) {
+                    if (options.length === 0) {
+                        return 'Click here';
+                    }
+
+                    var firstSelection = $(options[0]).text();
+                    return options.length === 1 ? firstSelection : firstSelection + ', ...';
+                },
+                buttonTitle: function (options) {
+                    var labels = [];
+                    options.each(function () {
+                        labels.push($(this).text());
+                    });
+
+                    return labels.join(', ');
+                },
+                onChange: function () {
+                    if (shouldLoadFilters()) {
+                        loadHubs(1);
+                    }
+                },
+                onSelectAll: function () {
+                    if (shouldLoadFilters()) {
+                        loadHubs(1);
+                    }
+                },
+                onDeselectAll: function () {
+                    if (shouldLoadFilters()) {
+                        loadHubs(1);
                     }
                 }
             });
+
+            function initHubsTable() {
+                if ($.fn.DataTable.isDataTable('#offices-table')) {
+                    return $('#offices-table').DataTable();
+                }
+
+                return $('#offices-table').DataTable({
+                    "dom": 'rt',
+                    "lengthChange": false,
+                    "paging": false,
+                    "info": false,
+                    "responsive": false,
+                    "searching": false,
+                    "ordering": true,
+                    "autoWidth": false,
+                    "scrollX": true,
+                    "columnDefs": [
+                        { "orderable": false, "targets": [7] }
+                    ],
+                    "language": {
+                        "emptyTable": "No hubs found."
+                    }
+                });
+            }
+
+            table = initHubsTable();
+
+            function currentFilterParams(page) {
+                return {
+                    name: $.trim($('#filter-hub-name').val() || ''),
+                    code: $.trim($('#filter-hub-code').val() || ''),
+                    address: $.trim($('#filter-hub-address').val() || ''),
+                    city: $.trim($('#filter-hub-city').val() || ''),
+                    country: $('#filter-hub-country').val() || [],
+                    hide_inactive: $('#filter-hide-inactive').is(':checked') ? 1 : 0,
+                    page: page || 1
+                };
+            }
+
+            function replaceHubRows(html, paginationHtml) {
+                table = initHubsTable();
+                table.clear();
+
+                var $rows = $('<table><tbody>' + html + '</tbody></table>').find('tr').filter(function () {
+                    return $(this).find('td[colspan]').length === 0;
+                });
+
+                if ($rows.length) {
+                    table.rows.add($rows);
+                }
+
+                table.draw(false);
+                table.columns.adjust();
+                $('#hubs-pagination').html(paginationHtml || '');
+            }
+
+            function loadHubs(page) {
+                var params = currentFilterParams(page);
+                var token = ++requestToken;
+                currentPage = page || 1;
+
+                $.ajax({
+                    url: hubsIndexUrl,
+                    method: 'GET',
+                    data: params,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).done(function (response) {
+                    if (token !== requestToken) {
+                        return;
+                    }
+
+                    replaceHubRows(response.html, response.pagination);
+                });
+            }
+
+            function resetHubFilterFields() {
+                $('#filter-hub-name, #filter-hub-code, #filter-hub-address, #filter-hub-city').val('');
+                $('.hub-filter-multiselect').each(function () {
+                    var $select = $(this);
+                    $select.find('option').prop('selected', false);
+                    $select.val([]);
+                    $select.multiselect('clearSelection');
+                    $select.closest('.multiselect-native-select').find('.multiselect-search').val('');
+                    $select.closest('.multiselect-native-select').find('li.multiselect-filter-hidden')
+                        .removeClass('multiselect-filter-hidden')
+                        .show();
+                });
+                $('#filter-hide-inactive').prop('checked', true);
+            }
 
             $('#btn-hub-filters-toggle').on('click', function () {
                 $('body').toggleClass('hub-filters-open');
@@ -669,92 +820,77 @@
                 $(this).toggleClass('is-open', isOpen);
                 $(this).find('.hub-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
                 setTimeout(function () {
-                    table.columns.adjust();
+                    if (table) {
+                        table.columns.adjust();
+                    }
                 }, 50);
             });
 
             $(window).on('resize', function () {
-                table.columns.adjust();
+                if (table) {
+                    table.columns.adjust();
+                }
             });
 
             setTimeout(function () {
-                table.columns.adjust();
+                if (table) {
+                    table.columns.adjust();
+                }
             }, 100);
 
-            function rowData($row, key) {
-                return String($row.attr('data-' + key) || '');
-            }
-
-            function getFilterText(selector) {
-                return String($(selector).val() || '').toLowerCase().trim();
-            }
-
-            function matchesContains(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
+            $('#filter-hub-name, #filter-hub-code, #filter-hub-address, #filter-hub-city').on('input keyup', function (e) {
+                if (e.type === 'keyup' && e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(searchTimer);
+                    loadHubs(1);
+                    return;
                 }
 
-                return String(rowValue || '').toLowerCase().indexOf(filterValue) !== -1;
-            }
-
-            function matchesCountry(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
-                }
-
-                return String(rowValue || '') === filterValue;
-            }
-
-            $('#filter-hub-name, #filter-hub-code, #filter-hub-address, #filter-hub-city, #filter-hub-country, #filter-hide-inactive').on('change keyup', function() {
-                table.draw();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function () {
+                    loadHubs(1);
+                }, 200);
             });
 
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                if (settings.nTable.id !== 'offices-table') {
-                    return true;
-                }
-
-                var row = table.row(dataIndex).node();
-                if (!row) {
-                    return true;
-                }
-
-                var $row = $(row);
-
-                if ($('#filter-hide-inactive').is(':checked') && rowData($row, 'is-inactive') === '1') {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-hub-name'), rowData($row, 'hub-name'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-hub-code'), rowData($row, 'code'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-hub-address'), rowData($row, 'address'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-hub-city'), rowData($row, 'city'))) {
-                    return false;
-                }
-
-                if (!matchesCountry($('#filter-hub-country').val(), rowData($row, 'country'))) {
-                    return false;
-                }
-
-                return true;
+            $('#filter-hide-inactive').on('change', function () {
+                loadHubs(1);
             });
 
-            $('#clear-hub-filters').on('click', function(e) {
+            $('#hubs-pagination').on('click', 'a', function (e) {
+                var href = $(this).attr('href');
+                if (!href || href === '#') {
+                    return;
+                }
+
                 e.preventDefault();
-                $('#filter-hub-name, #filter-hub-code, #filter-hub-address, #filter-hub-city').val('');
-                $('#filter-hub-country').val(null).trigger('change');
-                $('#filter-hide-inactive').prop('checked', true);
-                table.search('').columns().search('').draw();
+                var page = new URL(href, window.location.origin).searchParams.get('page') || 1;
+                loadHubs(page);
             });
+
+            $(document).on('click', '#clear-hub-filters', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                clearTimeout(searchTimer);
+                suppressFilterLoad = true;
+                resetHubFilterFields();
+                suppressFilterLoad = false;
+                loadHubs(1);
+                return false;
+            });
+
+            $(document).on('click', '.hub-filter-field .multiselect-reset a', function () {
+                if (!shouldLoadFilters()) {
+                    return;
+                }
+
+                setTimeout(function () {
+                    loadHubs(1);
+                }, 0);
+            });
+
+            setTimeout(function () {
+                filtersReady = true;
+            }, 200);
 
             $(document).on('click', '.hub-status-toggle', function() {
                 var $button = $(this);
@@ -804,7 +940,12 @@
                                 .prop('disabled', false);
 
                             $row.attr('data-is-inactive', response.is_inactive ? '1' : '0');
-                            table.row($row).invalidate('dom').draw(false);
+
+                            if (response.is_inactive && $('#filter-hide-inactive').is(':checked')) {
+                                loadHubs(currentPage);
+                            } else if (table && table.row($row).node()) {
+                                table.row($row).invalidate('dom').draw(false);
+                            }
 
                             swal({
                                 title: 'Status updated',
@@ -828,7 +969,6 @@
             $(document).on('click', '.delete-hub', function() {
                 var id = $(this).data('id');
                 var name = $(this).data('name') || 'this hub';
-                var $row = $(this).closest('tr');
 
                 swal({
                     title: 'Delete hub?',
@@ -860,10 +1000,7 @@
                                     timer: 1500,
                                     showConfirmButton: false
                                 });
-
-                                $row.fadeOut(400, function() {
-                                    table.row($row).remove().draw(false);
-                                });
+                                loadHubs(currentPage);
                             } else {
                                 swal('Error', response.message || 'Error deleting hub.', 'error');
                             }

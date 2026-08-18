@@ -22,41 +22,79 @@ use App\Services\AdministrationChangeLogService;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::with([
-            'primaryAddress.country',
-            'responsible.accountManager.office',
-            'responsible.salesManager',
-            'contacts' => fn ($query) => $query->where('is_main_contact', true),
-        ])->orderBy('customer_name')->get();
+        $search = trim((string) $request->query('search', ''));
+        $responsibleOfficesFilter = array_values(array_filter((array) $request->input('responsible_office', [])));
+        $accountManagersFilter = array_values(array_filter((array) $request->input('account_manager', [])));
+        $salesManagersFilter = array_values(array_filter((array) $request->input('sales_manager', [])));
+        $countriesFilter = array_values(array_filter((array) $request->input('country', [])));
+        $perPage = max(10, min(100, (int) $request->query('per_page', 25)));
 
-        $responsibleOffices = $customers
-            ->map(fn ($customer) => $customer->responsible?->accountManager?->office?->office_short_name)
-            ->filter()
-            ->unique()
-            ->sort()
+        $customers = Customer::query()
+            ->with([
+                'primaryAddress.country',
+                'responsible.accountManager.office',
+                'responsible.salesManager',
+                'contacts' => fn ($query) => $query->where('is_main_contact', true),
+            ])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($sub) use ($search) {
+                    $sub->where('customer_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('contact_person', 'like', '%' . $search . '%')
+                        ->orWhere('customer_number', 'like', '%' . $search . '%');
+                });
+            })
+            ->when($responsibleOfficesFilter, function ($query) use ($responsibleOfficesFilter) {
+                $query->whereHas('responsible.accountManager.office', function ($sub) use ($responsibleOfficesFilter) {
+                    $sub->where(function ($officeQuery) use ($responsibleOfficesFilter) {
+                        $officeQuery->whereIn('office_short_name', $responsibleOfficesFilter)
+                            ->orWhereIn('office_name', $responsibleOfficesFilter);
+                    });
+                });
+            })
+            ->when($accountManagersFilter, fn ($query) => $query->whereHas('responsible.accountManager', fn ($sub) => $sub->whereIn('name', $accountManagersFilter)))
+            ->when($salesManagersFilter, fn ($query) => $query->whereHas('responsible.salesManager', fn ($sub) => $sub->whereIn('name', $salesManagersFilter)))
+            ->when($countriesFilter, fn ($query) => $query->whereHas('primaryAddress.country', fn ($sub) => $sub->whereIn('name', $countriesFilter)))
+            ->orderBy('customer_name')
+            ->paginate($perPage);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('customers.partials.rows', compact('customers'))->render(),
+                'pagination' => (string) $customers->links(),
+                'total' => $customers->total(),
+            ]);
+        }
+
+        $responsibleOffices = Customer::query()
+            ->join('customer_responsibles', 'customer_responsibles.customer_id', '=', 'customers.id')
+            ->join('contacts as account_contacts', 'account_contacts.id', '=', 'customer_responsibles.account_manager_id')
+            ->join('offices', 'offices.id', '=', 'account_contacts.office_id')
+            ->select('offices.office_short_name')
+            ->whereNotNull('offices.office_short_name')
+            ->distinct()
+            ->orderBy('offices.office_short_name')
+            ->pluck('offices.office_short_name')
             ->values();
 
-        $accountManagers = $customers
-            ->map(fn ($customer) => $customer->responsible?->accountManager?->name)
-            ->filter()
-            ->unique()
-            ->sort()
+        $accountManagers = Contact::query()
+            ->whereIn('id', CustomerResponsible::query()->whereNotNull('account_manager_id')->pluck('account_manager_id'))
+            ->orderBy('name')
+            ->pluck('name')
             ->values();
 
-        $salesManagers = $customers
-            ->map(fn ($customer) => $customer->responsible?->salesManager?->name)
-            ->filter()
-            ->unique()
-            ->sort()
+        $salesManagers = Contact::query()
+            ->whereIn('id', CustomerResponsible::query()->whereNotNull('sales_manager_id')->pluck('sales_manager_id'))
+            ->orderBy('name')
+            ->pluck('name')
             ->values();
 
-        $countries = $customers
-            ->map(fn ($customer) => $customer->primaryAddress?->country?->name)
-            ->filter()
-            ->unique()
-            ->sort()
+        $countries = Country::query()
+            ->whereIn('id', CustomerAddress::query()->where('type', 'primary')->whereNotNull('country_id')->pluck('country_id'))
+            ->orderBy('name')
+            ->pluck('name')
             ->values();
 
         return view('customers.index', compact(

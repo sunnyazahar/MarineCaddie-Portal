@@ -1002,7 +1002,7 @@
                                                             <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Shipment no</span>
-                                                                    <input type="text" id="filter-shipment-no" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" id="filter-shipment-no" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
 
@@ -1031,7 +1031,7 @@
                                                             <div id="col-Port-of-destination" class="custom-col" style="flex: 0 0 220px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Port of destination</span>
-                                                                    <input type="text" id="filter-port-destination" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" id="filter-port-destination" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
 
@@ -1097,81 +1097,14 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            @forelse ($shipments as $shipment)
-                                                            @php
-                                                                $departureDisplay = $shipment->departure_port_code ?: $shipment->partyDisplay($shipment->departure, $partyNames);
-                                                                $consigneeDisplay = $shipment->partyDisplay($shipment->consignee, $partyNames);
-                                                                $consigneeType = explode(':', (string) $shipment->consignee, 2)[0];
-                                                                $etd = $shipment->service_etd;
-                                                                $eta = $shipment->service_eta;
-                                                                $etaOverdue = $eta && $eta->startOfDay()->lte(now()->startOfDay());
-                                                                $lastReminderSent = $shipment->last_reminder_sent_at
-                                                                    ? \Carbon\Carbon::parse($shipment->last_reminder_sent_at)->format('d.m.Y')
-                                                                    : '';
-                                                            @endphp
-                                                            <tr
-                                                                data-customers="{{ $shipment->customer_names->implode(',') }}"
-                                                                data-vessels="{{ $shipment->vessel_names->implode(',') }}"
-                                                                data-shipment-number="{{ $shipment->shipment_number }}"
-                                                                data-destination="{{ $shipment->destination_display }}"
-                                                                data-account-manager="{{ $shipment->accountManager?->name ?? '' }}"
-                                                                data-created-by="{{ $shipment->creator?->name ?? '' }}"
-                                                                data-status="{{ $shipment->status ?? '' }}"
-                                                            >
-                                                                <td>
-                                                                    <div class="d-flex align-items-center">
-                                                                        <a href="{{ route('shipments.edit', $shipment->id) }}">{{ $shipment->shipment_number }}</a>
-                                                                        @if ($shipment->hasOpenIrregularities())
-                                                                            <i class="ti-alert text-danger ml-2" title="Open irregularities"></i>
-                                                                        @endif
-                                                                    </div>
-                                                                </td>
-                                                                <td>{{ $shipment->customer_display }}</td>
-                                                                <td>{{ $shipment->vessel_display }}</td>
-                                                                <td>{{ $shipment->service ?? '—' }}</td>
-                                                                <td class="consignee-cell" title="{{ $consigneeDisplay }}">
-                                                                    @if ($consigneeType === 'hub')
-                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-home consignee-hub-icon" title="Hub"></i><span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span></span>
-                                                                    @elseif ($consigneeType === 'agent')
-                                                                        <span class="consignee-row consignee-hub-agent"><i class="ti-user consignee-hub-icon" title="Agent"></i><span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span></span>
-                                                                    @else
-                                                                        <span class="consignee-row"><span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span></span>
-                                                                    @endif
-                                                                </td>
-                                                                <td>{{ $departureDisplay ?: '—' }}</td>
-                                                                <td>{{ $shipment->destination_display }}</td>
-                                                                <td>{{ $etd?->format('d.m.Y') ?? '—' }}</td>
-                                                                <td @if($etaOverdue) style="color: #ff5252; font-weight: 500;" @endif>{{ $eta?->format('d.m.Y') ?? '—' }}</td>
-                                                                <td>
-                                                                    <span class="{{ $shipment->statusBadgeClass() }}" style="padding: 4px 8px; font-weight: 500;">{{ $shipment->status ?? '—' }}</span>
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button"
-                                                                        class="btn btn-outline-teal py-1 px-2 mark-arrived-btn"
-                                                                        style="font-size: 11px; height: 26px; border-color: #ddd; background: #fff;"
-                                                                        data-shipment-id="{{ $shipment->id }}"
-                                                                        data-shipment-number="{{ $shipment->shipment_number }}"
-                                                                        data-mark-arrived-url="{{ route('shipments.mark-as-arrived', $shipment->id) }}">Mark as arrived</button>
-                                                                </td>
-                                                                <td class="reminder-sent-date" data-shipment-id="{{ $shipment->id }}">{{ $lastReminderSent }}</td>
-                                                                <td>
-                                                                    <button type="button"
-                                                                        class="btn btn-outline-teal py-1 pl-2 pr-2 send-reminder-btn"
-                                                                        style="font-size: 10px; height: 24px;"
-                                                                        data-shipment-id="{{ $shipment->id }}"
-                                                                        data-preview-url="{{ route('shipments.delivery-status-reminder-mail.preview', $shipment->id) }}"
-                                                                        data-send-url="{{ route('shipments.delivery-status-reminder-mail.send', $shipment->id) }}"
-                                                                        data-eml-url="{{ route('shipments.delivery-status-reminder-mail', $shipment->id) }}"
-                                                                        data-eml-filename="delivery-status-request-{{ $shipment->shipment_number }}.eml">Send reminder</button>
-                                                                </td>
-                                                            </tr>
-                                                            @empty
-                                                            <tr>
-                                                                <td colspan="13" class="text-center py-4 text-muted">No shipments found.</td>
-                                                            </tr>
-                                                            @endforelse
+                                                            @include('Shipment.partials.follow-up-rows')
+
                                                         </tbody>
                                                     </table>
+                                                </div>
+                                                <div id="followup-pagination" class="mt-3 px-3 pb-2">
+                                                    {{ $shipments->links() }}
+                                                </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1241,7 +1174,24 @@
     <script>
         $(document).ready(function() {
             initializeSearchableFilterMultiselect(
-                '#filter-account-manager, #filter-customer, #filter-vessel, #filter-status, #filter-created-by'
+                '#filter-account-manager, #filter-customer, #filter-vessel, #filter-status, #filter-created-by',
+                {
+                    onChange: function () {
+                        if (window.followupListFilters) {
+                            window.followupListFilters.load(1);
+                        }
+                    },
+                    onSelectAll: function () {
+                        if (window.followupListFilters) {
+                            window.followupListFilters.load(1);
+                        }
+                    },
+                    onDeselectAll: function () {
+                        if (window.followupListFilters) {
+                            window.followupListFilters.load(1);
+                        }
+                    }
+                }
             );
 
             // Initialize Bootstrap Multiselect for special filter toggle
@@ -1332,9 +1282,9 @@
             ensureFollowupMobileFiltersVisible();
 
             var table = $('#offices-table').DataTable({
-                "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
+                "dom": '<"table-scroll-wrapper"rt>',
                 "lengthChange": false,
-                "pageLength": 100,
+                "paging": false,
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
@@ -1395,99 +1345,34 @@
             setTimeout(adjustFollowupTableLayout, 100);
             setTimeout(adjustFollowupTableLayout, 400);
 
-            function rowData($row, key) {
-                return String($row.attr('data-' + key) || '');
-            }
-
-            function getFilterText(selector) {
-                return String($(selector).val() || '').toLowerCase().trim();
-            }
-
-            function matchesSelectedValues(selectedValues, rowValue) {
-                if (!selectedValues || selectedValues.length === 0) {
-                    return true;
+            window.followupListFilters = bindAjaxListFilters({
+                tableSelector: '#offices-table',
+                paginationSelector: '#followup-pagination',
+                indexUrl: @json(route('shipment-follow-up')),
+                existingTable: table,
+                getParams: function (page) {
+                    return {
+                        account_manager: $('#filter-account-manager').val() || [],
+                        customer: $('#filter-customer').val() || [],
+                        vessel: $('#filter-vessel').val() || [],
+                        status: $('#filter-status').val() || [],
+                        created_by: $('#filter-created-by').val() || [],
+                        shipment_no: $.trim($('#filter-shipment-no').val() || ''),
+                        port_destination: $.trim($('#filter-port-destination').val() || ''),
+                        page: page || 1
+                    };
+                },
+                textSelectors: '#filter-shipment-no, #filter-port-destination',
+                resetFields: function () {
+                    clearSearchableFilterMultiselect(
+                        '#filter-account-manager, #filter-customer, #filter-vessel, #filter-status, #filter-created-by',
+                        false
+                    );
+                    $('#filter-shipment-no, #filter-port-destination').val('');
+                },
+                afterDraw: function () {
+                    adjustFollowupTableLayout();
                 }
-
-                return selectedValues.indexOf(String(rowValue || '')) !== -1;
-            }
-
-            function matchesAnySelectedValues(selectedValues, rowValuesString) {
-                if (!selectedValues || selectedValues.length === 0) {
-                    return true;
-                }
-
-                var rowValues = rowValuesString.split(',').map(function(value) {
-                    return value.trim();
-                }).filter(Boolean);
-
-                return selectedValues.some(function(selectedValue) {
-                    return rowValues.indexOf(selectedValue) !== -1;
-                });
-            }
-
-            function matchesContains(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
-                }
-
-                return String(rowValue || '').toLowerCase().indexOf(filterValue) !== -1;
-            }
-
-            $('#filter-shipment-no, #filter-port-destination, #filter-customer, #filter-vessel, #filter-account-manager, #filter-status, #filter-created-by').on('change keyup', function() {
-                table.draw();
-            });
-
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                if (settings.nTable.id !== 'offices-table') {
-                    return true;
-                }
-
-                var row = table.row(dataIndex).node();
-                if (!row) {
-                    return true;
-                }
-
-                var $row = $(row);
-
-                if (!matchesAnySelectedValues($('#filter-customer').val() || [], rowData($row, 'customers'))) {
-                    return false;
-                }
-
-                if (!matchesAnySelectedValues($('#filter-vessel').val() || [], rowData($row, 'vessels'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#filter-account-manager').val() || [], rowData($row, 'account-manager'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#filter-created-by').val() || [], rowData($row, 'created-by'))) {
-                    return false;
-                }
-
-                var selectedStatuses = $('#filter-status').val() || [];
-                if (!matchesSelectedValues(selectedStatuses, rowData($row, 'status'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-shipment-no'), rowData($row, 'shipment-number'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-port-destination'), rowData($row, 'destination'))) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            $('.clear-filters').on('click', function(e) {
-                e.preventDefault();
-                clearSearchableFilterMultiselect(
-                    '#filter-account-manager, #filter-customer, #filter-vessel, #filter-status, #filter-created-by'
-                );
-                $('.filter-input:not(select)').val('').trigger('keyup');
-                table.columns().search('').draw();
             });
 
             @include('Shipment.partials.reminder-compose-script')

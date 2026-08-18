@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,7 +33,21 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $appUrl = rtrim((string) config('app.url'), '/');
-        URL::forceRootUrl($appUrl);
+        if ($appUrl !== '') {
+            URL::forceRootUrl($appUrl);
+        }
+
+        /** @var Request $request */
+        $request = request();
+        $forwardedProto = strtolower((string) $request->header('X-Forwarded-Proto', ''));
+        $appUrlScheme = parse_url($appUrl, PHP_URL_SCHEME);
+        $shouldForceHttps = in_array($forwardedProto, ['https', 'wss'], true)
+            || $request->isSecure()
+            || $appUrlScheme === 'https';
+
+        if ($shouldForceHttps) {
+            URL::forceScheme('https');
+        }
 
         // Static theme assets live in public/files. On hosts where the
         // document root is the project folder, those URLs need /public.

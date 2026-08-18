@@ -478,16 +478,12 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            @foreach($vessels as $vessel)
-                                                                <tr>
-                                                                    <td>{{ $vessel->vessel }}</td>
-                                                                    <td>{{ $vessel->vessel_imo }}</td>
-                                                                    <td>{{ $vessel->vessel_type_alias }}</td>
-                                                                    <td style="color: #555;">{{ $vessel->customer->customer_name ?? '-' }}</td>
-                                                                </tr>
-                                                            @endforeach
+                                                            @include('Vessels.partials.rows')
                                                         </tbody>
                                                     </table>
+                                                </div>
+                                                <div id="vessels-pagination" class="mt-3 px-3 pb-2">
+                                                    {{ $vessels->links() }}
                                                 </div>
                                             </div>
                                         </div>
@@ -531,6 +527,7 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
+    @include('partials.searchable-filter-multiselect-script')
 
     <script>
         $(document).ready(function() {
@@ -545,21 +542,15 @@
             }
 
             var table = $('#vessels-table').DataTable({
-                "dom": 'rt<"d-flex flex-wrap justify-content-between align-items-center"ip>',
+                "dom": 'rt',
+                "paging": false,
+                "info": false,
                 "lengthChange": false,
-                "pageLength": 25,
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
                 "autoWidth": false,
-                "scrollX": true,
-                "language": {
-                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                    "paginate": {
-                        "previous": "<",
-                        "next": ">"
-                    }
-                }
+                "scrollX": true
             });
 
             $('#btn-vessels-filters-toggle').on('click', function () {
@@ -583,30 +574,28 @@
                 table.columns.adjust();
             }, 100);
 
-            function filterTable() {
-                var name = $('#vesselNameFilter').val().toLowerCase();
-                var imo = $('#imoFilter').val().toLowerCase();
-                var type = $('#typeFilter').val().toLowerCase();
-
-                $("#vessels-table tbody tr").filter(function() {
-                    var rowName = $(this).find('td:eq(0)').text().toLowerCase();
-                    var rowImo = $(this).find('td:eq(1)').text().toLowerCase();
-                    var rowType = $(this).find('td:eq(2)').text().toLowerCase();
-
-                    var matchesName = rowName.indexOf(name) > -1;
-                    var matchesImo = rowImo.indexOf(imo) > -1;
-                    var matchesType = (type === "" || type === "click here") ? true : rowType.indexOf(type) > -1;
-
-                    $(this).toggle(matchesName && matchesImo && matchesType);
-                });
-            }
-
-            $('#vesselNameFilter, #imoFilter').on('keyup', filterTable);
-            $('#typeFilter').on('change', filterTable);
-            $('.clear-filters').on('click', function() {
-                $('#vesselNameFilter, #imoFilter').val('');
-                $('#typeFilter').val('').trigger('change');
-                filterTable();
+            window.vesselsListFilters = bindAjaxListFilters({
+                tableSelector: '#vessels-table',
+                paginationSelector: '#vessels-pagination',
+                indexUrl: @json(route('vessels.index')),
+                existingTable: table,
+                getParams: function (page) {
+                    return {
+                        name: $.trim($('#vesselNameFilter').val() || ''),
+                        imo: $.trim($('#imoFilter').val() || ''),
+                        type: $.trim($('#typeFilter').val() || ''),
+                        page: page || 1
+                    };
+                },
+                textSelectors: '#vesselNameFilter, #imoFilter',
+                changeSelectors: '#typeFilter',
+                resetFields: function () {
+                    $('#vesselNameFilter, #imoFilter').val('');
+                    $('#typeFilter').val(null).trigger('change');
+                },
+                afterDraw: function () {
+                    table.columns.adjust();
+                }
             });
         });
     </script>

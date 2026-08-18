@@ -10,13 +10,52 @@ use Illuminate\Support\Facades\DB;
 
 class HubController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $hubs = Hub::orderBy('hub_name')->get();
-        $countries = $hubs->pluck('country')->filter()->unique()->sort()->values();
+        $name = trim((string) $request->input('name', ''));
+        $code = trim((string) $request->input('code', ''));
+        $address = trim((string) $request->input('address', ''));
+        $city = trim((string) $request->input('city', ''));
+        $countriesFilter = array_values(array_filter((array) $request->input('country', [])));
+        $hideInactive = $request->boolean('hide_inactive', true);
+        $perPage = max(10, min(100, (int) $request->input('per_page', 25)));
+
+        $hubs = Hub::query()
+            ->when($name !== '', fn ($query) => $query->where('hub_name', 'like', '%' . $name . '%'))
+            ->when($code !== '', fn ($query) => $query->where('code', 'like', '%' . $code . '%'))
+            ->when($city !== '', fn ($query) => $query->where('city', 'like', '%' . $city . '%'))
+            ->when($address !== '', function ($query) use ($address) {
+                $query->where(function ($sub) use ($address) {
+                    $sub->where('hub_address', 'like', '%' . $address . '%')
+                        ->orWhere('office_address', 'like', '%' . $address . '%')
+                        ->orWhere('district_state', 'like', '%' . $address . '%')
+                        ->orWhere('zip_code', 'like', '%' . $address . '%');
+                });
+            })
+            ->when($countriesFilter, fn ($query) => $query->whereIn('country', $countriesFilter))
+            ->when($hideInactive, fn ($query) => $query->where('hide_in_portal', false))
+            ->orderBy('hub_name')
+            ->paginate($perPage);
+
         $countryFlags = DB::table('countries')
             ->whereNotNull('flag_url')
             ->pluck('flag_url', 'name');
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('hub.partials.rows', compact('hubs', 'countryFlags'))->render(),
+                'pagination' => (string) $hubs->links(),
+                'total' => $hubs->total(),
+            ]);
+        }
+
+        $countries = Hub::query()
+            ->whereNotNull('country')
+            ->where('country', '!=', '')
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country')
+            ->values();
 
         return view('hub.index', compact('hubs', 'countries', 'countryFlags'));
     }

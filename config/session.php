@@ -169,7 +169,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production' || str_starts_with((string) env('APP_URL', ''), 'https://')),
 
     /*
     |--------------------------------------------------------------------------
@@ -199,7 +199,7 @@ return [
     |
     */
 
-    'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    'same_site' => strtolower((string) env('SESSION_SAME_SITE', 'lax')) ?: 'lax',
 
     /*
     |--------------------------------------------------------------------------
@@ -212,6 +212,10 @@ return [
     |
     */
 
-    'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
+    'partitioned' => env(
+        'SESSION_PARTITIONED_COOKIE',
+        strtolower((string) env('SESSION_SAME_SITE', 'lax')) === 'none'
+            && (bool) env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production' || str_starts_with((string) env('APP_URL', ''), 'https://'))
+    ),
 
 ];

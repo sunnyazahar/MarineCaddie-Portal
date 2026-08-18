@@ -8,22 +8,58 @@ use Illuminate\Http\Request;
 
 class AgentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $agents = Agent::with('country')->orderBy('agent_name')->get();
+        $name = trim((string) $request->input('name', ''));
+        $code = trim((string) $request->input('code', ''));
+        $address = trim((string) $request->input('address', ''));
+        $city = trim((string) $request->input('city', ''));
+        $countriesFilter = array_values(array_filter((array) $request->input('country', [])));
+        $typesFilter = array_values(array_filter((array) $request->input('type', [])));
+        $hideInactive = $request->boolean('hide_inactive', true);
+        $perPage = max(10, min(100, (int) $request->input('per_page', 25)));
 
-        $countries = $agents
-            ->map(fn ($agent) => $agent->country?->name)
-            ->filter()
-            ->unique()
-            ->sort()
+        $agents = Agent::query()
+            ->with('country')
+            ->when($name !== '', fn ($query) => $query->where('agent_name', 'like', '%' . $name . '%'))
+            ->when($code !== '', fn ($query) => $query->where('code', 'like', '%' . $code . '%'))
+            ->when($city !== '', fn ($query) => $query->where('city', 'like', '%' . $city . '%'))
+            ->when($address !== '', function ($query) use ($address) {
+                $query->where(function ($sub) use ($address) {
+                    $sub->where('agent_address', 'like', '%' . $address . '%')
+                        ->orWhere('office_address', 'like', '%' . $address . '%')
+                        ->orWhere('district_state', 'like', '%' . $address . '%')
+                        ->orWhere('zip_code', 'like', '%' . $address . '%');
+                });
+            })
+            ->when($countriesFilter, fn ($query) => $query->whereHas('country', fn ($sub) => $sub->whereIn('name', $countriesFilter)))
+            ->when($typesFilter, fn ($query) => $query->whereIn('agent_type', $typesFilter))
+            ->when($hideInactive, fn ($query) => $query->where('is_active', true))
+            ->orderBy('agent_name')
+            ->paginate($perPage);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Agents.partials.rows', compact('agents'))->render(),
+                'pagination' => (string) $agents->links(),
+                'total' => $agents->total(),
+            ]);
+        }
+
+        $countries = Agent::query()
+            ->join('countries', 'countries.id', '=', 'agents.country_id')
+            ->whereNotNull('countries.name')
+            ->distinct()
+            ->orderBy('countries.name')
+            ->pluck('countries.name')
             ->values();
 
-        $agentTypes = $agents
+        $agentTypes = Agent::query()
+            ->whereNotNull('agent_type')
+            ->where('agent_type', '!=', '')
+            ->distinct()
+            ->orderBy('agent_type')
             ->pluck('agent_type')
-            ->filter()
-            ->unique()
-            ->sort()
             ->values();
 
         return view('Agents.index', compact('agents', 'countries', 'agentTypes'));

@@ -65,6 +65,87 @@
             padding: 4px 8px;
         }
 
+        .filter-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            height: 32px;
+            background: #fff;
+            overflow: visible;
+            width: 100%;
+        }
+        .filter-group .filter-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 0;
+            padding: 0 10px;
+            white-space: nowrap;
+            font-weight: 500;
+            border-right: 1px solid #e2e8f0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            min-width: fit-content;
+        }
+        .filter-group .filter-input {
+            border: none !important;
+            box-shadow: none !important;
+            height: 100% !important;
+            font-size: 11px;
+            padding: 0 10px !important;
+            background: transparent !important;
+            width: 100%;
+            color: #1e293b;
+        }
+        .filter-group .multiselect-native-select {
+            flex: 1;
+            min-width: 0;
+        }
+        .filter-group .multiselect-native-select .btn-group {
+            width: 100%;
+        }
+        .filter-group .multiselect-native-select .multiselect {
+            height: 30px;
+            padding: 4px 26px 4px 10px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 0;
+            background: #fff;
+            color: #1e293b;
+            font-size: 11px;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .filter-group .multiselect-native-select .multiselect-container {
+            width: max(100%, 280px);
+            max-height: 420px;
+            overflow-y: auto;
+            padding: 6px 0;
+            z-index: 1050;
+        }
+        .filter-group .multiselect-native-select .multiselect-container .input-group {
+            width: calc(100% - 12px);
+            margin: 0 6px 6px;
+        }
+        .filter-group .multiselect-native-select .multiselect-container label {
+            padding-top: 7px;
+            padding-bottom: 7px;
+            color: #263238;
+            font-size: 12px;
+            white-space: normal;
+        }
+        .filter-group .multiselect-native-select .multiselect-container input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #176b87;
+        }
+        .filter-group .multiselect-native-select .multiselect-container .multiselect-reset a {
+            color: #176b87;
+            font-weight: 600;
+        }
+
         .clear-filters {
             font-size: 11px;
             color: #3b82f6;
@@ -380,58 +461,64 @@
                                         </div>
                                         <div class="customers-filters-panel">
                                             <div class="customers-filters-fields">
-                                                <div style="width: 150px;">
-                                                    <span class="filter-label">Search</span>
-                                                    <input type="text" id="filter-customer-search" class="form-control filter-input"
-                                                        placeholder="type here">
-                                                </div>
                                                 <div style="width: 180px;">
-                                                    <span class="filter-label">Responsible offices</span>
-                                                    <select id="filter-responsible-office" class="form-control filter-input select2">
-                                                        <option value=""></option>
-                                                        @foreach ($responsibleOffices as $office)
-                                                            <option value="{{ $office }}">{{ $office }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                    <div class="filter-group">
+                                                        <span class="filter-label">Search</span>
+                                                        <input type="text" id="filter-customer-search" class="form-control filter-input"
+                                                            placeholder="type here">
+                                                    </div>
+                                                </div>
+                                                <div style="width: 220px;">
+                                                    <div class="filter-group">
+                                                        <span class="filter-label">Office</span>
+                                                        <select id="filter-responsible-office" class="form-control filter-input customer-filter-multiselect" multiple="multiple">
+                                                            @foreach ($responsibleOffices as $office)
+                                                                <option value="{{ $office }}">{{ $office }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
                                                 </div>
                                                 <div class="d-flex align-items-center"
-                                                    style="border: 1px solid #ced4da; padding: 0 8px; border-radius: 2px; height: 28px;">
+                                                    style="border: 1px solid #ced4da; padding: 0 8px; border-radius: 4px; height: 32px;">
                                                     <span style="font-size: 11px; margin-right: 8px;">Hide inactive</span>
                                                     <input type="checkbox" id="filter-hide-inactive" checked style="width: 14px; height: 14px;">
                                                 </div>
-                                                <div style="width: 150px;">
-                                                    <span class="filter-label">Account managers</span>
-                                                    <select id="filter-account-manager" class="form-control filter-input select2">
-                                                        <option value=""></option>
-                                                        @foreach ($accountManagers as $manager)
-                                                            <option value="{{ $manager }}">{{ $manager }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                <div style="width: 220px;">
+                                                    <div class="filter-group">
+                                                        <span class="filter-label">Account manager</span>
+                                                        <select id="filter-account-manager" class="form-control filter-input customer-filter-multiselect" multiple="multiple">
+                                                            @foreach ($accountManagers as $manager)
+                                                                <option value="{{ $manager }}">{{ $manager }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                                <div style="width: 150px;">
-                                                    <span class="filter-label">Sales managers</span>
-                                                    <select id="filter-sales-manager" class="form-control filter-input select2">
-                                                        <option value=""></option>
-                                                        @foreach ($salesManagers as $manager)
-                                                            <option value="{{ $manager }}">{{ $manager }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                <div style="width: 220px;">
+                                                    <div class="filter-group">
+                                                        <span class="filter-label">Sales manager</span>
+                                                        <select id="filter-sales-manager" class="form-control filter-input customer-filter-multiselect" multiple="multiple">
+                                                            @foreach ($salesManagers as $manager)
+                                                                <option value="{{ $manager }}">{{ $manager }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                                <div style="width: 120px;">
-                                                    <span class="filter-label">Country</span>
-                                                    <select id="filter-customer-country" class="form-control filter-input select2">
-                                                        <option value=""></option>
-                                                        @foreach ($countries as $country)
-                                                            <option value="{{ $country }}">{{ $country }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                <div style="width: 180px;">
+                                                    <div class="filter-group">
+                                                        <span class="filter-label">Country</span>
+                                                        <select id="filter-customer-country" class="form-control filter-input customer-filter-multiselect" multiple="multiple">
+                                                            @foreach ($countries as $country)
+                                                                <option value="{{ $country }}">{{ $country }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                                <div style="padding-bottom: 5px;">
+                                                <div style="padding-bottom: 0;">
                                                     <a href="#" id="clear-customer-filters" class="clear-filters">Clear filters</a>
                                                 </div>
                                             </div>
                                             <div class="customers-filters-actions">
-                                                <button class="btn btn-outline-secondary"
+                                                <button type="button" class="btn btn-outline-secondary"
                                                     style="height: 28px; padding: 0 10px; border-radius: 2px;"><i
                                                         class="ti-download"></i></button>
                                                 @if($canWriteAdministration)
@@ -455,54 +542,12 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach($customers as $customer)
-                                                        @php
-                                                            $mainContact = $customer->contacts->first();
-                                                            $mainContactName = $mainContact?->name ?? '';
-                                                            $responsibleOffice = $customer->responsible?->accountManager?->office?->office_short_name ?? '';
-                                                            $accountManager = $customer->responsible?->accountManager?->name ?? '';
-                                                            $salesManager = $customer->responsible?->salesManager?->name ?? '';
-                                                            $countryName = $customer->primaryAddress?->country?->name ?? '';
-                                                            $searchText = trim(implode(' ', array_filter([
-                                                                $customer->customer_name,
-                                                                $customer->customer_number,
-                                                                $customer->email,
-                                                                $customer->phone,
-                                                                $mainContactName,
-                                                                $responsibleOffice,
-                                                                $accountManager,
-                                                                $salesManager,
-                                                                $countryName,
-                                                            ])));
-                                                        @endphp
-                                                        <tr
-                                                            data-search-text="{{ $searchText }}"
-                                                            data-responsible-office="{{ $responsibleOffice }}"
-                                                            data-account-manager="{{ $accountManager }}"
-                                                            data-sales-manager="{{ $salesManager }}"
-                                                            data-country="{{ $countryName }}"
-                                                            data-is-inactive="0"
-                                                        >
-                                                            <td>
-                                                                <a href="{{ route('customers.edit', $customer->id) }}"
-                                                                    style="color: #3b82f6; font-weight: 500;">
-                                                                    {{ $customer->customer_name }}
-                                                                </a>
-                                                            </td>
-                                                            <td>{{ $customer->responsible->accountManager->office->phone_number ?? '—' }}</td>
-                                                            <td>{{ $responsibleOffice ?: '—' }}</td>
-                                                            <td>{{ $accountManager ?: '—' }}</td>
-                                                            <td>
-                                                                <span class="label label-success">Active</span>
-                                                            </td>
-                                                            <td class="text-right">
-                                                                <a href="{{ route('customers.edit', $customer->id) }}"
-                                                                    style="color: #ccc;"><i class="ti-pencil"></i></a>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
+                                                    @include('customers.partials.rows')
                                                 </tbody>
                                             </table>
+                                        </div>
+                                        <div id="customers-pagination" class="mt-3">
+                                            {{ $customers->links() }}
                                         </div>
                                     </div>
                                 </div>
@@ -556,36 +601,131 @@
 
     <script>
         $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Click here",
-                allowClear: true,
-                width: '100%'
-            });
+            var customersIndexUrl = @json(route('customers.index'));
+            var table = null;
+            var searchTimer = null;
+            var filtersReady = false;
+            var requestToken = 0;
+            var suppressFilterLoad = false;
 
-            function fixCustomerFilterSelect2Width() {
-                $('.customers-filters-panel .select2-container').css('width', '100%');
+            function shouldLoadFilters() {
+                return filtersReady && !suppressFilterLoad;
             }
 
-            var table = $('#offices-table').DataTable({
-                "dom": 'rt<"d-flex flex-wrap justify-content-between align-items-center"ip>',
-                "lengthChange": false,
-                "pageLength": 25,
-                "responsive": false,
-                "searching": false,
-                "ordering": true,
-                "autoWidth": false,
-                "scrollX": true,
-                "columnDefs": [
-                    { "orderable": false, "targets": [5] }
-                ],
-                "language": {
-                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                    "paginate": {
-                        "previous": "<",
-                        "next": ">"
+            $('.customer-filter-multiselect').multiselect({
+                enableCaseInsensitiveFiltering: true,
+                includeResetOption: true,
+                resetText: 'Clear',
+                filterPlaceholder: 'Type here',
+                maxHeight: 420,
+                buttonWidth: '100%',
+                nonSelectedText: 'Click here',
+                numberDisplayed: 1,
+                nSelectedText: 'selected',
+                buttonText: function (options) {
+                    if (options.length === 0) {
+                        return 'Click here';
+                    }
+
+                    var firstSelection = $(options[0]).text();
+                    return options.length === 1 ? firstSelection : firstSelection + ', ...';
+                },
+                buttonTitle: function (options) {
+                    var labels = [];
+                    options.each(function () {
+                        labels.push($(this).text());
+                    });
+
+                    return labels.join(', ');
+                },
+                onChange: function () {
+                    if (shouldLoadFilters()) {
+                        loadCustomers(1);
+                    }
+                },
+                onSelectAll: function () {
+                    if (shouldLoadFilters()) {
+                        loadCustomers(1);
+                    }
+                },
+                onDeselectAll: function () {
+                    if (shouldLoadFilters()) {
+                        loadCustomers(1);
                     }
                 }
             });
+
+            function initCustomersTable() {
+                if ($.fn.DataTable.isDataTable('#offices-table')) {
+                    return $('#offices-table').DataTable();
+                }
+
+                return $('#offices-table').DataTable({
+                    "dom": 'rt',
+                    "lengthChange": false,
+                    "paging": false,
+                    "info": false,
+                    "responsive": false,
+                    "searching": false,
+                    "ordering": true,
+                    "autoWidth": false,
+                    "scrollX": true,
+                    "columnDefs": [
+                        { "orderable": false, "targets": [5] }
+                    ],
+                    "language": {
+                        "emptyTable": "No customers found."
+                    }
+                });
+            }
+
+            table = initCustomersTable();
+
+            function currentFilterParams(page) {
+                return {
+                    search: $.trim($('#filter-customer-search').val() || ''),
+                    responsible_office: $('#filter-responsible-office').val() || [],
+                    account_manager: $('#filter-account-manager').val() || [],
+                    sales_manager: $('#filter-sales-manager').val() || [],
+                    country: $('#filter-customer-country').val() || [],
+                    page: page || 1
+                };
+            }
+
+            function replaceCustomerRows(html, paginationHtml) {
+                table = initCustomersTable();
+                table.clear();
+
+                var $rows = $('<table><tbody>' + html + '</tbody></table>').find('tr').filter(function () {
+                    return $(this).find('td[colspan]').length === 0;
+                });
+
+                if ($rows.length) {
+                    table.rows.add($rows);
+                }
+
+                table.draw(false);
+                table.columns.adjust();
+                $('#customers-pagination').html(paginationHtml || '');
+            }
+
+            function loadCustomers(page) {
+                var params = currentFilterParams(page);
+                var token = ++requestToken;
+
+                $.ajax({
+                    url: customersIndexUrl,
+                    method: 'GET',
+                    data: params,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).done(function (response) {
+                    if (token !== requestToken) {
+                        return;
+                    }
+
+                    replaceCustomerRows(response.html, response.pagination);
+                });
+            }
 
             $('#btn-customers-filters-toggle').on('click', function () {
                 $('body').toggleClass('customers-filters-open');
@@ -593,95 +733,88 @@
                 $(this).toggleClass('is-open', isOpen);
                 $(this).find('.customers-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
                 setTimeout(function () {
-                    fixCustomerFilterSelect2Width();
-                    table.columns.adjust();
+                    if (table) {
+                        table.columns.adjust();
+                    }
                 }, 50);
             });
 
             $(window).on('resize', function () {
-                fixCustomerFilterSelect2Width();
-                table.columns.adjust();
+                if (table) {
+                    table.columns.adjust();
+                }
             });
 
             setTimeout(function () {
-                fixCustomerFilterSelect2Width();
-                table.columns.adjust();
+                if (table) {
+                    table.columns.adjust();
+                }
             }, 100);
 
-            function rowData($row, key) {
-                return String($row.attr('data-' + key) || '');
-            }
-
-            function getFilterText(selector) {
-                return String($(selector).val() || '').toLowerCase().trim();
-            }
-
-            function matchesContains(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
+            $('#filter-customer-search').on('input keyup', function (e) {
+                if (e.type === 'keyup' && e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(searchTimer);
+                    loadCustomers(1);
+                    return;
                 }
 
-                return String(rowValue || '').toLowerCase().indexOf(filterValue) !== -1;
-            }
-
-            function matchesExact(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
-                }
-
-                return String(rowValue || '') === filterValue;
-            }
-
-            $('#filter-customer-search, #filter-responsible-office, #filter-account-manager, #filter-sales-manager, #filter-customer-country, #filter-hide-inactive').on('change keyup', function () {
-                table.draw();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function () {
+                    loadCustomers(1);
+                }, 200);
             });
 
-            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-                if (settings.nTable.id !== 'offices-table') {
-                    return true;
+            $('#customers-pagination').on('click', 'a', function (e) {
+                var href = $(this).attr('href');
+                if (!href || href === '#') {
+                    return;
                 }
 
-                var row = table.row(dataIndex).node();
-                if (!row) {
-                    return true;
-                }
-
-                var $row = $(row);
-
-                if ($('#filter-hide-inactive').is(':checked') && rowData($row, 'is-inactive') === '1') {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-customer-search'), rowData($row, 'search-text'))) {
-                    return false;
-                }
-
-                if (!matchesExact($('#filter-responsible-office').val(), rowData($row, 'responsible-office'))) {
-                    return false;
-                }
-
-                if (!matchesExact($('#filter-account-manager').val(), rowData($row, 'account-manager'))) {
-                    return false;
-                }
-
-                if (!matchesExact($('#filter-sales-manager').val(), rowData($row, 'sales-manager'))) {
-                    return false;
-                }
-
-                if (!matchesExact($('#filter-customer-country').val(), rowData($row, 'country'))) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            $('#clear-customer-filters').on('click', function (e) {
                 e.preventDefault();
-                $('#filter-customer-search').val('');
-                $('#filter-responsible-office, #filter-account-manager, #filter-sales-manager, #filter-customer-country').val(null).trigger('change');
-                $('#filter-hide-inactive').prop('checked', true);
-                table.search('').columns().search('').draw();
+                var page = new URL(href, window.location.origin).searchParams.get('page') || 1;
+                loadCustomers(page);
             });
+
+            function resetCustomerFilterFields() {
+                $('#filter-customer-search').val('');
+                $('.customer-filter-multiselect').each(function () {
+                    var $select = $(this);
+                    $select.find('option').prop('selected', false);
+                    $select.val([]);
+                    $select.multiselect('clearSelection');
+                    $select.closest('.multiselect-native-select').find('.multiselect-search').val('');
+                    $select.closest('.multiselect-native-select').find('li.multiselect-filter-hidden')
+                        .removeClass('multiselect-filter-hidden')
+                        .show();
+                });
+                $('#filter-hide-inactive').prop('checked', true);
+            }
+
+            $(document).on('click', '#clear-customer-filters', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                clearTimeout(searchTimer);
+                suppressFilterLoad = true;
+                resetCustomerFilterFields();
+                suppressFilterLoad = false;
+                loadCustomers(1);
+                return false;
+            });
+
+            $(document).on('click', '.filter-group .multiselect-reset a', function () {
+                if (!shouldLoadFilters()) {
+                    return;
+                }
+
+                setTimeout(function () {
+                    loadCustomers(1);
+                }, 0);
+            });
+
+            setTimeout(function () {
+                filtersReady = true;
+            }, 200);
         });
     </script>
 @endsection

@@ -9,6 +9,7 @@ use App\Models\CrrCost;
 use App\Models\CrrDocument;
 use App\Models\Hub;
 use App\Services\CrrChangeLogService;
+use App\Support\ListSearch;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,52 +18,63 @@ use Illuminate\Validation\Rule;
 
 class CrrController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $crrs = Crr::query()
+        $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
+
+        $query = Crr::query()
             ->with([
                 'packages',
                 'documents',
                 'customerVessel.customer.responsible.accountManager.office',
-            ])
-            ->orderByDesc('id')
-            ->get();
+            ]);
 
-        $customers = $crrs
-            ->map(fn (Crr $crr) => $crr->customerVessel?->customer?->customer_name)
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $this->applyStockIndexFilters($query, $request);
 
-        $vessels = $crrs
-            ->pluck('vessel_name')
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $crrs = $query->orderByDesc('id')->paginate($perPage);
 
-        $accountManagers = $crrs
-            ->map(fn (Crr $crr) => $crr->accountManagerName())
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Stock.partials.rows', compact('crrs'))->render(),
+                'pagination' => (string) $crrs->links(),
+                'total' => $crrs->total(),
+            ]);
+        }
 
-        $offices = $crrs
-            ->map(fn (Crr $crr) => $crr->customerVessel?->customer?->responsible?->accountManager?->office?->office_name)
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $customers = DB::table('customers')
+            ->whereNotNull('customer_name')
+            ->where('customer_name', '!=', '')
+            ->distinct()
+            ->orderBy('customer_name')
+            ->pluck('customer_name');
 
-        $hubAgentOptions = $crrs
-            ->flatMap(fn (Crr $crr) => array_filter([
-                $crr->hub_code,
-                $crr->hub_agent,
-            ]))
-            ->unique()
-            ->sort()
+        $vessels = Crr::query()
+            ->whereNotNull('vessel_name')
+            ->where('vessel_name', '!=', '')
+            ->distinct()
+            ->orderBy('vessel_name')
+            ->pluck('vessel_name');
+
+        $accountManagers = DB::table('contacts')
+            ->whereNotNull('name')
+            ->where('name', '!=', '')
+            ->distinct()
+            ->orderBy('name')
+            ->pluck('name');
+
+        $offices = DB::table('offices')
+            ->whereNotNull('office_name')
+            ->where('office_name', '!=', '')
+            ->distinct()
+            ->orderBy('office_name')
+            ->pluck('office_name');
+
+        $hubAgentOptions = Crr::query()
+            ->whereNotNull('hub_agent')
+            ->where('hub_agent', '!=', '')
+            ->distinct()
+            ->orderBy('hub_agent')
+            ->pluck('hub_agent')
             ->values();
 
         return view('Stock.stocks', compact(
@@ -727,9 +739,11 @@ class CrrController extends Controller
         }
     }
 
-    public function stockFollowUp()
+    public function stockFollowUp(Request $request)
     {
-        $crrs = Crr::query()
+        $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
+
+        $query = Crr::query()
             ->stockFollowUp()
             ->with([
                 'packages',
@@ -737,61 +751,242 @@ class CrrController extends Controller
                 'customerVessel.customer.responsible.accountManager',
                 'shipments',
                 'registeredBy',
-            ])
-            ->latest()
-            ->get();
+            ]);
 
-        $customers = $crrs
-            ->map(fn (Crr $crr) => $crr->customerVessel?->customer?->customer_name)
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $this->applyStockFollowUpFilters($query, $request);
 
-        $accountManagers = $crrs
-            ->map(function (Crr $crr) {
-                return $crr->customerVessel?->account_manager
-                    ?: $crr->customerVessel?->customer?->responsible?->accountManager?->name;
-            })
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $crrs = $query->latest()->paginate($perPage);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Stock.partials.follow-up-rows', compact('crrs'))->render(),
+                'pagination' => (string) $crrs->links(),
+                'total' => $crrs->total(),
+            ]);
+        }
+
+        $customers = DB::table('customers')
+            ->whereNotNull('customer_name')
+            ->where('customer_name', '!=', '')
+            ->distinct()
+            ->orderBy('customer_name')
+            ->pluck('customer_name');
+
+        $accountManagers = DB::table('contacts')
+            ->whereNotNull('name')
+            ->where('name', '!=', '')
+            ->distinct()
+            ->orderBy('name')
+            ->pluck('name');
 
         return view('Stock.stock-follow-up', compact('crrs', 'customers', 'accountManagers'));
     }
 
-    public function pickupWorkList()
+    public function pickupWorkList(Request $request)
     {
-        $crrs = Crr::query()
+        $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
+
+        $query = Crr::query()
             ->pickupWorkList()
             ->with([
                 'packages',
                 'documents',
                 'customerVessel.customer.responsible.accountManager',
-            ])
-            ->latest()
-            ->get();
+            ]);
 
-        $accountManagers = $crrs
-            ->map(fn (Crr $crr) => $crr->accountManagerName())
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $handledByMap = $this->hubAgentHandledByMap();
+        $this->applyPickupWorkListFilters($query, $request, $handledByMap);
 
-        $vessels = $crrs
-            ->pluck('vessel_name')
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $crrs = $query->latest()->paginate($perPage);
 
-        $hubAgentValues = $crrs
-            ->pluck('hub_agent')
-            ->filter()
-            ->unique()
-            ->values();
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Stock.partials.pickup-rows', compact('crrs', 'handledByMap'))->render(),
+                'pagination' => (string) $crrs->links(),
+                'total' => $crrs->total(),
+            ]);
+        }
+
+        $accountManagers = DB::table('contacts')
+            ->whereNotNull('name')
+            ->where('name', '!=', '')
+            ->distinct()
+            ->orderBy('name')
+            ->pluck('name');
+
+        $vessels = Crr::query()
+            ->pickupWorkList()
+            ->whereNotNull('vessel_name')
+            ->where('vessel_name', '!=', '')
+            ->distinct()
+            ->orderBy('vessel_name')
+            ->pluck('vessel_name');
+
+        $hubAgents = Crr::query()
+            ->pickupWorkList()
+            ->whereNotNull('hub_agent')
+            ->where('hub_agent', '!=', '')
+            ->distinct()
+            ->orderBy('hub_agent')
+            ->pluck('hub_agent');
+
+        $handledByOptions = $handledByMap->values()->unique()->sort()->values();
+
+        return view('Stock.pickup-work-list', compact(
+            'crrs',
+            'accountManagers',
+            'vessels',
+            'handledByOptions',
+            'handledByMap',
+            'hubAgents',
+        ));
+    }
+
+    private function applyStockIndexFilters($query, Request $request): void
+    {
+        $hubAgents = array_values(array_filter((array) $request->input('hub_agent', [])));
+        $customers = array_values(array_filter((array) $request->input('customer', [])));
+        $vessels = array_values(array_filter((array) $request->input('vessel', [])));
+        $statuses = array_values(array_filter((array) $request->input('status', [])));
+        $accountManagers = array_values(array_filter((array) $request->input('account_manager', [])));
+        $offices = array_values(array_filter((array) $request->input('office', [])));
+        $stockNumber = trim((string) $request->input('stock_number', ''));
+        $poNumber = trim((string) $request->input('po_number', ''));
+        $supplier = trim((string) $request->input('supplier', ''));
+        $serviceReference = trim((string) $request->input('supplier_reference', $request->input('service_reference', '')));
+        $shipment = trim((string) $request->input('shipment', ''));
+        $transitId = trim((string) $request->input('transit_id', ''));
+
+        $stockNumberLike = ListSearch::prefix($stockNumber);
+        $supplierLike = ListSearch::prefix($supplier);
+        $serviceReferenceLike = ListSearch::prefix($serviceReference);
+        $shipmentLike = ListSearch::prefix($shipment);
+        $transitIdLike = ListSearch::prefix($transitId);
+        $poExact = mb_strlen($poNumber) >= 3 ? $poNumber : '';
+
+        $hasNonStatus = $hubAgents || $customers || $vessels || $accountManagers || $offices
+            || $stockNumberLike || $poExact !== '' || $supplierLike || $serviceReferenceLike
+            || $shipmentLike || $transitIdLike;
+
+        $statusValues = [];
+        $labelLookup = collect(Crr::getStatusLabels())->mapWithKeys(fn ($label, $value) => [strtolower($label) => $value]);
+        foreach ($statuses as $status) {
+            $statusValues[] = $labelLookup[strtolower((string) $status)] ?? $status;
+        }
+
+        $query
+            ->when($hubAgents, function ($q) use ($hubAgents) {
+                $related = Hub::query()
+                    ->where(function ($sub) use ($hubAgents) {
+                        $sub->whereIn('code', $hubAgents)->orWhereIn('hub_name', $hubAgents);
+                    })
+                    ->get(['code', 'hub_name']);
+                $agentRelated = Agent::query()
+                    ->where(function ($sub) use ($hubAgents) {
+                        $sub->whereIn('code', $hubAgents)->orWhereIn('agent_name', $hubAgents);
+                    })
+                    ->get(['code', 'agent_name']);
+
+                $values = collect($hubAgents)
+                    ->merge($related->pluck('code'))
+                    ->merge($related->pluck('hub_name'))
+                    ->merge($agentRelated->pluck('code'))
+                    ->merge($agentRelated->pluck('agent_name'))
+                    ->unique()
+                    ->values();
+
+                $q->whereIn('hub_agent', $values);
+            })
+            ->when($customers, fn ($q) => $q->whereHas('customerVessel.customer', fn ($sub) => $sub->whereIn('customer_name', $customers)))
+            ->when($vessels, fn ($q) => $q->whereIn('vessel_name', $vessels))
+            ->when($accountManagers, function ($q) use ($accountManagers) {
+                $q->where(function ($sub) use ($accountManagers) {
+                    $sub->whereHas('customerVessel', fn ($cv) => $cv->whereIn('account_manager', $accountManagers))
+                        ->orWhereHas('customerVessel.customer.responsible.accountManager', fn ($am) => $am->whereIn('name', $accountManagers));
+                });
+            })
+            ->when($offices, fn ($q) => $q->whereHas('customerVessel.customer.responsible.accountManager.office', fn ($sub) => $sub->whereIn('office_name', $offices)))
+            ->when($stockNumberLike, fn ($q, $pattern) => $q->where('stock_number', 'like', $pattern))
+            ->when($poExact !== '', fn ($q) => $q->whereJsonContains('po_numbers', $poExact))
+            ->when($supplierLike, fn ($q, $pattern) => $q->where('supplier', 'like', $pattern))
+            ->when($serviceReferenceLike, fn ($q, $pattern) => $q->where('supplier_reference', 'like', $pattern))
+            ->when($shipmentLike, fn ($q, $pattern) => $q->where('internal_shipment', 'like', $pattern))
+            ->when($transitIdLike, fn ($q, $pattern) => $q->where('transit_id', 'like', $pattern))
+            ->when($statusValues, fn ($q) => $q->whereIn('status', $statusValues))
+            ->when(! $statusValues && ! $hasNonStatus, fn ($q) => $q->whereNotIn('status', [Crr::STATUS_COMPLETED, Crr::STATUS_CANCELLED]));
+    }
+
+    private function applyStockFollowUpFilters($query, Request $request): void
+    {
+        $customers = array_values(array_filter((array) $request->input('customer', [])));
+        $accountManagers = array_values(array_filter((array) $request->input('account_manager', [])));
+
+        $query
+            ->when($customers, fn ($q) => $q->whereHas('customerVessel.customer', fn ($sub) => $sub->whereIn('customer_name', $customers)))
+            ->when($accountManagers, function ($q) use ($accountManagers) {
+                $q->where(function ($sub) use ($accountManagers) {
+                    $sub->whereHas('customerVessel', fn ($cv) => $cv->whereIn('account_manager', $accountManagers))
+                        ->orWhereHas('customerVessel.customer.responsible.accountManager', fn ($am) => $am->whereIn('name', $accountManagers));
+                });
+            });
+    }
+
+    private function applyPickupWorkListFilters($query, Request $request, $handledByMap): void
+    {
+        $accountManagers = array_values(array_filter((array) $request->input('account_manager', [])));
+        $handledBy = array_values(array_filter((array) $request->input('handled_by', [])));
+        $vessels = array_values(array_filter((array) $request->input('vessel', [])));
+        $hubAgents = array_values(array_filter((array) $request->input('hub_agent', [])));
+        $stockNumber = trim((string) $request->input('stock_number', ''));
+        $supplierRef = trim((string) $request->input('supplier_reference', ''));
+
+        $query
+            ->when($accountManagers, function ($q) use ($accountManagers) {
+                $q->where(function ($sub) use ($accountManagers) {
+                    $sub->whereHas('customerVessel', fn ($cv) => $cv->whereIn('account_manager', $accountManagers))
+                        ->orWhereHas('customerVessel.customer.responsible.accountManager', fn ($am) => $am->whereIn('name', $accountManagers));
+                });
+            })
+            ->when($handledBy, function ($q) use ($handledBy, $handledByMap) {
+                $keys = $handledByMap->filter(fn ($name) => in_array($name, $handledBy, true))->keys();
+                $q->whereIn('hub_agent', $keys);
+            })
+            ->when($vessels, fn ($q) => $q->whereIn('vessel_name', $vessels))
+            ->when($hubAgents, fn ($q) => $q->whereIn('hub_agent', $hubAgents))
+            ->when(ListSearch::prefix($stockNumber), fn ($q, $pattern) => $q->where('stock_number', 'like', $pattern))
+            ->when(ListSearch::prefix($supplierRef), fn ($q, $pattern) => $q->where('supplier_reference', 'like', $pattern));
+
+        $this->applyDateRangeFilter($query, $request->input('expected_delivery'), 'expected_delivery_date');
+        $this->applyDateRangeFilter($query, $request->input('deadline_warehouse'), 'deadline_warehouse');
+        $this->applyDateRangeFilter($query, $request->input('pickup_date'), 'actual_delivery_date');
+    }
+
+    private function applyDateRangeFilter($query, $value, string $column): void
+    {
+        $value = trim((string) $value);
+        if ($value === '' || ! str_contains($value, ' - ')) {
+            return;
+        }
+
+        [$from, $to] = array_map('trim', explode(' - ', $value, 2));
+
+        try {
+            $start = \Carbon\Carbon::createFromFormat('d.m.Y', $from)->startOfDay();
+            $end = \Carbon\Carbon::createFromFormat('d.m.Y', $to)->endOfDay();
+            $query->whereBetween($column, [$start->toDateString(), $end->toDateString()]);
+        } catch (\Exception $e) {
+            // Ignore unparseable date ranges.
+        }
+    }
+
+    private function hubAgentHandledByMap()
+    {
+        $hubAgentValues = Crr::query()
+            ->pickupWorkList()
+            ->whereNotNull('hub_agent')
+            ->where('hub_agent', '!=', '')
+            ->distinct()
+            ->pluck('hub_agent');
 
         $handledByMap = collect();
 
@@ -821,16 +1016,6 @@ class CrrController extends Controller
                 }
             });
 
-        $handledByOptions = $handledByMap->values()->unique()->sort()->values();
-        $hubAgents = $hubAgentValues->sort()->values();
-
-        return view('Stock.pickup-work-list', compact(
-            'crrs',
-            'accountManagers',
-            'vessels',
-            'handledByOptions',
-            'handledByMap',
-            'hubAgents',
-        ));
+        return $handledByMap;
     }
 }

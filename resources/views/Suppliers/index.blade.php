@@ -257,7 +257,7 @@
                                                 <div class="suppliers-toolbar">
                                                     <div class="suppliers-toolbar-search">
                                                         <span class="filter-label">Search</span>
-                                                        <input type="text" class="form-control filter-input" placeholder="type here">
+                                                        <input type="text" id="supplier-search-filter" class="form-control filter-input" placeholder="type here">
                                                     </div>
                                                     <div class="suppliers-toolbar-actions">
                                                         <a href="#" style="border: 1px solid #ced4da; padding: 4px 10px; border-radius: 2px; color: #666; font-size: 14px;">
@@ -284,33 +284,12 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            @foreach($suppliers as $supplier)
-                                                                <tr>
-                                                                    <td>{{ $supplier->supplier_name }}</td>
-                                                                    <td style="font-size: 10px; color: #555;">{{ $supplier->supplier_address }}</td>
-                                                                    <td>{{ $supplier->city }}</td>
-                                                                    <td>
-                                                                        @if($supplier->country && $supplier->country->flag_url)
-                                                                            <img src="{{ $supplier->country->flag_url }}" width="16" height="12" alt="{{ $supplier->country->name }}" style="margin-right: 5px; vertical-align: middle; border: 1px solid #eee;">
-                                                                             {{ $supplier->country->name }}
-                                                                        @elseif($supplier->country)
-                                                                            {{ $supplier->country->name }}
-                                                                        @endif
-                                                                    </td>
-                                                                    <td>{{ $supplier->phone_number }}</td>
-                                                                    <td>{{ $supplier->email }}</td>
-                                                                    <td class="text-right">
-                                                                        <a href="{{ route('suppliers.edit', $supplier->id) }}" style="color: #666; font-size: 14px; margin-right: 5px;">
-                                                                            <i class="ti-pencil"></i>
-                                                                        </a>
-                                                                        <a href="javascript:void(0)" class="delete-supplier" data-id="{{ $supplier->id }}" data-name="{{ $supplier->supplier_name }}" style="font-size: 14px; color: #ff5252;" title="Delete supplier">
-                                                                            <i class="ti-trash"></i>
-                                                                        </a>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
+                                                            @include('Suppliers.partials.rows')
                                                         </tbody>
                                                     </table>
+                                                </div>
+                                                <div id="suppliers-pagination" class="mt-3 px-3 pb-2">
+                                                    {{ $suppliers->links() }}
                                                 </div>
                                             </div>
                                         </div>
@@ -355,25 +334,20 @@
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
+    @include('partials.searchable-filter-multiselect-script')
 
     <script>
         $(document).ready(function() {
             var table = $('#suppliers-table').DataTable({
                 "lengthChange": false,
-                "pageLength": 25,
+                "paging": false,
+                "info": false,
                 "responsive": false,
-                "searching": true,
+                "searching": false,
                 "ordering": true,
                 "autoWidth": false,
                 "scrollX": true,
-                "dom": 'rt<"d-flex flex-wrap justify-content-between align-items-center"ip>',
-                "language": {
-                    "paginate": {
-                        "previous": "<",
-                        "next": ">"
-                    },
-                    "info": "Showing _START_ to _END_ of _TOTAL_ entries"
-                }
+                "dom": 'rt'
             });
 
             $(window).on('resize', function () {
@@ -384,9 +358,24 @@
                 table.columns.adjust();
             }, 100);
 
-            // Bind search input
-            $('.filter-input').keyup(function() {
-                table.search($(this).val()).draw();
+            window.suppliersListFilters = bindAjaxListFilters({
+                tableSelector: '#suppliers-table',
+                paginationSelector: '#suppliers-pagination',
+                indexUrl: @json(route('suppliers.index')),
+                existingTable: table,
+                getParams: function (page) {
+                    return {
+                        search: $.trim($('#supplier-search-filter').val() || ''),
+                        page: page || 1
+                    };
+                },
+                textSelectors: '#supplier-search-filter',
+                resetFields: function () {
+                    $('#supplier-search-filter').val('');
+                },
+                afterDraw: function () {
+                    table.columns.adjust();
+                }
             });
 
             // Delete supplier AJAX
@@ -426,9 +415,9 @@
                                     showConfirmButton: false
                                 });
 
-                                $row.fadeOut(400, function() {
-                                    table.row($row).remove().draw(false);
-                                });
+                                if (window.suppliersListFilters) {
+                                    window.suppliersListFilters.load(1);
+                                }
                             } else {
                                 swal('Error', response.message || 'Error deleting supplier.', 'error');
                             }

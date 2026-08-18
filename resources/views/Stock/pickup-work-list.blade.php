@@ -612,7 +612,7 @@
                                                             <div id="col-Stock-number" class="custom-col" style="flex: 0 0 250px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Stock number</span>
-                                                                    <input type="text" id="filter-stock-number" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" id="filter-stock-number" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Expected-del-date" class="custom-col" style="flex: 0 0 250px;">
@@ -659,7 +659,7 @@
                                                             <div id="col-Supplier-ref" class="custom-col" style="flex: 0 0 250px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Supplier ref</span>
-                                                                    <input type="text" id="filter-supplier-ref" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" id="filter-supplier-ref" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Hub-Agent" class="custom-col" style="flex: 0 0 280px;">
@@ -696,100 +696,14 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            @forelse ($crrs as $crr)
-                                                            @php
-                                                                $customerName = $crr->customerVessel?->customer?->customer_name ?? '';
-                                                                $accountManager = $crr->accountManagerName() ?? '';
-                                                                $poNumbers = is_array($crr->po_numbers) ? $crr->po_numbers : [];
-                                                                $hasDocs = $crr->documents->isNotEmpty();
-                                                                $hasDgr = $crr->packages->where('is_dgr', true)->isNotEmpty();
-                                                                $hasMedicine = $crr->packages->where('is_medicine', true)->isNotEmpty();
-                                                                $isNotStackable = $crr->packages->where('is_not_stackable', true)->isNotEmpty();
-                                                                $hasDeliveryIrreg = is_array($crr->delivery_irregularities) && in_array('Yes', $crr->delivery_irregularities, true);
-                                                                $hasCustomsValue = (float) ($crr->customs_value ?? 0) > 0;
+                                                            @include('Stock.partials.pickup-rows')
 
-                                                                $formatDate = function ($value) {
-                                                                    if (!$value) {
-                                                                        return ['display' => '—', 'filter' => ''];
-                                                                    }
-
-                                                                    try {
-                                                                        $date = \Carbon\Carbon::parse($value);
-                                                                        return [
-                                                                            'display' => $date->format('d.m.Y'),
-                                                                            'filter' => $date->format('Y-m-d'),
-                                                                        ];
-                                                                    } catch (\Exception $e) {
-                                                                        return ['display' => $value, 'filter' => ''];
-                                                                    }
-                                                                };
-
-                                                                $expectedDate = $formatDate($crr->expected_delivery_date);
-                                                                $deadlineWarehouse = $formatDate($crr->deadline_warehouse);
-                                                                $pickupDate = $formatDate($crr->actual_delivery_date);
-                                                                $comment = trim(($crr->first_mile_comment ?: '') . ($crr->first_mile_updates ? ' ' . $crr->first_mile_updates : ''));
-                                                                $statusLabel = \App\Models\Crr::getStatusLabels()[$crr->status] ?? 'Unknown';
-                                                                $handledBy = $handledByMap->get($crr->hub_agent, '');
-                                                            @endphp
-                                                            <tr
-                                                                data-account-manager="{{ $accountManager }}"
-                                                                data-hub-agent="{{ $crr->hub_agent ?? '' }}"
-                                                                data-vessel="{{ $crr->vessel_name ?? '' }}"
-                                                                data-handled-by="{{ $handledBy }}"
-                                                                data-expected-delivery="{{ $expectedDate['filter'] }}"
-                                                                data-deadline-warehouse="{{ $deadlineWarehouse['filter'] }}"
-                                                                data-pickup-date="{{ $pickupDate['filter'] }}"
-                                                            >
-                                                                <td>
-                                                                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                                                                        <a href="{{ route('stocks.edit', $crr->id) }}" class="table-link">{{ $crr->stock_number }}</a>
-                                                                        <div class="d-flex align-items-center" style="gap: 8px;">
-                                                                            @if($crr->is_landed_goods)
-                                                                                <span class="landed-badge" title="Landed Goods">Landed</span>
-                                                                            @endif
-                                                                            @if($hasDgr)
-                                                                                <i class="icofont icofont-warning text-danger" title="Dangerous Goods" style="font-size: 15px;"></i>
-                                                                            @endif
-                                                                            @if($hasDocs)
-                                                                                <i class="icofont icofont-file-alt text-muted" title="Documents Attached" style="font-size: 15px; color: #64748b !important;"></i>
-                                                                            @endif
-                                                                            @if($hasMedicine)
-                                                                                <i class="icofont icofont-first-aid text-success" title="Medicine" style="font-size: 15px;"></i>
-                                                                            @endif
-                                                                            @if($hasDeliveryIrreg)
-                                                                                <i class="icofont icofont-info-circle text-pending" title="Delivery irregularities - missing info" style="font-size: 15px;"></i>
-                                                                            @endif
-                                                                            @if($isNotStackable)
-                                                                                <i class="icofont icofont-info-square text-warning" title="Non-Stackable Content" style="font-size: 15px;"></i>
-                                                                            @endif
-                                                                            @if($crr->first_mile_updates)
-                                                                                <i class="ti-bell icon-density icon-bell"></i>
-                                                                            @endif
-                                                                            @if($hasCustomsValue)
-                                                                                <span style="color: #0ea5e9; font-weight: bold; font-size: 12px; margin-left: 2px;">$</span>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td>{{ $customerName ?: '—' }}</td>
-                                                                <td>{{ $crr->vessel_name ?? '—' }}</td>
-                                                                <td>{{ $poNumbers ? implode(', ', $poNumbers) : '—' }}</td>
-                                                                <td>{{ $crr->supplier ?? '—' }}</td>
-                                                                <td>{{ $crr->supplier_reference ?? '—' }}</td>
-                                                                <td>{{ $expectedDate['display'] }}</td>
-                                                                <td>{{ $deadlineWarehouse['display'] }}</td>
-                                                                <td style="max-width: 300px; white-space: normal; line-height: 1.2;">{{ $comment ?: '—' }}</td>
-                                                                <td><span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span></td>
-                                                                <td>{{ $handledBy ?: '—' }}</td>
-                                                                <td>{{ $pickupDate['display'] }}</td>
-                                                            </tr>
-                                                            @empty
-                                                            <tr>
-                                                                <td colspan="12" class="text-center py-4 text-muted">No pickup stocks found.</td>
-                                                            </tr>
-                                                            @endforelse
                                                         </tbody>
                                                     </table>
+                                                </div>
+                                                <div id="pickup-pagination" class="mt-3 px-3 pb-2">
+                                                    {{ $crrs->links() }}
+                                                </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -842,7 +756,24 @@
     <script>
         $(document).ready(function() {
             initializeSearchableFilterMultiselect(
-                '#filter-account-manager, #filter-handled-by, #filter-vessel, #filter-hub-agent'
+                '#filter-account-manager, #filter-handled-by, #filter-vessel, #filter-hub-agent',
+                {
+                    onChange: function () {
+                        if (window.pickupListFilters) {
+                            window.pickupListFilters.load(1);
+                        }
+                    },
+                    onSelectAll: function () {
+                        if (window.pickupListFilters) {
+                            window.pickupListFilters.load(1);
+                        }
+                    },
+                    onDeselectAll: function () {
+                        if (window.pickupListFilters) {
+                            window.pickupListFilters.load(1);
+                        }
+                    }
+                }
             );
 
             // Initialize Bootstrap Multiselect for special filter toggle
@@ -959,9 +890,9 @@
             });
 
             var table = $('#offices-table').DataTable({
-                "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
+                "dom": '<"table-scroll-wrapper"rt>',
                 "lengthChange": false,
-                "pageLength": 200,
+                "paging": false,
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
@@ -982,98 +913,37 @@
                 }, 50);
             });
 
-            function matchesMultiSelectFilter(selectedValues, rowValue) {
-                if (!selectedValues || !selectedValues.length) {
-                    return true;
+            window.pickupListFilters = bindAjaxListFilters({
+                tableSelector: '#offices-table',
+                paginationSelector: '#pickup-pagination',
+                indexUrl: @json(route('pickup-work-list')),
+                existingTable: table,
+                getParams: function (page) {
+                    return {
+                        account_manager: $('#filter-account-manager').val() || [],
+                        handled_by: $('#filter-handled-by').val() || [],
+                        vessel: $('#filter-vessel').val() || [],
+                        hub_agent: $('#filter-hub-agent').val() || [],
+                        stock_number: $.trim($('#filter-stock-number').val() || ''),
+                        supplier_reference: $.trim($('#filter-supplier-ref').val() || ''),
+                        expected_delivery: $.trim($('#filter-expected-delivery').val() || ''),
+                        deadline_warehouse: $.trim($('#filter-deadline-warehouse').val() || ''),
+                        pickup_date: $.trim($('#filter-pickup-date').val() || ''),
+                        page: page || 1
+                    };
+                },
+                textSelectors: '#filter-stock-number, #filter-supplier-ref',
+                changeSelectors: '#filter-expected-delivery, #filter-deadline-warehouse, #filter-pickup-date',
+                resetFields: function () {
+                    clearSearchableFilterMultiselect(
+                        '#filter-account-manager, #filter-handled-by, #filter-vessel, #filter-hub-agent',
+                        false
+                    );
+                    $('#filter-stock-number, #filter-supplier-ref, #filter-expected-delivery, #filter-deadline-warehouse, #filter-pickup-date').val('');
+                },
+                afterDraw: function () {
+                    table.columns.adjust();
                 }
-
-                return selectedValues.includes(String(rowValue || ''));
-            }
-
-            function matchesDateRangeFilter(inputSelector, rowDateValue) {
-                var val = $(inputSelector).val();
-                if (!val || val.indexOf(' - ') === -1) {
-                    return true;
-                }
-
-                if (!rowDateValue) {
-                    return false;
-                }
-
-                var dates = val.split(' - ');
-                var min = moment(dates[0], 'DD.MM.YYYY');
-                var max = moment(dates[1], 'DD.MM.YYYY');
-                var rowDate = moment(rowDateValue, 'YYYY-MM-DD');
-
-                if (!rowDate.isValid() || !min.isValid() || !max.isValid()) {
-                    return true;
-                }
-
-                return rowDate.isSameOrAfter(min, 'day') && rowDate.isSameOrBefore(max, 'day');
-            }
-
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                if (settings.nTable.id !== 'offices-table') {
-                    return true;
-                }
-
-                var row = table.row(dataIndex).node();
-                if (!row) {
-                    return true;
-                }
-
-                var $row = $(row);
-
-                if (!matchesMultiSelectFilter($('#filter-account-manager').val(), $row.data('account-manager'))) {
-                    return false;
-                }
-
-                if (!matchesMultiSelectFilter($('#filter-hub-agent').val(), $row.data('hub-agent'))) {
-                    return false;
-                }
-
-                if (!matchesMultiSelectFilter($('#filter-vessel').val(), $row.data('vessel'))) {
-                    return false;
-                }
-
-                if (!matchesMultiSelectFilter($('#filter-handled-by').val(), $row.data('handled-by'))) {
-                    return false;
-                }
-
-                if (!matchesDateRangeFilter('#filter-expected-delivery', $row.data('expected-delivery'))) {
-                    return false;
-                }
-
-                if (!matchesDateRangeFilter('#filter-deadline-warehouse', $row.data('deadline-warehouse'))) {
-                    return false;
-                }
-
-                if (!matchesDateRangeFilter('#filter-pickup-date', $row.data('pickup-date'))) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            $('#filter-stock-number').on('keyup change', function() {
-                table.column(0).search($(this).val()).draw();
-            });
-
-            $('#filter-supplier-ref').on('keyup change', function() {
-                table.column(5).search($(this).val()).draw();
-            });
-
-            $('#filter-account-manager, #filter-handled-by, #filter-vessel, #filter-hub-agent, #filter-expected-delivery, #filter-deadline-warehouse, #filter-pickup-date').on('change keyup apply.daterangepicker cancel.daterangepicker', function() {
-                table.draw();
-            });
-
-            $('.clear-filters').on('click', function(e) {
-                e.preventDefault();
-                clearSearchableFilterMultiselect(
-                    '#filter-account-manager, #filter-handled-by, #filter-vessel, #filter-hub-agent'
-                );
-                $('#filter-stock-number, #filter-supplier-ref, #filter-expected-delivery, #filter-deadline-warehouse, #filter-pickup-date').val('').trigger('change');
-                table.search('').columns().search('').draw();
             });
         });
     </script>

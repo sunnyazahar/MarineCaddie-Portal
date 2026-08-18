@@ -817,19 +817,19 @@
                                                             <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Shipment no</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Service-reference-number" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Service reference</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-PO-number" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">PO number</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="full PO no.">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Departure-hub" class="custom-col" style="flex: 0 0 200px;">
@@ -850,13 +850,13 @@
                                                             <div id="col-Consignee" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Consignee</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Port-of-destination" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Port of destination</span>
-                                                                    <input type="text" class="form-control filter-input" placeholder="type here">
+                                                                    <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
                                                             <div id="col-Account-manager" class="custom-col" style="flex: 0 0 200px;">
@@ -946,90 +946,12 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            @forelse ($shipments as $shipment)
-                                                            @php
-                                                                $consigneeDisplay = $shipment->partyDisplay($shipment->consignee, $partyNames);
-                                                                $consigneeType = explode(':', (string) $shipment->consignee, 2)[0];
-                                                                $customerNames = $shipment->customerNamesFromVessels($vesselCustomerMap ?? []);
-                                                                $customerDisplay = $shipment->formatNamesDisplay($customerNames);
-                                                                $customerDisplayShort = $shipment->formatNamesDisplayShort($customerNames);
-                                                                $serviceReferenceDisplay = $shipment->service_reference_display;
-                                                            @endphp
-                                                            <tr
-                                                                data-customers="{{ $customerNames->implode(',') }}"
-                                                                data-vessels="{{ $shipment->vessel_names->implode(',') }}"
-                                                                data-shipment-number="{{ $shipment->shipment_number }}"
-                                                                data-service-reference="{{ $serviceReferenceDisplay }}"
-                                                                data-consignee="{{ $consigneeDisplay }}"
-                                                                data-departure-port-code="{{ $shipment->departure_port_code ?? '' }}"
-                                                                data-destination="{{ $shipment->destination_display }}"
-                                                                data-service="{{ $shipment->service ?? '' }}"
-                                                                data-po-numbers="{{ $shipment->po_numbers_display }}"
-                                                                data-account-manager="{{ $shipment->accountManager?->name ?? '' }}"
-                                                                data-created-by="{{ $shipment->creator?->name ?? '' }}"
-                                                                data-office="{{ $shipment->accountManager?->office?->office_name ?? '' }}"
-                                                                data-creation-date="{{ $shipment->created_at?->format('Y-m-d') ?? '' }}"
-                                                                data-status="{{ $shipment->status ?? '' }}"
-                                                            >
-                                                                <td title="{{ $shipment->shipment_number }}">
-                                                                    <a href="{{ route('shipments.edit', $shipment->id) }}" class="text-primary">{{ $shipment->shipment_number }}</a>
-                                                                    @if ($shipment->hasOpenIrregularities())
-                                                                        <i class="ti-alert text-danger ml-2" title="Open irregularities"></i>
-                                                                    @endif
-                                                                </td>
-                                                                <td title="{{ $customerDisplay }}">
-                                                                    @if ($customerNames->count() > 2)
-                                                                        <span class="cell-ellipsis" title="{{ $customerDisplay }}" style="cursor: help;">{{ $customerDisplayShort }}</span>
-                                                                    @else
-                                                                        <span class="cell-ellipsis">{{ $customerDisplay }}</span>
-                                                                    @endif
-                                                                </td>
-                                                                <td title="{{ $shipment->vessel_display }}">
-                                                                    @if ($shipment->vessel_names->count() > 2)
-                                                                        <span title="{{ $shipment->vessel_display }}" style="cursor: help;">{{ $shipment->vessel_display_short }}</span>
-                                                                    @else
-                                                                        {{ $shipment->vessel_display }}
-                                                                    @endif
-                                                                </td>
-                                                                <td title="{{ $shipment->service ?? '—' }}">{{ $shipment->service ?? '—' }}</td>
-                                                                <td title="{{ $serviceReferenceDisplay }}">
-                                                                    @if ($shipment->service_reference_values->count() > 2)
-                                                                        <span title="{{ $shipment->service_reference_display }}" style="cursor: help;">{{ $shipment->service_reference_display_short }}</span>
-                                                                    @else
-                                                                        {{ $shipment->service_reference_display }}
-                                                                    @endif
-                                                                </td>
-                                                                <td class="consignee-cell">
-                                                                    @if ($consigneeType === 'hub')
-                                                                        <span class="consignee-row consignee-hub-agent">
-                                                                            <span class="consignee-icon-slot"><i class="ti-home" title="Hub"></i></span>
-                                                                            <span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span>
-                                                                        </span>
-                                                                    @elseif ($consigneeType === 'agent')
-                                                                        <span class="consignee-row consignee-hub-agent">
-                                                                            <span class="consignee-icon-slot"><i class="ti-user" title="Agent"></i></span>
-                                                                            <span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span>
-                                                                        </span>
-                                                                    @else
-                                                                        <span class="consignee-row">
-                                                                            <span class="consignee-icon-slot"></span>
-                                                                            <span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span>
-                                                                        </span>
-                                                                    @endif
-                                                                </td>
-                                                                <td title="{{ $shipment->departure_port_code ?: '—' }}">{{ $shipment->departure_port_code ?: '—' }}</td>
-                                                                <td title="{{ $shipment->destination_display }}">{{ $shipment->destination_display }}</td>
-                                                                <td>{{ $shipment->deadline_arrival?->format('d.m.Y') ?? '—' }}</td>
-                                                                <td>{{ $shipment->pre_alert_reminder?->format('d.m.Y') ?? '—' }}</td>
-                                                                <td><label class="{{ $shipment->statusBadgeClass() }}">{{ $shipment->status }}</label></td>
-                                                            </tr>
-                                                            @empty
-                                                            <tr>
-                                                                <td colspan="11" class="text-center py-4 text-muted">No shipments found.</td>
-                                                            </tr>
-                                                            @endforelse
+                                                            @include('Shipment.partials.rows')
                                                         </tbody>
                                                     </table>
+                                                </div>
+                                                <div id="shipments-pagination" class="mt-3">
+                                                    {{ $shipments->links() }}
                                                 </div>
                                             </div>
                                         </div>
@@ -1080,7 +1002,28 @@
         $(document).ready(function() {
             $('body').addClass('shipments-list-page');
 
-            initializeSearchableFilterMultiselect('.searchable-filter-multiselect');
+            var shipmentsIndexUrl = @json(route('shipments'));
+            var table = null;
+            var searchTimer = null;
+            var filtersReady = false;
+            var requestToken = 0;
+            var suppressFilterLoad = false;
+
+            function shouldLoadFilters() {
+                return filtersReady && !suppressFilterLoad;
+            }
+
+            function loadShipmentsOnFilterChange() {
+                if (shouldLoadFilters()) {
+                    loadShipments(1);
+                }
+            }
+
+            initializeSearchableFilterMultiselect('.searchable-filter-multiselect', {
+                onChange: loadShipmentsOnFilterChange,
+                onSelectAll: loadShipmentsOnFilterChange,
+                onDeselectAll: loadShipmentsOnFilterChange
+            });
 
             // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
@@ -1145,7 +1088,7 @@
             function toggleFilterVisibility() {
                 if (isShipmentsMobile()) {
                     ensureShipmentsMobileFiltersVisible();
-                    if (typeof table !== 'undefined' && table.columns) {
+                    if (table && table.columns) {
                         setTimeout(adjustShipmentsTableLayout, 50);
                     }
                     return;
@@ -1182,7 +1125,7 @@
                     }
                 });
 
-                if (typeof table !== 'undefined' && table.columns) {
+                if (table && table.columns) {
                     setTimeout(adjustShipmentsTableLayout, 50);
                 }
             }
@@ -1190,16 +1133,28 @@
             toggleFilterVisibility();
             ensureShipmentsMobileFiltersVisible();
 
-            var table = $('#offices-table').DataTable({
-                "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
-                "lengthChange": false,
-                "pageLength": 100,
-                "responsive": false,
-                "searching": false,
-                "ordering": true,
-                "order": [],
-                "autoWidth": false
-            });
+            function initShipmentsTable() {
+                if ($.fn.DataTable.isDataTable('#offices-table')) {
+                    return $('#offices-table').DataTable();
+                }
+
+                return $('#offices-table').DataTable({
+                    "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
+                    "lengthChange": false,
+                    "paging": false,
+                    "info": false,
+                    "responsive": false,
+                    "searching": false,
+                    "ordering": true,
+                    "order": [],
+                    "autoWidth": false,
+                    "language": {
+                        "emptyTable": "No shipments found."
+                    }
+                });
+            }
+
+            table = initShipmentsTable();
 
             function getShipmentsTableScrollHeight() {
                 var isMobile = isShipmentsMobile();
@@ -1258,127 +1213,128 @@
                 adjustShipmentsTableLayout();
             });
 
-            function rowData($row, key) {
-                return String($row.attr('data-' + key) || '');
+            function currentFilterParams(page) {
+                return {
+                    customer: $('#col-Customer select').val() || [],
+                    vessel: $('#col-Vessel select').val() || [],
+                    shipment_number: $.trim($('#col-Shipment-no input').val() || ''),
+                    service_reference: $.trim($('#col-Service-reference-number input').val() || ''),
+                    po_number: $.trim($('#col-PO-number input').val() || ''),
+                    departure_port_code: $('#col-Departure-hub select').val() || [],
+                    consignee: $.trim($('#col-Consignee input').val() || ''),
+                    destination: $.trim($('#col-Port-of-destination input').val() || ''),
+                    account_manager: $('#col-Account-manager select').val() || [],
+                    created_by: $('#col-Created-by select').val() || [],
+                    office: $('#col-Office select').val() || [],
+                    creation_date: $('#col-Creation-date input').val() || '',
+                    service: $('#col-Service select').val() || [],
+                    status: $('#col-Status select').val() || [],
+                    page: page || 1
+                };
             }
 
-            function getFilterText(selector) {
-                return String($(selector).val() || '').toLowerCase().trim();
-            }
+            function replaceShipmentRows(html, paginationHtml) {
+                table = initShipmentsTable();
+                table.clear();
 
-            function matchesSelectedValues(selectedValues, rowValue) {
-                if (!selectedValues || selectedValues.length === 0) {
-                    return true;
+                var $rows = $('<table><tbody>' + html + '</tbody></table>').find('tr').filter(function () {
+                    return $(this).find('td[colspan]').length === 0;
+                });
+
+                if ($rows.length) {
+                    table.rows.add($rows);
                 }
 
-                return selectedValues.indexOf(String(rowValue || '')) !== -1;
+                table.draw(false);
+                $('#shipments-pagination').html(paginationHtml || '');
+                adjustShipmentsTableLayout();
             }
 
-            function matchesAnySelectedValues(selectedValues, rowValuesString) {
-                if (!selectedValues || selectedValues.length === 0) {
-                    return true;
-                }
+            function loadShipments(page) {
+                var params = currentFilterParams(page);
+                var token = ++requestToken;
 
-                var rowValues = rowValuesString.split(',').map(function(value) {
-                    return value.trim();
-                }).filter(Boolean);
+                $.ajax({
+                    url: shipmentsIndexUrl,
+                    method: 'GET',
+                    data: params,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).done(function (response) {
+                    if (token !== requestToken) {
+                        return;
+                    }
 
-                return selectedValues.some(function(selectedValue) {
-                    return rowValues.indexOf(selectedValue) !== -1;
+                    replaceShipmentRows(response.html, response.pagination);
                 });
             }
 
-            function matchesContains(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
-                }
-
-                return String(rowValue || '').toLowerCase().indexOf(filterValue) !== -1;
+            function resetShipmentFilterFields() {
+                $('#col-Shipment-no input, #col-Service-reference-number input, #col-PO-number input, #col-Consignee input, #col-Port-of-destination input, #col-Creation-date input').val('');
+                $('.searchable-filter-multiselect').each(function () {
+                    var $select = $(this);
+                    $select.find('option').prop('selected', false);
+                    $select.val([]);
+                    $select.multiselect('clearSelection');
+                    $select.closest('.multiselect-native-select').find('.multiselect-search').val('');
+                    $select.closest('.multiselect-native-select').find('li.multiselect-filter-hidden')
+                        .removeClass('multiselect-filter-hidden')
+                        .show();
+                });
             }
 
-            $('#col-Customer select, #col-Vessel select, #col-Shipment-no input, #col-Service-reference-number input, #col-PO-number input, #col-Departure-hub select, #col-Consignee input, #col-Port-of-destination input, #col-Account-manager select, #col-Created-by select, #col-Office select, #col-Creation-date input, #col-Service select, #col-Status select').on('change keyup', function() {
-                table.draw();
+            $('#col-Shipment-no input, #col-Service-reference-number input, #col-PO-number input, #col-Consignee input, #col-Port-of-destination input').on('input keyup', function (e) {
+                if (e.type === 'keyup' && e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(searchTimer);
+                    loadShipments(1);
+                    return;
+                }
+
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function () {
+                    loadShipments(1);
+                }, 200);
             });
 
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                if (settings.nTable.id !== 'offices-table') {
-                    return true;
-                }
-
-                var row = table.row(dataIndex).node();
-                if (!row) {
-                    return true;
-                }
-
-                var $row = $(row);
-
-                if (!matchesAnySelectedValues($('#col-Customer select').val() || [], rowData($row, 'customers'))) {
-                    return false;
-                }
-
-                if (!matchesAnySelectedValues($('#col-Vessel select').val() || [], rowData($row, 'vessels'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-Shipment-no input'), rowData($row, 'shipment-number'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-Service-reference-number input'), rowData($row, 'service-reference'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-PO-number input'), rowData($row, 'po-numbers'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Departure-hub select').val() || [], rowData($row, 'departure-port-code'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-Consignee input'), rowData($row, 'consignee'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#col-Port-of-destination input'), rowData($row, 'destination'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Account-manager select').val() || [], rowData($row, 'account-manager'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Created-by select').val() || [], rowData($row, 'created-by'))) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Office select').val() || [], rowData($row, 'office'))) {
-                    return false;
-                }
-
-                var creationDate = $('#col-Creation-date input').val();
-                if (creationDate && rowData($row, 'creation-date') !== creationDate) {
-                    return false;
-                }
-
-                if (!matchesSelectedValues($('#col-Service select').val() || [], rowData($row, 'service'))) {
-                    return false;
-                }
-
-                var selectedStatuses = $('#col-Status select').val() || [];
-                if (!matchesSelectedValues(selectedStatuses, rowData($row, 'status'))) {
-                    return false;
-                }
-
-                return true;
+            $('#col-Creation-date input').on('change', function () {
+                loadShipments(1);
             });
 
-            $('.clear-filters').on('click', function(e) {
+            $('#shipments-pagination').on('click', 'a', function (e) {
+                var href = $(this).attr('href');
+                if (!href || href === '#') {
+                    return;
+                }
+
                 e.preventDefault();
-                clearSearchableFilterMultiselect('.searchable-filter-multiselect');
-                $('.filter-input:not(select)').val('').trigger('keyup');
-                table.columns().search('').draw();
+                var page = new URL(href, window.location.origin).searchParams.get('page') || 1;
+                loadShipments(page);
             });
+
+            $(document).on('click', '.clear-filters', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                clearTimeout(searchTimer);
+                suppressFilterLoad = true;
+                resetShipmentFilterFields();
+                suppressFilterLoad = false;
+                loadShipments(1);
+                return false;
+            });
+
+            $(document).on('click', '.shipments-filters-fields .multiselect-reset a', function () {
+                if (!shouldLoadFilters()) {
+                    return;
+                }
+
+                setTimeout(function () {
+                    loadShipments(1);
+                }, 0);
+            });
+
+            setTimeout(function () {
+                filtersReady = true;
+            }, 200);
         });
     </script>
 @endsection

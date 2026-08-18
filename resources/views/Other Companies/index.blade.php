@@ -477,60 +477,12 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        @forelse($companies as $company)
-                                                        @php
-                                                            $addressSearch = trim(implode(' ', array_filter([
-                                                                $company->street_address,
-                                                                $company->office_street_address,
-                                                                $company->district_state,
-                                                                $company->zip_code,
-                                                            ])));
-                                                            $countryName = $company->country->name ?? '';
-                                                        @endphp
-                                                        <tr
-                                                            data-company-name="{{ $company->company_name }}"
-                                                            data-code="{{ $company->code }}"
-                                                            data-address="{{ $addressSearch }}"
-                                                            data-city="{{ $company->city }}"
-                                                            data-country="{{ $countryName }}"
-                                                            data-is-inactive="0"
-                                                        >
-                                                            <td><a href="{{ route('other-companies.edit', $company->id) }}" class="company-link">{{ $company->company_name }}</a></td>
-                                                            <td>{{ $company->code }}</td>
-                                                            <td>{{ $company->company_type }}</td>
-                                                            <td>{{ Str::limit($company->street_address, 25) }}</td>
-                                                            <td>{{ $company->city }}</td>
-                                                            <td>
-                                                                @if($company->country)
-                                                                    @if($company->country->flag_url)
-                                                                        <img src="{{ $company->country->flag_url }}" class="country-flag" alt="">
-                                                                    @endif
-                                                                    {{ $countryName }}
-                                                                @endif
-                                                            </td>
-                                                            <td>{{ $company->phone_number }}</td>
-                                                            <td>
-                                                                @if($company->email)
-                                                                    <a href="mailto:{{ $company->email }}" class="company-link">{{ Str::limit($company->email, 28) }}</a>
-                                                                @endif
-                                                            </td>
-                                                            <td><span class="ti-check" style="color: green;"></span></td>
-                                                            <td>
-                                                                <div class="action-icons">
-                                                                    <a href="{{ route('other-companies.edit', $company->id) }}"><i class="ti-pencil"></i></a>
-                                                                    <a href="javascript:void(0)" class="delete-other-company" data-id="{{ $company->id }}" data-name="{{ $company->company_name }}" title="Delete company">
-                                                                        <i class="ti-trash"></i>
-                                                                    </a>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                        @empty
-                                                        <tr>
-                                                            <td colspan="10" style="text-align:center; padding: 30px; color: #999;">No companies found. <a href="{{ route('other-companies.create') }}">Add one</a>.</td>
-                                                        </tr>
-                                                        @endforelse
+                                                        @include('Other Companies.partials.rows')
                                                     </tbody>
                                                 </table>
+                                            </div>
+                                            <div id="other-companies-pagination" class="mt-3 px-3 pb-2">
+                                                {{ $companies->links() }}
                                             </div>
                                         </div>
     @include('layouts.partials.pcoded-shell-end')
@@ -574,6 +526,7 @@
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
+    @include('partials.searchable-filter-multiselect-script')
 
     <script>
         $(document).ready(function() {
@@ -584,24 +537,18 @@
             });
 
             var table = $('#other-companies-table').DataTable({
-                "dom": 'ft<"d-flex flex-wrap justify-content-between align-items-center"ip>',
+                "dom": 'rt',
+                "paging": false,
+                "info": false,
                 "lengthChange": false,
-                "pageLength": 25,
                 "responsive": false,
-                "searching": true,
+                "searching": false,
                 "ordering": true,
                 "autoWidth": false,
                 "scrollX": true,
                 "columnDefs": [
                     { "orderable": false, "targets": [9] }
-                ],
-                "language": {
-                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                    "paginate": {
-                        "previous": "<",
-                        "next": ">"
-                    }
-                }
+                ]
             });
 
             $('#btn-other-companies-filters-toggle').on('click', function () {
@@ -622,79 +569,33 @@
                 table.columns.adjust();
             }, 100);
 
-            function rowData($row, key) {
-                return String($row.attr('data-' + key) || '');
-            }
-
-            function getFilterText(selector) {
-                return String($(selector).val() || '').toLowerCase().trim();
-            }
-
-            function matchesContains(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
+            window.otherCompaniesListFilters = bindAjaxListFilters({
+                tableSelector: '#other-companies-table',
+                paginationSelector: '#other-companies-pagination',
+                indexUrl: @json(route('other-companies.index')),
+                existingTable: table,
+                clearSelector: '#clear-company-filters',
+                getParams: function (page) {
+                    var country = $.trim($('#filter-company-country').val() || '');
+                    return {
+                        name: $.trim($('#filter-company-name').val() || ''),
+                        code: $.trim($('#filter-company-code').val() || ''),
+                        address: $.trim($('#filter-company-address').val() || ''),
+                        city: $.trim($('#filter-company-city').val() || ''),
+                        country: country ? [country] : [],
+                        page: page || 1
+                    };
+                },
+                textSelectors: '#filter-company-name, #filter-company-code, #filter-company-address, #filter-company-city',
+                changeSelectors: '#filter-company-country',
+                resetFields: function () {
+                    $('#filter-company-name, #filter-company-code, #filter-company-address, #filter-company-city').val('');
+                    $('#filter-company-country').val(null).trigger('change');
+                    $('#filter-hide-inactive').prop('checked', true);
+                },
+                afterDraw: function () {
+                    table.columns.adjust();
                 }
-
-                return String(rowValue || '').toLowerCase().indexOf(filterValue) !== -1;
-            }
-
-            function matchesExact(filterValue, rowValue) {
-                if (!filterValue) {
-                    return true;
-                }
-
-                return String(rowValue || '') === filterValue;
-            }
-
-            $('#filter-company-name, #filter-company-code, #filter-company-address, #filter-company-city, #filter-company-country, #filter-hide-inactive').on('change keyup', function() {
-                table.draw();
-            });
-
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                if (settings.nTable.id !== 'other-companies-table') {
-                    return true;
-                }
-
-                var row = table.row(dataIndex).node();
-                if (!row) {
-                    return true;
-                }
-
-                var $row = $(row);
-
-                if ($('#filter-hide-inactive').is(':checked') && rowData($row, 'is-inactive') === '1') {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-company-name'), rowData($row, 'company-name'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-company-code'), rowData($row, 'code'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-company-address'), rowData($row, 'address'))) {
-                    return false;
-                }
-
-                if (!matchesContains(getFilterText('#filter-company-city'), rowData($row, 'city'))) {
-                    return false;
-                }
-
-                if (!matchesExact($('#filter-company-country').val(), rowData($row, 'country'))) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            $('#clear-company-filters').on('click', function(e) {
-                e.preventDefault();
-                $('#filter-company-name, #filter-company-code, #filter-company-address, #filter-company-city').val('');
-                $('#filter-company-country').val(null).trigger('change');
-                $('#filter-hide-inactive').prop('checked', true);
-                table.search('').columns().search('').draw();
             });
 
             $(document).on('click', '.delete-other-company', function() {
@@ -733,9 +634,9 @@
                                     showConfirmButton: false
                                 });
 
-                                $row.fadeOut(400, function() {
-                                    table.row($row).remove().draw(false);
-                                });
+                                if (window.otherCompaniesListFilters) {
+                                    window.otherCompaniesListFilters.load(1);
+                                }
                             } else {
                                 swal('Error', response.message || 'Error deleting company.', 'error');
                             }

@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Storage;
 class PrivateDisk
 {
     public const NAME = 'private';
+    private const PUBLIC_FALLBACK_DIRECTORIES = [
+        'customer_logos/',
+    ];
 
     public static function disk(): Filesystem
     {
@@ -29,10 +32,11 @@ class PrivateDisk
             return $private->path($relativePath);
         }
 
-        // Temporary fallback for files not yet migrated off the public disk.
-        $public = Storage::disk('public');
-        if ($public->exists($relativePath)) {
-            return $public->path($relativePath);
+        if (self::allowsPublicFallback($relativePath)) {
+            $public = Storage::disk('public');
+            if ($public->exists($relativePath)) {
+                return $public->path($relativePath);
+            }
         }
 
         return $private->path($relativePath);
@@ -49,9 +53,11 @@ class PrivateDisk
             $private->delete($relativePath);
         }
 
-        $public = Storage::disk('public');
-        if ($public->exists($relativePath)) {
-            $public->delete($relativePath);
+        if (self::allowsPublicFallback($relativePath)) {
+            $public = Storage::disk('public');
+            if ($public->exists($relativePath)) {
+                $public->delete($relativePath);
+            }
         }
     }
 
@@ -61,8 +67,12 @@ class PrivateDisk
             return false;
         }
 
-        return self::disk()->exists($relativePath)
-            || Storage::disk('public')->exists($relativePath);
+        if (self::disk()->exists($relativePath)) {
+            return true;
+        }
+
+        return self::allowsPublicFallback($relativePath)
+            && Storage::disk('public')->exists($relativePath);
     }
 
     public static function sanitizeFilename(?string $filename, string $fallback = 'download'): string
@@ -113,5 +123,16 @@ class PrivateDisk
             'Content-Disposition' => 'inline; filename="' . $safeFilename . '"',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    private static function allowsPublicFallback(string $relativePath): bool
+    {
+        foreach (self::PUBLIC_FALLBACK_DIRECTORIES as $directory) {
+            if (str_starts_with($relativePath, $directory)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
