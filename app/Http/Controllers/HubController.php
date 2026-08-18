@@ -279,15 +279,7 @@ class HubController extends Controller
             $document = HubDocument::findOrFail($docId);
         }
 
-        $path = \App\Support\PrivateDisk::path($document->file_path);
-
-        if (! is_file($path)) {
-            abort(404);
-        }
-
-        return response()->file($path, [
-            'Content-Disposition' => 'inline; filename="' . $document->file_name . '"',
-        ]);
+        return \App\Support\PrivateDisk::downloadResponse((string) $document->file_path, (string) $document->file_name);
     }
 
     public function deleteDocument(Request $request, $docId)

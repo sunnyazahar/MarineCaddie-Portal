@@ -365,84 +365,134 @@
             </div>
 
             <div class="login-card">
-                <div class="otp-badge">
-                    <i class="icofont icofont-ui-password"></i>
-                </div>
-                <h1 class="otp-title">Verify your identity</h1>
-                <p class="otp-subtitle">
-                    Enter the 6-digit code we sent to<br>
-                    <strong>{{ $maskedEmail }}</strong>
-                </p>
-
-                @if (! empty($localOtp))
-                    <div class="alert {{ ! empty($otpMailFailed) ? 'alert-warning' : 'alert-info' }} alert-otp mb-0">
-                        @if (! empty($otpMailFailed))
-                            Email cannot be delivered from this local machine. Use the code below to continue.
-                        @else
-                            Local development mode.
-                        @endif
-                        Your code is <strong style="letter-spacing: 2px; font-size: 15px;">{{ $localOtp }}</strong>
+                @if (($blockedSecondsLeft ?? 0) > 0)
+                    {{-- BLOCKED STATE --}}
+                    <div class="otp-badge" style="background:linear-gradient(145deg,rgba(239,68,68,.18),rgba(220,38,38,.12));border-color:rgba(239,68,68,.35);">
+                        <i class="icofont icofont-ban" style="color:#dc2626;"></i>
                     </div>
-                @elseif (! empty($otpMailFailed))
-                    <div class="alert alert-danger alert-otp mb-0">
-                        {{ ! empty($otpMailError) ? $otpMailError : 'We could not send the verification email. Please try Resend code, or ask an administrator to check the server mail settings.' }}
+                    <h1 class="otp-title" style="color:#dc2626;">Account temporarily locked</h1>
+                    <p class="otp-subtitle">
+                        Too many incorrect OTP attempts.<br>
+                        Locked for <strong id="block-countdown">{{ ceil($blockedSecondsLeft / 60) }} minute(s)</strong>.
+                    </p>
+                    <div style="background:#fef2f2;border-left:4px solid #dc2626;color:#991b1b;border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.6;margin-bottom:16px;">
+                        Your account has been locked for <strong>{{ ceil($blockedSecondsLeft / 60) }} minute(s)</strong>
+                        after <strong>5 consecutive failed OTP attempts</strong>.<br><br>
+                        If this was not you, please contact your administrator immediately.
                     </div>
-                @endif
-
-                @if (session('status'))
-                    <div class="alert alert-success alert-otp mb-0">{{ session('status') }}</div>
-                @endif
-
-                <form method="POST" action="{{ route('otp.verify') }}" id="otp-form">
-                    @csrf
-                    <input type="hidden" name="otp" id="otp-value" value="{{ old('otp') }}">
-
-                    <div class="otp-inputs" id="otp-inputs">
-                        @for ($i = 0; $i < 6; $i++)
-                            <input
-                                type="text"
-                                inputmode="numeric"
-                                pattern="[0-9]*"
-                                maxlength="1"
-                                class="otp-digit @error('otp') is-invalid @enderror"
-                                data-index="{{ $i }}"
-                                autocomplete="one-time-code"
-                                aria-label="Digit {{ $i + 1 }}"
-                            >
-                        @endfor
-                    </div>
-
-                    @error('otp')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-
-                    <button type="submit" class="btn-login" id="verify-btn">Verify OTP</button>
-                </form>
-
-                <div class="form-footer">
-                    <span class="resend-text" id="resend-label">
-                        @if ($resendAvailableIn > 0)
-                            Resend code in <span id="countdown">{{ $resendAvailableIn }}</span>s
-                        @else
-                            Didn’t receive the code?
-                        @endif
-                    </span>
-
-                    <form method="POST" action="{{ route('otp.resend') }}" id="resend-form" style="display:inline;">
+                    <form method="POST" action="{{ route('logout') }}" style="margin-top:6px;">
                         @csrf
                         <button
                             type="submit"
-                            class="forgot-link"
-                            id="resend-btn"
-                            @if ($resendAvailableIn > 0) disabled @endif
-                        >Resend OTP</button>
+                            style="display:block;width:100%;text-align:center;font-size:13px;color:#64748b;text-decoration:none;background:none;border:none;padding:0;cursor:pointer;">
+                            &larr; Back to login
+                        </button>
                     </form>
-                </div>
+                    <div class="secure-note" style="margin-top:18px;">
+                        <i class="icofont icofont-lock"></i>
+                        Account will unlock automatically when the timer expires.
+                    </div>
+                    <script>
+                    (function() {
+                        var secs = {{ (int) $blockedSecondsLeft }};
+                        var el   = document.getElementById('block-countdown');
+                        if (!el) return;
+                        var t = setInterval(function() {
+                            secs--;
+                            if (secs <= 0) { clearInterval(t); location.reload(); return; }
+                            var m = Math.ceil(secs / 60);
+                            el.textContent = m + ' minute(s) (' + secs + 's)';
+                        }, 1000);
+                    })();
+                    </script>
+                @else
+                    {{-- NORMAL OTP STATE --}}
+                    <div class="otp-badge">
+                        <i class="icofont icofont-ui-password"></i>
+                    </div>
+                    <h1 class="otp-title">Verify your identity</h1>
+                    <p class="otp-subtitle">
+                        Enter the 6-digit code we sent to<br>
+                        <strong>{{ $maskedEmail }}</strong>
+                    </p>
 
-                <div class="secure-note">
-                    <i class="icofont icofont-lock"></i>
-                    Secured login · Code expires in 10 minutes
-                </div>
+                    @if (! empty($localOtp))
+                        <div class="alert {{ ! empty($otpMailFailed) ? 'alert-warning' : 'alert-info' }} alert-otp mb-0">
+                            @if (! empty($otpMailFailed))
+                                Email cannot be delivered from this local machine. Use the code below to continue.
+                            @else
+                                Local development mode.
+                            @endif
+                            Your code is <strong style="letter-spacing: 2px; font-size: 15px;">{{ $localOtp }}</strong>
+                        </div>
+                    @elseif (! empty($otpMailFailed))
+                        <div class="alert alert-danger alert-otp mb-0">
+                            {{ ! empty($otpMailError) ? $otpMailError : 'We could not send the verification email. Please try Resend code, or ask an administrator to check the server mail settings.' }}
+                        </div>
+                    @endif
+
+                    @if (session('status'))
+                        <div class="alert alert-success alert-otp mb-0">{{ session('status') }}</div>
+                    @endif
+
+                    @if (($attemptsLeft ?? 5) < 5)
+                        <div style="background:#fff7ed;border-left:4px solid #f59e0b;color:#92400e;border-radius:8px;padding:10px 14px;font-size:12.5px;margin-bottom:8px;">
+                            <i class="feather icon-alert-triangle" style="margin-right:5px;"></i>
+                            Warning: <strong>{{ $attemptsLeft }} attempt(s) remaining</strong> before your account is locked.
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('otp.verify') }}" id="otp-form">
+                        @csrf
+                        <input type="hidden" name="otp" id="otp-value" value="{{ old('otp') }}">
+
+                        <div class="otp-inputs" id="otp-inputs">
+                            @for ($i = 0; $i < 6; $i++)
+                                <input
+                                    type="text"
+                                    inputmode="numeric"
+                                    pattern="[0-9]*"
+                                    maxlength="1"
+                                    class="otp-digit @error('otp') is-invalid @enderror"
+                                    data-index="{{ $i }}"
+                                    autocomplete="one-time-code"
+                                    aria-label="Digit {{ $i + 1 }}"
+                                >
+                            @endfor
+                        </div>
+
+                        @error('otp')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
+
+                        <button type="submit" class="btn-login" id="verify-btn">Verify OTP</button>
+                    </form>
+
+                    <div class="form-footer">
+                        <span class="resend-text" id="resend-label">
+                            @if ($resendAvailableIn > 0)
+                                Resend code in <span id="countdown">{{ $resendAvailableIn }}</span>s
+                            @else
+                                Didn’t receive the code?
+                            @endif
+                        </span>
+
+                        <form method="POST" action="{{ route('otp.resend') }}" id="resend-form" style="display:inline;">
+                            @csrf
+                            <button
+                                type="submit"
+                                class="forgot-link"
+                                id="resend-btn"
+                                @if ($resendAvailableIn > 0) disabled @endif
+                            >Resend OTP</button>
+                        </form>
+                    </div>
+
+                    <div class="secure-note">
+                        <i class="icofont icofont-lock"></i>
+                        Secured login · Code expires in 10 minutes
+                    </div>
+                @endif
             </div>
 
             <div class="page-footer">

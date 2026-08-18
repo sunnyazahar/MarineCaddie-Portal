@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 class MailAttachmentStagingService
 {
     private const DISK = 'local';
+    private const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'webp'];
 
     /**
      * @return array<int, array{path: string, filename: string, mime: string}>
@@ -19,6 +20,11 @@ class MailAttachmentStagingService
 
         foreach ($request->file('files', []) as $file) {
             if (! $file || ! $file->isValid()) {
+                continue;
+            }
+
+            $extension = strtolower((string) $file->getClientOriginalExtension());
+            if (! in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
                 continue;
             }
 

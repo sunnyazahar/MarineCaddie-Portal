@@ -92,6 +92,23 @@ class UserController extends Controller
             ->with('success', 'User updated successfully.');
     }
 
+    public function unblock(User $user): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $user->forceFill([
+            'otp_failed_attempts' => 0,
+            'otp_blocked_until' => null,
+            'login_otp_hash' => null,
+            'login_otp_expires_at' => null,
+            'login_otp_sent_at' => null,
+        ])->save();
+
+        return redirect()
+            ->route('users.index')
+            ->with('success', 'User OTP lock cleared successfully.');
+    }
+
     private function ensureAdmin(): void
     {
         abort_unless(auth()->user()?->isAdmin(), 403);

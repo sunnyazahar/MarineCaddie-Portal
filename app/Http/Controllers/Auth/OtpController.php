@@ -18,6 +18,10 @@ class OtpController extends Controller
     private const OTP_LENGTH = 6;
     private const OTP_TTL_MINUTES = 10;
     private const RESEND_COOLDOWN_SECONDS = 60;
+    private const MAX_OTP_ATTEMPTS = 5;
+    private const BLOCK_MINUTES = 30;
+    private const VERIFY_RATE_LIMIT_ATTEMPTS = 10;
+    private const VERIFY_RATE_LIMIT_DECAY_SECONDS = 300;
 
     public function __construct()
     {
@@ -36,29 +40,26 @@ class OtpController extends Controller
             return redirect()->route('login');
         }
 
+        $blockedSecondsLeft = $this->blockedSecondsLeft($user);
+
         $needsNewOtp = blank($user->login_otp_hash)
             || blank($user->login_otp_expires_at)
             || now()->greaterThan($user->login_otp_expires_at);
 
-        if ($needsNewOtp) {
-            $this->issueOtp($request);
-            $user->refresh();
-        } elseif (
-            $this->shouldExposeLocalOtp()
-            && ! $request->session()->has('login_otp_local')
-        ) {
-            // Local/dev: re-issue so the on-screen debug code is available.
+        if ($needsNewOtp && ! $blockedSecondsLeft) {
             $this->issueOtp($request);
             $user->refresh();
         }
 
         return response()
             ->view('auth.otp', [
-                'maskedEmail' => $this->maskEmail((string) $user->email),
+                'maskedEmail'       => $this->maskEmail((string) $user->email),
                 'resendAvailableIn' => $this->resendAvailableIn($user),
-                'localOtp' => $this->localDebugOtp($request),
-                'otpMailFailed' => (bool) $request->session()->get('login_otp_mail_failed'),
-                'otpMailError' => $request->session()->get('login_otp_mail_error'),
+                'localOtp'          => $this->localDebugOtp($request),
+                'otpMailFailed'     => (bool) $request->session()->get('login_otp_mail_failed'),
+                'otpMailError'      => $request->session()->get('login_otp_mail_error'),
+                'blockedSecondsLeft'=> $blockedSecondsLeft,
+                'attemptsLeft'      => max(0, self::MAX_OTP_ATTEMPTS - (int) $user->otp_failed_attempts),
             ])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache');
@@ -80,25 +81,77 @@ class OtpController extends Controller
             return redirect()->route('login');
         }
 
-        $hash = $user->login_otp_hash;
+        $verifyRateKey = $this->verifyRateLimitKey($request);
+        if (RateLimiter::tooManyAttempts($verifyRateKey, self::VERIFY_RATE_LIMIT_ATTEMPTS)) {
+            $seconds = RateLimiter::availableIn($verifyRateKey);
+
+            throw ValidationException::withMessages([
+                'otp' => "Too many verification attempts. Please wait {$seconds} seconds before trying again.",
+            ]);
+        }
+
+        // Check if user is currently blocked.
+        $blockedSecondsLeft = $this->blockedSecondsLeft($user);
+        if ($blockedSecondsLeft > 0) {
+            RateLimiter::hit($verifyRateKey, self::VERIFY_RATE_LIMIT_DECAY_SECONDS);
+            $minutes = ceil($blockedSecondsLeft / 60);
+            throw ValidationException::withMessages([
+                'otp' => "Your account is temporarily locked due to too many failed attempts. Please try again in {$minutes} minute(s).",
+            ]);
+        }
+
+        $storedOtpHash = $user->login_otp_hash;
         $expiresAt = $user->login_otp_expires_at;
 
-        if (! $hash || ! $expiresAt || now()->greaterThan($expiresAt)) {
+        if (! $storedOtpHash || ! $expiresAt || now()->greaterThan($expiresAt)) {
+            RateLimiter::hit($verifyRateKey, self::VERIFY_RATE_LIMIT_DECAY_SECONDS);
             throw ValidationException::withMessages([
                 'otp' => 'This code has expired. Please request a new one.',
             ]);
         }
 
-        if (! hash_equals((string) $hash, hash('sha256', $request->input('otp')))) {
+        // Wrong OTP entered.
+        if (! hash_equals((string) $storedOtpHash, hash('sha256', (string) $request->input('otp')))) {
+            RateLimiter::hit($verifyRateKey, self::VERIFY_RATE_LIMIT_DECAY_SECONDS);
+            $attempts = (int) $user->otp_failed_attempts + 1;
+
+            if ($attempts >= self::MAX_OTP_ATTEMPTS) {
+                // Block the user.
+                $blockedUntil = now()->addMinutes(self::BLOCK_MINUTES);
+                $user->forceFill([
+                    'otp_failed_attempts' => $attempts,
+                    'otp_blocked_until'   => $blockedUntil,
+                    'login_otp_hash'      => null,
+                    'login_otp_expires_at'=> null,
+                    'login_otp_sent_at'   => null,
+                ])->saveQuietly();
+
+                Log::warning('OTP user blocked after too many failed attempts', [
+                    'user_id' => $user->id,
+                    'email'   => $user->email,
+                    'blocked_until' => $blockedUntil,
+                ]);
+
+                throw ValidationException::withMessages([
+                    'otp' => 'Too many incorrect attempts. Your account has been temporarily locked for ' . self::BLOCK_MINUTES . ' minutes.',
+                ]);
+            }
+
+            $remaining = self::MAX_OTP_ATTEMPTS - $attempts;
+            $user->forceFill(['otp_failed_attempts' => $attempts])->saveQuietly();
+
             throw ValidationException::withMessages([
-                'otp' => 'Invalid verification code. Please try again.',
+                'otp' => "Invalid verification code. You have {$remaining} attempt(s) remaining.",
             ]);
         }
 
+        // Correct OTP — clear all OTP state and reset attempt counter.
         $user->forceFill([
-            'login_otp_hash' => null,
+            'login_otp_hash'       => null,
             'login_otp_expires_at' => null,
-            'login_otp_sent_at' => null,
+            'login_otp_sent_at'    => null,
+            'otp_failed_attempts'  => 0,
+            'otp_blocked_until'    => null,
         ])->saveQuietly();
 
         $request->session()->forget([
@@ -109,6 +162,7 @@ class OtpController extends Controller
             'login_otp_expires_at',
             'login_otp_last_sent_at',
         ]);
+        RateLimiter::clear($verifyRateKey);
         $request->session()->put('otp_verified', true);
         $this->terminateOtherSessions($request);
         $loginActivityService->record($request, $user);
@@ -118,6 +172,18 @@ class OtpController extends Controller
 
     public function resend(Request $request)
     {
+        $user = $request->user();
+
+        if ($user) {
+            $blockedSecondsLeft = $this->blockedSecondsLeft($user);
+            if ($blockedSecondsLeft > 0) {
+                $minutes = ceil($blockedSecondsLeft / 60);
+                throw ValidationException::withMessages([
+                    'otp' => "Your account is temporarily locked. Please try again in {$minutes} minute(s).",
+                ]);
+            }
+        }
+
         $key = $this->resendRateLimitKey($request);
 
         if (RateLimiter::tooManyAttempts($key, 1)) {
@@ -145,7 +211,7 @@ class OtpController extends Controller
 
         $sentAt = now();
 
-        // Save / update OTP against the logged-in user record.
+        // Save a one-way hash of the OTP against the logged-in user record.
         $user->forceFill([
             'login_otp_hash' => hash('sha256', $otp),
             'login_otp_expires_at' => $sentAt->copy()->addMinutes(self::OTP_TTL_MINUTES),
@@ -244,8 +310,7 @@ class OtpController extends Controller
             return false;
         }
 
-        return app()->environment(['local', 'localhost', 'development', 'testing'])
-            || (bool) config('app.debug');
+        return app()->environment(['local', 'localhost', 'development', 'testing']);
     }
 
     private function maskEmail(string $email): string
@@ -272,9 +337,25 @@ class OtpController extends Controller
         return max(0, self::RESEND_COOLDOWN_SECONDS - $elapsed);
     }
 
+    private function blockedSecondsLeft($user): int
+    {
+        if (! $user || ! $user->otp_blocked_until) {
+            return 0;
+        }
+
+        $secondsLeft = now()->diffInSeconds($user->otp_blocked_until, false);
+
+        return max(0, (int) $secondsLeft);
+    }
+
     private function resendRateLimitKey(Request $request): string
     {
         return 'otp-resend:' . ($request->user()?->id ?? $request->ip());
+    }
+
+    private function verifyRateLimitKey(Request $request): string
+    {
+        return 'otp-verify:' . ($request->user()?->id ?? 'guest') . ':' . $request->ip();
     }
 
     private function terminateOtherSessions(Request $request): void

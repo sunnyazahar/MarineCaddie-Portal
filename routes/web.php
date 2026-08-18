@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/login/csrf', [LoginController::class, 'csrfToken'])->name('login.csrf');
 
-Auth::routes();
+Auth::routes([
+    'register' => false,
+]);
 
 Route::middleware('auth')->group(function () {
     Route::get('/otp', [App\Http\Controllers\Auth\OtpController::class, 'show'])->name('otp.show');
@@ -23,6 +25,7 @@ Route::middleware('admin')->group(function () {
     Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
     Route::post('/users', [App\Http\Controllers\UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
+    Route::post('/users/{user}/unblock', [App\Http\Controllers\UserController::class, 'unblock'])->name('users.unblock');
 });
 Route::post('/customers', [App\Http\Controllers\CustomerController::class, 'store'])->name('customers.store');
 

@@ -606,6 +606,10 @@ class CrrController extends Controller
     {
         $crr = Crr::findOrFail($id);
 
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
+        ]);
+
         if (!$request->hasFile('file')) {
             return response()->json(['error' => 'No file provided'], 422);
         }
@@ -646,19 +650,8 @@ class CrrController extends Controller
     public function showDocument($crrId, $docId)
     {
         $doc = CrrDocument::where('crr_id', $crrId)->findOrFail($docId);
-        $path = \App\Support\PrivateDisk::path((string) $doc->file_path);
 
-        if (! is_file($path) || ! is_readable($path)) {
-            abort(404, 'Document file not found.');
-        }
-
-        $mime = mime_content_type($path) ?: 'application/octet-stream';
-        $filename = str_replace(['"', "\r", "\n"], '', (string) $doc->file_name) ?: basename($path);
-
-        return response()->file($path, [
-            'Content-Type' => $mime,
-            'Content-Disposition' => 'inline; filename="' . $filename . '"',
-        ]);
+        return \App\Support\PrivateDisk::downloadResponse((string) $doc->file_path, (string) $doc->file_name);
     }
 
     public function updateDocumentType(Request $request, $docId, CrrChangeLogService $changeLogService)

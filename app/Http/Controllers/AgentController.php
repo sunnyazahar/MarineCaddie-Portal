@@ -149,6 +149,10 @@ class AgentController extends Controller
                 
                 // Exceptions array
                 'billing_exceptions'  => 'nullable|array',
+                'sop_documents' => 'nullable|array',
+                'sop_documents.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
+                'pricing_documents' => 'nullable|array',
+                'pricing_documents.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $e->redirectTo(route('agents.edit', $id) . '#' . $activeTab);
@@ -305,17 +309,9 @@ class AgentController extends Controller
     public function showDocument($agentId, $docId)
     {
         $document = \App\Models\AgentDocument::where('agent_id', $agentId)->findOrFail($docId);
-        $path = \App\Support\PrivateDisk::path($document->file_path);
-
-        if (! is_file($path)) {
-            abort(404);
-        }
-
         $filename = $document->filename ?: basename($document->file_path);
 
-        return response()->file($path, [
-            'Content-Disposition' => 'inline; filename="' . $filename . '"',
-        ]);
+        return \App\Support\PrivateDisk::downloadResponse((string) $document->file_path, (string) $filename);
     }
 
     public function storeContact(Request $request, $agent_id)

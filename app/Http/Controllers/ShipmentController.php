@@ -1850,15 +1850,8 @@ class ShipmentController extends Controller
     public function showDocument($shipmentId, $docId)
     {
         $document = ShipmentDocument::where('shipment_id', $shipmentId)->findOrFail($docId);
-        $path = \App\Support\PrivateDisk::path($document->file_path);
 
-        if (! is_file($path)) {
-            abort(404);
-        }
-
-        return response()->file($path, [
-            'Content-Disposition' => 'inline; filename="' . $document->file_name . '"',
-        ]);
+        return \App\Support\PrivateDisk::downloadResponse((string) $document->file_path, (string) $document->file_name);
     }
 
     public function updateDocumentType(Request $request, $docId, ShipmentChangeLogService $changeLogService)
@@ -2445,6 +2438,11 @@ class ShipmentController extends Controller
 
         foreach ($request->file('files', []) as $file) {
             if (! $file || ! $file->isValid()) {
+                continue;
+            }
+
+            $extension = strtolower((string) $file->getClientOriginalExtension());
+            if (! in_array($extension, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'webp'], true)) {
                 continue;
             }
 

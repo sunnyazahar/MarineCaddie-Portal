@@ -299,6 +299,22 @@
             font-weight: 500;
             border: 1px solid #10b981;
         }
+        .badge-blocked {
+            background: #fef2f2;
+            color: #b91c1c;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid #fca5a5;
+            margin-left: 6px;
+        }
+        .btn-unblock-user {
+            font-size: 11px;
+            padding: 2px 8px;
+            line-height: 1.4;
+            margin-right: 8px;
+        }
         .flag-icon {
             margin-right: 8px;
             vertical-align: middle;
@@ -507,6 +523,7 @@
                                                    $nameParts = preg_split('/\s+/', trim($user->name), 2);
                                                    $firstName = $nameParts[0] ?? '';
                                                    $lastName = $nameParts[1] ?? '';
+                                                   $isOtpBlocked = filled($user->otp_blocked_until) && now()->lessThan($user->otp_blocked_until);
                                                @endphp
                                                <tr>
                                                    <td>{{ $firstName }}</td>
@@ -519,8 +536,21 @@
                                                        <span class="badge {{ $user->is_active ? 'badge-success' : 'badge-danger' }}">
                                                            {{ $user->is_active ? 'Active' : 'Inactive' }}
                                                        </span>
+                                                       @if ($isOtpBlocked)
+                                                           <span class="badge-blocked">OTP Blocked</span>
+                                                       @endif
                                                    </td>
                                                    <td>
+                                                       @if ($isOtpBlocked)
+                                                           <form method="POST" action="{{ route('users.unblock', $user) }}" class="d-inline">
+                                                               @csrf
+                                                               <button type="submit"
+                                                                   class="btn btn-sm btn-outline-success btn-unblock-user"
+                                                                   onclick="return confirm('Unblock this user and clear the OTP lock?')">
+                                                                   Unblock
+                                                               </button>
+                                                           </form>
+                                                       @endif
                                                        <button type="button"
                                                            class="btn btn-link p-0 action-icon edit-user-btn"
                                                            title="Edit user"

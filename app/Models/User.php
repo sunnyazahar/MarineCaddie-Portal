@@ -51,6 +51,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'login_otp_expires_at' => 'datetime',
             'login_otp_sent_at' => 'datetime',
+            'otp_failed_attempts' => 'integer',
+            'otp_blocked_until' => 'datetime',
         ];
     }
 

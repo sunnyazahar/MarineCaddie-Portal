@@ -95,6 +95,9 @@ class CustomerController extends Controller
             'invoicing_email' => 'required|email',
             'sales_manager' => 'required',
             'main_account_manager' => 'required',
+            'logo' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'sop_documents' => 'nullable|array',
+            'sop_documents.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
         ]);
 
         DB::beginTransaction();
@@ -260,6 +263,9 @@ class CustomerController extends Controller
             'invoicing_email' => 'required|email',
             'sales_manager' => 'required',
             'main_account_manager' => 'required',
+            'logo' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'sop_documents' => 'nullable|array',
+            'sop_documents.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
         ]);
 
         DB::beginTransaction();
@@ -597,6 +603,10 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
+        ]);
+
         if (!$request->hasFile('file')) {
             return response()->json(['error' => 'No file provided'], 422);
         }
@@ -631,15 +641,8 @@ class CustomerController extends Controller
     public function showDocument($customerId, $docId)
     {
         $doc = CustomerDocument::where('customer_id', $customerId)->findOrFail($docId);
-        $path = \App\Support\PrivateDisk::path($doc->file_path);
 
-        if (! is_file($path)) {
-            abort(404);
-        }
-
-        return response()->file($path, [
-            'Content-Disposition' => 'inline; filename="' . $doc->file_name . '"',
-        ]);
+        return \App\Support\PrivateDisk::downloadResponse((string) $doc->file_path, (string) $doc->file_name);
     }
 
     /**
@@ -653,13 +656,7 @@ class CustomerController extends Controller
             abort(404);
         }
 
-        $path = \App\Support\PrivateDisk::path($customer->logo);
-
-        if (! is_file($path)) {
-            abort(404);
-        }
-
-        return response()->file($path);
+        return \App\Support\PrivateDisk::imageResponse((string) $customer->logo, 'customer-logo');
     }
 
     /**

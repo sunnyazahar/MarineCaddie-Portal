@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 
 class PrivateDisk
@@ -62,5 +63,55 @@ class PrivateDisk
 
         return self::disk()->exists($relativePath)
             || Storage::disk('public')->exists($relativePath);
+    }
+
+    public static function sanitizeFilename(?string $filename, string $fallback = 'download'): string
+    {
+        $filename = trim((string) $filename);
+        $filename = basename(str_replace(["\0", "\r", "\n", '\\'], '', $filename));
+        $filename = preg_replace('/[^\w.\-]+/u', '_', $filename) ?? '';
+        $filename = trim($filename, '._');
+
+        return $filename !== '' ? $filename : $fallback;
+    }
+
+    public static function downloadResponse(string $relativePath, ?string $filename = null): Response
+    {
+        $path = self::path($relativePath);
+
+        if (! is_file($path) || ! is_readable($path)) {
+            abort(404);
+        }
+
+        $safeFilename = self::sanitizeFilename($filename, basename($path));
+        $mime = mime_content_type($path) ?: 'application/octet-stream';
+
+        return response()->download($path, $safeFilename, [
+            'Content-Type' => $mime,
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; sandbox",
+        ]);
+    }
+
+    public static function imageResponse(string $relativePath, ?string $filename = null): Response
+    {
+        $path = self::path($relativePath);
+
+        if (! is_file($path) || ! is_readable($path)) {
+            abort(404);
+        }
+
+        $mime = mime_content_type($path) ?: 'application/octet-stream';
+        if (! in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            abort(415, 'Unsupported image type.');
+        }
+
+        $safeFilename = self::sanitizeFilename($filename, basename($path));
+
+        return response()->file($path, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . $safeFilename . '"',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 }
