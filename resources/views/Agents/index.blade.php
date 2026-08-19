@@ -838,14 +838,13 @@
             }
 
             function replaceAgentRows(html, paginationHtml) {
-                $('#agents-table tbody').html(html);
-
                 if ($.fn.DataTable.isDataTable('#agents-table')) {
-                    table.rows().invalidate('dom').draw(false);
-                    table.columns.adjust();
-                } else {
-                    table = initAgentsTable();
+                    table.destroy();
                 }
+
+                $('#agents-table tbody').html(html);
+                table = initAgentsTable();
+                table.columns.adjust();
 
                 $('#agents-pagination').html(paginationHtml || '');
             }
