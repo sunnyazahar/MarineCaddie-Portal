@@ -354,7 +354,7 @@ class ShipmentController extends Controller
             'subject' => ['required', 'string', 'max:500'],
             'body' => ['nullable', 'string'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480'],
+            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
         ]);
 
         $mailDispatchService->dispatchAfterResponse(
@@ -452,7 +452,7 @@ class ShipmentController extends Controller
             'subject' => ['required', 'string', 'max:500'],
             'body' => ['nullable', 'string'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480'],
+            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
         ]);
 
         $mailDispatchService->dispatchAfterResponse(
@@ -534,7 +534,7 @@ class ShipmentController extends Controller
             'subject' => ['required', 'string', 'max:500'],
             'body' => ['nullable', 'string'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480'],
+            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
         ]);
 
         $mailDispatchService->dispatchAfterResponse(
@@ -1415,7 +1415,7 @@ class ShipmentController extends Controller
             'document_ids' => ['nullable'],
             'exclude_attachments' => ['nullable'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480'],
+            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
         ]);
 
         $mailDispatchService->dispatchAfterResponse(
@@ -1619,7 +1619,7 @@ class ShipmentController extends Controller
             'document_ids' => ['nullable'],
             'exclude_attachments' => ['nullable'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480'],
+            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
         ]);
 
         $mailDispatchService->dispatchAfterResponse(

@@ -203,7 +203,7 @@
     };
 
     $marineCaddieBillingAddress = 'MarineCaddie Shipping LLC, Unit No. 204 – 224, Al Safi Building, Tower 1, Deira, Dubai, United Arab Emirates, Phone +971 50 5643375, Email ops@marinecaddie.com';
-    $serviceDisplay = trim(($serviceLabel ?? '—') . (!empty($additionalServiceLabel) && $additionalServiceLabel !== '—' ? '<br>' . e($additionalServiceLabel) : ''));
+    $serviceDisplay = trim(e($serviceLabel ?? '—') . (!empty($additionalServiceLabel) && $additionalServiceLabel !== '—' ? '<br>' . e($additionalServiceLabel) : ''));
 @endphp
 
 {{-- Shipping Instructions (matches reference layout) --}}

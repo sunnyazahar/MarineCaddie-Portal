@@ -347,6 +347,10 @@ class AgentController extends Controller
 [ ] SweetAlert callback mein koi DataTables call toh nahi jo table destroy ke baad toot jaye?
 [ ] is_active filter ka default false hai?
 [ ] PrivateDisk use ho raha hai file delete ke liye?
+[ ] Agar koi import/model/helper remove kiya hai, file mein us symbol ke saare usages search kiye? (`Country::`, `new Country`, type-hints, static calls, etc.)
+[ ] Affected route/page localhost pe open karke manual smoke test kiya? (sirf `php -l` ya grep enough nahi)
+[ ] Affected AJAX action / form submit / filter / delete flow bhi manually test kiya?
+[ ] "Verified" tabhi bolo jab affected page actual run karke dekh liya ho
 [ ] Local pe test kiya? Phir push kiya?
 ```
 

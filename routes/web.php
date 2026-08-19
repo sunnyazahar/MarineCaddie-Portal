@@ -151,7 +151,7 @@ Route::get('/accounting', function () {
 })->name('accounting');
 
 Route::get('/create-shipment', function (\Illuminate\Http\Request $request) {
-    $countries = \App\Models\Country::where('is_active', true)->orderBy('name')->get();
+    $countries = \App\Support\CountryCache::active();
     $crrs = \App\Models\Crr::with(['packages', 'documents', 'customerVessel.customer.responsible.accountManager'])
         ->selectableForShipment()
         ->latest()
@@ -661,8 +661,8 @@ Route::get('/stocks/create-crr', function () {
         ->select('vessel', 'customer_id')
         ->groupBy('vessel', 'customer_id')
         ->get();
-    $countries = \App\Models\Country::where('is_active', true)->orderBy('name')->get();
-    $currencies = \App\Models\Country::where('is_active', true)->whereNotNull('currency')->distinct()->pluck('currency')->sort();
+    $countries = \App\Support\CountryCache::active();
+    $currencies = \App\Support\CountryCache::currencies();
     $hubs = \App\Models\Hub::where(function ($query) {
         $query->where('hide_in_portal', false)
             ->orWhereNull('hide_in_portal');
@@ -806,6 +806,6 @@ Route::get('/Agents/company-agent/{id}', function ($id) {
     return view('Agents.company-agent', compact('id'));
 })->name('agents.company-agent');
 
+        Route::get('/update-currency-rates', [App\Http\Controllers\CurrencyController::class, 'updateRates'])->name('currency.update');
     });
 });
-Route::get('/update-currency-rates', [App\Http\Controllers\CurrencyController::class, 'updateRates'])->name('currency.update');

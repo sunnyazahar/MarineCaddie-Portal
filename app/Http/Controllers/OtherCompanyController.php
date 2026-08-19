@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CountryCache;
 use Illuminate\Http\Request;
-
 use App\Models\OtherCompany;
-use App\Models\Country;
 
 class OtherCompanyController extends Controller
 {
@@ -61,8 +60,8 @@ class OtherCompanyController extends Controller
 
     public function create()
     {
-        $countries = Country::all();
-        $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD']; // Sample currencies
+        $countries = CountryCache::active();
+        $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD'];
         $companyTypes = $this->companyTypeOptions();
 
         return view('Other Companies.create', compact('countries', 'currencies', 'companyTypes'));
@@ -93,7 +92,7 @@ class OtherCompanyController extends Controller
     public function edit(OtherCompany $otherCompany)
     {
         $otherCompany->load(['creator', 'updater']);
-        $countries = Country::all();
+        $countries = CountryCache::active();
         $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD', 'INR', 'AUD', 'CAD'];
         $companyTypes = $this->companyTypeOptions();
 

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Models\Country;
+use App\Support\CountryCache;
 use App\Models\User;
 use App\Models\CustomerGroup;
 use App\Models\CustomerSop;
@@ -108,7 +109,7 @@ class CustomerController extends Controller
 
     public function create()
     {
-        $countries = Country::all();
+        $countries = CountryCache::active();
         $salesManagers = Contact::where('category', 'sales')->get();
         $groups = CustomerGroup::all();
         
@@ -274,7 +275,7 @@ class CustomerController extends Controller
             'creator',
             'updater',
         ])->findOrFail($id);
-        $countries = Country::all();
+        $countries = CountryCache::active();
         $salesManagers = Contact::where('category', 'sales')->get();
         $groups = CustomerGroup::all();
         

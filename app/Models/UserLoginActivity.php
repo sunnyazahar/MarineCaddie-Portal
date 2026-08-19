@@ -7,7 +7,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserLoginActivity extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'ip_address',
+        'user_agent',
+        'browser_latitude',
+        'browser_longitude',
+        'browser_location_accuracy',
+        'ip_latitude',
+        'ip_longitude',
+        'ip_city',
+        'ip_country',
+        'logged_in_at',
+        'logged_out_at',
+    ];
 
     protected function casts(): array
     {

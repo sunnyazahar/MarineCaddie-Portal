@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Country;
+use App\Support\CountryCache;
 use App\Models\OtherCompany;
 use App\Models\Office;
 use App\Models\OfficeBankAccount;
@@ -21,7 +21,7 @@ class OfficeController extends Controller
     public function create()
     {
         $companies = OtherCompany::all();
-        $countries = Country::all();
+        $countries = CountryCache::active();
         return view('offices.create', compact('companies', 'countries'));
     }
 
@@ -113,7 +113,7 @@ class OfficeController extends Controller
     {
         $office = Office::with(['bankAccounts', 'contacts', 'creator', 'updater'])->findOrFail($id);
         $companies = OtherCompany::all();
-        $countries = Country::all();
+        $countries = CountryCache::active();
         return view('offices.edit', compact('office', 'companies', 'countries'));
     }
 

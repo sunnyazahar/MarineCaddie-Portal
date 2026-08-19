@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CountryCache;
 use Illuminate\Http\Request;
-
 use App\Models\Supplier;
-use App\Models\Country;
 
 class SupplierController extends Controller
 {
@@ -44,8 +43,8 @@ class SupplierController extends Controller
 
     public function create()
     {
-        $countries = Country::all();
-        $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD']; // Sample currencies
+        $countries = CountryCache::active();
+        $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD'];
         return view('Suppliers.create', compact('countries', 'currencies'));
     }
 
@@ -58,7 +57,7 @@ class SupplierController extends Controller
             'contact_person' => 'required|string|max:255',
         ]);
 
-        $supplier = Supplier::create($request->all());
+        $supplier = Supplier::create($request->validated());
         $supplier->load('country');
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -81,7 +80,7 @@ class SupplierController extends Controller
     public function edit($id)
     {
         $supplier = Supplier::with(['creator', 'updater'])->findOrFail($id);
-        $countries = Country::all();
+        $countries = CountryCache::active();
         $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD'];
         return view('Suppliers.edit', compact('supplier', 'countries', 'currencies'));
     }
@@ -103,7 +102,7 @@ class SupplierController extends Controller
             throw $e;
         }
 
-        $supplier->update($request->all());
+        $supplier->update($request->validated());
 
         return redirect()
             ->route('suppliers.edit', $id)

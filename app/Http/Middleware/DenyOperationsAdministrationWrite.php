@@ -19,6 +19,9 @@ class DenyOperationsAdministrationWrite
         'agents.',
         'customers.',
         'contacts.',
+        'suppliers.',
+        'other-companies.',
+        'vessels.',
     ];
 
     public function handle(Request $request, Closure $next): Response
