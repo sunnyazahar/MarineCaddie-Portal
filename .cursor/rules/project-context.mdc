@@ -1,0 +1,34 @@
+---
+description: MarineCaddie Laravel project — core context loaded every session
+alwaysApply: true
+---
+
+# MarineCaddie Project Context
+
+Full standards: `PROJECT_STANDARDS.md` (read it before any non-trivial change).
+
+## Stack
+- Laravel 12, PHP 8.2, MySQL
+- jQuery, Bootstrap, **DataTables 1.10.20**, SweetAlert v1
+- Production: `portal.marinecaddie.com` (Hostinger)
+- Local: `http://localhost/laravel` (XAMPP, `.env` points to production DB)
+
+## Pre-change checklist (always run mentally)
+1. Read `PROJECT_STANDARDS.md` for the affected module
+2. `<td>` count in `partials/rows.blade.php` == `<th>` count in `<thead>`
+3. DataTables `columnDefs.targets` = integer (not array) — DT 1.10.x requirement
+4. SweetAlert callback mein koi DataTables call mat karo agar table destroy ho sakta hai
+5. `is_active` filter default = `false`; query mein `where('is_active', 1)` use karo
+6. File delete = `PrivateDisk::delete()` — seedha `Storage::delete()` nahi
+7. Local test karo, phir `git push`
+
+## List page pattern
+Every list page follows: Controller `index()` → `partials/rows.blade.php` → `bindAjaxListFilters()` JS helper (`partials/searchable-filter-multiselect-script.blade.php`).
+
+AJAX response must return: `{ html, pagination, total }`.
+
+## Common mistakes to avoid
+- `table.rows.add($rows)` — DT 1.10 mein kaam nahi karta DOM nodes se
+- `hide_inactive` default `true` — saara data hide ho jata hai
+- `targets: [8]` array — DT 1.10 crash karta hai; use `targets: 8`
+- SweetAlert mein JS error silently alert ko stuck kar deta hai

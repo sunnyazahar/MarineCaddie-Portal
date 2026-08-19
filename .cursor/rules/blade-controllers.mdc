@@ -1,0 +1,41 @@
+---
+description: Rules for Laravel controllers and Blade views in MarineCaddie
+globs: app/Http/Controllers/**/*.php,resources/views/**/*.blade.php
+alwaysApply: false
+---
+
+# Controller Rules
+
+## index() method structure
+```php
+$hideInactive = $request->boolean('hide_inactive', false); // default false
+
+$items = Model::query()
+    ->when($search, fn($q) => $q->where('col', 'like', ListSearch::contains($search)))
+    ->when($hideInactive, fn($q) => $q->where('is_active', 1))
+    ->paginate(25);
+
+if ($request->ajax()) {
+    return response()->json([
+        'html'       => view('Module.partials.rows', compact('items'))->render(),
+        'pagination' => (string) $items->links(),
+        'total'      => $items->total(),
+    ]);
+}
+return view('Module.index', compact('items'));
+```
+
+## File operations
+Always use `PrivateDisk::delete($path)` — never `Storage::delete()` directly.
+
+# Blade Rules
+
+## partials/rows.blade.php
+- Only `<tr>` tags — no `<table>` or `<tbody>`
+- `@empty` row `colspan` must equal thead `<th>` count exactly
+- `{{ $var }}` auto-escapes — safe for output
+
+## JS in Blade
+- Use `bindAjaxListFilters()` from shared partial for all list pages
+- DataTables `columnDefs.targets` must be integer, not array
+- After `table.destroy()` — reinitialize from scratch, never reuse old instance
