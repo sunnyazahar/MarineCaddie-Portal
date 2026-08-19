@@ -647,7 +647,7 @@
                                         </div>
                                     </div>
                                     <div class="filter-checkbox-group">
-                                        <input type="checkbox" id="hide-inactive-check" checked>
+                                        <input type="checkbox" id="hide-inactive-check">
                                         <label for="hide-inactive-check">Hide inactive</label>
                                     </div>
                                     <a href="#" id="clear-agent-filters" class="btn-clear-filters">Clear filters</a>
@@ -921,7 +921,7 @@
                         .removeClass('multiselect-filter-hidden')
                         .show();
                 });
-                $('#hide-inactive-check').prop('checked', true);
+                $('#hide-inactive-check').prop('checked', false);
             }
 
             $(document).on('click', '#clear-agent-filters', function (e) {

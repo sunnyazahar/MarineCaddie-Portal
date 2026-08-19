@@ -16,7 +16,7 @@ class AgentController extends Controller
         $city = trim((string) $request->input('city', ''));
         $countriesFilter = array_values(array_filter((array) $request->input('country', [])));
         $typesFilter = array_values(array_filter((array) $request->input('type', [])));
-        $hideInactive = $request->boolean('hide_inactive', true);
+        $hideInactive = $request->boolean('hide_inactive', false);
         $perPage = max(10, min(100, (int) $request->input('per_page', 25)));
 
         $agents = Agent::query()
