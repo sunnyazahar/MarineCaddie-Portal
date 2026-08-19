@@ -34,7 +34,7 @@ class AgentController extends Controller
             })
             ->when($countriesFilter, fn ($query) => $query->whereHas('country', fn ($sub) => $sub->whereIn('name', $countriesFilter)))
             ->when($typesFilter, fn ($query) => $query->whereIn('agent_type', $typesFilter))
-            ->when($hideInactive, fn ($query) => $query->where('is_active', true))
+            ->when($hideInactive, fn ($query) => $query->where('is_active', 1))
             ->orderBy('agent_name')
             ->paginate($perPage);
 
