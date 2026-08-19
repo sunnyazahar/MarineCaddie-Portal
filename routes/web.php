@@ -4,20 +4,6 @@ use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Temporary OPcache check — remove after verifying
-Route::get('/opcache-check', function () {
-    $status = opcache_get_status(false);
-    if (!$status) {
-        return response('OPcache: OFF', 200)->header('Content-Type', 'text/plain');
-    }
-    return response(
-        'OPcache: ON' . "\n" .
-        'Hit rate: ' . round($status['opcache_statistics']['opcache_hit_rate'], 2) . '%' . "\n" .
-        'Cached files: ' . $status['opcache_statistics']['num_cached_scripts'],
-        200
-    )->header('Content-Type', 'text/plain');
-});
-
 Route::get('/login/csrf', [LoginController::class, 'csrfToken'])->name('login.csrf');
 
 Auth::routes([
