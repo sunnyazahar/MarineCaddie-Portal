@@ -50,7 +50,7 @@ return new class extends Migration
         // ── customers ─────────────────────────────────────────────────────────
         // orderBy('customer_name')
         // (whereHas relations use FK indexes already created by migrations)
-        $this->add('customers', 'customers_name_active_idx', ['customer_name', 'is_active']);
+        $this->add('customers', 'customers_name_idx', 'customer_name');
 
         // ── countries ─────────────────────────────────────────────────────────
         // Used in whereHas for country filters across all list pages
@@ -76,7 +76,7 @@ return new class extends Migration
         $this->drop('other_companies', 'oc_city_idx');
         $this->drop('other_companies', 'oc_country_id_idx');
 
-        $this->drop('customers', 'customers_name_active_idx');
+        $this->drop('customers', 'customers_name_idx');
 
         $this->drop('countries', 'countries_name_idx');
         $this->drop('countries', 'countries_is_active_idx');
