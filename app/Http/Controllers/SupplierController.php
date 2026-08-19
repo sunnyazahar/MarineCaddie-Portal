@@ -2,39 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Contact;
+use App\Repositories\Contracts\SupplierRepositoryInterface;
 use App\Support\CountryCache;
 use Illuminate\Http\Request;
-use App\Models\Supplier;
 
 class SupplierController extends Controller
 {
+    public function __construct(private SupplierRepositoryInterface $suppliers) {}
+
     public function index(Request $request)
     {
-        $search = trim((string) $request->input('search', ''));
-        $perPage = max(10, min(100, (int) $request->input('per_page', 25)));
-        $searchLike = \App\Support\ListSearch::contains($search);
-
-        $suppliers = Supplier::query()
-            ->with('country')
-            ->when($searchLike, function ($query, $pattern) {
-                $query->where(function ($sub) use ($pattern) {
-                    $sub->where('supplier_name', 'like', $pattern)
-                        ->orWhere('supplier_address', 'like', $pattern)
-                        ->orWhere('city', 'like', $pattern)
-                        ->orWhere('email', 'like', $pattern)
-                        ->orWhere('phone_number', 'like', $pattern)
-                        ->orWhere('contact_person', 'like', $pattern)
-                        ->orWhereHas('country', fn ($country) => $country->where('name', 'like', $pattern));
-                });
-            })
-            ->orderBy('supplier_name')
-            ->paginate($perPage);
+        $perPage   = max(10, min(100, (int) $request->input('per_page', 25)));
+        $suppliers = $this->suppliers->paginate(
+            ['search' => $request->input('search', '')],
+            $perPage
+        );
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('Suppliers.partials.rows', compact('suppliers'))->render(),
+                'html'       => view('Suppliers.partials.rows', compact('suppliers'))->render(),
                 'pagination' => (string) $suppliers->links(),
-                'total' => $suppliers->total(),
+                'total'      => $suppliers->total(),
             ]);
         }
 
@@ -43,7 +32,7 @@ class SupplierController extends Controller
 
     public function create()
     {
-        $countries = CountryCache::active();
+        $countries  = CountryCache::active();
         $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD'];
         return view('Suppliers.create', compact('countries', 'currencies'));
     }
@@ -51,25 +40,25 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'supplier_name' => 'required|string|max:255',
-            'email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
-            'phone_number' => 'nullable|string|max:255',
+            'supplier_name'  => 'required|string|max:255',
+            'email'          => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+            'phone_number'   => 'nullable|string|max:255',
             'contact_person' => 'required|string|max:255',
         ]);
 
-        $supplier = Supplier::create($request->validated());
+        $supplier = $this->suppliers->create($request->validated());
         $supplier->load('country');
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
-                'success' => true,
-                'message' => 'Supplier created successfully.',
+                'success'  => true,
+                'message'  => 'Supplier created successfully.',
                 'supplier' => [
-                    'id' => $supplier->id,
-                    'supplier_name' => $supplier->supplier_name,
+                    'id'               => $supplier->id,
+                    'supplier_name'    => $supplier->supplier_name,
                     'supplier_address' => $supplier->supplier_address,
-                    'city' => $supplier->city,
-                    'country' => $supplier->country?->name,
+                    'city'             => $supplier->city,
+                    'country'          => $supplier->country?->name,
                 ],
             ]);
         }
@@ -79,22 +68,22 @@ class SupplierController extends Controller
 
     public function edit($id)
     {
-        $supplier = Supplier::with(['creator', 'updater'])->findOrFail($id);
-        $countries = CountryCache::active();
+        $supplier   = $this->suppliers->findWithRelations((int) $id, ['creator', 'updater']);
+        $countries  = CountryCache::active();
         $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD'];
         return view('Suppliers.edit', compact('supplier', 'countries', 'currencies'));
     }
 
     public function update(Request $request, $id)
     {
-        $supplier = Supplier::findOrFail($id);
+        $supplier  = $this->suppliers->findOrFail((int) $id);
         $activeTab = $this->resolveActiveTab($request);
 
         try {
             $request->validate([
-                'supplier_name' => 'required|string|max:255',
-                'email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
-                'phone_number' => 'nullable|string|max:255',
+                'supplier_name'  => 'required|string|max:255',
+                'email'          => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+                'phone_number'   => 'nullable|string|max:255',
                 'contact_person' => 'required|string|max:255',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -102,7 +91,7 @@ class SupplierController extends Controller
             throw $e;
         }
 
-        $supplier->update($request->validated());
+        $this->suppliers->update($supplier, $request->validated());
 
         return redirect()
             ->route('suppliers.edit', $id)
@@ -113,38 +102,35 @@ class SupplierController extends Controller
     public function destroy($id)
     {
         try {
-            $supplier = Supplier::findOrFail($id);
-            $supplier->delete();
+            $this->suppliers->delete((int) $id);
             return response()->json(['success' => true, 'message' => 'Supplier deleted successfully.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error deleting supplier.'], 500);
         }
     }
 
-    // Supplier Contact Methods
     public function createContact($supplierId)
     {
-        $supplier = Supplier::findOrFail($supplierId);
+        $supplier = $this->suppliers->findOrFail((int) $supplierId);
         return view('Suppliers.contacts.create', compact('supplier'));
     }
 
     public function storeContact(Request $request, $supplierId)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone_number' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'name'            => 'required|string|max:255',
+            'email'           => 'nullable|email|max:255',
+            'phone_number'    => 'nullable|string|max:255',
+            'description'     => 'nullable|string',
             'is_main_contact' => 'nullable|boolean',
         ]);
 
-        $supplier = Supplier::findOrFail($supplierId);
-        
+        $supplier = $this->suppliers->findOrFail((int) $supplierId);
         $supplier->contacts()->create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
-            'description' => $request->description,
+            'name'            => $request->name,
+            'email'           => $request->email,
+            'phone_number'    => $request->phone_number,
+            'description'     => $request->description,
             'is_main_contact' => $request->has('is_main_contact'),
         ]);
 
@@ -156,28 +142,27 @@ class SupplierController extends Controller
 
     public function editContact($supplierId, $contactId)
     {
-        $supplier = Supplier::findOrFail($supplierId);
-        $contact = \App\Models\Contact::findOrFail($contactId);
+        $supplier = $this->suppliers->findOrFail((int) $supplierId);
+        $contact  = Contact::findOrFail($contactId);
         return view('Suppliers.contacts.edit', compact('supplier', 'contact'));
     }
 
     public function updateContact(Request $request, $supplierId, $contactId)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone_number' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'name'            => 'required|string|max:255',
+            'email'           => 'nullable|email|max:255',
+            'phone_number'    => 'nullable|string|max:255',
+            'description'     => 'nullable|string',
             'is_main_contact' => 'nullable|boolean',
         ]);
 
-        $contact = \App\Models\Contact::findOrFail($contactId);
-        
+        $contact = Contact::findOrFail($contactId);
         $contact->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
-            'description' => $request->description,
+            'name'            => $request->name,
+            'email'           => $request->email,
+            'phone_number'    => $request->phone_number,
+            'description'     => $request->description,
             'is_main_contact' => $request->has('is_main_contact'),
         ]);
 
@@ -190,8 +175,7 @@ class SupplierController extends Controller
     private function resolveActiveTab(Request $request): string
     {
         $allowed = ['supplier-details', 'contacts'];
-        $tab = (string) $request->input('active_tab', 'supplier-details');
-
+        $tab     = (string) $request->input('active_tab', 'supplier-details');
         return in_array($tab, $allowed, true) ? $tab : 'supplier-details';
     }
 
@@ -201,11 +185,9 @@ class SupplierController extends Controller
             if ($value === null || $value === '') {
                 return;
             }
-
             $emails = preg_split('/\s*[,;]\s*/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
-
             foreach ($emails as $email) {
-                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     $fail('Each email address must be valid.');
                     return;
                 }

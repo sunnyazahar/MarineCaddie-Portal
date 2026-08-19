@@ -12,9 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class OfficeController extends Controller
 {
+    public function __construct(
+        private \App\Repositories\Contracts\OfficeRepositoryInterface $officeRepo
+    ) {}
+
     public function index()
     {
-        $offices = Office::with('country')->get();
+        $offices = $this->officeRepo->all();
         return view('offices.index', compact('offices'));
     }
 
