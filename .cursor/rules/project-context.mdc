@@ -27,6 +27,15 @@ Every list page follows: Controller `index()` → `partials/rows.blade.php` → 
 
 AJAX response must return: `{ html, pagination, total }`.
 
+## Repository Pattern (new code only)
+- Naya module → `App\Repositories\Contracts\XxxInterface` + `App\Repositories\XxxRepository`
+- Bind in `AppServiceProvider::register()`
+- Controller mein constructor injection
+- Existing controllers mein seedha `Model::query()` — **mat chhedo**
+
+## Git Rules
+- **Bina user ke kehne push mat karo** — changes dikhao, push tab karo jab user bole
+
 ## Common mistakes to avoid
 - `table.rows.add($rows)` — DT 1.10 mein kaam nahi karta DOM nodes se
 - `hide_inactive` default `true` — saara data hide ho jata hai

@@ -251,7 +251,94 @@ use App\Support\ListSearch;
 
 ---
 
-## 9. Checklist — Koi bhi Change Karne Se Pehle
+## 9. Repository Pattern (New Code Only)
+
+**Existing code touch nahi karna — sirf naye modules/features mein follow karo.**
+
+### Structure
+```
+app/
+  Repositories/
+    Contracts/
+      AgentRepositoryInterface.php   ← Interface
+    AgentRepository.php              ← Implementation
+  Services/
+    AgentService.php                 ← Business logic (optional, heavy logic ke liye)
+```
+
+### Interface
+```php
+namespace App\Repositories\Contracts;
+
+interface AgentRepositoryInterface
+{
+    public function paginate(array $filters, int $perPage = 25);
+    public function findById(int $id);
+    public function create(array $data);
+    public function update(int $id, array $data);
+    public function delete(int $id): bool;
+}
+```
+
+### Implementation
+```php
+namespace App\Repositories;
+
+use App\Models\Agent;
+use App\Repositories\Contracts\AgentRepositoryInterface;
+
+class AgentRepository implements AgentRepositoryInterface
+{
+    public function paginate(array $filters, int $perPage = 25)
+    {
+        return Agent::query()
+            ->when($filters['name'] ?? '', fn($q, $v) => $q->where('agent_name', 'like', '%'.$v.'%'))
+            ->paginate($perPage);
+    }
+    // ...
+}
+```
+
+### Bind in AppServiceProvider
+```php
+// app/Providers/AppServiceProvider.php — register() method
+$this->app->bind(
+    \App\Repositories\Contracts\AgentRepositoryInterface::class,
+    \App\Repositories\AgentRepository::class,
+);
+```
+
+### Controller mein inject karo
+```php
+class AgentController extends Controller
+{
+    public function __construct(private AgentRepositoryInterface $agents) {}
+
+    public function index(Request $request)
+    {
+        $items = $this->agents->paginate($request->only(['name', 'city']));
+        // ...
+    }
+}
+```
+
+### Rules
+- Naya module → Repository zaroor banao
+- Existing controllers (`AgentController`, `ShipmentController`, etc.) → **mat chhedo**
+- Business logic Controller mein nahi, Repository ya Service mein
+- Direct `Model::query()` sirf existing files mein acceptable hai
+
+---
+
+## 10. Git Rules
+
+- **Bina permission ke `git push` mat karo** — pehle user se confirm karo
+- Local changes karo → user ko dikhao → user bole tab push karo
+- Commit message clear aur descriptive rakho
+
+---
+
+## 11. Checklist — Koi bhi Change Karne Se Pehle
 
 ```
 [ ] Is page ka controller index method dekha?
@@ -265,7 +352,17 @@ use App\Support\ListSearch;
 
 ---
 
-## 10. Production Deploy Notes
+## 12. Performance Rules
+
+- `LIKE '%term%'` (contains) — B-tree index use nahi hota, small tables pe acceptable
+- `LIKE 'term%'` (prefix) — index use hota hai, large tables pe use karo (`ListSearch::prefix`)
+- Har list controller mein `->with('relation')` hona chahiye (N+1 avoid)
+- New filterable column add karo → migration mein index bhi add karo
+- Production deploy ke baad: `php artisan config:cache && route:cache && view:cache`
+
+---
+
+## 13. Production Deploy Notes
 
 - **Git push** → Production pe `git pull` karna hoga manually ya deploy hook se
 - **Scheduler:** `* * * * *` cron Hostinger hPanel mein set hai (`php artisan schedule:run`)
