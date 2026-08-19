@@ -2558,7 +2558,10 @@
                                                         $manifestMailPending = $shipment->needsManifestMailSend();
                                                         $preAlertMailPending = $shipment->needsPreAlertMailSend();
                                                     @endphp
-                                                    @php $manifestCount = $shipment->manifests->count(); @endphp
+                                                    @php
+                                                        $latestManifest = $shipment->latestManifest();
+                                                        $manifestRevision = ($latestManifest && $latestManifest->version >= 2) ? ($latestManifest->version - 1) : null;
+                                                    @endphp
                                                     <div style="position: relative;">
                                                         <button type="button"
                                                             id="send-manifest-btn"
@@ -2568,8 +2571,8 @@
                                                             data-manifest-mail-pending="{{ $manifestMailPending ? '1' : '0' }}"
                                                             @disabled(! $manifestMailPending)
                                                             title="{{ $manifestMailPending ? 'New manifest ready — send email' : 'Send manifest after a new manifest is generated' }}">Send manifest</button>
-                                                        @if($manifestCount > 0)
-                                                            <span style="position: absolute; left: 50%; transform: translateX(-50%); top: calc(100% + 5px); white-space: nowrap; font-size: 10px; font-weight: 600; color: #fe8a7d; background: #fff5f4; border: 1.5px solid #fe8a7d; border-radius: 4px; padding: 1px 8px; letter-spacing: 0.4px;">MI Rev - {{ $manifestCount }}</span>
+                                                        @if($manifestRevision)
+                                                            <span style="position: absolute; left: 50%; transform: translateX(-50%); top: calc(100% + 5px); white-space: nowrap; font-size: 10px; font-weight: 600; color: #fe8a7d; background: #fff5f4; border: 1.5px solid #fe8a7d; border-radius: 4px; padding: 1px 8px; letter-spacing: 0.4px;">MI Rev - {{ $manifestRevision }}</span>
                                                         @endif
                                                     </div>
                                                     <button type="button"
