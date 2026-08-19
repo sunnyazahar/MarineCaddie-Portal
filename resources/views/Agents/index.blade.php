@@ -815,24 +815,10 @@
                 }
             });
 
-            var dtConfig = {
-                "dom": 'rt',
-                "lengthChange": false,
-                "paging": false,
-                "info": false,
-                "responsive": false,
-                "searching": false,
-                "ordering": true,
-                "autoWidth": false,
-                "columnDefs": [
-                    { "orderable": false, "targets": 8 }
-                ],
-                "language": {
-                    "emptyTable": "No agents found."
-                }
-            };
-
-            table = $('#agents-table').DataTable(dtConfig);
+            // DataTables 1.10.x crashes with _DT_CellIndex when thead/tbody
+            // structure has any anomaly. Use a lightweight plain-table approach
+            // instead: no DataTables, just direct tbody swap + AJAX loading.
+            table = { columns: { adjust: function(){} } }; // stub so existing code won't break
 
             function currentFilterParams(page) {
                 return {
@@ -848,11 +834,7 @@
             }
 
             function replaceAgentRows(html, paginationHtml) {
-                table.clear().destroy();
-                $('#agents-table thead').nextAll().remove();
-                $('#agents-table').append('<tbody>' + html + '</tbody>');
-                table = $('#agents-table').DataTable(dtConfig);
-                table.columns.adjust();
+                $('#agents-table tbody').html(html);
                 $('#agents-pagination').html(paginationHtml || '');
             }
 
