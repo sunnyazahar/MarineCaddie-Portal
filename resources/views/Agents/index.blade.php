@@ -824,7 +824,6 @@
                 "searching": false,
                 "ordering": true,
                 "autoWidth": false,
-                "scrollX": true,
                 "columnDefs": [
                     { "orderable": false, "targets": [8] }
                 ],
@@ -849,14 +848,9 @@
             }
 
             function replaceAgentRows(html, paginationHtml) {
-                table.destroy(true);
-                $('#agents-table-wrapper').html(
-                    '<table id="agents-table" class="table-agents"></table>'
-                );
-                $('#agents-table').html(
-                    $('#agents-table-thead-template').html() +
-                    '<tbody>' + html + '</tbody>'
-                );
+                table.clear().destroy();
+                $('#agents-table thead').nextAll().remove();
+                $('#agents-table').append('<tbody>' + html + '</tbody>');
                 table = $('#agents-table').DataTable(dtConfig);
                 table.columns.adjust();
                 $('#agents-pagination').html(paginationHtml || '');
