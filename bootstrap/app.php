@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'otp.verified' => \App\Http\Middleware\EnsureOtpIsVerified::class,
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'ops.admin.readonly' => \App\Http\Middleware\DenyOperationsAdministrationWrite::class,
+            'login.throttle' => \App\Http\Middleware\ThrottleLoginAttempts::class,
+        ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\SetSecurityHeaders::class,
         ]);
 
         $middleware->redirectTo(

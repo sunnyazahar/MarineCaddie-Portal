@@ -17,10 +17,21 @@ class LoginController extends Controller
      */
     protected $redirectTo = '/otp';
 
+    /**
+     * Failed credential attempts before lockout (ThrottlesLogins trait).
+     */
+    protected int $maxAttempts = 5;
+
+    /**
+     * Lockout window in minutes (ThrottlesLogins trait).
+     */
+    protected int $decayMinutes = 1;
+
     public function __construct()
     {
         $this->middleware('guest')->except(['logout', 'csrfToken']);
         $this->middleware('auth')->only('logout');
+        $this->middleware('login.throttle')->only('login');
     }
 
     protected function credentials(Request $request): array
