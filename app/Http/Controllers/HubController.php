@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Hub;
 use App\Models\HubDocument;
 use App\Models\HubPricingDocument;
+use App\Support\CountryCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -62,7 +63,7 @@ class HubController extends Controller
 
     public function create()
     {
-        $countries = DB::table('countries')->where('is_active', 1)->orderBy('name')->get();
+        $countries = CountryCache::activeRaw();
         return view('hub.create', compact('countries'));
     }
 
@@ -111,7 +112,7 @@ class HubController extends Controller
     public function show($id)
     {
         $hub = Hub::with(['documents', 'pricingDocuments', 'creator', 'updater'])->findOrFail($id);
-        $countries = DB::table('countries')->where('is_active', 1)->orderBy('name')->get();
+        $countries = CountryCache::activeRaw();
         return view('hub.show', compact('hub', 'countries'));
     }
 

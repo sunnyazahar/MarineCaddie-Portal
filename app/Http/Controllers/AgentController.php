@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agent;
-use App\Models\Country;
+use App\Support\CountryCache;
 use Illuminate\Http\Request;
 
 class AgentController extends Controller
@@ -67,7 +67,7 @@ class AgentController extends Controller
 
     public function create()
     {
-        $countries = Country::where('is_active', true)->orderBy('name')->get();
+        $countries = CountryCache::active();
         return view('Agents.create', compact('countries'));
     }
 
@@ -110,7 +110,7 @@ class AgentController extends Controller
     public function edit($id)
     {
         $agent = Agent::with(['creator', 'updater'])->findOrFail($id);
-        $countries = Country::where('is_active', true)->orderBy('name')->get();
+        $countries = CountryCache::active();
         return view('Agents.edit', compact('agent', 'countries'));
     }
 

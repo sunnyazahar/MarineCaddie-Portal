@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agent;
+use App\Support\CountryCache;
 use App\Support\ListSearch;
 use App\Models\Contact;
 use App\Models\Country;
@@ -842,7 +843,7 @@ class ShipmentController extends Controller
         $departureDisplay = $shipment->partyDisplay($shipment->departure, $partyNames);
         $consigneeDisplay = $shipment->partyDisplay($shipment->consignee, $partyNames);
 
-        $countries = Country::where('is_active', true)->orderBy('name')->get();
+        $countries = CountryCache::active();
         $crrs = Crr::with(['packages', 'documents', 'customerVessel.customer'])
             ->selectableForShipment()
             ->latest()

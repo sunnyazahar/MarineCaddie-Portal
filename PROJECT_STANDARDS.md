@@ -354,6 +354,26 @@ class AgentController extends Controller
 
 ## 12. Performance Rules
 
+### Country List — Always use CountryCache
+```php
+use App\Support\CountryCache;
+
+// Eloquent collection (Agent, Supplier, Vessel, Shipment controllers)
+$countries = CountryCache::active();
+
+// Plain DB rows (Hub controller — DB::table based)
+$countries = CountryCache::activeRaw();
+
+// Currencies list
+$currencies = CountryCache::currencies();
+
+// After any country create/update/delete:
+CountryCache::flush();
+```
+**Never** call `Country::where('is_active', true)->get()` directly — always use CountryCache.
+
+
+
 - `LIKE '%term%'` (contains) — B-tree index use nahi hota, small tables pe acceptable
 - `LIKE 'term%'` (prefix) — index use hota hai, large tables pe use karo (`ListSearch::prefix`)
 - Har list controller mein `->with('relation')` hona chahiye (N+1 avoid)

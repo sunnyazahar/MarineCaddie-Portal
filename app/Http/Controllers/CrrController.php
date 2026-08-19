@@ -9,6 +9,7 @@ use App\Models\CrrCost;
 use App\Models\CrrDocument;
 use App\Models\Hub;
 use App\Services\CrrChangeLogService;
+use App\Support\CountryCache;
 use App\Support\ListSearch;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -251,8 +252,8 @@ class CrrController extends Controller
             ->select('vessel', 'customer_id')
             ->groupBy('vessel', 'customer_id')
             ->get();
-        $countries = \App\Models\Country::where('is_active', true)->orderBy('name')->get();
-        $currencies = \App\Models\Country::where('is_active', true)->whereNotNull('currency')->distinct()->pluck('currency')->sort()->values();
+        $countries = CountryCache::active();
+        $currencies = CountryCache::currencies();
         $hubs = \App\Models\Hub::orderBy('hub_name')->get();
         $agents = \App\Models\Agent::with('country')->orderBy('agent_name')->get();
         $suppliers = \App\Models\Supplier::with('country')->orderBy('supplier_name')->get();
