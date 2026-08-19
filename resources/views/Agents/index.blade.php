@@ -997,7 +997,6 @@
                                 .prop('disabled', false);
 
                             $row.attr('data-is-inactive', response.is_inactive ? '1' : '0');
-                            table.row($row).invalidate('dom').draw(false);
 
                             swal({
                                 title: 'Status updated',
