@@ -838,19 +838,15 @@
             }
 
             function replaceAgentRows(html, paginationHtml) {
-                table = initAgentsTable();
-                table.clear();
+                $('#agents-table tbody').html(html);
 
-                var $rows = $('<table><tbody>' + html + '</tbody></table>').find('tr').filter(function () {
-                    return $(this).find('td[colspan]').length === 0;
-                });
-
-                if ($rows.length) {
-                    table.rows.add($rows);
+                if ($.fn.DataTable.isDataTable('#agents-table')) {
+                    table.rows().invalidate('dom').draw(false);
+                    table.columns.adjust();
+                } else {
+                    table = initAgentsTable();
                 }
 
-                table.draw(false);
-                table.columns.adjust();
                 $('#agents-pagination').html(paginationHtml || '');
             }
 
