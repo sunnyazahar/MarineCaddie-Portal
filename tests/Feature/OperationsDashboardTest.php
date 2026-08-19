@@ -9,156 +9,10 @@ use App\Models\Shipment;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Services\OperationsDashboardService;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-use Tests\TestCase;
+use Tests\RegressionTestCase;
 
-class OperationsDashboardTest extends TestCase
+class OperationsDashboardTest extends RegressionTestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('phone_number')->nullable();
-            $table->string('role')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
-        });
-        Schema::create('offices', function (Blueprint $table) {
-            $table->id();
-            $table->string('office_name');
-            $table->timestamps();
-        });
-        Schema::create('hubs', function (Blueprint $table) {
-            $table->id();
-            $table->string('hub_name');
-            $table->string('code')->nullable();
-            $table->softDeletes();
-            $table->timestamps();
-        });
-        Schema::create('agents', function (Blueprint $table) {
-            $table->id();
-            $table->string('agent_name');
-            $table->string('code')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->softDeletes();
-            $table->timestamps();
-        });
-        Schema::create('suppliers', function (Blueprint $table) {
-            $table->id();
-            $table->string('supplier_name');
-            $table->softDeletes();
-            $table->timestamps();
-        });
-        Schema::create('contacts', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable();
-            $table->foreignId('office_id')->nullable();
-            $table->timestamps();
-        });
-        Schema::create('customers', function (Blueprint $table) {
-            $table->id();
-            $table->string('customer_name');
-            $table->timestamps();
-        });
-        Schema::create('customer_responsibles', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id');
-            $table->foreignId('account_manager_id')->nullable();
-            $table->foreignId('accounting_user_id')->nullable();
-        });
-        Schema::create('customer_vessels', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id');
-            $table->string('vessel')->nullable();
-            $table->timestamps();
-        });
-        Schema::create('crrs', function (Blueprint $table) {
-            $table->id();
-            $table->string('stock_number')->unique();
-            $table->string('vessel_name')->nullable();
-            $table->string('content')->default('Shipspares');
-            $table->string('supplier')->nullable();
-            $table->string('hub_agent')->nullable();
-            $table->string('priority')->nullable();
-            $table->unsignedTinyInteger('status')->default(Crr::STATUS_NEW);
-            $table->json('flags')->nullable();
-            $table->boolean('accept')->default(false);
-            $table->timestamps();
-        });
-        Schema::create('crr_packages', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('crr_id');
-            $table->timestamps();
-        });
-        Schema::create('shipments', function (Blueprint $table) {
-            $table->id();
-            $table->string('shipment_number')->unique();
-            $table->string('departure')->nullable();
-            $table->string('consignee')->nullable();
-            $table->string('service')->nullable();
-            $table->date('deadline_arrival')->nullable();
-            $table->date('pre_alert_reminder')->nullable();
-            $table->foreignId('account_manager_id')->nullable();
-            $table->string('status')->default('Draft');
-            $table->timestamps();
-        });
-        Schema::create('shipment_crr', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('shipment_id');
-            $table->foreignId('crr_id');
-        });
-        Schema::create('shipment_irregularities', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('shipment_id');
-            $table->string('status')->nullable();
-            $table->timestamps();
-        });
-        Schema::create('shipment_pre_alert_reminder_sends', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('shipment_id');
-            $table->foreignId('user_id')->nullable();
-            $table->timestamps();
-        });
-
-        foreach ([
-            'office' => 'offices',
-            'hub' => 'hubs',
-            'agent' => 'agents',
-            'supplier' => 'suppliers',
-        ] as $entity => $tableName) {
-            Schema::create("user_{$entity}_assignments", function (Blueprint $table) use ($entity, $tableName) {
-                $table->foreignId('user_id');
-                $table->foreignId("{$entity}_id");
-                $table->unique(['user_id', "{$entity}_id"]);
-            });
-        }
-    }
-
-    protected function tearDown(): void
-    {
-        Schema::disableForeignKeyConstraints();
-        foreach ([
-            'user_supplier_assignments', 'user_agent_assignments', 'user_hub_assignments',
-            'user_office_assignments', 'shipment_pre_alert_reminder_sends',
-            'shipment_irregularities', 'shipment_crr', 'shipments', 'crr_packages', 'crrs',
-            'customer_vessels', 'customer_responsibles', 'customers', 'contacts',
-            'suppliers', 'agents', 'hubs', 'offices', 'users',
-        ] as $table) {
-            Schema::dropIfExists($table);
-        }
-        Schema::enableForeignKeyConstraints();
-
-        parent::tearDown();
-    }
-
     public function test_admin_receives_global_accurate_metrics(): void
     {
         $admin = User::factory()->create(['role' => 'Admin', 'is_active' => true]);
@@ -275,7 +129,7 @@ class OperationsDashboardTest extends TestCase
         $dashboard = app(OperationsDashboardService::class)->build($admin, 7);
         $html = view('home', compact('dashboard'))->render();
 
-        $this->assertStringContainsString('Operations Dashboard', $html);
+        $this->assertStringContainsString('Shipment Dashboard', $html);
         $this->assertStringContainsString('SHIP-RENDER', $html);
         $this->assertStringContainsString('STK-RENDER', $html);
         $this->assertStringContainsString(route('shipments.edit', $shipment->id), $html);

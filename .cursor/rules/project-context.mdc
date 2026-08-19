@@ -23,7 +23,8 @@ Full standards: `PROJECT_STANDARDS.md` (read it before any non-trivial change).
 7. Agar import/model/helper remove karo to us symbol ke saare usages search karo (`Country::`, `new Country`, type-hints, static calls, etc.)
 8. Sirf syntax check ya grep par rely mat karo — affected route/page localhost pe khol ke manual smoke test karo
 9. Affected form submit / AJAX / filter / delete flow bhi manually test karo
-10. Local test karo, phir `git push`
+10. **`composer test` run karo** — PHPUnit green hone ke baad hi push
+11. Local test karo, phir `git push`
 
 ## List page pattern
 Every list page follows: Controller `index()` → `partials/rows.blade.php` → `bindAjaxListFilters()` JS helper (`partials/searchable-filter-multiselect-script.blade.php`).

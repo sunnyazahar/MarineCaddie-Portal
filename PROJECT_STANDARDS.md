@@ -705,6 +705,34 @@ Enable on production PHP for faster bootstrap.
 
 ## 19. QA & Manual Testing
 
+### Automated regression tests (mandatory before push)
+
+Har non-trivial change ke baad **PHPUnit suite green honi chahiye**:
+
+```bash
+composer test
+# same as: php artisan test
+```
+
+**Suite covers (minimum):**
+
+| Area | Tests |
+|---|---|
+| Auth | login page, valid/invalid login, guest redirects |
+| Security | response security headers |
+| Agents | list page + AJAX filter contract `{ html, pagination, total }` |
+| API | `/api/ports` lookup + auth required |
+| Dashboard | operations KPI calculations |
+
+**Rules:**
+
+- Naya module / route / filter add karo → us module ka Feature test bhi add karo
+- Test DB = SQLite in-memory (`phpunit.xml`) — production DB kabhi use mat karo
+- OTP in tests = `LOCAL_OTP_BYPASS=true` (phpunit env only; production pe ignored)
+- Shared schema helpers: `tests/RegressionTestCase.php`, `tests/Concerns/*`
+
+**When tests fail:** fix code or update test — push mat karo jab tak green na ho.
+
 ### Minimum smoke test (every change)
 
 1. Open affected page on `http://localhost/laravel`
@@ -823,4 +851,4 @@ Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | ta
 
 ---
 
-*Last updated: reflects repository pattern rollout, hub port Select2, local OTP bypass, and QA scripts.*
+*Last updated: automated regression test suite, login throttle, security headers, repository pattern.*
