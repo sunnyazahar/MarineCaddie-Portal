@@ -758,196 +758,46 @@
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
+    @include('partials.searchable-filter-multiselect-script')
 
     <script>
         $(document).ready(function () {
-            var agentsIndexUrl = @json(route('agents.index'));
-            var table = null;
-            var searchTimer = null;
-            var filtersReady = false;
-            var requestToken = 0;
-            var suppressFilterLoad = false;
 
-            function shouldLoadFilters() {
-                return filtersReady && !suppressFilterLoad;
-            }
-
-            $('.agent-filter-multiselect').multiselect({
-                enableCaseInsensitiveFiltering: true,
-                includeResetOption: true,
-                resetText: 'Clear',
-                filterPlaceholder: 'Type here',
-                maxHeight: 420,
-                buttonWidth: '100%',
-                nonSelectedText: 'Click here',
-                numberDisplayed: 1,
-                nSelectedText: 'selected',
-                buttonText: function (options) {
-                    if (options.length === 0) {
-                        return 'Click here';
-                    }
-
-                    var firstSelection = $(options[0]).text();
-                    return options.length === 1 ? firstSelection : firstSelection + ', ...';
+            // ── Standard bindAjaxListFilters pattern ──────────────────────────
+            window.agentsListFilters = bindAjaxListFilters({
+                tableSelector:      '#agents-table',
+                paginationSelector: '#agents-pagination',
+                indexUrl:           @json(route('agents.index')),
+                multiselectSelector: '.agent-filter-multiselect',
+                clearSelector:      '#clear-agent-filters',
+                getParams: function (page) {
+                    return {
+                        name:          $.trim($('#filter-agent-name').val() || ''),
+                        code:          $.trim($('#filter-agent-code').val() || ''),
+                        address:       $.trim($('#filter-agent-address').val() || ''),
+                        city:          $.trim($('#filter-agent-city').val() || ''),
+                        country:       $('#filter-agent-country').val() || [],
+                        type:          $('#filter-agent-type').val() || [],
+                        hide_inactive: $('#hide-inactive-check').is(':checked') ? 1 : 0,
+                        page:          page || 1
+                    };
                 },
-                buttonTitle: function (options) {
-                    var labels = [];
-                    options.each(function () {
-                        labels.push($(this).text());
-                    });
-
-                    return labels.join(', ');
+                textSelectors:   '#filter-agent-name, #filter-agent-code, #filter-agent-address, #filter-agent-city',
+                changeSelectors: '#hide-inactive-check',
+                resetFields: function () {
+                    $('#filter-agent-name, #filter-agent-code, #filter-agent-address, #filter-agent-city').val('');
+                    clearSearchableFilterMultiselect('.agent-filter-multiselect', false);
+                    $('#hide-inactive-check').prop('checked', false);
                 },
-                onChange: function () {
-                    if (shouldLoadFilters()) {
-                        loadAgents(1);
-                    }
-                },
-                onSelectAll: function () {
-                    if (shouldLoadFilters()) {
-                        loadAgents(1);
-                    }
-                },
-                onDeselectAll: function () {
-                    if (shouldLoadFilters()) {
-                        loadAgents(1);
-                    }
-                }
+                resetClickScope: '.filter-item'
             });
-
-            // DataTables 1.10.x crashes with _DT_CellIndex when thead/tbody
-            // structure has any anomaly. Use a lightweight plain-table approach
-            // instead: no DataTables, just direct tbody swap + AJAX loading.
-            table = { columns: { adjust: function(){} } }; // stub so existing code won't break
-
-            function currentFilterParams(page) {
-                return {
-                    name: $.trim($('#filter-agent-name').val() || ''),
-                    code: $.trim($('#filter-agent-code').val() || ''),
-                    address: $.trim($('#filter-agent-address').val() || ''),
-                    city: $.trim($('#filter-agent-city').val() || ''),
-                    country: $('#filter-agent-country').val() || [],
-                    type: $('#filter-agent-type').val() || [],
-                    hide_inactive: $('#hide-inactive-check').is(':checked') ? 1 : 0,
-                    page: page || 1
-                };
-            }
-
-            function replaceAgentRows(html, paginationHtml) {
-                $('#agents-table tbody').html(html);
-                $('#agents-pagination').html(paginationHtml || '');
-            }
-
-            function loadAgents(page) {
-                var params = currentFilterParams(page);
-                var token = ++requestToken;
-
-                $.ajax({
-                    url: agentsIndexUrl,
-                    method: 'GET',
-                    data: params,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).done(function (response) {
-                    if (token !== requestToken) {
-                        return;
-                    }
-
-                    replaceAgentRows(response.html, response.pagination);
-                });
-            }
 
             $('#btn-agents-filters-toggle').on('click', function () {
                 $('body').toggleClass('agents-filters-open');
                 var isOpen = $('body').hasClass('agents-filters-open');
                 $(this).toggleClass('is-open', isOpen);
                 $(this).find('.agents-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
-                setTimeout(function () {
-                    if (table) {
-                        table.columns.adjust();
-                    }
-                }, 50);
             });
-
-            $(window).on('resize', function () {
-                if (table) {
-                    table.columns.adjust();
-                }
-            });
-
-            setTimeout(function () {
-                if (table) {
-                    table.columns.adjust();
-                }
-            }, 100);
-
-            $('#filter-agent-name, #filter-agent-code, #filter-agent-address, #filter-agent-city').on('input keyup', function (e) {
-                if (e.type === 'keyup' && e.key === 'Enter') {
-                    e.preventDefault();
-                    clearTimeout(searchTimer);
-                    loadAgents(1);
-                    return;
-                }
-
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(function () {
-                    loadAgents(1);
-                }, 200);
-            });
-
-            $('#hide-inactive-check').on('change', function () {
-                loadAgents(1);
-            });
-
-            $('#agents-pagination').on('click', 'a', function (e) {
-                var href = $(this).attr('href');
-                if (!href || href === '#') {
-                    return;
-                }
-
-                e.preventDefault();
-                var page = new URL(href, window.location.origin).searchParams.get('page') || 1;
-                loadAgents(page);
-            });
-
-            function resetAgentFilterFields() {
-                $('#filter-agent-name, #filter-agent-code, #filter-agent-address, #filter-agent-city').val('');
-                $('.agent-filter-multiselect').each(function () {
-                    var $select = $(this);
-                    $select.find('option').prop('selected', false);
-                    $select.val([]);
-                    $select.multiselect('clearSelection');
-                    $select.closest('.multiselect-native-select').find('.multiselect-search').val('');
-                    $select.closest('.multiselect-native-select').find('li.multiselect-filter-hidden')
-                        .removeClass('multiselect-filter-hidden')
-                        .show();
-                });
-                $('#hide-inactive-check').prop('checked', false);
-            }
-
-            $(document).on('click', '#clear-agent-filters', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                clearTimeout(searchTimer);
-                suppressFilterLoad = true;
-                resetAgentFilterFields();
-                suppressFilterLoad = false;
-                loadAgents(1);
-                return false;
-            });
-
-            $(document).on('click', '.filter-item .multiselect-reset a', function () {
-                if (!shouldLoadFilters()) {
-                    return;
-                }
-
-                setTimeout(function () {
-                    loadAgents(1);
-                }, 0);
-            });
-
-            setTimeout(function () {
-                filtersReady = true;
-            }, 200);
 
             $(document).on('click', '.agent-status-toggle', function () {
                 var $button = $(this);
@@ -1054,7 +904,7 @@
                                 });
 
                                 $row.fadeOut(400, function () {
-                                    table.row($row).remove().draw(false);
+                                    $row.remove();
                                 });
                             } else {
                                 swal('Error', response.message || 'Error deleting agent.', 'error');
