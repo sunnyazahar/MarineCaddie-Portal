@@ -658,8 +658,25 @@
                                     @endif
                                 </div>
 
+                                {{-- thead template used by JS to rebuild table after destroy(true) --}}
+                                <template id="agents-table-thead-template">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 30%;">Agent name</th>
+                                            <th style="width: 6%;">Code</th>
+                                            <th style="width: 9%;">City</th>
+                                            <th style="width: 10%;">Country</th>
+                                            <th style="width: 10%;">Phone number</th>
+                                            <th style="width: 15%;">Email</th>
+                                            <th style="width: 12%;">Type</th>
+                                            <th style="width: 5%;">Status</th>
+                                            <th style="width: 3%;"></th>
+                                        </tr>
+                                    </thead>
+                                </template>
+
                                 <!-- Data Table -->
-                                <div class="table-responsive" style="padding: 0;">
+                                <div id="agents-table-wrapper" class="table-responsive" style="padding: 0;">
                                     <table id="agents-table" class="table-agents">
                                         <thead>
                                             <tr>
@@ -798,31 +815,25 @@
                 }
             });
 
-            function initAgentsTable() {
-                if ($.fn.DataTable.isDataTable('#agents-table')) {
-                    return $('#agents-table').DataTable();
+            var dtConfig = {
+                "dom": 'rt',
+                "lengthChange": false,
+                "paging": false,
+                "info": false,
+                "responsive": false,
+                "searching": false,
+                "ordering": true,
+                "autoWidth": false,
+                "scrollX": true,
+                "columnDefs": [
+                    { "orderable": false, "targets": [8] }
+                ],
+                "language": {
+                    "emptyTable": "No agents found."
                 }
+            };
 
-                return $('#agents-table').DataTable({
-                    "dom": 'rt',
-                    "lengthChange": false,
-                    "paging": false,
-                    "info": false,
-                    "responsive": false,
-                    "searching": false,
-                    "ordering": true,
-                    "autoWidth": false,
-                    "scrollX": true,
-                    "columnDefs": [
-                        { "orderable": false, "targets": [8] }
-                    ],
-                    "language": {
-                        "emptyTable": "No agents found."
-                    }
-                });
-            }
-
-            table = initAgentsTable();
+            table = $('#agents-table').DataTable(dtConfig);
 
             function currentFilterParams(page) {
                 return {
@@ -838,14 +849,16 @@
             }
 
             function replaceAgentRows(html, paginationHtml) {
-                if ($.fn.DataTable.isDataTable('#agents-table')) {
-                    table.destroy();
-                }
-
-                $('#agents-table tbody').html(html);
-                table = initAgentsTable();
+                table.destroy(true);
+                $('#agents-table-wrapper').html(
+                    '<table id="agents-table" class="table-agents"></table>'
+                );
+                $('#agents-table').html(
+                    $('#agents-table-thead-template').html() +
+                    '<tbody>' + html + '</tbody>'
+                );
+                table = $('#agents-table').DataTable(dtConfig);
                 table.columns.adjust();
-
                 $('#agents-pagination').html(paginationHtml || '');
             }
 
