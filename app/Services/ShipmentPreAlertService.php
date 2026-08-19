@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\Shipment;
 use App\Models\ShipmentPreAlert;
+use App\Repositories\Contracts\ShipmentPreAlertRepositoryInterface;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 class ShipmentPreAlertService
@@ -14,6 +14,7 @@ class ShipmentPreAlertService
     public function __construct(
         private ShipmentPreAlertPdfBuilder $pdfBuilder,
         private ShipmentPdfCompanyFooter $companyFooter,
+        private ShipmentPreAlertRepositoryInterface $preAlerts,
     ) {}
 
     public function generate(Shipment $shipment): ?ShipmentPreAlert
@@ -37,11 +38,8 @@ class ShipmentPreAlertService
         }
 
         return DB::transaction(function () use ($shipment) {
-            Shipment::query()->whereKey($shipment->id)->lockForUpdate()->first();
-
-            $version = (int) ShipmentPreAlert::query()
-                ->where('shipment_id', $shipment->id)
-                ->max('version') + 1;
+            $this->preAlerts->lockShipment($shipment->id);
+            $version = $this->preAlerts->nextVersionForShipment($shipment->id);
 
             $label = ShipmentPreAlert::labelForVersion($version);
             $fileName = str_replace(' ', '-', $label) . '-' . $shipment->shipment_number . '-' . $version . '.pdf';
@@ -50,7 +48,7 @@ class ShipmentPreAlertService
 
             $this->storePdf($relativePath, $pdfContent);
 
-            return ShipmentPreAlert::create([
+            return $this->preAlerts->create([
                 'shipment_id' => $shipment->id,
                 'version' => $version,
                 'file_name' => $label,

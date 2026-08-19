@@ -4,12 +4,20 @@ namespace App\Console\Commands;
 
 use App\Models\Country;
 use App\Models\Port;
+use App\Repositories\Contracts\CountryRepositoryInterface;
+use App\Repositories\Contracts\PortRepositoryInterface;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ImportPortsCommand extends Command
 {
+    public function __construct(
+        private CountryRepositoryInterface $countries,
+        private PortRepositoryInterface $ports,
+    ) {
+        parent::__construct();
+    }
+
     protected $signature = 'ports:import
                             {--path= : CSV/XLSX path (airports: database/data/port_codes.csv, seaports: eximguru_ports.csv)}
                             {--fresh : Delete matching port type rows before import}';
@@ -26,8 +34,7 @@ class ImportPortsCommand extends Command
             return self::FAILURE;
         }
 
-        $countries = Country::query()
-            ->get(['id', 'name', 'iso_code', 'flag_emoji']);
+        $countries = $this->countries->allForPortImport();
 
         $byIso = $countries->keyBy(fn (Country $c) => strtoupper((string) $c->iso_code));
         $byName = $countries->keyBy(fn (Country $c) => $this->normalizeName($c->name));
@@ -75,7 +82,7 @@ class ImportPortsCommand extends Command
         }
 
         if ($this->option('fresh')) {
-            DB::table('ports')->where('type', Port::TYPE_AIRPORT)->delete();
+            $this->ports->deleteByType(Port::TYPE_AIRPORT);
             $this->warn('Cleared existing airport rows.');
         }
 
@@ -121,10 +128,7 @@ class ImportPortsCommand extends Command
                 'is_active' => true,
             ];
 
-            $port = Port::query()->firstOrNew([
-                'type' => Port::TYPE_AIRPORT,
-                'iata_code' => $iata,
-            ]);
+            $port = $this->ports->firstOrNewAirportByIata($iata);
 
             $wasExisting = $port->exists;
             $port->fill($attributes)->save();
@@ -143,7 +147,7 @@ class ImportPortsCommand extends Command
         $this->line("Updated: {$updated}");
         $this->line("Skipped: {$skipped}");
         $this->line("Rows without countries.country_id (ISO resolved, no DB match): {$withoutCountryId}");
-        $this->line('Total airports in DB: '.Port::airports()->count());
+        $this->line('Total airports in DB: '.$this->ports->countAirports());
 
         if ($unmappedCountries !== []) {
             arsort($unmappedCountries);
@@ -214,7 +218,7 @@ class ImportPortsCommand extends Command
     private function importSeaports(string $path, $byIso, $byName, array $aliases): int
     {
         if ($this->option('fresh')) {
-            DB::table('ports')->where('type', Port::TYPE_SEAPORT)->delete();
+            $this->ports->deleteByType(Port::TYPE_SEAPORT);
             $this->warn('Cleared existing seaport rows.');
         }
 
@@ -298,7 +302,7 @@ class ImportPortsCommand extends Command
             $buffer[$key] = $payload;
 
             if (count($buffer) >= 500) {
-                $this->upsertSeaports(array_values($buffer));
+                $this->ports->upsertSeaports(array_values($buffer));
                 $buffer = [];
             }
         }
@@ -306,14 +310,14 @@ class ImportPortsCommand extends Command
         fclose($handle);
 
         if ($buffer !== []) {
-            $this->upsertSeaports(array_values($buffer));
+            $this->ports->upsertSeaports(array_values($buffer));
         }
 
         $this->info('Seaport import finished from '.$path);
         $this->line("Upserted unique locodes: {$created}");
         $this->line("Duplicate locodes in file (last row kept): {$updated}");
         $this->line("Skipped: {$skipped}");
-        $this->line('Total seaports in DB: '.Port::seaports()->count());
+        $this->line('Total seaports in DB: '.$this->ports->countSeaports());
 
         if ($unmappedCountries !== []) {
             arsort($unmappedCountries);
@@ -324,18 +328,6 @@ class ImportPortsCommand extends Command
         }
 
         return self::SUCCESS;
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>  $rows
-     */
-    private function upsertSeaports(array $rows): void
-    {
-        Port::query()->upsert(
-            $rows,
-            ['type', 'un_locode'],
-            ['port_name', 'city', 'country_name', 'country_code', 'country_id', 'is_active', 'updated_at']
-        );
     }
 
     private function resolveImportPath(string $path): ?string

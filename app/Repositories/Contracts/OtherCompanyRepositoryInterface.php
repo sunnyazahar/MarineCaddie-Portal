@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 
 interface OtherCompanyRepositoryInterface
 {
+    public function all(): Collection;
+
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator;
 
     public function distinctCountries(): Collection;
@@ -17,5 +19,5 @@ interface OtherCompanyRepositoryInterface
 
     public function update(\App\Models\OtherCompany $company, array $data): bool;
 
-    public function delete(\App\Models\OtherCompany $company): bool;
+    public function deleteById(int $id): bool;
 }

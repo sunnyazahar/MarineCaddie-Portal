@@ -21,7 +21,7 @@ interface AgentRepositoryInterface
 
     public function update(\App\Models\Agent $agent, array $data): bool;
 
-    public function delete(int $id): bool;
+    public function deleteById(int $id): bool;
 
     public function updateStatus(\App\Models\Agent $agent, bool $isActive): bool;
 }

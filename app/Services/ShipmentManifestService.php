@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\Shipment;
 use App\Models\ShipmentManifest;
+use App\Repositories\Contracts\ShipmentManifestRepositoryInterface;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 class ShipmentManifestService
@@ -14,6 +14,7 @@ class ShipmentManifestService
     public function __construct(
         private ShipmentManifestPdfBuilder $pdfBuilder,
         private ShipmentPdfCompanyFooter $companyFooter,
+        private ShipmentManifestRepositoryInterface $manifests,
     ) {}
 
     public function generate(Shipment $shipment): ?ShipmentManifest
@@ -30,11 +31,8 @@ class ShipmentManifestService
         }
 
         return DB::transaction(function () use ($shipment) {
-            Shipment::query()->whereKey($shipment->id)->lockForUpdate()->first();
-
-            $version = (int) ShipmentManifest::query()
-                ->where('shipment_id', $shipment->id)
-                ->max('version') + 1;
+            $this->manifests->lockShipment($shipment->id);
+            $version = $this->manifests->nextVersionForShipment($shipment->id);
 
             $label = ShipmentManifest::labelForVersion($version);
             $fileName = $label . '-' . $shipment->shipment_number . '.pdf';
@@ -43,7 +41,7 @@ class ShipmentManifestService
 
             $this->storePdf($relativePath, $pdfContent);
 
-            return ShipmentManifest::create([
+            return $this->manifests->create([
                 'shipment_id' => $shipment->id,
                 'version' => $version,
                 'file_name' => $label,

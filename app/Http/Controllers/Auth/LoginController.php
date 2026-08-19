@@ -57,9 +57,25 @@ class LoginController extends Controller
             'timezone' => $request->input('browser_timezone'),
         ]);
 
+        if ($this->shouldBypassOtp()) {
+            $request->session()->put('otp_verified', true);
+
+            return redirect()->intended('/dashboard');
+        }
+
         $request->session()->forget('otp_verified');
 
         return redirect()->route('otp.show');
+    }
+
+    private function shouldBypassOtp(): bool
+    {
+        if (app()->environment('production')) {
+            return false;
+        }
+
+        return app()->environment(['local', 'localhost', 'development', 'testing'])
+            && (bool) config('app.local_otp_bypass', false);
     }
 
     public function csrfToken()

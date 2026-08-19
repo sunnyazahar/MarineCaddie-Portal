@@ -13,9 +13,8 @@ use App\Models\HubUser;
 use App\Models\Office;
 use App\Models\OtherCompany;
 use App\Models\Supplier;
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Repositories\Contracts\AdministrationChangeLogRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Http\Request;
 
 class AdministrationChangeLogController extends Controller
@@ -40,9 +39,15 @@ class AdministrationChangeLogController extends Controller
         'manager' => 'Manager user',
     ];
 
+    public function __construct(
+        private UserRepositoryInterface $userRepository,
+        private AdministrationChangeLogRepositoryInterface $changeLogRepository,
+    ) {
+    }
+
     public function index()
     {
-        $users = User::query()->orderBy('name')->get(['id', 'name']);
+        $users = $this->userRepository->usersForChangeLog();
         $entityTypes = self::ENTITY_TYPES;
 
         return view('administration.change-logs', compact('users', 'entityTypes'));
@@ -50,57 +55,12 @@ class AdministrationChangeLogController extends Controller
 
     public function search(Request $request)
     {
-        $query = AdministrationChangeLog::query()
-            ->with([
-                'user',
-                'loggable' => function (MorphTo $morphTo) {
-                    $morphTo->morphWith([
-                        Contact::class => ['office', 'customer', 'hub', 'agent', 'supplier', 'otherCompany'],
-                        CustomerVessel::class => ['customer'],
-                        HubUser::class => ['hub'],
-                        AgentUser::class => ['agent'],
-                    ]);
-                },
-            ])
-            ->orderByDesc('created_at')
-            ->orderByDesc('id');
-
-        if ($request->filled('entity_type') && array_key_exists($request->entity_type, self::ENTITY_TYPES)) {
-            $query->where('loggable_type', $request->entity_type);
+        $filters = $request->all();
+        if (! ($request->filled('entity_type') && array_key_exists($request->entity_type, self::ENTITY_TYPES))) {
+            unset($filters['entity_type']);
         }
 
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
-
-        if ($request->filled('search')) {
-            $search = trim((string) $request->search);
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%')
-                    ->orWhere('field', 'like', '%' . $search . '%');
-            });
-        }
-
-        if ($request->filled('date_from')) {
-            try {
-                $from = Carbon::parse($request->date_from)->startOfDay();
-                $query->where('created_at', '>=', $from);
-            } catch (\Throwable) {
-                // Ignore invalid date_from.
-            }
-        }
-
-        if ($request->filled('date_to')) {
-            try {
-                $to = Carbon::parse($request->date_to)->endOfDay();
-                $query->where('created_at', '<=', $to);
-            } catch (\Throwable) {
-                // Ignore invalid date_to.
-            }
-        }
-
-        $logs = $query->paginate(50);
+        $logs = $this->changeLogRepository->search($filters, 50);
 
         $rows = $logs->getCollection()->map(function (AdministrationChangeLog $log) {
             return [

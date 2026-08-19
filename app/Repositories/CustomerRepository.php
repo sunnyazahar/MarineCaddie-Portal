@@ -3,16 +3,38 @@
 namespace App\Repositories;
 
 use App\Models\Contact;
-use App\Models\Country;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerResponsible;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
+use App\Support\CountryCache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
-class CustomerRepository implements CustomerRepositoryInterface
+class CustomerRepository extends BaseRepository implements CustomerRepositoryInterface
 {
+    protected string $modelClass = Customer::class;
+
+    public function findOrFail(int $id, array $with = []): Customer
+    {
+        return parent::findModelOrFail($id, $with);
+    }
+
+    public function find(int $id): ?Customer
+    {
+        return $this->query()->find($id);
+    }
+
+    public function create(array $data): Customer
+    {
+        return parent::create($data);
+    }
+
+    public function update(Customer $customer, array $data): bool
+    {
+        return parent::updateModel($customer, $data);
+    }
+
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator
     {
         $search             = trim((string) ($filters['search'] ?? ''));
@@ -21,7 +43,7 @@ class CustomerRepository implements CustomerRepositoryInterface
         $salesMgrFilter     = array_values(array_filter((array) ($filters['sales_manager'] ?? [])));
         $countriesFilter    = array_values(array_filter((array) ($filters['country'] ?? [])));
 
-        return Customer::query()
+        return $this->query()
             ->with([
                 'primaryAddress.country',
                 'responsible.accountManager.office',
@@ -53,7 +75,7 @@ class CustomerRepository implements CustomerRepositoryInterface
 
     public function filterOffices(): Collection
     {
-        return Customer::query()
+        return $this->query()
             ->join('customer_responsibles', 'customer_responsibles.customer_id', '=', 'customers.id')
             ->join('contacts as account_contacts', 'account_contacts.id', '=', 'customer_responsibles.account_manager_id')
             ->join('offices', 'offices.id', '=', 'account_contacts.office_id')
@@ -85,9 +107,13 @@ class CustomerRepository implements CustomerRepositoryInterface
 
     public function filterCountries(): Collection
     {
-        return Country::query()
-            ->whereIn('id', CustomerAddress::query()->where('type', 'primary')->whereNotNull('country_id')->pluck('country_id'))
-            ->orderBy('name')
+        $usedCountryIds = CustomerAddress::query()
+            ->where('type', 'primary')
+            ->whereNotNull('country_id')
+            ->pluck('country_id');
+
+        return CountryCache::active()
+            ->whereIn('id', $usedCountryIds)
             ->pluck('name')
             ->values();
     }

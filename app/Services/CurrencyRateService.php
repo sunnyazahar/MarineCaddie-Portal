@@ -2,13 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\Country;
+use App\Repositories\Contracts\CountryRepositoryInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class CurrencyRateService
 {
+    public function __construct(
+        private CountryRepositoryInterface $countries,
+    ) {}
+
     /**
      * @return array{updated: int, last_update: ?string}
      */
@@ -29,9 +33,7 @@ class CurrencyRateService
         $updatedCount = 0;
 
         foreach ($data['rates'] as $currencyCode => $rate) {
-            $updated = Country::query()
-                ->where('currency', $currencyCode)
-                ->update(['currency_value' => $rate]);
+            $updated = $this->countries->updateCurrencyValueByCode((string) $currencyCode, (float) $rate);
 
             if ($updated) {
                 $updatedCount++;

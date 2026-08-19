@@ -2,17 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\CrrDocument;
 use App\Models\Shipment;
+use App\Repositories\Contracts\CrrDocumentRepositoryInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class CombinedPoPdfService
 {
     public function __construct(
         private CombinedPoPdfMerger $merger,
         private ShipmentStockSnapshotService $stockSnapshotService,
+        private CrrDocumentRepositoryInterface $documents,
     ) {}
 
     public function documentsForShipment(Shipment $shipment): Collection
@@ -23,25 +23,7 @@ class CombinedPoPdfService
             ->values()
             ->all();
 
-        return CrrDocument::query()
-            ->with('crr:id,stock_number,vessel_name,internal_shipment')
-            ->where(function ($query) use ($shipment, $crrIds) {
-                if (!empty($crrIds)) {
-                    $query->whereIn('crr_id', $crrIds);
-                }
-
-                $query->orWhereHas('crr', function ($crrQuery) use ($shipment) {
-                    $crrQuery->where('internal_shipment', $shipment->shipment_number);
-                });
-            })
-            ->where(function ($query) {
-                $query->whereRaw('LOWER(file_name) LIKE ?', ['%.pdf'])
-                    ->orWhereRaw('LOWER(file_path) LIKE ?', ['%.pdf']);
-            })
-            ->orderBy('created_at')
-            ->get()
-            ->unique('file_path')
-            ->values();
+        return $this->documents->pdfDocumentsForShipment($shipment->shipment_number, $crrIds);
     }
 
     /**

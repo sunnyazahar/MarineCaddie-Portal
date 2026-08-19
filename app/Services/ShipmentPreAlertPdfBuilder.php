@@ -14,12 +14,16 @@ use App\Models\ShipmentOnBoardLeg;
 use App\Models\ShipmentReleaseLeg;
 use App\Models\ShipmentSeaLeg;
 use App\Models\ShipmentTruckLeg;
+use App\Repositories\Contracts\PartyLookupRepositoryInterface;
+use App\Repositories\Contracts\PortRepositoryInterface;
 
 class ShipmentPreAlertPdfBuilder
 {
     public function __construct(
         private ShipmentManifestPdfBuilder $manifestPdfBuilder,
         private CombinedPoPdfService $combinedPoPdfService,
+        private PortRepositoryInterface $portRepository,
+        private PartyLookupRepositoryInterface $partyLookupRepository,
     ) {}
 
     public function build(Shipment $shipment): array
@@ -647,10 +651,7 @@ class ShipmentPreAlertPdfBuilder
         $countryPart = trim((string) $country);
 
         if ($code !== '') {
-            $port = Port::query()
-                ->with('country')
-                ->where('iata_code', $code)
-                ->first();
+            $port = $this->portRepository->findByCodeWithCountry($code);
 
             if ($port) {
                 $code = $port->iata_code ?: $code;
@@ -661,9 +662,7 @@ class ShipmentPreAlertPdfBuilder
                     $countryPart = trim((string) ($port->country_name ?: $port->country?->name ?: ''));
                 }
             } else {
-                $hub = Hub::query()
-                    ->where('port_code', $code)
-                    ->first();
+                $hub = $this->partyLookupRepository->findHubByPortCode($code);
 
                 if ($hub) {
                     if ($cityPart === '') {
@@ -673,10 +672,7 @@ class ShipmentPreAlertPdfBuilder
                         $countryPart = trim((string) ($hub->country ?? ''));
                     }
                 } else {
-                    $agent = Agent::query()
-                        ->with('country')
-                        ->where('port_code', $code)
-                        ->first();
+                    $agent = $this->partyLookupRepository->findAgentByPortCodeWithCountry($code);
 
                     if ($agent) {
                         if ($cityPart === '') {

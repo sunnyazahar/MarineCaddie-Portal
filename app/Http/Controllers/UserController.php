@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agent;
-use App\Models\Hub;
-use App\Models\Office;
-use App\Models\Supplier;
 use App\Models\User;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,36 +13,25 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
+    public function __construct(private UserRepositoryInterface $userRepository)
+    {
+    }
+
     public function index(Request $request): View
     {
         $this->ensureAdmin();
 
-        $search = trim((string) $request->query('search', ''));
-        $role = trim((string) $request->query('role', ''));
-        $status = $request->query('status');
         $perPage = max(10, min(100, (int) $request->query('per_page', 25)));
 
-        $users = User::query()
-            ->with(['offices:id,office_name', 'hubs:id,hub_name,code', 'agents:id,agent_name,code', 'suppliers:id,supplier_name'])
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($sub) use ($search) {
-                    $sub->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%')
-                        ->orWhere('phone_number', 'like', '%' . $search . '%');
-                });
-            })
-            ->when($role !== '', fn ($query) => $query->where('role', $role))
-            ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', (bool) $status))
-            ->orderBy('name')
-            ->paginate($perPage)
-            ->withQueryString();
+        $users = $this->userRepository->paginateForAdmin($request->all(), $perPage);
+        $assignmentOptions = $this->userRepository->assignmentOptions();
 
         return view('Users.users', [
             'users' => $users,
-            'assignmentOffices' => Office::query()->orderBy('office_name')->get(['id', 'office_name']),
-            'assignmentHubs' => Hub::query()->orderBy('hub_name')->get(['id', 'hub_name', 'code']),
-            'assignmentAgents' => Agent::query()->orderBy('agent_name')->get(['id', 'agent_name', 'code']),
-            'assignmentSuppliers' => Supplier::query()->orderBy('supplier_name')->get(['id', 'supplier_name']),
+            'assignmentOffices' => $assignmentOptions['assignmentOffices'],
+            'assignmentHubs' => $assignmentOptions['assignmentHubs'],
+            'assignmentAgents' => $assignmentOptions['assignmentAgents'],
+            'assignmentSuppliers' => $assignmentOptions['assignmentSuppliers'],
             'userRoles' => ['Admin', 'Operations', 'Agents', 'Accounts', 'Supplier'],
         ]);
     }
@@ -62,7 +48,7 @@ class UserController extends Controller
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
         ]);
 
-        User::create($validated);
+        $this->userRepository->createUser($validated);
 
         return redirect()
             ->route('users.index')

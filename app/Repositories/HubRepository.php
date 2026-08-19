@@ -8,8 +8,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-class HubRepository implements HubRepositoryInterface
+class HubRepository extends BaseRepository implements HubRepositoryInterface
 {
+    protected string $modelClass = Hub::class;
+
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator
     {
         $name         = trim((string) ($filters['name'] ?? ''));
@@ -17,9 +19,9 @@ class HubRepository implements HubRepositoryInterface
         $address      = trim((string) ($filters['address'] ?? ''));
         $city         = trim((string) ($filters['city'] ?? ''));
         $countries    = array_values(array_filter((array) ($filters['country'] ?? [])));
-        $hideInactive = (bool) ($filters['hide_inactive'] ?? true);
+        $hideInactive = (bool) ($filters['hide_inactive'] ?? false);
 
-        return Hub::query()
+        return $this->query()
             ->when($name !== '', fn ($q) => $q->where('hub_name', 'like', '%' . $name . '%'))
             ->when($code !== '', fn ($q) => $q->where('code', 'like', '%' . $code . '%'))
             ->when($city !== '', fn ($q) => $q->where('city', 'like', '%' . $city . '%'))
@@ -39,7 +41,7 @@ class HubRepository implements HubRepositoryInterface
 
     public function distinctCountries(): Collection
     {
-        return Hub::query()
+        return $this->query()
             ->whereNotNull('country')
             ->where('country', '!=', '')
             ->distinct()
@@ -57,17 +59,17 @@ class HubRepository implements HubRepositoryInterface
 
     public function findOrFail(int $id): Hub
     {
-        return Hub::findOrFail($id);
+        return parent::findModelOrFail($id);
     }
 
     public function findWithRelations(int $id, array $relations = []): Hub
     {
-        return Hub::with($relations)->findOrFail($id);
+        return parent::findModelOrFail($id, $relations);
     }
 
     public function create(array $data): Hub
     {
-        return Hub::create($data);
+        return parent::create($data);
     }
 
     public function update(Hub $hub, array $data): bool
@@ -75,9 +77,9 @@ class HubRepository implements HubRepositoryInterface
         return $hub->update($data);
     }
 
-    public function delete(int $id): bool
+    public function deleteById(int $id): bool
     {
-        return (bool) Hub::findOrFail($id)->delete();
+        return parent::deleteById($id);
     }
 
     public function updateStatus(Hub $hub, bool $isInactive): bool

@@ -2,25 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contact;
-use App\Models\HubDocument;
-use App\Models\HubPricingDocument;
-use App\Models\HubUser;
+use App\Repositories\Contracts\ContactRepositoryInterface;
+use App\Repositories\Contracts\HubDocumentRepositoryInterface;
 use App\Repositories\Contracts\HubRepositoryInterface;
+use App\Repositories\Contracts\HubUserRepositoryInterface;
 use App\Support\CountryCache;
 use App\Support\PrivateDisk;
 use Illuminate\Http\Request;
 
 class HubController extends Controller
 {
-    public function __construct(private HubRepositoryInterface $hubs) {}
+    public function __construct(
+        private HubRepositoryInterface $hubs,
+        private HubDocumentRepositoryInterface $hubDocuments,
+        private ContactRepositoryInterface $contacts,
+        private HubUserRepositoryInterface $hubUsers,
+    ) {}
 
     public function index(Request $request)
     {
         $perPage     = max(10, min(100, (int) $request->input('per_page', 25)));
         $filters     = array_merge(
             $request->only(['name', 'code', 'address', 'city', 'country']),
-            ['hide_inactive' => $request->boolean('hide_inactive', true)]
+            ['hide_inactive' => $request->boolean('hide_inactive', false)]
         );
         $hubs        = $this->hubs->paginate($filters, $perPage);
         $countryFlags = $this->hubs->countryFlags();
@@ -223,7 +227,7 @@ class HubController extends Controller
     public function destroy($id)
     {
         try {
-            $this->hubs->delete((int) $id);
+            $this->hubs->deleteById((int) $id);
             return response()->json(['success' => true, 'message' => 'Hub deleted successfully.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error deleting hub.'], 500);
@@ -262,9 +266,7 @@ class HubController extends Controller
 
     public function showDocument($type, $docId)
     {
-        $document = $type === 'pricing'
-            ? HubPricingDocument::findOrFail($docId)
-            : HubDocument::findOrFail($docId);
+        $document = $this->hubDocuments->findOrFailByType((string) $type, (int) $docId);
 
         return PrivateDisk::downloadResponse((string) $document->file_path, (string) $document->file_name);
     }
@@ -272,9 +274,7 @@ class HubController extends Controller
     public function deleteDocument(Request $request, $docId)
     {
         $type     = $request->input('type', 'sop');
-        $document = $type === 'pricing'
-            ? HubPricingDocument::findOrFail($docId)
-            : HubDocument::findOrFail($docId);
+        $document = $this->hubDocuments->findOrFailByType((string) $type, (int) $docId);
 
         if (PrivateDisk::exists($document->file_path)) {
             PrivateDisk::delete($document->file_path);
@@ -315,7 +315,7 @@ class HubController extends Controller
     public function editContact($hubId, $contactId)
     {
         $hub     = $this->hubs->findOrFail((int) $hubId);
-        $contact = Contact::findOrFail($contactId);
+        $contact = $this->contacts->findOrFail((int) $contactId);
         return view('hub.contacts.edit', compact('hub', 'contact'));
     }
 
@@ -329,8 +329,8 @@ class HubController extends Controller
             'is_main_contact' => 'nullable|boolean',
         ]);
 
-        $contact = Contact::findOrFail($contactId);
-        $contact->update([
+        $contact = $this->contacts->findOrFail((int) $contactId);
+        $this->contacts->update($contact, [
             'name'            => $request->name,
             'email'           => $request->email,
             'phone_number'    => $request->phone_number,
@@ -370,7 +370,7 @@ class HubController extends Controller
     public function editUser($hubId, $userId)
     {
         $hub  = $this->hubs->findOrFail((int) $hubId);
-        $user = HubUser::findOrFail($userId);
+        $user = $this->hubUsers->findOrFail((int) $userId);
         return view('hub.users.edit', compact('hub', 'user'));
     }
 
@@ -383,7 +383,8 @@ class HubController extends Controller
             'show_in_scan_gun' => 'nullable|boolean',
         ]);
 
-        HubUser::findOrFail($userId)->update([
+        $hubUser = $this->hubUsers->findOrFail((int) $userId);
+        $this->hubUsers->update($hubUser, [
             'name'             => $request->name,
             'email'            => $request->email,
             'phone_number'     => $request->phone_number,

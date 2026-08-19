@@ -21,7 +21,7 @@ interface HubRepositoryInterface
 
     public function update(\App\Models\Hub $hub, array $data): bool;
 
-    public function delete(int $id): bool;
+    public function deleteById(int $id): bool;
 
     public function updateStatus(\App\Models\Hub $hub, bool $isInactive): bool;
 }

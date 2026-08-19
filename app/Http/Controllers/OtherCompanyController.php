@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contact;
+use App\Repositories\Contracts\ContactRepositoryInterface;
 use App\Repositories\Contracts\OtherCompanyRepositoryInterface;
 use App\Support\CountryCache;
 use Illuminate\Http\Request;
 
 class OtherCompanyController extends Controller
 {
-    public function __construct(private OtherCompanyRepositoryInterface $companies) {}
+    public function __construct(
+        private OtherCompanyRepositoryInterface $companies,
+        private ContactRepositoryInterface $contacts,
+    ) {}
 
     public function index(Request $request)
     {
@@ -112,7 +115,7 @@ class OtherCompanyController extends Controller
     public function destroy(\App\Models\OtherCompany $otherCompany)
     {
         try {
-            $this->companies->delete($otherCompany);
+            $this->companies->deleteById((int) $otherCompany->id);
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json(['success' => true, 'message' => 'Company deleted successfully.']);
@@ -161,7 +164,7 @@ class OtherCompanyController extends Controller
     public function editContact($otherCompanyId, $contactId)
     {
         $otherCompany = $this->companies->findOrFail((int) $otherCompanyId);
-        $contact      = Contact::findOrFail($contactId);
+        $contact      = $this->contacts->findOrFail((int) $contactId);
         return view('Other Companies.contacts.edit', compact('otherCompany', 'contact'));
     }
 
@@ -175,8 +178,8 @@ class OtherCompanyController extends Controller
             'is_main_contact' => 'nullable|boolean',
         ]);
 
-        $contact = Contact::findOrFail($contactId);
-        $contact->update([
+        $contact = $this->contacts->findOrFail((int) $contactId);
+        $this->contacts->update($contact, [
             'name'            => $request->name,
             'email'           => $request->email,
             'phone_number'    => $request->phone_number,
@@ -192,7 +195,7 @@ class OtherCompanyController extends Controller
 
     public function destroyContact($otherCompanyId, $contactId)
     {
-        Contact::findOrFail($contactId)->delete();
+        $this->contacts->deleteById((int) $contactId);
         return redirect()
             ->route('other-companies.edit', $otherCompanyId)
             ->with('success', 'Contact deleted successfully.')

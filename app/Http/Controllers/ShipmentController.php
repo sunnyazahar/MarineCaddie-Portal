@@ -2,31 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agent;
 use App\Support\CountryCache;
 use App\Support\ListSearch;
-use App\Models\Contact;
-use App\Models\Country;
 use App\Models\Crr;
-use App\Models\Customer;
-use App\Models\Hub;
-use App\Models\Office;
-use App\Models\OtherCompany;
-use App\Models\Supplier;
 use App\Models\Shipment;
 use App\Models\ShipmentDocument;
 use App\Models\ShipmentManifest;
 use App\Models\ShipmentPreAlert;
-use App\Models\ShipmentPreAlertReminderSend;
-use App\Models\ShipmentFlight;
-use App\Models\ShipmentIrregularity;
-use App\Models\ShipmentHandCarryLeg;
-use App\Models\ShipmentOnBoardLeg;
-use App\Models\ShipmentReleaseLeg;
-use App\Models\ShipmentSeaLeg;
-use App\Models\ShipmentCourierLeg;
-use App\Models\ShipmentTruckLeg;
-use App\Models\User;
+use App\Repositories\Contracts\ShipmentRepositoryInterface;
 use App\Services\CombinedPoPdfService;
 use App\Services\ManifestMailService;
 use App\Services\PreAlertMailService;
@@ -49,26 +32,15 @@ use Illuminate\Validation\Rule;
 
 class ShipmentController extends Controller
 {
+    public function __construct(private ShipmentRepositoryInterface $shipmentRepository)
+    {
+    }
+
     public function index(Request $request)
     {
         $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
 
-        $query = Shipment::query()
-            ->with([
-                'crrs.customerVessel.customer',
-                'accountManager.office',
-                'creator',
-                'irregularities',
-                'flights',
-                'seaLegs',
-                'truckLegs',
-                'courierLegs',
-                'releaseLegs',
-            ]);
-
-        $this->applyShipmentIndexFilters($query, $request);
-
-        $shipments = $query->orderByDesc('id')->paginate($perPage);
+        $shipments = $this->shipmentRepository->paginateIndex($request->all(), $perPage);
         $shipmentRows = $shipments->getCollection();
         $partyNames = Shipment::batchResolvePartyNames($shipmentRows);
         $vesselCustomerMap = Shipment::batchResolveVesselCustomerNames($shipmentRows);
@@ -81,73 +53,20 @@ class ShipmentController extends Controller
             ]);
         }
 
-        $customers = DB::table('customers')
-            ->select('customer_name')
-            ->whereNotNull('customer_name')
-            ->distinct()
-            ->orderBy('customer_name')
-            ->pluck('customer_name');
+        $options = $this->shipmentRepository->indexFilterOptions();
 
-        $vessels = DB::table('customer_vessels')
-            ->select('vessel')
-            ->whereNotNull('vessel')
-            ->where('vessel', '!=', '')
-            ->distinct()
-            ->orderBy('vessel')
-            ->pluck('vessel');
-
-        $services = Shipment::query()->whereNotNull('service')->distinct()->orderBy('service')->pluck('service');
-        $statuses = Shipment::query()->whereNotNull('status')->distinct()->orderBy('status')->pluck('status');
-        $departureOptions = Shipment::query()->whereNotNull('departure_port_code')->distinct()->orderBy('departure_port_code')->pluck('departure_port_code');
-
-        $accountManagers = Contact::query()
-            ->whereIn('id', Shipment::query()->whereNotNull('account_manager_id')->distinct()->pluck('account_manager_id'))
-            ->orderBy('name')
-            ->get(['id', 'name', 'office_id']);
-
-        $creators = User::query()
-            ->whereIn('id', Shipment::query()->whereNotNull('created_by')->distinct()->pluck('created_by'))
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        $offices = Office::query()
-            ->whereIn('id', $accountManagers->pluck('office_id')->filter()->unique())
-            ->orderBy('office_name')
-            ->get(['id', 'office_name']);
-
-        return view('Shipment.shipments', compact(
-            'shipments',
-            'partyNames',
-            'vesselCustomerMap',
-            'customers',
-            'vessels',
-            'services',
-            'statuses',
-            'departureOptions',
-            'accountManagers',
-            'creators',
-            'offices'
-        ));
+        return view('Shipment.shipments', array_merge([
+            'shipments' => $shipments,
+            'partyNames' => $partyNames,
+            'vesselCustomerMap' => $vesselCustomerMap,
+        ], $options));
     }
 
     public function preAlertReminders(Request $request)
     {
         $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
-        $baseQuery = Shipment::query()->where('status', '!=', 'Completed');
 
-        $query = Shipment::with([
-            'crrs.packages',
-            'crrs.customerVessel.customer',
-            'accountManager.office',
-            'creator',
-            'irregularities',
-        ])
-            ->withCount('preAlertReminderSends as reminder_sent_count')
-            ->where('status', '!=', 'Completed');
-
-        $this->applyShipmentFollowUpFilters($query, $request);
-
-        $shipments = $query->orderByDesc('id')->paginate($perPage);
+        $shipments = $this->shipmentRepository->paginatePreAlertReminders($request->all(), $perPage);
         $shipmentRows = $shipments->getCollection();
         $partyNames = Shipment::batchResolvePartyNames($shipmentRows);
 
@@ -159,7 +78,7 @@ class ShipmentController extends Controller
             ]);
         }
 
-        $options = $this->shipmentFollowUpFilterOptions($baseQuery);
+        $options = $this->shipmentRepository->followUpFilterOptions('not_completed');
 
         return view('Shipment.pre-alert-reminders', array_merge($options, [
             'shipments' => $shipments,
@@ -170,28 +89,8 @@ class ShipmentController extends Controller
     public function shipmentFollowUp(Request $request)
     {
         $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
-        $baseQuery = Shipment::query()->whereNotIn('status', ['Completed', 'Draft']);
 
-        $query = Shipment::with([
-            'crrs.packages',
-            'crrs.customerVessel.customer',
-            'accountManager.office',
-            'creator',
-            'irregularities',
-            'flights',
-            'seaLegs',
-            'truckLegs',
-            'courierLegs',
-            'releaseLegs',
-            'handCarryLegs',
-            'onBoardLegs',
-        ])
-            ->withMax('preAlertReminderSends as last_reminder_sent_at', 'created_at')
-            ->whereNotIn('status', ['Completed', 'Draft']);
-
-        $this->applyShipmentFollowUpFilters($query, $request);
-
-        $shipments = $query->orderByDesc('id')->paginate($perPage);
+        $shipments = $this->shipmentRepository->paginateShipmentFollowUp($request->all(), $perPage);
         $shipmentRows = $shipments->getCollection();
         $partyNames = Shipment::batchResolvePartyNames($shipmentRows);
 
@@ -203,7 +102,7 @@ class ShipmentController extends Controller
             ]);
         }
 
-        $options = $this->shipmentFollowUpFilterOptions($baseQuery);
+        $options = $this->shipmentRepository->followUpFilterOptions('follow_up');
 
         return view('Shipment.shipment-follow-up', array_merge($options, [
             'shipments' => $shipments,
@@ -213,8 +112,7 @@ class ShipmentController extends Controller
 
     public function costFollowUp()
     {
-        $baseQuery = Shipment::query()->where('status', '!=', 'Cancelled');
-        $options = $this->shipmentFollowUpFilterOptions($baseQuery);
+        $options = $this->shipmentRepository->followUpFilterOptions('not_cancelled');
 
         return view('Shipment.cost-follow-up', $options);
     }
@@ -236,26 +134,10 @@ class ShipmentController extends Controller
             return response()->json(['data' => []]);
         }
 
-        $query = Shipment::with([
-            'crrs.packages',
-            'crrs.customerVessel.customer',
-            'accountManager.office',
-            'creator',
-            'irregularities',
-            'flights',
-            'seaLegs',
-            'truckLegs',
-            'courierLegs',
-            'releaseLegs',
-            'handCarryLegs',
-            'onBoardLegs',
-        ])
-            ->withCount('preAlertReminderSends as reminder_sent_count')
-            ->where('status', '!=', 'Cancelled');
-
-        $this->applyShipmentFollowUpFilters($query, $request);
-
-        $shipments = $query->orderByDesc('id')->limit(250)->get();
+        $shipments = $this->shipmentRepository
+            ->buildCostFollowUpSearchQuery($request->all())
+            ->limit(250)
+            ->get();
         $partyNames = Shipment::batchResolvePartyNames($shipments);
         $vesselCustomerMap = Shipment::batchResolveVesselCustomerNames($shipments);
 
@@ -301,12 +183,12 @@ class ShipmentController extends Controller
 
     public function preAlertReminderMailPreview($id, PreAlertReminderMailService $reminderMailService)
     {
-        $shipment = Shipment::with([
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
             'crrs.customerVessel.customer',
             'accountManager.office',
             'creator',
-        ])->findOrFail($id);
+        ]);
 
         if ($shipment->status === 'Completed') {
             return response()->json([
@@ -338,7 +220,7 @@ class ShipmentController extends Controller
 
     public function sendPreAlertReminderMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         if ($shipment->status === 'Completed') {
             return response()->json([
@@ -381,7 +263,7 @@ class ShipmentController extends Controller
 
     public function preAlertReminderMail($id, PreAlertReminderMailService $reminderMailService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         try {
             $eml = $reminderMailService->buildEml(
@@ -404,7 +286,7 @@ class ShipmentController extends Controller
 
     public function deliveryStatusReminderMailPreview($id, PreAlertReminderMailService $reminderMailService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         if ($shipment->status === 'Completed') {
             return response()->json([
@@ -436,7 +318,7 @@ class ShipmentController extends Controller
 
     public function sendDeliveryStatusReminderMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         if ($shipment->status === 'Completed') {
             return response()->json([
@@ -478,7 +360,7 @@ class ShipmentController extends Controller
 
     public function deliveryStatusReminderMail($id, PreAlertReminderMailService $reminderMailService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         try {
             $eml = $reminderMailService->buildDeliveryStatusEml(
@@ -501,7 +383,7 @@ class ShipmentController extends Controller
 
     public function invoiceRequestMailPreview($id, PreAlertReminderMailService $reminderMailService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         try {
             $preview = $reminderMailService->buildInvoiceRequestPreview(
@@ -526,7 +408,7 @@ class ShipmentController extends Controller
 
     public function sendInvoiceRequestMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
         $validated = $request->validate([
             'to' => ['required', 'string', 'max:2000'],
             'cc' => ['nullable', 'string', 'max:2000'],
@@ -561,7 +443,7 @@ class ShipmentController extends Controller
 
     public function invoiceRequestMail($id, PreAlertReminderMailService $reminderMailService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         try {
             $eml = $reminderMailService->buildInvoiceRequestEml(
@@ -584,7 +466,7 @@ class ShipmentController extends Controller
 
     public function recordPreAlertReminderSend($id)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         if ($shipment->status === 'Completed') {
             return response()->json([
@@ -593,10 +475,7 @@ class ShipmentController extends Controller
             ], 422);
         }
 
-        ShipmentPreAlertReminderSend::create([
-            'shipment_id' => $shipment->id,
-            'user_id' => auth()->id(),
-        ]);
+        $this->shipmentRepository->createPreAlertReminderSend($shipment->id, auth()->id());
 
         return response()->json([
             'success' => true,
@@ -606,7 +485,7 @@ class ShipmentController extends Controller
 
     public function markAsArrived($id, ShipmentStockSnapshotService $stockSnapshotService)
     {
-        $shipment = Shipment::with([
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
             'crrs.costs',
             'crrs.documents',
@@ -615,7 +494,7 @@ class ShipmentController extends Controller
             'seaLegs',
             'truckLegs',
             'courierLegs',
-        ])->findOrFail($id);
+        ]);
 
         if ($shipment->status === 'Completed') {
             return response()->json([
@@ -631,7 +510,7 @@ class ShipmentController extends Controller
 
             $crrIds = $shipment->crrs()->pluck('crrs.id')->all();
             if (!empty($crrIds)) {
-                Crr::whereIn('id', $crrIds)->update([
+                $this->shipmentRepository->updateCrrStatuses($crrIds, [
                     'status' => Crr::STATUS_COMPLETED,
                 ]);
             }
@@ -649,7 +528,7 @@ class ShipmentController extends Controller
 
     public function updateStatus(Request $request, $id, ShipmentChangeLogService $changeLogService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         $validated = $request->validate([
             'status' => ['required', Rule::in(['In process', 'In transit', 'Delivered', 'Completed', 'Cancelled'])],
@@ -663,7 +542,7 @@ class ShipmentController extends Controller
                 $crrIds = $shipment->crrs()->pluck('crrs.id');
 
                 if ($crrIds->isNotEmpty()) {
-                    Crr::query()->whereIn('id', $crrIds)->update([
+                    $this->shipmentRepository->updateCrrStatuses($crrIds->all(), [
                         'status' => Crr::STATUS_ACTIVE,
                         'internal_shipment' => null,
                     ]);
@@ -689,7 +568,7 @@ class ShipmentController extends Controller
 
             $recipientIds = collect([$shipment->created_by])
                 ->merge(
-                    \App\Models\User::query()->where('role', 'Admin')->pluck('id')
+                    $this->shipmentRepository->adminUserIds()
                 )
                 ->filter()
                 ->unique()
@@ -722,7 +601,7 @@ class ShipmentController extends Controller
 
     public function updateFlags(Request $request, $id, ShipmentChangeLogService $changeLogService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         $flagsInput = $request->input('flags');
         if ($flagsInput !== null && ! is_array($flagsInput)) {
@@ -761,9 +640,9 @@ class ShipmentController extends Controller
         try {
             do {
                 $shipmentNumber = $this->generateShipmentNumber();
-            } while (Shipment::where('shipment_number', $shipmentNumber)->exists());
+            } while ($this->shipmentRepository->shipmentNumberExists($shipmentNumber));
 
-            $shipment = Shipment::create(array_merge(
+            $shipment = $this->shipmentRepository->createShipment(array_merge(
                 [
                     'shipment_number' => $shipmentNumber,
                     'created_by' => auth()->id(),
@@ -814,7 +693,7 @@ class ShipmentController extends Controller
 
     public function edit($id, ManifestMailService $manifestMailService, PreAlertMailService $preAlertMailService, CombinedPoPdfService $combinedPoPdfService, ShipmentManifestService $manifestService, ShipmentPreAlertService $preAlertService, ShipmentStockSnapshotService $stockSnapshotService, ShipmentTransitStockDuplicationService $transitStockDuplicationService)
     {
-        $shipment = Shipment::with([
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
             'crrs.customerVessel.customer.primaryAddress.country',
             'crrs.customerVessel.customer.responsible.accountManager.office',
@@ -835,7 +714,7 @@ class ShipmentController extends Controller
             'manifests',
             'preAlerts',
             'changeLogs.user',
-        ])->findOrFail($id);
+        ]);
 
         $stockSnapshotService->applyResolvedStockCrrs($shipment);
 
@@ -844,12 +723,7 @@ class ShipmentController extends Controller
         $consigneeDisplay = $shipment->partyDisplay($shipment->consignee, $partyNames);
 
         $countries = CountryCache::active();
-        $crrs = Crr::with(['packages', 'documents', 'customerVessel.customer'])
-            ->selectableForShipment()
-            ->latest()
-            ->get();
-        $hubs = Hub::orderBy('hub_name')->get();
-        $agents = Agent::with('country')->orderBy('agent_name')->get();
+        extract($this->shipmentRepository->shipmentEditReferenceData());
 
         extract($this->irregularityFormOptions());
 
@@ -889,20 +763,6 @@ class ShipmentController extends Controller
         }
 
         $consigneeCode = $transitStockDuplicationService->resolveConsigneePartyCode($shipment->consignee) ?? '';
-        $consigneePartyCodes = [];
-        foreach ($hubs as $hub) {
-            $code = trim((string) ($hub->code ?? ''));
-            if ($code !== '') {
-                $consigneePartyCodes['hub:' . $hub->id] = $code;
-            }
-        }
-        foreach ($agents as $agent) {
-            $code = trim((string) ($agent->code ?? ''));
-            if ($code !== '') {
-                $consigneePartyCodes['agent:' . $agent->id] = $code;
-            }
-        }
-
         return view('Shipment.edit', compact(
             'shipment',
             'partyNames',
@@ -927,7 +787,7 @@ class ShipmentController extends Controller
 
     public function generateManifest(Request $request, $id, ShipmentManifestService $manifestService, CombinedPoPdfService $combinedPoPdfService, ShipmentPdfFingerprintService $fingerprintService)
     {
-        $shipment = Shipment::with(['manifests', 'documents', 'crrs'])->findOrFail($id);
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['manifests', 'documents', 'crrs']);
         $this->normalizeManifestGenerationRequest($request);
 
         try {
@@ -1004,7 +864,7 @@ class ShipmentController extends Controller
 
     public function generatePreAlert(Request $request, $id, ShipmentPreAlertService $preAlertService, CombinedPoPdfService $combinedPoPdfService, ShipmentPdfFingerprintService $fingerprintService)
     {
-        $shipment = Shipment::with(['preAlerts', 'documents', 'crrs', 'manifests'])->findOrFail($id);
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['preAlerts', 'documents', 'crrs', 'manifests']);
         $this->normalizeManifestGenerationRequest($request);
 
         try {
@@ -1101,7 +961,7 @@ class ShipmentController extends Controller
 
     public function showManifest($shipmentId, $manifestId, ShipmentManifestService $manifestService)
     {
-        $manifest = ShipmentManifest::with('shipment')->where('shipment_id', $shipmentId)->findOrFail($manifestId);
+        $manifest = $this->shipmentRepository->findManifestForShipmentOrFail((int) $shipmentId, (int) $manifestId, true);
 
         try {
             $path = $manifestService->ensureFileExists($manifest);
@@ -1118,7 +978,7 @@ class ShipmentController extends Controller
 
     public function deleteManifest($shipmentId, $manifestId, ShipmentChangeLogService $changeLogService)
     {
-        $manifest = ShipmentManifest::where('shipment_id', $shipmentId)->findOrFail($manifestId);
+        $manifest = $this->shipmentRepository->findManifestForShipmentOrFail((int) $shipmentId, (int) $manifestId);
         $shipment = $manifest->shipment;
         $label = $manifest->displayLabel();
 
@@ -1147,7 +1007,7 @@ class ShipmentController extends Controller
 
     public function showPreAlert($shipmentId, $preAlertId, ShipmentPreAlertService $preAlertService)
     {
-        $preAlert = ShipmentPreAlert::with('shipment')->where('shipment_id', $shipmentId)->findOrFail($preAlertId);
+        $preAlert = $this->shipmentRepository->findPreAlertForShipmentOrFail((int) $shipmentId, (int) $preAlertId, true);
 
         try {
             $path = $preAlertService->ensureFileExists($preAlert);
@@ -1164,7 +1024,7 @@ class ShipmentController extends Controller
 
     public function deletePreAlert($shipmentId, $preAlertId, ShipmentChangeLogService $changeLogService)
     {
-        $preAlert = ShipmentPreAlert::where('shipment_id', $shipmentId)->findOrFail($preAlertId);
+        $preAlert = $this->shipmentRepository->findPreAlertForShipmentOrFail((int) $shipmentId, (int) $preAlertId);
         $shipment = $preAlert->shipment;
         $label = $preAlert->displayLabel();
 
@@ -1193,7 +1053,7 @@ class ShipmentController extends Controller
 
     public function combinedPoDocuments($id, CombinedPoPdfService $combinedPoPdfService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         return $combinedPoPdfService->streamMergedPdf(
             $shipment,
@@ -1203,13 +1063,13 @@ class ShipmentController extends Controller
 
     public function combinedManifestDocuments($id, ShipmentManifestPdfBuilder $builder, ShipmentManifestService $manifestService, ShipmentPdfCompanyFooter $companyFooter)
     {
-        $shipment = Shipment::with([
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
             'crrs.customerVessel.customer',
             'accountManager.office',
             'creator',
             'manifests',
-        ])->findOrFail($id);
+        ]);
 
         if ($shipment->crrs->isEmpty()) {
             abort(404, 'No stock items linked to this shipment.');
@@ -1240,7 +1100,7 @@ class ShipmentController extends Controller
 
     public function manifestMailLauncher($id, ManifestMailService $manifestMailService, CombinedPoPdfService $combinedPoPdfService)
     {
-        $shipment = Shipment::with('documents')->findOrFail($id);
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['documents']);
 
         try {
             $manifestMailPreview = $manifestMailService->buildPreview(
@@ -1277,7 +1137,7 @@ class ShipmentController extends Controller
 
     public function manifestMail(Request $request, $id, ManifestMailService $manifestMailService)
     {
-        $shipment = Shipment::with([
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
             'crrs.customerVessel.customer',
             'crrs.documents',
@@ -1285,7 +1145,7 @@ class ShipmentController extends Controller
             'creator',
             'documents',
             'manifests',
-        ])->findOrFail($id);
+        ]);
 
         try {
             $eml = $manifestMailService->buildEml(
@@ -1310,7 +1170,7 @@ class ShipmentController extends Controller
 
     public function prepareManifestMail(Request $request, $id, ManifestMailService $manifestMailService, CombinedPoPdfService $combinedPoPdfService, ShipmentManifestService $manifestService)
     {
-        $shipment = Shipment::with(['manifests', 'documents', 'crrs'])->findOrFail($id);
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['manifests', 'documents', 'crrs']);
         $this->normalizeManifestGenerationRequest($request);
 
         try {
@@ -1396,7 +1256,7 @@ class ShipmentController extends Controller
 
     public function sendManifestMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService, ShipmentChangeLogService $changeLogService)
     {
-        $shipment = Shipment::with([
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
             'crrs.documents',
             'crrs.customerVessel.customer',
@@ -1404,7 +1264,7 @@ class ShipmentController extends Controller
             'creator',
             'documents',
             'manifests',
-        ])->findOrFail($id);
+        ]);
 
         $validated = $request->validate([
             'to' => ['required', 'string', 'max:2000'],
@@ -1460,7 +1320,7 @@ class ShipmentController extends Controller
 
     public function manifestMailOpen(Request $request, $id)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
         $documentIds = $this->parseMailDocumentIds($request->query('document_ids'));
         $excludeAttachments = $this->parseMailExcludeAttachments($request->query('exclude_attachments'));
         $emlUrl = route('shipments.manifest-mail', $shipment->id);
@@ -1484,7 +1344,7 @@ class ShipmentController extends Controller
 
     public function preparePreAlertMail(Request $request, $id, PreAlertMailService $preAlertMailService, CombinedPoPdfService $combinedPoPdfService)
     {
-        $shipment = Shipment::with(['manifests', 'documents', 'crrs'])->findOrFail($id);
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['manifests', 'documents', 'crrs']);
         $this->normalizeManifestGenerationRequest($request);
 
         try {
@@ -1594,7 +1454,7 @@ class ShipmentController extends Controller
 
     public function sendPreAlertMail(Request $request, $id, ShipmentMailDispatchService $mailDispatchService, ShipmentChangeLogService $changeLogService)
     {
-        $shipment = Shipment::with([
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
             'crrs.customerVessel.customer',
             'accountManager.office',
@@ -1608,7 +1468,7 @@ class ShipmentController extends Controller
             'releaseLegs',
             'handCarryLegs',
             'onBoardLegs',
-        ])->findOrFail($id);
+        ]);
 
         $validated = $request->validate([
             'to' => ['required', 'string', 'max:2000'],
@@ -1664,7 +1524,7 @@ class ShipmentController extends Controller
 
     public function preAlertMailOpen(Request $request, $id)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
         $documentIds = $this->parseMailDocumentIds($request->query('document_ids'));
         $excludeAttachments = $this->parseMailExcludeAttachments($request->query('exclude_attachments'));
         $emlUrl = route('shipments.pre-alert-mail', $shipment->id);
@@ -1688,7 +1548,7 @@ class ShipmentController extends Controller
 
     public function preAlertMail(Request $request, $id, PreAlertMailService $preAlertMailService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         try {
             $eml = $preAlertMailService->buildEml(
@@ -1713,7 +1573,7 @@ class ShipmentController extends Controller
 
     public function uploadDocument(Request $request, $id, ShipmentChangeLogService $changeLogService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         $request->validate([
             'file' => 'required|file|mimes:pdf|max:20480',
@@ -1722,7 +1582,7 @@ class ShipmentController extends Controller
         $file = $request->file('file');
         $path = $file->store('shipment_documents', 'private');
 
-        $document = ShipmentDocument::create([
+        $document = $this->shipmentRepository->createDocument([
             'shipment_id' => $shipment->id,
             'file_name' => $file->getClientOriginalName(),
             'file_path' => $path,
@@ -1746,7 +1606,7 @@ class ShipmentController extends Controller
     public function deleteDocument($docId, ShipmentChangeLogService $changeLogService)
     {
         try {
-            $document = ShipmentDocument::findOrFail($docId);
+            $document = $this->shipmentRepository->findDocumentOrFail((int) $docId);
             $shipment = $document->shipment;
             $fileName = $document->file_name;
             \App\Support\PrivateDisk::delete($document->file_path);
@@ -1766,14 +1626,14 @@ class ShipmentController extends Controller
 
     public function showDocument($shipmentId, $docId)
     {
-        $document = ShipmentDocument::where('shipment_id', $shipmentId)->findOrFail($docId);
+        $document = $this->shipmentRepository->findDocumentForShipmentOrFail((int) $shipmentId, (int) $docId);
 
         return \App\Support\PrivateDisk::downloadResponse((string) $document->file_path, (string) $document->file_name);
     }
 
     public function updateDocumentType(Request $request, $docId, ShipmentChangeLogService $changeLogService)
     {
-        $document = ShipmentDocument::findOrFail($docId);
+        $document = $this->shipmentRepository->findDocumentOrFail((int) $docId);
 
         $validated = $request->validate([
             'file_type' => ['required', 'string', 'max:100'],
@@ -1806,7 +1666,7 @@ class ShipmentController extends Controller
 
     public function updateDocumentInternal(Request $request, $docId, ShipmentChangeLogService $changeLogService)
     {
-        $document = ShipmentDocument::findOrFail($docId);
+        $document = $this->shipmentRepository->findDocumentOrFail((int) $docId);
 
         $validated = $request->validate([
             'is_internal' => ['required', 'boolean'],
@@ -1831,7 +1691,7 @@ class ShipmentController extends Controller
 
     public function finalize(Request $request, $id, ShipmentStockSnapshotService $stockSnapshotService, ShipmentTransitStockDuplicationService $transitStockDuplicationService)
     {
-        $shipment = Shipment::with([
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
             'crrs.costs',
             'crrs.documents',
@@ -1840,7 +1700,7 @@ class ShipmentController extends Controller
             'seaLegs',
             'truckLegs',
             'courierLegs',
-        ])->findOrFail($id);
+        ]);
 
         $validated = $request->validate([
             'shipment_number' => 'required|string|max:255',
@@ -1870,7 +1730,7 @@ class ShipmentController extends Controller
 
                 $crrIds = $shipment->crrs()->pluck('crrs.id')->all();
                 if (!empty($crrIds)) {
-                    Crr::whereIn('id', $crrIds)->update([
+                    $this->shipmentRepository->updateCrrStatuses($crrIds, [
                         'status' => Crr::STATUS_COMPLETED,
                     ]);
                 }
@@ -1912,7 +1772,7 @@ class ShipmentController extends Controller
 
     public function update(Request $request, $id, ShipmentPdfFingerprintService $fingerprintService, ShipmentChangeLogService $changeLogService)
     {
-        $shipment = Shipment::findOrFail($id);
+        $shipment = $this->shipmentRepository->findOrFail((int) $id);
         $validated = $this->validateShipmentRequest($request, $shipment);
 
         $shipment->load([
@@ -2179,10 +2039,7 @@ class ShipmentController extends Controller
             return;
         }
 
-        $invalidCount = Crr::query()
-            ->whereIn('id', $newCrrIds)
-            ->whereIn('status', [Crr::STATUS_IN_PROGRESS, Crr::STATUS_COMPLETED, Crr::STATUS_CANCELLED])
-            ->count();
+        $invalidCount = $this->shipmentRepository->invalidSelectableCrrCount($newCrrIds);
 
         if ($invalidCount > 0) {
             $validator->errors()->add('crr_ids', 'In Progress, completed and cancelled stock items cannot be added to a shipment.');
@@ -2195,17 +2052,7 @@ class ShipmentController extends Controller
             return;
         }
 
-        $hubValues = Crr::query()
-            ->whereIn('id', $crrIds)
-            ->get()
-            ->map(function (Crr $crr) {
-                $hubValue = trim((string) ($crr->hub_code ?: $crr->hub_agent));
-
-                return $hubValue !== '' ? mb_strtolower($hubValue) : null;
-            })
-            ->filter()
-            ->unique()
-            ->values();
+        $hubValues = $this->shipmentRepository->selectedHubValues($crrIds);
 
         if ($hubValues->count() <= 1) {
             return;
@@ -2570,7 +2417,7 @@ class ShipmentController extends Controller
     private function syncCrrInternalShipments(Shipment $shipment, array $crrIds, ?array $previousCrrIds = null): void
     {
         if (!empty($crrIds)) {
-            Crr::whereIn('id', $crrIds)->update([
+            $this->shipmentRepository->updateCrrStatuses($crrIds, [
                 'internal_shipment' => $shipment->shipment_number,
                 'status' => Crr::STATUS_IN_PROGRESS,
             ]);
@@ -2585,24 +2432,22 @@ class ShipmentController extends Controller
             return;
         }
 
-        Crr::whereIn('id', $removedCrrIds)
-            ->where('internal_shipment', $shipment->shipment_number)
-            ->update([
-                'internal_shipment' => null,
-                'status' => Crr::STATUS_ACTIVE,
-            ]);
+        $this->shipmentRepository->updateCrrStatusesForShipmentNumber($removedCrrIds, $shipment->shipment_number, [
+            'internal_shipment' => null,
+            'status' => Crr::STATUS_ACTIVE,
+        ]);
     }
 
     private function syncIrregularities(Shipment $shipment, array $irregularities): void
     {
-        $shipment->irregularities()->delete();
+        $rows = [];
 
         foreach ($irregularities as $irregularity) {
             if (!$this->irregularityHasData($irregularity)) {
                 continue;
             }
 
-            ShipmentIrregularity::create([
+            $rows[] = [
                 'shipment_id' => $shipment->id,
                 'irregularity_date' => $this->parseDate($irregularity['irregularity_date'] ?? null),
                 'irregularity_type' => $irregularity['irregularity_type'] ?? null,
@@ -2615,24 +2460,26 @@ class ShipmentController extends Controller
                 'customer_response' => $irregularity['customer_response'] ?? null,
                 'hub_agent_comments' => $irregularity['hub_agent_comments'] ?? null,
                 'handled_by' => $irregularity['handled_by'] ?? null,
-            ]);
+            ];
         }
+
+        $this->shipmentRepository->replaceIrregularities($shipment, $rows);
     }
 
     private function syncFlights(Shipment $shipment, array $flights, ?string $service): void
     {
-        $shipment->flights()->delete();
-
         if ($service !== 'Airfreight') {
+            $this->shipmentRepository->replaceFlights($shipment, []);
             return;
         }
 
+        $rows = [];
         foreach ($flights as $index => $flight) {
             if (!$this->flightHasData($flight)) {
                 continue;
             }
 
-            ShipmentFlight::create([
+            $rows[] = [
                 'shipment_id' => $shipment->id,
                 'leg_reference' => $flight['leg_reference'] ?? null,
                 'flight_number' => $flight['flight_number'] ?? null,
@@ -2640,24 +2487,26 @@ class ShipmentController extends Controller
                 'arrival_date' => $this->parseDate($flight['arrival_date'] ?? null),
                 'arrival_time' => $this->parseArrivalTime($flight['arrival_time'] ?? null),
                 'sort_order' => $index,
-            ]);
+            ];
         }
+
+        $this->shipmentRepository->replaceFlights($shipment, $rows);
     }
 
     private function syncSeaLegs(Shipment $shipment, array $seaLegs, ?string $service): void
     {
-        $shipment->seaLegs()->delete();
-
         if ($service !== 'Sea freight') {
+            $this->shipmentRepository->replaceSeaLegs($shipment, []);
             return;
         }
 
+        $rows = [];
         foreach ($seaLegs as $index => $leg) {
             if (!$this->seaLegHasData($leg)) {
                 continue;
             }
 
-            ShipmentSeaLeg::create([
+            $rows[] = [
                 'shipment_id' => $shipment->id,
                 'bill_of_lading' => $leg['bill_of_lading'] ?? null,
                 'container_number' => $leg['container_number'] ?? null,
@@ -2667,8 +2516,10 @@ class ShipmentController extends Controller
                 'eta' => $this->parseDate($leg['eta'] ?? null),
                 'arrival_time' => $this->parseArrivalTime($leg['arrival_time'] ?? null),
                 'sort_order' => $index,
-            ]);
+            ];
         }
+
+        $this->shipmentRepository->replaceSeaLegs($shipment, $rows);
     }
 
     private function seaLegHasData(array $leg): bool
@@ -2684,18 +2535,18 @@ class ShipmentController extends Controller
 
     private function syncTruckLegs(Shipment $shipment, array $truckLegs, ?string $service): void
     {
-        $shipment->truckLegs()->delete();
-
         if ($service !== 'Truck') {
+            $this->shipmentRepository->replaceTruckLegs($shipment, []);
             return;
         }
 
+        $rows = [];
         foreach ($truckLegs as $index => $leg) {
             if (!$this->truckLegHasData($leg)) {
                 continue;
             }
 
-            ShipmentTruckLeg::create([
+            $rows[] = [
                 'shipment_id' => $shipment->id,
                 'cmr' => $leg['cmr'] ?? null,
                 'freight_company' => $leg['freight_company'] ?? null,
@@ -2703,8 +2554,10 @@ class ShipmentController extends Controller
                 'arrival_date' => $this->parseDate($leg['arrival_date'] ?? null),
                 'arrival_time' => $this->parseArrivalTime($leg['arrival_time'] ?? null),
                 'sort_order' => $index,
-            ]);
+            ];
         }
+
+        $this->shipmentRepository->replaceTruckLegs($shipment, $rows);
     }
 
     private function truckLegHasData(array $leg): bool
@@ -2720,18 +2573,18 @@ class ShipmentController extends Controller
 
     private function syncCourierLegs(Shipment $shipment, array $courierLegs, ?string $service): void
     {
-        $shipment->courierLegs()->delete();
-
         if ($service !== 'Courier') {
+            $this->shipmentRepository->replaceCourierLegs($shipment, []);
             return;
         }
 
+        $rows = [];
         foreach ($courierLegs as $index => $leg) {
             if (!$this->courierLegHasData($leg)) {
                 continue;
             }
 
-            ShipmentCourierLeg::create([
+            $rows[] = [
                 'shipment_id' => $shipment->id,
                 'airway_bill' => $leg['airway_bill'] ?? null,
                 'carrier' => $leg['carrier'] ?? null,
@@ -2739,8 +2592,10 @@ class ShipmentController extends Controller
                 'arrival_date' => $this->parseDate($leg['arrival_date'] ?? null),
                 'arrival_time' => $this->parseArrivalTime($leg['arrival_time'] ?? null),
                 'sort_order' => $index,
-            ]);
+            ];
         }
+
+        $this->shipmentRepository->replaceCourierLegs($shipment, $rows);
     }
 
     private function courierLegHasData(array $leg): bool
@@ -2756,25 +2611,27 @@ class ShipmentController extends Controller
 
     private function syncReleaseLegs(Shipment $shipment, array $releaseLegs, ?string $service): void
     {
-        $shipment->releaseLegs()->delete();
-
         if ($service !== 'Release') {
+            $this->shipmentRepository->replaceReleaseLegs($shipment, []);
             return;
         }
 
+        $rows = [];
         foreach ($releaseLegs as $index => $leg) {
             if (!$this->releaseLegHasData($leg)) {
                 continue;
             }
 
-            ShipmentReleaseLeg::create([
+            $rows[] = [
                 'shipment_id' => $shipment->id,
                 'freight_company' => $leg['freight_company'] ?? null,
                 'delivery_date' => $this->parseDate($leg['delivery_date'] ?? null),
                 'delivery_time' => $this->parseArrivalTime($leg['delivery_time'] ?? null),
                 'sort_order' => $index,
-            ]);
+            ];
         }
+
+        $this->shipmentRepository->replaceReleaseLegs($shipment, $rows);
     }
 
     private function releaseLegHasData(array $leg): bool
@@ -2790,25 +2647,27 @@ class ShipmentController extends Controller
 
     private function syncOnBoardLegs(Shipment $shipment, array $onBoardLegs, ?string $service): void
     {
-        $shipment->onBoardLegs()->delete();
-
         if ($service !== 'On-board delivery') {
+            $this->shipmentRepository->replaceOnBoardLegs($shipment, []);
             return;
         }
 
+        $rows = [];
         foreach ($onBoardLegs as $index => $leg) {
             if (!$this->onBoardLegHasData($leg)) {
                 continue;
             }
 
-            ShipmentOnBoardLeg::create([
+            $rows[] = [
                 'shipment_id' => $shipment->id,
                 'departure_date' => $this->parseDate($leg['departure_date'] ?? null),
                 'delivery_date' => $this->parseDate($leg['delivery_date'] ?? null),
                 'delivery_time' => $this->parseArrivalTime($leg['delivery_time'] ?? null),
                 'sort_order' => $index,
-            ]);
+            ];
         }
+
+        $this->shipmentRepository->replaceOnBoardLegs($shipment, $rows);
     }
 
     private function onBoardLegHasData(array $leg): bool
@@ -2824,18 +2683,18 @@ class ShipmentController extends Controller
 
     private function syncHandCarryLegs(Shipment $shipment, array $handCarryLegs, ?string $service): void
     {
-        $shipment->handCarryLegs()->delete();
-
         if ($service !== 'Hand Carry') {
+            $this->shipmentRepository->replaceHandCarryLegs($shipment, []);
             return;
         }
 
+        $rows = [];
         foreach ($handCarryLegs as $index => $leg) {
             if (!$this->handCarryLegHasData($leg)) {
                 continue;
             }
 
-            ShipmentHandCarryLeg::create([
+            $rows[] = [
                 'shipment_id' => $shipment->id,
                 'departure_date' => $this->parseDate($leg['departure_date'] ?? null),
                 'arrival_date' => $this->parseDate($leg['arrival_date'] ?? null),
@@ -2844,8 +2703,10 @@ class ShipmentController extends Controller
                 'contact_phone' => $leg['contact_phone'] ?? null,
                 'onboard_hand_carry' => !empty($leg['onboard_hand_carry']),
                 'sort_order' => $index,
-            ]);
+            ];
         }
+
+        $this->shipmentRepository->replaceHandCarryLegs($shipment, $rows);
     }
 
     private function handCarryLegHasData(array $leg): bool
@@ -2974,167 +2835,4 @@ class ShipmentController extends Controller
         return false;
     }
 
-    private function applyShipmentFollowUpFilters($query, Request $request): void
-    {
-        $shipmentNo = trim((string) $request->input('shipment_no', $request->input('shipment_number', '')));
-        $destination = trim((string) $request->input('port_destination', $request->input('destination', '')));
-
-        $request->merge([
-            'shipment_number' => $shipmentNo,
-            'destination' => $destination,
-        ]);
-
-        $this->applyShipmentIndexFilters($query, $request);
-
-        if ($request->boolean('show_etl')) {
-            $query->whereHas('crrs', fn ($q) => $q->whereRaw('UPPER(internal_shipment) = ?', ['ETL']));
-        }
-    }
-
-    private function shipmentFollowUpFilterOptions($baseQuery): array
-    {
-        $customers = DB::table('customers')
-            ->select('customer_name')
-            ->whereNotNull('customer_name')
-            ->distinct()
-            ->orderBy('customer_name')
-            ->pluck('customer_name');
-
-        $vessels = DB::table('customer_vessels')
-            ->select('vessel')
-            ->whereNotNull('vessel')
-            ->where('vessel', '!=', '')
-            ->distinct()
-            ->orderBy('vessel')
-            ->pluck('vessel');
-
-        $statuses = (clone $baseQuery)->whereNotNull('status')->distinct()->orderBy('status')->pluck('status');
-
-        $accountManagers = Contact::query()
-            ->whereIn('id', (clone $baseQuery)->whereNotNull('account_manager_id')->distinct()->pluck('account_manager_id'))
-            ->orderBy('name')
-            ->get();
-
-        $creators = User::query()
-            ->whereIn('id', (clone $baseQuery)->whereNotNull('created_by')->distinct()->pluck('created_by'))
-            ->orderBy('name')
-            ->get();
-
-        return compact('customers', 'vessels', 'statuses', 'accountManagers', 'creators');
-    }
-
-    private function applyShipmentIndexFilters($query, Request $request): void
-    {
-        $customers = array_values(array_filter((array) $request->input('customer', [])));
-        $vessels = array_values(array_filter((array) $request->input('vessel', [])));
-        $departurePorts = array_values(array_filter((array) $request->input('departure_port_code', [])));
-        $accountManagers = array_values(array_filter((array) $request->input('account_manager', [])));
-        $creators = array_values(array_filter((array) $request->input('created_by', [])));
-        $offices = array_values(array_filter((array) $request->input('office', [])));
-        $services = array_values(array_filter((array) $request->input('service', [])));
-        $statuses = array_values(array_filter((array) $request->input('status', [])));
-        $shipmentNumber = trim((string) $request->input('shipment_number', ''));
-        $serviceReference = trim((string) $request->input('service_reference', ''));
-        $poNumber = trim((string) $request->input('po_number', ''));
-        $consignee = trim((string) $request->input('consignee', ''));
-        $destination = trim((string) $request->input('destination', ''));
-        $creationDate = trim((string) $request->input('creation_date', ''));
-
-        $shipmentNumberLike = ListSearch::prefix($shipmentNumber);
-        $destinationLike = ListSearch::prefix($destination);
-        $serviceReferenceLike = ListSearch::prefix($serviceReference);
-        $consigneeLike = ListSearch::prefix($consignee);
-        $poExact = mb_strlen($poNumber) >= 3 ? $poNumber : '';
-
-        $query
-            ->when($shipmentNumberLike, fn ($q, $pattern) => $q->where('shipment_number', 'like', $pattern))
-            ->when($customers, fn ($q) => $q->whereHas('crrs.customerVessel.customer', fn ($sub) => $sub->whereIn('customer_name', $customers)))
-            ->when($vessels, function ($q) use ($vessels) {
-                $q->whereHas('crrs', function ($sub) use ($vessels) {
-                    $sub->whereIn('vessel_name', $vessels)
-                        ->orWhereHas('customerVessel', function ($cv) use ($vessels) {
-                            $cv->whereIn('vessel', $vessels)
-                                ->orWhereIn('vessel_name_alias', $vessels);
-                        });
-                });
-            })
-            ->when($departurePorts, fn ($q) => $q->whereIn('departure_port_code', $departurePorts))
-            ->when($accountManagers, fn ($q) => $q->whereHas('accountManager', fn ($sub) => $sub->whereIn('name', $accountManagers)))
-            ->when($creators, fn ($q) => $q->whereHas('creator', fn ($sub) => $sub->whereIn('name', $creators)))
-            ->when($offices, fn ($q) => $q->whereHas('accountManager.office', fn ($sub) => $sub->whereIn('office_name', $offices)))
-            ->when($services, fn ($q) => $q->whereIn('service', $services))
-            ->when($statuses, fn ($q) => $q->whereIn('status', $statuses))
-            ->when($creationDate !== '', fn ($q) => $q->whereDate('created_at', $creationDate))
-            ->when($poExact !== '', fn ($q) => $q->whereHas('crrs', fn ($sub) => $sub->whereJsonContains('po_numbers', $poExact)))
-            ->when($destinationLike, function ($q, $pattern) use ($destination) {
-                if (preg_match('/^[A-Za-z0-9]{2,8}$/', $destination)) {
-                    $q->where('consignee_port_code', 'like', $pattern);
-
-                    return;
-                }
-
-                $q->where(function ($sub) use ($pattern) {
-                    $sub->where('consignee_port_code', 'like', $pattern)
-                        ->orWhere('consignee_city', 'like', $pattern)
-                        ->orWhere('consignee_country', 'like', $pattern);
-                });
-            })
-            ->when($serviceReferenceLike, function ($q, $pattern) {
-                $q->where(function ($sub) use ($pattern) {
-                    $sub->whereHas('flights', fn ($leg) => $leg->where('leg_reference', 'like', $pattern))
-                        ->orWhereHas('courierLegs', fn ($leg) => $leg->where('airway_bill', 'like', $pattern))
-                        ->orWhereHas('seaLegs', fn ($leg) => $leg->where('bill_of_lading', 'like', $pattern))
-                        ->orWhereHas('truckLegs', function ($leg) use ($pattern) {
-                            $leg->where('cmr', 'like', $pattern)->orWhere('freight_company', 'like', $pattern);
-                        })
-                        ->orWhereHas('releaseLegs', fn ($leg) => $leg->where('freight_company', 'like', $pattern));
-                });
-            })
-            ->when($consigneeLike, function ($q, $pattern) use ($consignee) {
-                $keys = $this->consigneeKeysMatching($consignee);
-                $q->where(function ($sub) use ($pattern, $keys) {
-                    $sub->where('consignee', 'like', $pattern)
-                        ->orWhere('consignee_city', 'like', $pattern)
-                        ->orWhere('consignee_country', 'like', $pattern)
-                        ->orWhere('consignee_port_code', 'like', $pattern)
-                        ->orWhere('consignee_address', 'like', $pattern)
-                        ->orWhere('consignee_att', 'like', $pattern);
-
-                    if ($keys) {
-                        $sub->orWhereIn('consignee', $keys);
-                    }
-                });
-            });
-    }
-
-    private function consigneeKeysMatching(string $term): array
-    {
-        $like = ListSearch::prefix($term);
-        if ($like === null) {
-            return [];
-        }
-
-        $keys = [];
-
-        foreach (Hub::query()->where('hub_name', 'like', $like)->pluck('id') as $id) {
-            $keys[] = 'hub:' . $id;
-        }
-        foreach (Agent::query()->where('agent_name', 'like', $like)->pluck('id') as $id) {
-            $keys[] = 'agent:' . $id;
-        }
-        foreach (Customer::query()->where('customer_name', 'like', $like)->pluck('id') as $id) {
-            $keys[] = 'customer:' . $id;
-        }
-        foreach (Office::query()->where('office_name', 'like', $like)->pluck('id') as $id) {
-            $keys[] = 'office:' . $id;
-        }
-        foreach (Supplier::query()->where('supplier_name', 'like', $like)->pluck('id') as $id) {
-            $keys[] = 'supplier:' . $id;
-        }
-        foreach (OtherCompany::query()->where('company_name', 'like', $like)->pluck('id') as $id) {
-            $keys[] = 'other_company:' . $id;
-        }
-
-        return $keys;
-    }
 }

@@ -8,15 +8,17 @@ use App\Support\ListSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
-class VesselRepository implements VesselRepositoryInterface
+class VesselRepository extends BaseRepository implements VesselRepositoryInterface
 {
+    protected string $modelClass = CustomerVessel::class;
+
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator
     {
         $name = trim((string) ($filters['name'] ?? ''));
         $imo  = trim((string) ($filters['imo'] ?? ''));
         $type = trim((string) ($filters['type'] ?? ''));
 
-        return CustomerVessel::query()
+        return $this->query()
             ->with('customer')
             ->when(ListSearch::contains($name), function ($q, $p) {
                 $q->where(function ($sub) use ($p) {
@@ -32,7 +34,7 @@ class VesselRepository implements VesselRepositoryInterface
 
     public function distinctTypes(): Collection
     {
-        return CustomerVessel::query()
+        return $this->query()
             ->whereNotNull('vessel_type_alias')
             ->where('vessel_type_alias', '!=', '')
             ->distinct()

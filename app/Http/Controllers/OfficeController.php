@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Support\CountryCache;
-use App\Models\OtherCompany;
-use App\Models\Office;
-use App\Models\OfficeBankAccount;
-use App\Models\Contact;
+use App\Repositories\Contracts\ContactRepositoryInterface;
+use App\Repositories\Contracts\OfficeBankAccountRepositoryInterface;
+use App\Repositories\Contracts\OfficeRepositoryInterface;
+use App\Repositories\Contracts\OtherCompanyRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OfficeController extends Controller
 {
     public function __construct(
-        private \App\Repositories\Contracts\OfficeRepositoryInterface $officeRepo
+        private OfficeRepositoryInterface $officeRepo,
+        private OtherCompanyRepositoryInterface $companies,
+        private ContactRepositoryInterface $contacts,
+        private OfficeBankAccountRepositoryInterface $officeBankAccounts,
     ) {}
 
     public function index()
@@ -24,7 +27,7 @@ class OfficeController extends Controller
 
     public function create()
     {
-        $companies = OtherCompany::all();
+        $companies = $this->companies->all();
         $countries = CountryCache::active();
         return view('offices.create', compact('companies', 'countries'));
     }
@@ -58,7 +61,7 @@ class OfficeController extends Controller
         DB::beginTransaction();
 
         try {
-            $office = Office::create([
+            $office = $this->officeRepo->create([
                 'office_name' => $request->office_name,
                 'office_short_name' => $request->office_short_name,
                 'phone_number' => $request->phone_number,
@@ -91,7 +94,7 @@ class OfficeController extends Controller
             if ($request->has('bank')) {
                 foreach ($request->bank as $index => $bank) {
                     if (!empty($bank)) {
-                        OfficeBankAccount::create([
+                        $this->officeBankAccounts->create([
                             'office_id' => $office->id,
                             'bank' => $bank,
                             'currency' => $request->currency[$index] ?? null,
@@ -115,21 +118,21 @@ class OfficeController extends Controller
 
     public function edit($id)
     {
-        $office = Office::with(['bankAccounts', 'contacts', 'creator', 'updater'])->findOrFail($id);
-        $companies = OtherCompany::all();
+        $office = $this->officeRepo->findWithRelations((int) $id, ['bankAccounts', 'contacts', 'creator', 'updater']);
+        $companies = $this->companies->all();
         $countries = CountryCache::active();
         return view('offices.edit', compact('office', 'companies', 'countries'));
     }
 
     public function createOperationUser($officeId)
     {
-        $office = Office::findOrFail($officeId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
         return view('offices.operations_users.create', compact('office'));
     }
 
     public function storeOperationUser(Request $request, $officeId)
     {
-        $office = Office::findOrFail($officeId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
         
         $request->validate([
             'name' => 'required|string|max:255',
@@ -138,7 +141,7 @@ class OfficeController extends Controller
             'reply_to_email' => 'nullable|email|max:255',
         ]);
 
-        Contact::create([
+        $this->contacts->create([
             'name' => $request->name,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
@@ -157,15 +160,15 @@ class OfficeController extends Controller
 
     public function editOperationUser($officeId, $contactId)
     {
-        $office = Office::findOrFail($officeId);
-        $contact = Contact::findOrFail($contactId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
+        $contact = $this->contacts->findOrFail((int) $contactId);
         return view('offices.operations_users.edit', compact('office', 'contact'));
     }
 
     public function updateOperationUser(Request $request, $officeId, $contactId)
     {
-        $office = Office::findOrFail($officeId);
-        $contact = Contact::findOrFail($contactId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
+        $contact = $this->contacts->findOrFail((int) $contactId);
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -190,13 +193,13 @@ class OfficeController extends Controller
 
     public function createAccountUser($officeId)
     {
-        $office = Office::findOrFail($officeId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
         return view('offices.account_users.create', compact('office'));
     }
 
     public function storeAccountUser(Request $request, $officeId)
     {
-        $office = Office::findOrFail($officeId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
         
         $request->validate([
             'name' => 'required|string|max:255',
@@ -205,7 +208,7 @@ class OfficeController extends Controller
             'reply_to_email' => 'nullable|email|max:255',
         ]);
 
-        Contact::create([
+        $this->contacts->create([
             'name' => $request->name,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
@@ -224,15 +227,15 @@ class OfficeController extends Controller
 
     public function editAccountUser($officeId, $contactId)
     {
-        $office = Office::findOrFail($officeId);
-        $contact = Contact::where('category', 'account')->findOrFail($contactId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
+        $contact = $this->contacts->findByCategoryOrFail((int) $contactId, 'account');
         return view('offices.account_users.edit', compact('office', 'contact'));
     }
 
     public function updateAccountUser(Request $request, $officeId, $contactId)
     {
-        $office = Office::findOrFail($officeId);
-        $contact = Contact::where('category', 'account')->findOrFail($contactId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
+        $contact = $this->contacts->findByCategoryOrFail((int) $contactId, 'account');
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -257,13 +260,13 @@ class OfficeController extends Controller
 
     public function createSalesUser($officeId)
     {
-        $office = Office::findOrFail($officeId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
         return view('offices.sales_users.create', compact('office'));
     }
 
     public function storeSalesUser(Request $request, $officeId)
     {
-        $office = Office::findOrFail($officeId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
         
         $request->validate([
             'name' => 'required|string|max:255',
@@ -272,7 +275,7 @@ class OfficeController extends Controller
             'reply_to_email' => 'nullable|email|max:255',
         ]);
 
-        Contact::create([
+        $this->contacts->create([
             'name' => $request->name,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
@@ -291,15 +294,15 @@ class OfficeController extends Controller
 
     public function editSalesUser($officeId, $contactId)
     {
-        $office = Office::findOrFail($officeId);
-        $contact = Contact::where('category', 'sales')->findOrFail($contactId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
+        $contact = $this->contacts->findByCategoryOrFail((int) $contactId, 'sales');
         return view('offices.sales_users.edit', compact('office', 'contact'));
     }
 
     public function updateSalesUser(Request $request, $officeId, $contactId)
     {
-        $office = Office::findOrFail($officeId);
-        $contact = Contact::where('category', 'sales')->findOrFail($contactId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
+        $contact = $this->contacts->findByCategoryOrFail((int) $contactId, 'sales');
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -324,13 +327,13 @@ class OfficeController extends Controller
 
     public function createManagerUser($officeId)
     {
-        $office = Office::findOrFail($officeId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
         return view('offices.manager_users.create', compact('office'));
     }
 
     public function storeManagerUser(Request $request, $officeId)
     {
-        $office = Office::findOrFail($officeId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
         
         $request->validate([
             'name' => 'required|string|max:255',
@@ -339,7 +342,7 @@ class OfficeController extends Controller
             'reply_to_email' => 'nullable|email|max:255',
         ]);
 
-        Contact::create([
+        $this->contacts->create([
             'name' => $request->name,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
@@ -358,15 +361,15 @@ class OfficeController extends Controller
 
     public function editManagerUser($officeId, $contactId)
     {
-        $office = Office::findOrFail($officeId);
-        $contact = Contact::where('category', 'manager')->findOrFail($contactId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
+        $contact = $this->contacts->findByCategoryOrFail((int) $contactId, 'manager');
         return view('offices.manager_users.edit', compact('office', 'contact'));
     }
 
     public function updateManagerUser(Request $request, $officeId, $contactId)
     {
-        $office = Office::findOrFail($officeId);
-        $contact = Contact::where('category', 'manager')->findOrFail($contactId);
+        $office = $this->officeRepo->findOrFail((int) $officeId);
+        $contact = $this->contacts->findByCategoryOrFail((int) $contactId, 'manager');
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -391,7 +394,7 @@ class OfficeController extends Controller
 
     public function update(Request $request, $id)
     {
-        $office = Office::findOrFail($id);
+        $office = $this->officeRepo->findOrFail((int) $id);
         
         $validated = $request->validate([
             'office_name' => 'required|string|max:150',
@@ -454,7 +457,7 @@ class OfficeController extends Controller
             if ($request->has('bank')) {
                 foreach ($request->bank as $index => $bank) {
                     if (!empty($bank)) {
-                        OfficeBankAccount::create([
+                        $this->officeBankAccounts->create([
                             'office_id' => $office->id,
                             'bank' => $bank,
                             'currency' => $request->currency[$index] ?? null,

@@ -7,14 +7,16 @@ use App\Repositories\Contracts\SupplierRepositoryInterface;
 use App\Support\ListSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class SupplierRepository implements SupplierRepositoryInterface
+class SupplierRepository extends BaseRepository implements SupplierRepositoryInterface
 {
+    protected string $modelClass = Supplier::class;
+
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator
     {
         $search = trim((string) ($filters['search'] ?? ''));
         $like   = ListSearch::contains($search);
 
-        return Supplier::query()
+        return $this->query()
             ->with('country')
             ->when($like, function ($q, $pattern) {
                 $q->where(function ($sub) use ($pattern) {
@@ -33,17 +35,17 @@ class SupplierRepository implements SupplierRepositoryInterface
 
     public function findOrFail(int $id): Supplier
     {
-        return Supplier::findOrFail($id);
+        return parent::findModelOrFail($id);
     }
 
     public function findWithRelations(int $id, array $relations = []): Supplier
     {
-        return Supplier::with($relations)->findOrFail($id);
+        return parent::findModelOrFail($id, $relations);
     }
 
     public function create(array $data): Supplier
     {
-        return Supplier::create($data);
+        return parent::create($data);
     }
 
     public function update(Supplier $supplier, array $data): bool
@@ -51,8 +53,8 @@ class SupplierRepository implements SupplierRepositoryInterface
         return $supplier->update($data);
     }
 
-    public function delete(int $id): bool
+    public function deleteById(int $id): bool
     {
-        return (bool) Supplier::findOrFail($id)->delete();
+        return parent::deleteById($id);
     }
 }

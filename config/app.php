@@ -69,6 +69,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Local OTP Bypass
+    |--------------------------------------------------------------------------
+    |
+    | Allows browser QA on local/dev environments without completing the OTP
+    | step. This is ignored in production even if the env flag is enabled.
+    |
+    */
+
+    'local_otp_bypass' => (bool) env('LOCAL_OTP_BYPASS', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

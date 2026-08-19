@@ -30,6 +30,12 @@ class OtpController extends Controller
 
     public function show(Request $request)
     {
+        if ($this->shouldBypassOtp()) {
+            $request->session()->put('otp_verified', true);
+
+            return redirect()->intended('/dashboard');
+        }
+
         if ($request->session()->get('otp_verified') === true) {
             return redirect()->intended('/dashboard');
         }
@@ -311,6 +317,16 @@ class OtpController extends Controller
         }
 
         return app()->environment(['local', 'localhost', 'development', 'testing']);
+    }
+
+    private function shouldBypassOtp(): bool
+    {
+        if (app()->environment('production')) {
+            return false;
+        }
+
+        return app()->environment(['local', 'localhost', 'development', 'testing'])
+            && (bool) config('app.local_otp_bypass', false);
     }
 
     private function maskEmail(string $email): string

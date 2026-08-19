@@ -8,8 +8,15 @@ use App\Support\ListSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
-class OtherCompanyRepository implements OtherCompanyRepositoryInterface
+class OtherCompanyRepository extends BaseRepository implements OtherCompanyRepositoryInterface
 {
+    protected string $modelClass = OtherCompany::class;
+
+    public function all(): Collection
+    {
+        return $this->query()->orderBy('company_name')->get();
+    }
+
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator
     {
         $name     = trim((string) ($filters['name'] ?? ''));
@@ -18,7 +25,7 @@ class OtherCompanyRepository implements OtherCompanyRepositoryInterface
         $city     = trim((string) ($filters['city'] ?? ''));
         $countries = array_values(array_filter((array) ($filters['country'] ?? [])));
 
-        return OtherCompany::query()
+        return $this->query()
             ->with('country')
             ->when(ListSearch::contains($name), fn ($q, $p) => $q->where('company_name', 'like', $p))
             ->when(ListSearch::contains($code), fn ($q, $p) => $q->where('code', 'like', $p))
@@ -38,7 +45,7 @@ class OtherCompanyRepository implements OtherCompanyRepositoryInterface
 
     public function distinctCountries(): Collection
     {
-        return OtherCompany::query()
+        return $this->query()
             ->join('countries', 'countries.id', '=', 'other_companies.country_id')
             ->whereNotNull('countries.name')
             ->distinct()
@@ -49,12 +56,12 @@ class OtherCompanyRepository implements OtherCompanyRepositoryInterface
 
     public function findOrFail(int $id): OtherCompany
     {
-        return OtherCompany::findOrFail($id);
+        return parent::findModelOrFail($id);
     }
 
     public function create(array $data): OtherCompany
     {
-        return OtherCompany::create($data);
+        return parent::create($data);
     }
 
     public function update(OtherCompany $company, array $data): bool
@@ -62,8 +69,8 @@ class OtherCompanyRepository implements OtherCompanyRepositoryInterface
         return $company->update($data);
     }
 
-    public function delete(OtherCompany $company): bool
+    public function deleteById(int $id): bool
     {
-        return (bool) $company->delete();
+        return parent::deleteById($id);
     }
 }

@@ -4,11 +4,16 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Repositories\Contracts\UserNotificationRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class UserNotificationService
 {
+    public function __construct(
+        private UserNotificationRepositoryInterface $notifications,
+    ) {}
+
     public function notify(
         User|int $user,
         string $message,
@@ -21,7 +26,7 @@ class UserNotificationService
     ): UserNotification {
         $userId = $user instanceof User ? $user->id : $user;
 
-        return UserNotification::create([
+        return $this->notifications->create([
             'user_id' => $userId,
             'category' => $category,
             'message' => $message,
@@ -57,39 +62,13 @@ class UserNotificationService
 
     public function forUser(User $user, ?string $category = null, int $limit = 20, int $offset = 0): Collection
     {
-        $query = UserNotification::query()
-            ->where('user_id', $user->id)
-            ->when($category && $category !== 'all', function ($q) use ($category) {
-                if ($category === UserNotification::CATEGORY_OTHER) {
-                    $q->whereIn('category', [
-                        UserNotification::CATEGORY_OTHER,
-                        UserNotification::CATEGORY_COSTS,
-                    ]);
-                } else {
-                    $q->where('category', $category);
-                }
-            })
-            ->orderByDesc('occurred_at')
-            ->orderByDesc('id');
-
-        return $query->skip($offset)->take($limit)->get();
+        return $this->notifications->forUser($user->id, $category, $limit, $offset);
     }
 
     public function countsForUser(User $user): array
     {
-        $base = UserNotification::query()
-            ->where('user_id', $user->id)
-            ->where('is_read', false);
-
-        $unreadTotal = (clone $base)->count();
-
-        $byCategory = UserNotification::query()
-            ->where('user_id', $user->id)
-            ->where('is_read', false)
-            ->selectRaw('category, COUNT(*) as aggregate')
-            ->groupBy('category')
-            ->pluck('aggregate', 'category')
-            ->all();
+        $byCategory = $this->notifications->unreadCategoryCountsForUser($user->id);
+        $unreadTotal = array_sum($byCategory);
 
         return [
             'all' => $unreadTotal,
@@ -102,17 +81,12 @@ class UserNotificationService
 
     public function markAllRead(User $user): int
     {
-        return UserNotification::query()
-            ->where('user_id', $user->id)
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+        return $this->notifications->markAllRead($user->id);
     }
 
     public function markRead(User $user, int $notificationId): ?UserNotification
     {
-        $notification = UserNotification::query()
-            ->where('user_id', $user->id)
-            ->find($notificationId);
+        $notification = $this->notifications->findForUser($user->id, $notificationId);
 
         if ($notification && ! $notification->is_read) {
             $notification->update(['is_read' => true]);

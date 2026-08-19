@@ -7,8 +7,10 @@ use App\Repositories\Contracts\AgentRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
-class AgentRepository implements AgentRepositoryInterface
+class AgentRepository extends BaseRepository implements AgentRepositoryInterface
 {
+    protected string $modelClass = Agent::class;
+
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator
     {
         $name     = trim((string) ($filters['name'] ?? ''));
@@ -19,7 +21,7 @@ class AgentRepository implements AgentRepositoryInterface
         $types    = array_values(array_filter((array) ($filters['type'] ?? [])));
         $hideInactive = (bool) ($filters['hide_inactive'] ?? false);
 
-        return Agent::query()
+        return $this->query()
             ->with('country')
             ->when($name !== '', fn ($q) => $q->where('agent_name', 'like', '%' . $name . '%'))
             ->when($code !== '', fn ($q) => $q->where('code', 'like', '%' . $code . '%'))
@@ -41,7 +43,7 @@ class AgentRepository implements AgentRepositoryInterface
 
     public function distinctCountries(): Collection
     {
-        return Agent::query()
+        return $this->query()
             ->join('countries', 'countries.id', '=', 'agents.country_id')
             ->whereNotNull('countries.name')
             ->distinct()
@@ -52,7 +54,7 @@ class AgentRepository implements AgentRepositoryInterface
 
     public function distinctTypes(): Collection
     {
-        return Agent::query()
+        return $this->query()
             ->whereNotNull('agent_type')
             ->where('agent_type', '!=', '')
             ->distinct()
@@ -63,17 +65,17 @@ class AgentRepository implements AgentRepositoryInterface
 
     public function findOrFail(int $id): Agent
     {
-        return Agent::findOrFail($id);
+        return parent::findModelOrFail($id);
     }
 
     public function findWithRelations(int $id, array $relations = []): Agent
     {
-        return Agent::with($relations)->findOrFail($id);
+        return parent::findModelOrFail($id, $relations);
     }
 
     public function create(array $data): Agent
     {
-        return Agent::create($data);
+        return parent::create($data);
     }
 
     public function update(Agent $agent, array $data): bool
@@ -81,10 +83,9 @@ class AgentRepository implements AgentRepositoryInterface
         return $agent->update($data);
     }
 
-    public function delete(int $id): bool
+    public function deleteById(int $id): bool
     {
-        $agent = Agent::findOrFail($id);
-        return (bool) $agent->delete();
+        return parent::deleteById($id);
     }
 
     public function updateStatus(Agent $agent, bool $isActive): bool

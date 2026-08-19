@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contact;
+use App\Repositories\Contracts\ContactRepositoryInterface;
 use App\Repositories\Contracts\SupplierRepositoryInterface;
 use App\Support\CountryCache;
 use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
-    public function __construct(private SupplierRepositoryInterface $suppliers) {}
+    public function __construct(
+        private SupplierRepositoryInterface $suppliers,
+        private ContactRepositoryInterface $contacts,
+    ) {}
 
     public function index(Request $request)
     {
@@ -102,7 +105,7 @@ class SupplierController extends Controller
     public function destroy($id)
     {
         try {
-            $this->suppliers->delete((int) $id);
+            $this->suppliers->deleteById((int) $id);
             return response()->json(['success' => true, 'message' => 'Supplier deleted successfully.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error deleting supplier.'], 500);
@@ -143,7 +146,7 @@ class SupplierController extends Controller
     public function editContact($supplierId, $contactId)
     {
         $supplier = $this->suppliers->findOrFail((int) $supplierId);
-        $contact  = Contact::findOrFail($contactId);
+        $contact  = $this->contacts->findOrFail((int) $contactId);
         return view('Suppliers.contacts.edit', compact('supplier', 'contact'));
     }
 
@@ -157,8 +160,8 @@ class SupplierController extends Controller
             'is_main_contact' => 'nullable|boolean',
         ]);
 
-        $contact = Contact::findOrFail($contactId);
-        $contact->update([
+        $contact = $this->contacts->findOrFail((int) $contactId);
+        $this->contacts->update($contact, [
             'name'            => $request->name,
             'email'           => $request->email,
             'phone_number'    => $request->phone_number,

@@ -4,24 +4,26 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\UserLoginActivity;
+use App\Repositories\Contracts\UserLoginActivityRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class LoginActivityService
 {
+    public function __construct(
+        private UserLoginActivityRepositoryInterface $loginActivities,
+    ) {}
+
     public function record(Request $request, User $user): UserLoginActivity
     {
-        UserLoginActivity::query()
-            ->where('user_id', $user->id)
-            ->whereNull('logged_out_at')
-            ->update(['logged_out_at' => now()]);
+        $this->loginActivities->closeOpenSessionsForUser($user->id);
 
         $clientContext = $request->session()->pull('login_client_context', []);
         $userAgent = (string) $request->userAgent();
         $device = $this->parseUserAgent($userAgent);
         $ipLocation = $this->resolveIpLocation($request->ip());
 
-        return UserLoginActivity::create([
+        return $this->loginActivities->create([
             'user_id' => $user->id,
             'session_id' => $request->session()->getId(),
             'ip_address' => $request->ip(),

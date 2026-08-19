@@ -8,10 +8,15 @@ use App\Models\Customer;
 use App\Models\CustomerVessel;
 use App\Models\Shipment;
 use App\Models\ShipmentStockSnapshot;
+use App\Repositories\Contracts\ShipmentStockSnapshotRepositoryInterface;
 use Illuminate\Support\Collection;
 
 class ShipmentStockSnapshotService
 {
+    public function __construct(
+        private ShipmentStockSnapshotRepositoryInterface $stockSnapshots,
+    ) {}
+
     public function snapshotShipmentStocks(Shipment $shipment): void
     {
         if ($shipment->stockSnapshots()->exists()) {
@@ -27,7 +32,7 @@ class ShipmentStockSnapshotService
             $packages = $crr->packages;
             $customerVessel = $crr->customerVessel;
 
-            ShipmentStockSnapshot::create([
+            $this->stockSnapshots->create([
                 'shipment_id' => $shipment->id,
                 'shipment_number' => $shipment->shipment_number,
                 'original_crr_id' => $crr->id,
@@ -68,12 +73,7 @@ class ShipmentStockSnapshotService
                 $snapshots = $shipment->stockSnapshots
                     ->sortBy('sort_order')
                     ->values();
-                $resolvedIds = Crr::query()
-                    ->whereIn('stock_number', $snapshots->pluck('stock_number')->filter()->unique())
-                    ->orderByDesc('id')
-                    ->get(['id', 'stock_number'])
-                    ->unique('stock_number')
-                    ->pluck('id', 'stock_number');
+                $resolvedIds = $this->stockSnapshots->latestCrrIdsByStockNumbers($snapshots->pluck('stock_number'));
 
                 return $snapshots->map(
                     fn (ShipmentStockSnapshot $snapshot) => $this->snapshotToCrrModel($snapshot, $resolvedIds)

@@ -4,20 +4,23 @@ namespace App\Services;
 
 use App\Models\Agent;
 use App\Models\Crr;
-use App\Models\CrrCost;
 use App\Models\CrrDocument;
-use App\Models\CrrPackage;
-use App\Models\Customer;
-use App\Models\Hub;
-use App\Models\Office;
 use App\Models\Shipment;
+use App\Repositories\Contracts\CrrDocumentRepositoryInterface;
+use App\Repositories\Contracts\PartyLookupRepositoryInterface;
+use App\Repositories\Contracts\ShipmentTransitStockRepositoryInterface;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ShipmentTransitStockDuplicationService
 {
+    public function __construct(
+        private ShipmentTransitStockRepositoryInterface $transitStocks,
+        private PartyLookupRepositoryInterface $partyLookupRepository,
+        private CrrDocumentRepositoryInterface $documents,
+    ) {}
+
     /**
      * @return array<int, int> Map of original CRR id => duplicate CRR id
      */
@@ -41,11 +44,7 @@ class ShipmentTransitStockDuplicationService
         $shipmentNumber = $shipment->shipment_number;
         $originalIds = $shipment->crrs->pluck('id')->all();
 
-        $existingDuplicates = Crr::query()
-            ->whereIn('duplicated_from_crr_id', $originalIds)
-            ->where('internal_shipment', $shipmentNumber)
-            ->get()
-            ->keyBy('duplicated_from_crr_id');
+        $existingDuplicates = $this->transitStocks->existingDuplicates($originalIds, $shipmentNumber);
 
         $mapping = [];
 
@@ -96,21 +95,21 @@ class ShipmentTransitStockDuplicationService
             $attributes['actual_delivery_date'] = $deliveryDate;
         }
 
-        $duplicate = Crr::create($attributes);
+        $duplicate = $this->transitStocks->createCrr($attributes);
 
         foreach ($original->packages as $package) {
             $packageAttributes = $package->only($package->getFillable());
             $packageAttributes['warehouse_location'] = $shipmentNumber;
             $packageAttributes['crr_id'] = $duplicate->id;
 
-            CrrPackage::create($packageAttributes);
+            $this->transitStocks->createCrrPackage($packageAttributes);
         }
 
         foreach ($original->costs as $cost) {
             $costAttributes = $cost->only($cost->getFillable());
             $costAttributes['crr_id'] = $duplicate->id;
 
-            CrrCost::create($costAttributes);
+            $this->transitStocks->createCrrCost($costAttributes);
         }
 
         foreach ($original->documents as $document) {
@@ -168,31 +167,17 @@ class ShipmentTransitStockDuplicationService
             return null;
         }
 
-        $hub = Hub::query()
-            ->where('code', $consigneeCode)
-            ->orWhere('port_code', $consigneeCode)
-            ->orWhere('un_locode', $consigneeCode)
-            ->first();
+        $hub = $this->partyLookupRepository->findHubByCodePortOrLocode($consigneeCode);
         if ($hub) {
             return $this->hubAgentValue($hub);
         }
 
-        $agent = Agent::query()
-            ->where('code', $consigneeCode)
-            ->orWhere('port_code', $consigneeCode)
-            ->orWhere('un_locode', $consigneeCode)
-            ->first();
+        $agent = $this->partyLookupRepository->findAgentByCodePortOrLocode($consigneeCode);
         if ($agent) {
             return $this->hubAgentValue($agent);
         }
 
-        $customer = Customer::query()
-            ->where('customer_number', $consigneeCode)
-            ->orWhere('un_locode', $consigneeCode)
-            ->orWhereHas('addresses', function ($query) use ($consigneeCode) {
-                $query->where('port_code', $consigneeCode);
-            })
-            ->first();
+        $customer = $this->partyLookupRepository->findCustomerByNumberLocodeOrAddressPort($consigneeCode);
         if ($customer) {
             $customerNumber = trim((string) ($customer->customer_number ?? ''));
             if ($customerNumber !== '') {
@@ -245,9 +230,9 @@ class ShipmentTransitStockDuplicationService
         }
 
         return match ($type) {
-            'hub' => $this->hubAgentValue(Hub::find($id)),
-            'agent' => $this->hubAgentValue(Agent::find($id)),
-            'office' => $this->hubAgentValue(Office::find($id)),
+            'hub' => $this->hubAgentValue($this->partyLookupRepository->findHubById($id)),
+            'agent' => $this->hubAgentValue($this->partyLookupRepository->findAgentById($id)),
+            'office' => $this->hubAgentValue($this->partyLookupRepository->findOfficeById($id)),
             default => null,
         };
     }
@@ -286,7 +271,7 @@ class ShipmentTransitStockDuplicationService
             }
         }
 
-        CrrDocument::create([
+        $this->documents->create([
             'crr_id' => $duplicateCrrId,
             'file_name' => $document->file_name,
             'file_path' => $newPath,

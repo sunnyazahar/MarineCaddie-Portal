@@ -4,14 +4,17 @@ namespace App\Services;
 
 use App\Models\Crr;
 use App\Models\Shipment;
-use App\Models\ShipmentIrregularity;
-use App\Models\ShipmentPreAlertReminderSend;
 use App\Models\User;
+use App\Repositories\Contracts\OperationsDashboardRepositoryInterface;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
 class OperationsDashboardService
 {
+    public function __construct(
+        private OperationsDashboardRepositoryInterface $dashboardRepository,
+    ) {}
+
     public function build(User $user, int $period = 30): array
     {
         $period = in_array($period, [7, 30, 90], true) ? $period : 30;
@@ -88,16 +91,10 @@ class OperationsDashboardService
                     ->whereNotNull('pre_alert_reminder')
                     ->whereDate('pre_alert_reminder', '<=', today())
                     ->count(),
-                'openIrregularities' => ShipmentIrregularity::query()
-                    ->whereIn('shipment_id', clone $visibleShipmentIds)
-                    ->where(fn ($query) => $query
-                        ->whereNull('status')
-                        ->orWhere('status', '!=', 'Closed'))
-                    ->count(),
-                'remindersToday' => ShipmentPreAlertReminderSend::query()
-                    ->whereIn('shipment_id', $visibleShipmentIds)
-                    ->whereDate('created_at', today())
-                    ->count(),
+                'openIrregularities' => $this->dashboardRepository
+                    ->openIrregularitiesCountForShipmentQuery(clone $visibleShipmentIds),
+                'remindersToday' => $this->dashboardRepository
+                    ->remindersTodayCountForShipmentQuery($visibleShipmentIds),
             ],
             'stockStatusSeries' => $stockStatusSeries,
             'shipmentStatusSeries' => $shipmentStatusSeries,
@@ -135,11 +132,11 @@ class OperationsDashboardService
 
     public function visibleCrrs(?User $user = null): Builder
     {
-        return Crr::query();
+        return $this->dashboardRepository->visibleCrrsQuery($user);
     }
 
     public function visibleShipments(?User $user = null): Builder
     {
-        return Shipment::query();
+        return $this->dashboardRepository->visibleShipmentsQuery($user);
     }
 }

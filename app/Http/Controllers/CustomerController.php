@@ -4,27 +4,35 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;
-use App\Models\CustomerAddress;
-use App\Models\CustomerInvoiceDetail;
-use App\Models\CustomerResponsible;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-use App\Models\Country;
 use App\Support\CountryCache;
-use App\Models\User;
-use App\Models\CustomerGroup;
-use App\Models\CustomerSop;
-use App\Models\CustomerNotificationSetting;
-use App\Models\CustomerDocument;
-use App\Models\CustomerVessel;
-use App\Models\Contact;
 use App\Services\AdministrationChangeLogService;
+use App\Repositories\Contracts\ContactRepositoryInterface;
+use App\Repositories\Contracts\CustomerAddressRepositoryInterface;
+use App\Repositories\Contracts\CustomerDocumentRepositoryInterface;
+use App\Repositories\Contracts\CustomerGroupRepositoryInterface;
+use App\Repositories\Contracts\CustomerInvoiceDetailRepositoryInterface;
+use App\Repositories\Contracts\CustomerNotificationSettingRepositoryInterface;
+use App\Repositories\Contracts\CustomerRepositoryInterface;
+use App\Repositories\Contracts\CustomerResponsibleRepositoryInterface;
+use App\Repositories\Contracts\CustomerSopRepositoryInterface;
+use App\Repositories\Contracts\CustomerVesselRepositoryInterface;
 
 class CustomerController extends Controller
 {
     public function __construct(
-        private \App\Repositories\Contracts\CustomerRepositoryInterface $customerRepo
+        private CustomerRepositoryInterface $customerRepo,
+        private CustomerAddressRepositoryInterface $customerAddressRepo,
+        private CustomerInvoiceDetailRepositoryInterface $customerInvoiceDetailRepo,
+        private CustomerResponsibleRepositoryInterface $customerResponsibleRepo,
+        private CustomerSopRepositoryInterface $customerSopRepo,
+        private CustomerNotificationSettingRepositoryInterface $customerNotificationSettingRepo,
+        private CustomerDocumentRepositoryInterface $customerDocumentRepo,
+        private CustomerVesselRepositoryInterface $customerVesselRepo,
+        private CustomerGroupRepositoryInterface $customerGroupRepo,
+        private ContactRepositoryInterface $contactRepo,
     ) {}
 
     public function index(Request $request)
@@ -60,8 +68,8 @@ class CustomerController extends Controller
     public function create()
     {
         $countries = CountryCache::active();
-        $salesManagers = Contact::where('category', 'sales')->get();
-        $groups = CustomerGroup::all();
+        $salesManagers = $this->contactRepo->byCategory('sales');
+        $groups = $this->customerGroupRepo->all();
         
         return view('customers.create', compact('countries', 'salesManagers', 'groups'));
     }
@@ -96,7 +104,7 @@ class CustomerController extends Controller
             $customerGroupId = ($request->customer_group === 'N/A') ? null : $request->customer_group;
 
             // 1. Create Customer
-            $customer = Customer::create([
+            $customer = $this->customerRepo->create([
                 'customer_name' => $request->customer_name,
                 'customer_number' => $request->customer_number_fm,
                 'customer_group_id' => $customerGroupId,
@@ -113,7 +121,7 @@ class CustomerController extends Controller
 
             // 2. Create Addresses
             // Primary Address
-            CustomerAddress::create([
+            $this->customerAddressRepo->create([
                 'customer_id' => $customer->id,
                 'type' => 'primary',
                 'street' => $request->street_address,
@@ -126,7 +134,7 @@ class CustomerController extends Controller
 
             // Postal Address (Optional)
             if ($request->filled('postal_street_address') || $request->filled('postal_city')) {
-                CustomerAddress::create([
+                $this->customerAddressRepo->create([
                     'customer_id' => $customer->id,
                     'type' => 'postal',
                     'street' => $request->postal_street_address,
@@ -138,7 +146,7 @@ class CustomerController extends Controller
             }
 
             // Invoice Address (Using dedicated fields from form)
-            CustomerAddress::create([
+            $this->customerAddressRepo->create([
                 'customer_id' => $customer->id,
                 'type' => 'invoice',
                 'street' => $request->invoice_recipient_address,
@@ -149,7 +157,7 @@ class CustomerController extends Controller
             ]);
 
             // 3. Create Invoice Details
-            CustomerInvoiceDetail::create([
+            $this->customerInvoiceDetailRepo->create([
                 'customer_id' => $customer->id,
                 'invoice_recipient_name' => $request->invoice_recipient_name,
                 'invoice_email' => $request->invoicing_email,
@@ -163,7 +171,7 @@ class CustomerController extends Controller
             ]);
 
             // 4. Create Responsible
-            CustomerResponsible::create([
+            $this->customerResponsibleRepo->create([
                 'customer_id' => $customer->id,
                 'sales_manager_id' => $request->sales_manager,
                 'account_manager_id' => $request->main_account_manager,
@@ -171,7 +179,7 @@ class CustomerController extends Controller
             ]);
 
             // 5. Create SOP
-            CustomerSop::create([
+            $this->customerSopRepo->create([
                 'customer_id' => $customer->id,
                 'send_stocklist' => $request->send_stocklist,
                 'onboard_delivery' => $request->onboard_delivery,
@@ -184,7 +192,7 @@ class CustomerController extends Controller
             ]);
 
             // 6. Create Notification Settings
-            CustomerNotificationSetting::create([
+            $this->customerNotificationSettingRepo->create([
                 'customer_id' => $customer->id,
                 'notify_stock_items' => $request->notify_stock_items,
                 'send_automatic_first_mile_email' => $request->has('send_automatic_first_mile_email') ? 1 : 0,
@@ -208,7 +216,7 @@ class CustomerController extends Controller
 
     public function edit($id)
     {
-        $customer = Customer::with([
+        $customer = $this->customerRepo->findOrFail($id, [
             'primaryAddress',
             'postalAddress',
             'invoiceAddress',
@@ -224,17 +232,17 @@ class CustomerController extends Controller
             'contacts',
             'creator',
             'updater',
-        ])->findOrFail($id);
+        ]);
         $countries = CountryCache::active();
-        $salesManagers = Contact::where('category', 'sales')->get();
-        $groups = CustomerGroup::all();
+        $salesManagers = $this->contactRepo->byCategory('sales');
+        $groups = $this->customerGroupRepo->all();
         
         return view('customers.edit', compact('customer', 'countries', 'salesManagers', 'groups', 'id'));
     }
 
     public function update(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
+        $customer = $this->customerRepo->findOrFail($id);
 
         // Server-side validation (matching create rules)
         $validatedData = $request->validate([
@@ -276,7 +284,7 @@ class CustomerController extends Controller
             }
 
             // 1. Update Customer
-            $customer->update([
+            $this->customerRepo->update($customer, [
                 'customer_name' => $request->customer_name,
                 'customer_number' => $request->customer_number_fm,
                 'customer_group_id' => $customerGroupId,
@@ -294,7 +302,7 @@ class CustomerController extends Controller
 
             // 2. Update/Create Addresses
             // Primary Address
-            CustomerAddress::updateOrCreate(
+            $this->customerAddressRepo->updateOrCreate(
                 ['customer_id' => $customer->id, 'type' => 'primary'],
                 [
                     'street' => $request->street_address,
@@ -314,7 +322,7 @@ class CustomerController extends Controller
                 || $request->filled('postal_zip_code')
                 || $request->filled('postal_country')
             ) {
-                CustomerAddress::updateOrCreate(
+                $this->customerAddressRepo->updateOrCreate(
                     ['customer_id' => $customer->id, 'type' => 'postal'],
                     [
                         'street' => $request->postal_street_address,
@@ -327,7 +335,7 @@ class CustomerController extends Controller
             }
 
             // Invoice Address
-            CustomerAddress::updateOrCreate(
+            $this->customerAddressRepo->updateOrCreate(
                 ['customer_id' => $customer->id, 'type' => 'invoice'],
                 [
                     'street' => $request->invoice_recipient_address,
@@ -339,7 +347,7 @@ class CustomerController extends Controller
             );
 
             // 3. Update Invoice Details
-            CustomerInvoiceDetail::updateOrCreate(
+            $this->customerInvoiceDetailRepo->updateOrCreate(
                 ['customer_id' => $customer->id],
                 [
                     'invoice_recipient_name' => $request->invoice_recipient_name,
@@ -355,7 +363,7 @@ class CustomerController extends Controller
             );
 
             // 4. Update Responsible
-            CustomerResponsible::updateOrCreate(
+            $this->customerResponsibleRepo->updateOrCreate(
                 ['customer_id' => $customer->id],
                 [
                     'sales_manager_id' => $request->sales_manager,
@@ -365,7 +373,7 @@ class CustomerController extends Controller
             );
 
             // 5. Update SOP
-            CustomerSop::updateOrCreate(
+            $this->customerSopRepo->updateOrCreate(
                 ['customer_id' => $customer->id],
                 [
                     'send_stocklist' => $request->send_stocklist,
@@ -380,7 +388,7 @@ class CustomerController extends Controller
             );
 
             // 6. Update Notification Settings
-            CustomerNotificationSetting::updateOrCreate(
+            $this->customerNotificationSettingRepo->updateOrCreate(
                 ['customer_id' => $customer->id],
                 [
                     'notify_stock_items' => $request->notify_stock_items,
@@ -397,11 +405,11 @@ class CustomerController extends Controller
             if ($request->filled('removed_documents')) {
                 $idsToRemove = array_filter(explode(',', $request->removed_documents));
                 foreach ($idsToRemove as $docId) {
-                    $doc = CustomerDocument::find(trim($docId));
+                    $doc = $this->customerDocumentRepo->find((int) trim($docId));
                     if ($doc && $doc->customer_id == $customer->id) {
                         $fileName = $doc->file_name;
                         \App\Support\PrivateDisk::delete($doc->file_path);
-                        $doc->delete();
+                        $this->customerDocumentRepo->delete($doc);
                         $changeLogService->log($customer, 'SOP document removed', $fileName, 'sop_document');
                     }
                 }
@@ -411,7 +419,7 @@ class CustomerController extends Controller
             if ($request->hasFile('sop_documents')) {
                 foreach ($request->file('sop_documents') as $file) {
                     $path = $file->store('sop_documents', 'private');
-                    CustomerDocument::create([
+                    $this->customerDocumentRepo->create([
                         'customer_id' => $customer->id,
                         'file_name'   => $file->getClientOriginalName(),
                         'file_path'   => $path,
@@ -590,7 +598,7 @@ class CustomerController extends Controller
      */
     public function uploadDocument(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
+        $customer = $this->customerRepo->findOrFail($id);
 
         $request->validate([
             'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
@@ -603,7 +611,7 @@ class CustomerController extends Controller
         $file = $request->file('file');
         $path = $file->store('sop_documents', 'private');
 
-        $doc = CustomerDocument::create([
+        $doc = $this->customerDocumentRepo->create([
             'customer_id' => $customer->id,
             'file_name'   => $file->getClientOriginalName(),
             'file_path'   => $path,
@@ -629,7 +637,7 @@ class CustomerController extends Controller
      */
     public function showDocument($customerId, $docId)
     {
-        $doc = CustomerDocument::where('customer_id', $customerId)->findOrFail($docId);
+        $doc = $this->customerDocumentRepo->findByCustomerOrFail((int) $customerId, (int) $docId);
 
         return \App\Support\PrivateDisk::downloadResponse((string) $doc->file_path, (string) $doc->file_name);
     }
@@ -639,7 +647,7 @@ class CustomerController extends Controller
      */
     public function showLogo($id)
     {
-        $customer = Customer::findOrFail($id);
+        $customer = $this->customerRepo->findOrFail($id);
 
         if (! $customer->logo) {
             abort(404);
@@ -653,12 +661,12 @@ class CustomerController extends Controller
      */
     public function deleteDocument(Request $request, $docId)
     {
-        $doc = CustomerDocument::findOrFail($docId);
-        $customer = Customer::find($doc->customer_id);
+        $doc = $this->customerDocumentRepo->findOrFail((int) $docId);
+        $customer = $this->customerRepo->find((int) $doc->customer_id);
         $fileName = $doc->file_name;
 
         \App\Support\PrivateDisk::delete($doc->file_path);
-        $doc->delete();
+        $this->customerDocumentRepo->delete($doc);
 
         if ($customer) {
             app(AdministrationChangeLogService::class)->log(
@@ -677,7 +685,7 @@ class CustomerController extends Controller
      */
     public function createVessel($id)
     {
-        $customer = Customer::findOrFail($id);
+        $customer = $this->customerRepo->findOrFail($id, ['contacts']);
         $customerContacts = $customer->contacts;
 
         return view('customers.customer-vessels-add', compact('id', 'customerContacts'));
@@ -696,7 +704,7 @@ class CustomerController extends Controller
      */
     public function editContact($id)
     {
-        $contact = Contact::findOrFail($id);
+        $contact = $this->contactRepo->findOrFail((int) $id);
         return view('contacts.edit', compact('contact'));
     }
 
@@ -705,7 +713,7 @@ class CustomerController extends Controller
      */
     public function updateContact(Request $request, $id)
     {
-        $contact = Contact::findOrFail($id);
+        $contact = $this->contactRepo->findOrFail((int) $id);
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -714,7 +722,7 @@ class CustomerController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $contact->update([
+        $this->contactRepo->update($contact, [
             'name' => $request->name,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
@@ -733,11 +741,11 @@ class CustomerController extends Controller
      */
     public function deleteContact($id)
     {
-        $contact = Contact::findOrFail($id);
-        $customer = $contact->customer_id ? Customer::find($contact->customer_id) : null;
+        $contact = $this->contactRepo->findOrFail((int) $id);
+        $customer = $contact->customer_id ? $this->customerRepo->find((int) $contact->customer_id) : null;
         $contactName = $contact->name;
 
-        $contact->delete();
+        $this->contactRepo->deleteById($contact->id);
 
         if ($customer) {
             app(AdministrationChangeLogService::class)->log(
@@ -756,7 +764,7 @@ class CustomerController extends Controller
      */
     public function storeContact(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
+        $customer = $this->customerRepo->findOrFail($id);
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -765,12 +773,13 @@ class CustomerController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $contact = $customer->contacts()->create([
+        $contact = $this->contactRepo->create([
             'name' => $request->name,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
             'description' => $request->description,
             'is_main_contact' => $request->has('is_main_contact'),
+            'customer_id' => $customer->id,
         ]);
 
         app(AdministrationChangeLogService::class)->log(
@@ -791,7 +800,7 @@ class CustomerController extends Controller
      */
     public function storeVessel(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
+        $customer = $this->customerRepo->findOrFail($id);
 
         $request->validate([
             'vessel' => 'required|string|max:255',
@@ -801,7 +810,7 @@ class CustomerController extends Controller
         // Extract contact data (expecting only one contact in the array based on form logic)
         $contactData = $request->input('contacts.1', []); // We use key 1 as per the JS implementation
 
-        $vessel = CustomerVessel::create([
+        $vessel = $this->customerVesselRepo->create([
             'customer_id' => $customer->id,
             // Vessel information
             'vessel' => $request->vessel,
@@ -858,7 +867,7 @@ class CustomerController extends Controller
      */
     public function editVessel($id)
     {
-        $vessel = CustomerVessel::with(['customer.contacts', 'creator', 'updater'])->findOrFail($id);
+        $vessel = $this->customerVesselRepo->findOrFail((int) $id, ['customer.contacts', 'creator', 'updater']);
         $customerContacts = $vessel->customer->contacts;
 
         return view('customers.customer-vessels', compact('vessel', 'customerContacts'));
@@ -869,7 +878,7 @@ class CustomerController extends Controller
      */
     public function updateVessel(Request $request, $id)
     {
-        $vessel = CustomerVessel::with('contact')->findOrFail($id);
+        $vessel = $this->customerVesselRepo->findOrFail((int) $id, ['contact']);
 
         $request->validate([
             'vessel' => 'required|string|max:255',
@@ -881,7 +890,7 @@ class CustomerController extends Controller
         $changeLogService = app(AdministrationChangeLogService::class);
         $beforeContactName = $vessel->contact?->name;
 
-        $vessel->update([
+        $this->customerVesselRepo->update($vessel, [
             // Vessel information
             'vessel' => $request->vessel,
             'vessel_name_alias' => $request->vessel_name_alias,

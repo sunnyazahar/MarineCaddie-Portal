@@ -16,5 +16,5 @@ interface SupplierRepositoryInterface
 
     public function update(\App\Models\Supplier $supplier, array $data): bool;
 
-    public function delete(int $id): bool;
+    public function deleteById(int $id): bool;
 }

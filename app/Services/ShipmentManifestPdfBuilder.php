@@ -12,6 +12,9 @@ use App\Models\OtherCompany;
 use App\Models\Port;
 use App\Models\Shipment;
 use App\Models\Supplier;
+use App\Repositories\Contracts\CountryRepositoryInterface;
+use App\Repositories\Contracts\PartyLookupRepositoryInterface;
+use App\Repositories\Contracts\PortRepositoryInterface;
 use Carbon\Carbon;
 
 class ShipmentManifestPdfBuilder
@@ -21,6 +24,9 @@ class ShipmentManifestPdfBuilder
 
     public function __construct(
         private ShipmentStockSnapshotService $stockSnapshotService,
+        private PartyLookupRepositoryInterface $partyLookupRepository,
+        private PortRepositoryInterface $portRepository,
+        private CountryRepositoryInterface $countryRepository,
     ) {}
 
     public function build(Shipment $shipment, ?int $manifestVersion = null): array
@@ -290,7 +296,7 @@ class ShipmentManifestPdfBuilder
 
         switch ($type) {
             case 'hub':
-                $hub = Hub::with('contacts')->find($id);
+                $hub = $this->partyLookupRepository->findHubWithContacts($id);
                 if ($hub) {
                     $result['name'] = $hub->hub_name;
                     $result['address_line'] = $this->joinParts([
@@ -307,7 +313,7 @@ class ShipmentManifestPdfBuilder
                 }
                 break;
             case 'agent':
-                $agent = Agent::with(['country', 'contacts'])->find($id);
+                $agent = $this->partyLookupRepository->findAgentWithCountryAndContacts($id);
                 if ($agent) {
                     $result['name'] = $agent->agent_name;
                     $result['address_line'] = $this->joinParts([
@@ -323,7 +329,7 @@ class ShipmentManifestPdfBuilder
                 }
                 break;
             case 'office':
-                $office = Office::with(['country', 'contacts'])->find($id);
+                $office = $this->partyLookupRepository->findOfficeWithCountryAndContacts($id);
                 if ($office) {
                     $result['name'] = $office->office_name;
                     $result['address_line'] = $this->joinParts([
@@ -339,14 +345,14 @@ class ShipmentManifestPdfBuilder
                 }
                 break;
             case 'customer':
-                $customer = Customer::with('contacts')->find($id);
+                $customer = $this->partyLookupRepository->findCustomerWithContacts($id);
                 if ($customer) {
                     $result['name'] = $customer->customer_name;
                     $result = $this->applyContactDetails($result, $customer, $customer->phone, $customer->email);
                 }
                 break;
             case 'supplier':
-                $supplier = Supplier::with('contacts')->find($id);
+                $supplier = $this->partyLookupRepository->findSupplierWithContacts($id);
                 if ($supplier) {
                     $result['name'] = $supplier->supplier_name;
                     $result['address_line'] = $this->joinParts([
@@ -358,7 +364,7 @@ class ShipmentManifestPdfBuilder
                 }
                 break;
             case 'other_company':
-                $company = OtherCompany::with(['country', 'contacts'])->find($id);
+                $company = $this->partyLookupRepository->findOtherCompanyWithCountryAndContacts($id);
                 if ($company) {
                     $result['name'] = $company->company_name;
                     $result['address_line'] = $this->joinParts([
@@ -514,22 +520,12 @@ class ShipmentManifestPdfBuilder
             return ['code' => '', 'city' => '', 'country' => ''];
         }
 
-        $port = Port::query()
-            ->with('country')
-            ->where(function ($query) use ($code) {
-                $query->where('iata_code', $code)
-                    ->orWhere('un_locode', $code)
-                    ->orWhere('port_name', $code);
-            })
-            ->first();
+        $port = $this->portRepository->findByCodeWithCountry($code);
 
         if (! $port) {
             $locodePrefix = preg_replace('/\d+$/', '', $code);
             if (is_string($locodePrefix) && $locodePrefix !== '' && $locodePrefix !== $code) {
-                $port = Port::query()
-                    ->with('country')
-                    ->where('un_locode', 'like', $locodePrefix . '%')
-                    ->first();
+                $port = $this->portRepository->findByUnLocodePrefixWithCountry($locodePrefix);
             }
         }
 
@@ -538,16 +534,13 @@ class ShipmentManifestPdfBuilder
             $city = trim((string) ($port->city ?: $port->port_name ?: ''));
             $country = trim((string) ($port->country_name ?: $port->country?->name ?: ''));
         } else {
-            $hub = Hub::query()->where('port_code', $code)->first();
+            $hub = $this->partyLookupRepository->findHubByPortCode($code);
 
             if ($hub) {
                 $city = trim((string) ($hub->city ?? ''));
                 $country = trim((string) ($hub->country ?? ''));
             } else {
-                $agent = Agent::query()
-                    ->with('country')
-                    ->where('port_code', $code)
-                    ->first();
+                $agent = $this->partyLookupRepository->findAgentByPortCodeWithCountry($code);
 
                 if ($agent) {
                     $city = trim((string) ($agent->city ?? ''));
@@ -602,14 +595,7 @@ class ShipmentManifestPdfBuilder
             return $this->currencyRatesByCode;
         }
 
-        $this->currencyRatesByCode = Country::query()
-            ->whereNotNull('currency')
-            ->where('currency', '!=', '')
-            ->whereNotNull('currency_value')
-            ->get(['currency', 'currency_value'])
-            ->groupBy(fn (Country $country) => strtoupper(trim((string) $country->currency)))
-            ->map(fn ($rows) => (float) $rows->first()->currency_value)
-            ->all();
+        $this->currencyRatesByCode = $this->countryRepository->currencyRatesByCode();
 
         return $this->currencyRatesByCode;
     }

@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agent;
 use App\Models\Crr;
-use App\Models\CrrPackage;
 use App\Models\CrrCost;
 use App\Models\CrrDocument;
-use App\Models\Hub;
+use App\Repositories\Contracts\CrrRepositoryInterface;
 use App\Services\CrrChangeLogService;
 use App\Support\CountryCache;
-use App\Support\ListSearch;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,20 +16,15 @@ use Illuminate\Validation\Rule;
 
 class CrrController extends Controller
 {
+    public function __construct(private CrrRepositoryInterface $crrRepository)
+    {
+    }
+
     public function index(Request $request)
     {
         $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
 
-        $query = Crr::query()
-            ->with([
-                'packages',
-                'documents',
-                'customerVessel.customer.responsible.accountManager.office',
-            ]);
-
-        $this->applyStockIndexFilters($query, $request);
-
-        $crrs = $query->orderByDesc('id')->paginate($perPage);
+        $crrs = $this->crrRepository->paginateIndex($request->all(), $perPage);
 
         if ($request->ajax()) {
             return response()->json([
@@ -42,50 +34,9 @@ class CrrController extends Controller
             ]);
         }
 
-        $customers = DB::table('customers')
-            ->whereNotNull('customer_name')
-            ->where('customer_name', '!=', '')
-            ->distinct()
-            ->orderBy('customer_name')
-            ->pluck('customer_name');
+        $options = $this->crrRepository->indexFilterOptions();
 
-        $vessels = Crr::query()
-            ->whereNotNull('vessel_name')
-            ->where('vessel_name', '!=', '')
-            ->distinct()
-            ->orderBy('vessel_name')
-            ->pluck('vessel_name');
-
-        $accountManagers = DB::table('contacts')
-            ->whereNotNull('name')
-            ->where('name', '!=', '')
-            ->distinct()
-            ->orderBy('name')
-            ->pluck('name');
-
-        $offices = DB::table('offices')
-            ->whereNotNull('office_name')
-            ->where('office_name', '!=', '')
-            ->distinct()
-            ->orderBy('office_name')
-            ->pluck('office_name');
-
-        $hubAgentOptions = Crr::query()
-            ->whereNotNull('hub_agent')
-            ->where('hub_agent', '!=', '')
-            ->distinct()
-            ->orderBy('hub_agent')
-            ->pluck('hub_agent')
-            ->values();
-
-        return view('Stock.stocks', compact(
-            'crrs',
-            'customers',
-            'vessels',
-            'accountManagers',
-            'offices',
-            'hubAgentOptions',
-        ));
+        return view('Stock.stocks', array_merge(['crrs' => $crrs], $options));
     }
 
     public function store(Request $request, CrrChangeLogService $changeLogService)
@@ -128,7 +79,7 @@ class CrrController extends Controller
             do {
                 $randomNumber = str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
                 $stockNumber = $stockPrefix . '-' . $randomNumber;
-            } while (Crr::where('stock_number', $stockNumber)->exists());
+            } while ($this->crrRepository->stockNumberExists($stockNumber));
 
             // --- Build main CRR data explicitly ---
             // Note: po_numbers & delivery_irregularities are cast as 'array' in the model,
@@ -175,11 +126,12 @@ class CrrController extends Controller
                 'landed_from_vessel'      => $request->input('landed_from_vessel'),
             ];
 
-            $crr = Crr::create($crrData);
+            $crr = $this->crrRepository->createCrr($crrData);
 
             // --- Save Package rows ---
+            $packages = [];
             foreach ($request->input('packages', []) as $pkgData) {
-                CrrPackage::create([
+                $packages[] = [
                     'crr_id'                   => $crr->id,
                     'length'                   => $pkgData['length']                   ?: null,
                     'width'                    => $pkgData['width']                    ?: null,
@@ -197,10 +149,12 @@ class CrrController extends Controller
                     'is_not_stackable'         => isset($pkgData['is_not_stackable']),
                     'is_medicine'              => isset($pkgData['is_medicine']),
                     'is_xray'                  => isset($pkgData['is_xray']),
-                ]);
+                ];
             }
+            $this->crrRepository->storePackages($crr->id, $packages);
 
             // --- Save Cost rows (skip completely blank rows) ---
+            $costs = [];
             foreach ($request->input('costs', []) as $costData) {
                 $hasData = !empty($costData['type'])      || !empty($costData['carrier'])
                         || !empty($costData['net_value']) || !empty($costData['invoice_no'])
@@ -210,7 +164,7 @@ class CrrController extends Controller
                     continue;
                 }
 
-                CrrCost::create([
+                $costs[] = [
                     'crr_id'        => $crr->id,
                     'type'          => $costData['type']          ?? null,
                     'carrier'       => $costData['carrier']       ?? null,
@@ -221,8 +175,9 @@ class CrrController extends Controller
                     'remarks'       => $costData['remarks']       ?: null,
                     'hub_agent'     => $costData['hub_agent']     ?: null,
                     'tag'           => $costData['tag']           ?: null,
-                ]);
+                ];
             }
+            $this->crrRepository->storeCosts($crr->id, $costs);
 
             $changeLogService->logCreated($crr);
 
@@ -239,31 +194,25 @@ class CrrController extends Controller
     }
     public function edit($id)
     {
-        $crr = Crr::with([
+        $crr = $this->crrRepository->findWithRelationsOrFail((int) $id, [
             'packages',
             'costs',
             'documents',
             'changeLogs.user',
             'registeredBy',
             'customerVessel.customer.responsible.accountManager',
-        ])->findOrFail($id);
+        ]);
         
-        $vessels = \App\Models\CustomerVessel::with('customer.responsible.accountManager')
-            ->select('vessel', 'customer_id')
-            ->groupBy('vessel', 'customer_id')
-            ->get();
+        extract($this->crrRepository->editReferenceData());
         $countries = CountryCache::active();
         $currencies = CountryCache::currencies();
-        $hubs = \App\Models\Hub::orderBy('hub_name')->get();
-        $agents = \App\Models\Agent::with('country')->orderBy('agent_name')->get();
-        $suppliers = \App\Models\Supplier::with('country')->orderBy('supplier_name')->get();
 
         return view('Stock.edit', compact('crr', 'vessels', 'countries', 'currencies', 'hubs', 'agents', 'suppliers'));
     }
 
     public function update(Request $request, $id, CrrChangeLogService $changeLogService)
     {
-        $crr = Crr::findOrFail($id);
+        $crr = $this->crrRepository->findOrFail((int) $id);
         $crr->load(['packages', 'costs']);
         $changeLogSnapshot = $changeLogService->captureSnapshot($crr);
 
@@ -338,9 +287,9 @@ class CrrController extends Controller
             $crr->update($crrData);
 
             // --- Sync Packages (Delete existing and recreate) ---
-            $crr->packages()->delete();
+            $packages = [];
             foreach ($request->input('packages', []) as $pkgData) {
-                CrrPackage::create([
+                $packages[] = [
                     'crr_id'                   => $crr->id,
                     'length'                   => $pkgData['length']                   ?: null,
                     'width'                    => $pkgData['width']                    ?: null,
@@ -358,11 +307,12 @@ class CrrController extends Controller
                     'is_not_stackable'         => isset($pkgData['is_not_stackable']),
                     'is_medicine'              => isset($pkgData['is_medicine']),
                     'is_xray'                  => isset($pkgData['is_xray']),
-                ]);
+                ];
             }
+            $this->crrRepository->replacePackages($crr, $packages);
 
             // --- Sync Costs (Delete existing and recreate) ---
-            $crr->costs()->delete();
+            $costs = [];
             foreach ($request->input('costs', []) as $costData) {
                 $hasData = !empty($costData['type'])      || !empty($costData['carrier'])
                         || !empty($costData['net_value']) || !empty($costData['invoice_no'])
@@ -372,7 +322,7 @@ class CrrController extends Controller
                     continue;
                 }
 
-                CrrCost::create([
+                $costs[] = [
                     'crr_id'        => $crr->id,
                     'type'          => $costData['type']          ?? null,
                     'carrier'       => $costData['carrier']       ?? null,
@@ -383,8 +333,9 @@ class CrrController extends Controller
                     'remarks'       => $costData['remarks']       ?: null,
                     'hub_agent'     => $costData['hub_agent']     ?: null,
                     'tag'           => $costData['tag']           ?? null,
-                ]);
+                ];
             }
+            $this->crrRepository->replaceCosts($crr, $costs);
 
             DB::commit();
 
@@ -407,9 +358,7 @@ class CrrController extends Controller
     public function printStockList(Request $request)
     {
         $ids = explode(',', $request->query('ids', ''));
-        $crrs = Crr::with(['packages', 'documents', 'customerVessel.customer'])
-            ->whereIn('id', $ids)
-            ->get();
+        $crrs = $this->crrRepository->selectedWithRelations($ids, ['packages', 'documents', 'customerVessel.customer']);
 
         if ($crrs->isEmpty()) {
             return "<script>alert('No items selected.'); window.close();</script>";
@@ -449,10 +398,10 @@ class CrrController extends Controller
      */
     public function showPrintCrr($id)
     {
-        $crr = Crr::with(['packages', 'documents', 'customerVessel.customer'])->findOrFail($id);
+        $crr = $this->crrRepository->findWithRelationsOrFail((int) $id, ['packages', 'documents', 'customerVessel.customer']);
         $this->applyPrintLocationOverride($crr);
 
-        [$hubAgentCode, $hubAgentName] = $this->resolveHubAgentForPrint($crr);
+        [$hubAgentCode, $hubAgentName] = $this->crrRepository->resolveHubAgentForPrint($crr);
         
         // MT Manager name from user if available, using placeholder like screenshot
         $mt_manager = "Clarence Ng Yao Wei, SIN"; 
@@ -469,10 +418,10 @@ class CrrController extends Controller
 
     public function showPrintLabels($id)
     {
-        $crr = Crr::with(['packages', 'customerVessel.customer'])->findOrFail($id);
+        $crr = $this->crrRepository->findWithRelationsOrFail((int) $id, ['packages', 'customerVessel.customer']);
         $this->applyPrintLocationOverride($crr);
 
-        [$hubAgentCode, $hubAgentName] = $this->resolveHubAgentForPrint($crr);
+        [$hubAgentCode, $hubAgentName] = $this->crrRepository->resolveHubAgentForPrint($crr);
         $consignee = collect([$hubAgentCode, $hubAgentName])->filter()->join(' - ') ?: ($crr->hub_agent ?: '—');
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('Stock.print-labels', compact('crr', 'consignee'))
@@ -497,37 +446,12 @@ class CrrController extends Controller
     }
 
     /**
-     * @return array{0: ?string, 1: ?string} [code, name]
-     */
-    private function resolveHubAgentForPrint(Crr $crr): array
-    {
-        $hubAgent = Hub::query()
-            ->where('code', $crr->hub_agent)
-            ->orWhere('hub_name', $crr->hub_agent)
-            ->first();
-
-        if (! $hubAgent) {
-            $hubAgent = Agent::query()
-                ->where('code', $crr->hub_agent)
-                ->orWhere('agent_name', $crr->hub_agent)
-                ->first();
-        }
-
-        $code = $hubAgent?->code ?: $crr->hub_code;
-        $name = $hubAgent instanceof Hub
-            ? $hubAgent->hub_name
-            : ($hubAgent instanceof Agent ? $hubAgent->agent_name : null);
-
-        return [$code, $name];
-    }
-
-    /**
      * AJAX: Update the status of a CRR.
      */
     public function updateStatus(Request $request, $id, CrrChangeLogService $changeLogService)
     {
         try {
-            $crr = Crr::findOrFail($id);
+            $crr = $this->crrRepository->findOrFail((int) $id);
 
             $validated = $request->validate([
                 'status' => ['required', 'integer', \Illuminate\Validation\Rule::in(array_keys(Crr::getStatusLabels()))],
@@ -557,7 +481,7 @@ class CrrController extends Controller
     public function updateFlags(Request $request, $id, CrrChangeLogService $changeLogService)
     {
         try {
-            $crr = Crr::findOrFail($id);
+            $crr = $this->crrRepository->findOrFail((int) $id);
 
             $flagsInput = $request->input('flags');
             if ($flagsInput !== null && ! is_array($flagsInput)) {
@@ -589,7 +513,7 @@ class CrrController extends Controller
     public function updateAccept(Request $request, $id, CrrChangeLogService $changeLogService)
     {
         try {
-            $crr = Crr::findOrFail($id);
+            $crr = $this->crrRepository->findOrFail((int) $id);
             $wasAccepted = (bool) $crr->accept;
             $crr->update([
                 'accept' => true,
@@ -617,7 +541,7 @@ class CrrController extends Controller
      */
     public function uploadDocument(Request $request, $id, CrrChangeLogService $changeLogService)
     {
-        $crr = Crr::findOrFail($id);
+        $crr = $this->crrRepository->findOrFail((int) $id);
 
         $request->validate([
             'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
@@ -636,7 +560,7 @@ class CrrController extends Controller
             ], 500);
         }
 
-        $doc = CrrDocument::create([
+        $doc = $this->crrRepository->createDocument([
             'crr_id'    => $crr->id,
             'file_name' => $file->getClientOriginalName(),
             'file_path' => $path,
@@ -662,14 +586,14 @@ class CrrController extends Controller
      */
     public function showDocument($crrId, $docId)
     {
-        $doc = CrrDocument::where('crr_id', $crrId)->findOrFail($docId);
+        $doc = $this->crrRepository->findDocumentForCrrOrFail((int) $crrId, (int) $docId);
 
         return \App\Support\PrivateDisk::downloadResponse((string) $doc->file_path, (string) $doc->file_name);
     }
 
     public function updateDocumentType(Request $request, $docId, CrrChangeLogService $changeLogService)
     {
-        $doc = CrrDocument::findOrFail($docId);
+        $doc = $this->crrRepository->findDocumentOrFail((int) $docId);
 
         $validated = $request->validate([
             'file_type' => ['required', 'string', 'max:100', Rule::in(CrrDocument::fileTypeOptionsWithCustom())],
@@ -695,7 +619,7 @@ class CrrController extends Controller
 
     public function updateDocumentInternal(Request $request, $docId, CrrChangeLogService $changeLogService)
     {
-        $doc = CrrDocument::findOrFail($docId);
+        $doc = $this->crrRepository->findDocumentOrFail((int) $docId);
 
         $validated = $request->validate([
             'is_internal' => ['required', 'boolean'],
@@ -724,7 +648,7 @@ class CrrController extends Controller
     public function deleteDocument($docId, CrrChangeLogService $changeLogService)
     {
         try {
-            $doc = CrrDocument::findOrFail($docId);
+            $doc = $this->crrRepository->findDocumentOrFail((int) $docId);
             $crr = $doc->crr;
             $fileName = $doc->file_name;
             \App\Support\PrivateDisk::delete($doc->file_path);
@@ -744,19 +668,7 @@ class CrrController extends Controller
     {
         $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
 
-        $query = Crr::query()
-            ->stockFollowUp()
-            ->with([
-                'packages',
-                'documents',
-                'customerVessel.customer.responsible.accountManager',
-                'shipments',
-                'registeredBy',
-            ]);
-
-        $this->applyStockFollowUpFilters($query, $request);
-
-        $crrs = $query->latest()->paginate($perPage);
+        $crrs = $this->crrRepository->paginateStockFollowUp($request->all(), $perPage);
 
         if ($request->ajax()) {
             return response()->json([
@@ -766,39 +678,17 @@ class CrrController extends Controller
             ]);
         }
 
-        $customers = DB::table('customers')
-            ->whereNotNull('customer_name')
-            ->where('customer_name', '!=', '')
-            ->distinct()
-            ->orderBy('customer_name')
-            ->pluck('customer_name');
+        $options = $this->crrRepository->stockFollowUpFilterOptions();
 
-        $accountManagers = DB::table('contacts')
-            ->whereNotNull('name')
-            ->where('name', '!=', '')
-            ->distinct()
-            ->orderBy('name')
-            ->pluck('name');
-
-        return view('Stock.stock-follow-up', compact('crrs', 'customers', 'accountManagers'));
+        return view('Stock.stock-follow-up', array_merge(['crrs' => $crrs], $options));
     }
 
     public function pickupWorkList(Request $request)
     {
         $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
 
-        $query = Crr::query()
-            ->pickupWorkList()
-            ->with([
-                'packages',
-                'documents',
-                'customerVessel.customer.responsible.accountManager',
-            ]);
-
-        $handledByMap = $this->hubAgentHandledByMap();
-        $this->applyPickupWorkListFilters($query, $request, $handledByMap);
-
-        $crrs = $query->latest()->paginate($perPage);
+        $handledByMap = $this->crrRepository->hubAgentHandledByMap();
+        $crrs = $this->crrRepository->paginatePickupWorkList($request->all(), $handledByMap, $perPage);
 
         if ($request->ajax()) {
             return response()->json([
@@ -808,215 +698,12 @@ class CrrController extends Controller
             ]);
         }
 
-        $accountManagers = DB::table('contacts')
-            ->whereNotNull('name')
-            ->where('name', '!=', '')
-            ->distinct()
-            ->orderBy('name')
-            ->pluck('name');
+        $options = $this->crrRepository->pickupWorkListFilterOptions($handledByMap);
 
-        $vessels = Crr::query()
-            ->pickupWorkList()
-            ->whereNotNull('vessel_name')
-            ->where('vessel_name', '!=', '')
-            ->distinct()
-            ->orderBy('vessel_name')
-            ->pluck('vessel_name');
-
-        $hubAgents = Crr::query()
-            ->pickupWorkList()
-            ->whereNotNull('hub_agent')
-            ->where('hub_agent', '!=', '')
-            ->distinct()
-            ->orderBy('hub_agent')
-            ->pluck('hub_agent');
-
-        $handledByOptions = $handledByMap->values()->unique()->sort()->values();
-
-        return view('Stock.pickup-work-list', compact(
-            'crrs',
-            'accountManagers',
-            'vessels',
-            'handledByOptions',
-            'handledByMap',
-            'hubAgents',
+        return view('Stock.pickup-work-list', array_merge(
+            ['crrs' => $crrs, 'handledByMap' => $handledByMap],
+            $options,
         ));
     }
 
-    private function applyStockIndexFilters($query, Request $request): void
-    {
-        $hubAgents = array_values(array_filter((array) $request->input('hub_agent', [])));
-        $customers = array_values(array_filter((array) $request->input('customer', [])));
-        $vessels = array_values(array_filter((array) $request->input('vessel', [])));
-        $statuses = array_values(array_filter((array) $request->input('status', [])));
-        $accountManagers = array_values(array_filter((array) $request->input('account_manager', [])));
-        $offices = array_values(array_filter((array) $request->input('office', [])));
-        $stockNumber = trim((string) $request->input('stock_number', ''));
-        $poNumber = trim((string) $request->input('po_number', ''));
-        $supplier = trim((string) $request->input('supplier', ''));
-        $serviceReference = trim((string) $request->input('supplier_reference', $request->input('service_reference', '')));
-        $shipment = trim((string) $request->input('shipment', ''));
-        $transitId = trim((string) $request->input('transit_id', ''));
-
-        $stockNumberLike = ListSearch::prefix($stockNumber);
-        $supplierLike = ListSearch::prefix($supplier);
-        $serviceReferenceLike = ListSearch::prefix($serviceReference);
-        $shipmentLike = ListSearch::prefix($shipment);
-        $transitIdLike = ListSearch::prefix($transitId);
-        $poExact = mb_strlen($poNumber) >= 3 ? $poNumber : '';
-
-        $hasNonStatus = $hubAgents || $customers || $vessels || $accountManagers || $offices
-            || $stockNumberLike || $poExact !== '' || $supplierLike || $serviceReferenceLike
-            || $shipmentLike || $transitIdLike;
-
-        $statusValues = [];
-        $labelLookup = collect(Crr::getStatusLabels())->mapWithKeys(fn ($label, $value) => [strtolower($label) => $value]);
-        foreach ($statuses as $status) {
-            $statusValues[] = $labelLookup[strtolower((string) $status)] ?? $status;
-        }
-
-        $query
-            ->when($hubAgents, function ($q) use ($hubAgents) {
-                $related = Hub::query()
-                    ->where(function ($sub) use ($hubAgents) {
-                        $sub->whereIn('code', $hubAgents)->orWhereIn('hub_name', $hubAgents);
-                    })
-                    ->get(['code', 'hub_name']);
-                $agentRelated = Agent::query()
-                    ->where(function ($sub) use ($hubAgents) {
-                        $sub->whereIn('code', $hubAgents)->orWhereIn('agent_name', $hubAgents);
-                    })
-                    ->get(['code', 'agent_name']);
-
-                $values = collect($hubAgents)
-                    ->merge($related->pluck('code'))
-                    ->merge($related->pluck('hub_name'))
-                    ->merge($agentRelated->pluck('code'))
-                    ->merge($agentRelated->pluck('agent_name'))
-                    ->unique()
-                    ->values();
-
-                $q->whereIn('hub_agent', $values);
-            })
-            ->when($customers, fn ($q) => $q->whereHas('customerVessel.customer', fn ($sub) => $sub->whereIn('customer_name', $customers)))
-            ->when($vessels, fn ($q) => $q->whereIn('vessel_name', $vessels))
-            ->when($accountManagers, function ($q) use ($accountManagers) {
-                $q->where(function ($sub) use ($accountManagers) {
-                    $sub->whereHas('customerVessel', fn ($cv) => $cv->whereIn('account_manager', $accountManagers))
-                        ->orWhereHas('customerVessel.customer.responsible.accountManager', fn ($am) => $am->whereIn('name', $accountManagers));
-                });
-            })
-            ->when($offices, fn ($q) => $q->whereHas('customerVessel.customer.responsible.accountManager.office', fn ($sub) => $sub->whereIn('office_name', $offices)))
-            ->when($stockNumberLike, fn ($q, $pattern) => $q->where('stock_number', 'like', $pattern))
-            ->when($poExact !== '', fn ($q) => $q->whereJsonContains('po_numbers', $poExact))
-            ->when($supplierLike, fn ($q, $pattern) => $q->where('supplier', 'like', $pattern))
-            ->when($serviceReferenceLike, fn ($q, $pattern) => $q->where('supplier_reference', 'like', $pattern))
-            ->when($shipmentLike, fn ($q, $pattern) => $q->where('internal_shipment', 'like', $pattern))
-            ->when($transitIdLike, fn ($q, $pattern) => $q->where('transit_id', 'like', $pattern))
-            ->when($statusValues, fn ($q) => $q->whereIn('status', $statusValues))
-            ->when(! $statusValues && ! $hasNonStatus, fn ($q) => $q->whereNotIn('status', [Crr::STATUS_COMPLETED, Crr::STATUS_CANCELLED]));
-    }
-
-    private function applyStockFollowUpFilters($query, Request $request): void
-    {
-        $customers = array_values(array_filter((array) $request->input('customer', [])));
-        $accountManagers = array_values(array_filter((array) $request->input('account_manager', [])));
-
-        $query
-            ->when($customers, fn ($q) => $q->whereHas('customerVessel.customer', fn ($sub) => $sub->whereIn('customer_name', $customers)))
-            ->when($accountManagers, function ($q) use ($accountManagers) {
-                $q->where(function ($sub) use ($accountManagers) {
-                    $sub->whereHas('customerVessel', fn ($cv) => $cv->whereIn('account_manager', $accountManagers))
-                        ->orWhereHas('customerVessel.customer.responsible.accountManager', fn ($am) => $am->whereIn('name', $accountManagers));
-                });
-            });
-    }
-
-    private function applyPickupWorkListFilters($query, Request $request, $handledByMap): void
-    {
-        $accountManagers = array_values(array_filter((array) $request->input('account_manager', [])));
-        $handledBy = array_values(array_filter((array) $request->input('handled_by', [])));
-        $vessels = array_values(array_filter((array) $request->input('vessel', [])));
-        $hubAgents = array_values(array_filter((array) $request->input('hub_agent', [])));
-        $stockNumber = trim((string) $request->input('stock_number', ''));
-        $supplierRef = trim((string) $request->input('supplier_reference', ''));
-
-        $query
-            ->when($accountManagers, function ($q) use ($accountManagers) {
-                $q->where(function ($sub) use ($accountManagers) {
-                    $sub->whereHas('customerVessel', fn ($cv) => $cv->whereIn('account_manager', $accountManagers))
-                        ->orWhereHas('customerVessel.customer.responsible.accountManager', fn ($am) => $am->whereIn('name', $accountManagers));
-                });
-            })
-            ->when($handledBy, function ($q) use ($handledBy, $handledByMap) {
-                $keys = $handledByMap->filter(fn ($name) => in_array($name, $handledBy, true))->keys();
-                $q->whereIn('hub_agent', $keys);
-            })
-            ->when($vessels, fn ($q) => $q->whereIn('vessel_name', $vessels))
-            ->when($hubAgents, fn ($q) => $q->whereIn('hub_agent', $hubAgents))
-            ->when(ListSearch::prefix($stockNumber), fn ($q, $pattern) => $q->where('stock_number', 'like', $pattern))
-            ->when(ListSearch::prefix($supplierRef), fn ($q, $pattern) => $q->where('supplier_reference', 'like', $pattern));
-
-        $this->applyDateRangeFilter($query, $request->input('expected_delivery'), 'expected_delivery_date');
-        $this->applyDateRangeFilter($query, $request->input('deadline_warehouse'), 'deadline_warehouse');
-        $this->applyDateRangeFilter($query, $request->input('pickup_date'), 'actual_delivery_date');
-    }
-
-    private function applyDateRangeFilter($query, $value, string $column): void
-    {
-        $value = trim((string) $value);
-        if ($value === '' || ! str_contains($value, ' - ')) {
-            return;
-        }
-
-        [$from, $to] = array_map('trim', explode(' - ', $value, 2));
-
-        try {
-            $start = \Carbon\Carbon::createFromFormat('d.m.Y', $from)->startOfDay();
-            $end = \Carbon\Carbon::createFromFormat('d.m.Y', $to)->endOfDay();
-            $query->whereBetween($column, [$start->toDateString(), $end->toDateString()]);
-        } catch (\Exception $e) {
-            // Ignore unparseable date ranges.
-        }
-    }
-
-    private function hubAgentHandledByMap()
-    {
-        $hubAgentValues = Crr::query()
-            ->pickupWorkList()
-            ->whereNotNull('hub_agent')
-            ->where('hub_agent', '!=', '')
-            ->distinct()
-            ->pluck('hub_agent');
-
-        $handledByMap = collect();
-
-        Hub::query()
-            ->where(function ($query) use ($hubAgentValues) {
-                $query->whereIn('code', $hubAgentValues)
-                    ->orWhereIn('hub_name', $hubAgentValues);
-            })
-            ->get(['code', 'hub_name', 'responsible_manager'])
-            ->each(function (Hub $hub) use ($handledByMap) {
-                if ($hub->responsible_manager) {
-                    $handledByMap->put($hub->code, $hub->responsible_manager);
-                    $handledByMap->put($hub->hub_name, $hub->responsible_manager);
-                }
-            });
-
-        Agent::query()
-            ->where(function ($query) use ($hubAgentValues) {
-                $query->whereIn('code', $hubAgentValues)
-                    ->orWhereIn('agent_name', $hubAgentValues);
-            })
-            ->get(['code', 'agent_name', 'responsible_manager'])
-            ->each(function (Agent $agent) use ($handledByMap) {
-                if ($agent->responsible_manager) {
-                    $handledByMap->put($agent->code, $agent->responsible_manager);
-                    $handledByMap->put($agent->agent_name, $agent->responsible_manager);
-                }
-            });
-
-        return $handledByMap;
-    }
 }

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AgentDocument;
-use App\Models\AgentUser;
-use App\Models\Contact;
-use App\Models\User;
 use App\Models\UserNotification;
+use App\Repositories\Contracts\AgentDocumentRepositoryInterface;
 use App\Repositories\Contracts\AgentRepositoryInterface;
+use App\Repositories\Contracts\AgentUserRepositoryInterface;
+use App\Repositories\Contracts\ContactRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\UserNotificationService;
 use App\Support\CountryCache;
 use App\Support\PrivateDisk;
@@ -15,7 +15,13 @@ use Illuminate\Http\Request;
 
 class AgentController extends Controller
 {
-    public function __construct(private AgentRepositoryInterface $agents) {}
+    public function __construct(
+        private AgentRepositoryInterface $agents,
+        private UserRepositoryInterface $users,
+        private ContactRepositoryInterface $contacts,
+        private AgentUserRepositoryInterface $agentUsers,
+        private AgentDocumentRepositoryInterface $agentDocuments,
+    ) {}
 
     public function index(Request $request)
     {
@@ -248,13 +254,10 @@ class AgentController extends Controller
             $message = 'Agent ' . $agent->agent_name . ' has been blocked by ' . $actor . '. Shipments can be created, but it is not possible to send manifests, pre-alerts or finalize shipments until the blocking is removed.';
             $linkUrl = route('agents.edit', $agent->id);
 
-            $recipientIds = User::query()
-                ->where(function ($q) use ($agent) {
-                    $q->where('role', 'Admin')
-                        ->orWhereHas('agents', fn ($aq) => $aq->where('agents.id', $agent->id));
-                })
-                ->when(auth()->id(), fn ($q) => $q->where('id', '!=', auth()->id()))
-                ->pluck('id');
+            $recipientIds = $this->users->notificationRecipientsForAgent(
+                (int) $agent->id,
+                auth()->id()
+            );
 
             $notifier = app(UserNotificationService::class);
             foreach ($recipientIds as $userId) {
@@ -281,7 +284,7 @@ class AgentController extends Controller
     public function destroy($id)
     {
         try {
-            $this->agents->delete((int) $id);
+            $this->agents->deleteById((int) $id);
             return response()->json(['success' => true, 'message' => 'Agent deleted successfully.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error deleting agent.'], 500);
@@ -290,7 +293,7 @@ class AgentController extends Controller
 
     public function deleteDocument($id)
     {
-        $document = AgentDocument::findOrFail($id);
+        $document = $this->agentDocuments->findOrFail((int) $id);
         $agentId  = $document->agent_id;
         $tab      = $document->section === 'pricing' ? 'pricing' : 'sop';
 
@@ -305,7 +308,7 @@ class AgentController extends Controller
 
     public function showDocument($agentId, $docId)
     {
-        $document = AgentDocument::where('agent_id', $agentId)->findOrFail($docId);
+        $document = $this->agentDocuments->findByAgentOrFail((int) $agentId, (int) $docId);
         $filename = $document->filename ?: basename($document->file_path);
 
         return PrivateDisk::downloadResponse((string) $document->file_path, (string) $filename);
@@ -318,7 +321,7 @@ class AgentController extends Controller
             'email' => 'required|email',
         ]);
 
-        Contact::create([
+        $this->contacts->create([
             'agent_id'        => $agent_id,
             'name'            => $request->name,
             'email'           => $request->email,
@@ -335,20 +338,20 @@ class AgentController extends Controller
 
     public function editContact($id)
     {
-        $contact = Contact::with(['creator', 'updater'])->findOrFail($id);
+        $contact = $this->contacts->findOrFail((int) $id, ['creator', 'updater']);
         return view('Agents.contacts.edit', compact('contact'));
     }
 
     public function updateContact(Request $request, $id)
     {
-        $contact = Contact::findOrFail($id);
+        $contact = $this->contacts->findOrFail((int) $id);
 
         $request->validate([
             'name'  => 'required',
             'email' => 'required|email',
         ]);
 
-        $contact->update([
+        $this->contacts->update($contact, [
             'name'            => $request->name,
             'email'           => $request->email,
             'phone_number'    => $request->phone_number,
@@ -364,9 +367,9 @@ class AgentController extends Controller
 
     public function destroyContact($id)
     {
-        $contact  = Contact::findOrFail($id);
+        $contact  = $this->contacts->findOrFail((int) $id);
         $agent_id = $contact->agent_id;
-        $contact->delete();
+        $this->contacts->deleteById((int) $id);
 
         return redirect()
             ->route('agents.edit', $agent_id)
@@ -381,7 +384,7 @@ class AgentController extends Controller
             'email' => 'required|email',
         ]);
 
-        AgentUser::create([
+        $this->agentUsers->create([
             'agent_id'     => $agent_id,
             'name'         => $request->name,
             'email'        => $request->email,
@@ -397,20 +400,20 @@ class AgentController extends Controller
 
     public function editUser($id)
     {
-        $user = AgentUser::with(['creator', 'updater'])->findOrFail($id);
+        $user = $this->agentUsers->findOrFail((int) $id, ['creator', 'updater']);
         return view('Agents.Users.edit', compact('user'));
     }
 
     public function updateUser(Request $request, $id)
     {
-        $user = AgentUser::findOrFail($id);
+        $user = $this->agentUsers->findOrFail((int) $id);
 
         $request->validate([
             'name'  => 'required',
             'email' => 'required|email',
         ]);
 
-        $user->update([
+        $this->agentUsers->update($user, [
             'name'         => $request->name,
             'email'        => $request->email,
             'phone_number' => $request->phone_number,
@@ -425,9 +428,9 @@ class AgentController extends Controller
 
     public function destroyUser($id)
     {
-        $user     = AgentUser::findOrFail($id);
+        $user     = $this->agentUsers->findOrFail((int) $id);
         $agent_id = $user->agent_id;
-        $user->delete();
+        $this->agentUsers->deleteById((int) $id);
 
         return redirect()
             ->route('agents.edit', $agent_id)
