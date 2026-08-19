@@ -851,7 +851,8 @@
                                                                                             class="form-label-custom">UN/LOCODE</label>
                                                                                         <input type="text"
                                                                                             name="un_locode"
-                                                                                            class="form-input-custom">
+                                                                                            class="form-input-custom"
+                                                                                            autocomplete="off">
                                                                                     </div>
                                                                                     <div class="form-group-custom"
                                                                                         style="flex: 1.5;">

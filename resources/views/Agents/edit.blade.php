@@ -729,7 +729,8 @@
                                                         <div class="form-group-custom">
                                                             <label class="form-label-custom">UN/LOCODE</label>
                                                             <input type="text" name="un_locode" class="form-input-custom"
-                                                                value="{{ old('un_locode', $agent->un_locode) }}">
+                                                                value="{{ old('un_locode', $agent->un_locode) }}"
+                                                                autocomplete="off">
                                                         </div>
                                                         <div class="form-group-custom" style="flex: 1.5;">
                                                             <label class="form-label-custom">Agent type</label>
