@@ -1,77 +1,197 @@
 # MarineCaddie — Project Standards & Architecture Guide
 
-> **IMPORTANT:** Is file ko har change se PEHLE padho. Koi bhi naya feature ya fix karne se pehle
-> yahan likha pattern follow karo — doosri functionality tootne ka risk khatam hoga.
+> **IMPORTANT:** Is file ko har non-trivial change se **PEHLE** padho.  
+> Yahan likha pattern follow karo — doosri functionality tootne ka risk khatam hoga.
 
 ---
 
-## 1. Tech Stack
+## Table of Contents
+
+1. [Environments & URLs](#1-environments--urls)
+2. [Tech Stack](#2-tech-stack)
+3. [Project Structure](#3-project-structure)
+4. [Application Modules & Routes](#4-application-modules--routes)
+5. [Request / Auth Flow](#5-request--auth-flow)
+6. [List Page Pattern (CRITICAL)](#6-list-page-pattern-critical)
+7. [Create / Edit Page Pattern](#7-create--edit-page-pattern)
+8. [Select2 & Lookup Fields](#8-select2--lookup-fields)
+9. [DataTables 1.10.20 Rules](#9-datatables-11020-rules)
+10. [SweetAlert v1 Rules](#10-sweetalert-v1-rules)
+11. [Repository Pattern](#11-repository-pattern)
+12. [Services vs Controllers](#12-services-vs-controllers)
+13. [Validation & Mass Assignment](#13-validation--mass-assignment)
+14. [Database & Query Rules](#14-database--query-rules)
+15. [File Storage](#15-file-storage)
+16. [Mail Flows](#16-mail-flows)
+17. [Security Rules](#17-security-rules)
+18. [Performance Rules](#18-performance-rules)
+19. [QA & Manual Testing](#19-qa--manual-testing)
+20. [Git Rules](#20-git-rules)
+21. [Production Deploy](#21-production-deploy)
+22. [Pre-Change Checklist](#22-pre-change-checklist)
+23. [Common Mistakes](#23-common-mistakes)
+
+---
+
+## 1. Environments & URLs
+
+| Environment | URL | Notes |
+|---|---|---|
+| **Production** | `https://portal.marinecaddie.com` | Hostinger, PHP 8.4 |
+| **Local (XAMPP)** | `http://localhost/laravel` | `.env` may point to live DB — be careful |
+
+- Local `.env` changes **never commit** karo.
+- Production deploy = `git pull` on server + cache commands (Section 21).
+
+---
+
+## 2. Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Backend | Laravel 12, PHP 8.2 |
-| Frontend | Blade templates, jQuery, Bootstrap |
-| Database | MySQL (Production: Hostinger `u887677533_globalSaf`) |
-| DataTables | **Version 1.10.20** (purani — specific rules hain, neeche dekho) |
-| Alerts | SweetAlert v1 (swal function) |
-| Multiselect | Bootstrap Multiselect plugin |
+| Backend | Laravel 12, PHP 8.2+ |
+| Frontend | Blade, jQuery, Bootstrap |
+| Database | MySQL |
+| DataTables | **1.10.20** (legacy — strict rules apply) |
+| Alerts | SweetAlert v1 (`swal`) |
+| Multiselect filters | Bootstrap Multiselect |
+| Dropdowns | Select2 |
 | PDF | DomPDF, FPDF/FPDI |
+| Mail | SMTP (Office365) |
 
 ---
 
-## 2. Project Folder Structure
+## 3. Project Structure
 
 ```
 app/
-  Http/Controllers/       — AgentController, ShipmentController, etc.
-  Models/                 — Agent, Shipment, Stock, Hub, Vessel, etc.
+  Http/
+    Controllers/          — Thin controllers (validate → repository/service → response)
+    Middleware/           — auth, otp.verified, ops.admin.readonly, admin
+  Models/                 — Eloquent models + casts/fillable
+  Repositories/
+    Contracts/            — Repository interfaces
+    Criteria/             — Reusable query criteria (optional)
+    Support/              — PaginateOptions, helpers
+    BaseRepository.php    — Shared CRUD/query helpers
+    *Repository.php       — Entity-specific data access
+  Services/               — Business logic, PDF builders, mail composers
   Support/
-    ListSearch.php        — LIKE query helpers (prefix/contains)
-    PrivateDisk.php       — Private file storage helper
-  Services/
-    CurrencyRateService.php
-    UserNotificationService.php
-  Console/Commands/       — UpdateCurrencyRatesCommand
+    CountryCache.php      — Cached country/currency lists
+    ListSearch.php        — LIKE prefix/contains helpers
+    PrivateDisk.php       — Private file storage wrapper
+  Console/Commands/       — Scheduled/maintenance commands
 
 resources/views/
-  Agents/
-    index.blade.php       — List page
-    partials/rows.blade.php — AJAX tbody rows (sirf <tr> tags)
-    edit.blade.php
-    create.blade.php
-  Shipment/               — Same pattern
-  Stock/                  — Same pattern
-  Vessels/                — Same pattern
-  Suppliers/              — Same pattern
-  Other Companies/        — Same pattern
-  hub/                    — Same pattern
-  customers/              — Same pattern
+  Agents/, customers/, hub/, Suppliers/, offices/, Shipment/, Stock/, Vessels/
+    index.blade.php       — List + filters
+    partials/rows.blade.php — AJAX tbody rows (only <tr> tags)
+    create.blade.php / edit.blade.php / show.blade.php
   partials/
-    searchable-filter-multiselect-script.blade.php  ← SHARED JS helper
-    searchable-filter-multiselect-styles.blade.php  ← SHARED CSS
+    searchable-filter-multiselect-script.blade.php  ← bindAjaxListFilters()
+    searchable-filter-multiselect-styles.blade.php
+
+routes/web.php            — All web routes + inline API lookups (ports, parties)
+config/app.php            — App config incl. local_otp_bypass flag
+
+scripts/                  — Local QA helpers (not for production runtime)
+  browser-qa.js
+  check_db.php
+  seed_ops_qa_data.php
 ```
 
 ---
 
-## 3. List Page Pattern (CRITICAL — sabse important)
+## 4. Application Modules & Routes
 
-**Har list page ka ek standard pattern hai. Is pattern ko kabhi mat todna.**
+### Administration (master data)
 
-### 3a. Controller (index method)
+| Module | List URL | Notes |
+|---|---|---|
+| Agents | `/Agents` | CRUD + tabs (billing, SOP, contacts, etc.) |
+| Customers | `/customers` | CRUD + vessels, documents |
+| Hubs | `/hubs` | CRUD via `hub.show` edit page |
+| Suppliers | `/Suppliers` | CRUD |
+| Other Companies | `/other-companies` | CRUD |
+| Offices | `/offices` | Create/edit (no list delete) |
+| Vessels | `/Vessels` | List/create only |
+| Users | `/users` | Admin-only, modal CRUD |
+
+### Operations
+
+| Module | List URL | Notes |
+|---|---|---|
+| Shipments | `/shipments` | Heavy edit page, manifests, pre-alerts, mail |
+| Stocks (CRR) | `/stocks` | Create via `/stocks/create-crr`, edit tabs |
+| Dashboard | `/dashboard` | Operations overview |
+
+### Middleware layers (in order)
+
+```
+guest → auth → otp.verified → ops.admin.readonly → (admin for /users)
+```
+
+- **`otp.verified`:** Login ke baad OTP mandatory (production).
+- **`ops.admin.readonly`:** Operations role ko administration write block (`DenyOperationsAdministrationWrite`).
+- **`admin`:** User management routes.
+
+---
+
+## 5. Request / Auth Flow
+
+```
+Login (email + password + geolocation)
+  → OTP page (/otp) — email code
+  → otp.verify → session otp_verified = true
+  → Dashboard / intended URL
+```
+
+### Login rules
+
+- Login form requires browser geolocation (`browser_latitude`, `browser_longitude`).
+- CSRF token refresh on submit via `/login/csrf`.
+- Inactive users (`is_active = 0`) cannot log in.
+
+### Local OTP bypass (QA only)
+
+```env
+# .env — LOCAL ONLY, never on production
+LOCAL_OTP_BYPASS=true
+```
+
+- Controlled by `config('app.local_otp_bypass')`.
+- **Ignored in `production` environment** even if env is set.
+- Used for automated/manual browser QA on localhost.
+
+---
+
+## 6. List Page Pattern (CRITICAL)
+
+**Har list page same pattern follow karta hai. Mat todna.**
+
+### Flow
+
+```
+Browser → Controller index()
+       → Repository paginate(filters)
+       → Full view OR AJAX JSON { html, pagination, total }
+       → partials/rows.blade.php renders <tr> rows
+       → bindAjaxListFilters() handles filter/pagination AJAX
+```
+
+### 6a. Controller `index()`
+
 ```php
 public function index(Request $request)
 {
-    // 1. Input lena
-    $search = trim($request->input('search', ''));
-    $hideInactive = $request->boolean('hide_inactive', false); // DEFAULT false
+    $perPage = max(10, min(100, (int) $request->input('per_page', 25)));
+    $filters = array_merge(
+        $request->only(['name', 'search', 'country']),
+        ['hide_inactive' => $request->boolean('hide_inactive', false)] // DEFAULT false
+    );
 
-    // 2. Query banana
-    $items = Model::query()
-        ->when($search !== '', fn($q) => $q->where('name', 'like', '%'.$search.'%'))
-        ->when($hideInactive, fn($q) => $q->where('is_active', 1)) // boolean nahi, integer 1
-        ->paginate(25);
+    $items = $this->repository->paginate($filters, $perPage);
 
-    // 3. AJAX request check — HTML + pagination return karo
     if ($request->ajax()) {
         return response()->json([
             'html'       => view('Module.partials.rows', compact('items'))->render(),
@@ -80,17 +200,17 @@ public function index(Request $request)
         ]);
     }
 
-    // 4. Normal request — full view return karo
-    return view('Module.index', compact('items'));
+    return view('Module.index', compact('items', /* filter dropdown data */));
 }
 ```
 
-### 3b. Partial rows file (`partials/rows.blade.php`)
+### 6b. `partials/rows.blade.php`
+
 ```blade
 @forelse($items as $item)
     <tr>
         <td>{{ $item->name }}</td>
-        {{-- ... exact same number of <td> as <th> in index.blade.php thead --}}
+        {{-- td count MUST match thead th count in index.blade.php --}}
     </tr>
 @empty
     <tr>
@@ -98,24 +218,28 @@ public function index(Request $request)
     </tr>
 @endforelse
 ```
-**RULE:** `colspan` mein wahi number dalo jo `<thead>` mein `<th>` count hai.
 
-### 3c. Index view JS — `bindAjaxListFilters` helper use karo
+**RULE:** `colspan` = exact `<th>` count in `<thead>`.
+
+### 6c. JS — `bindAjaxListFilters`
+
+Shared helper: `resources/views/partials/searchable-filter-multiselect-script.blade.php`
+
 ```javascript
-// SHARED helper — partials/searchable-filter-multiselect-script.blade.php
 window.myListFilters = bindAjaxListFilters({
     tableSelector:      '#my-table',
     paginationSelector: '#my-pagination',
     indexUrl:           @json(route('module.index')),
-    existingTable:      table,       // DataTables instance (agar hai)
+    existingTable:      table,  // DataTables instance if used
     getParams: function(page) {
         return {
             search: $.trim($('#search-input').val() || ''),
-            page:   page || 1
+            hide_inactive: $('#hide-inactive').is(':checked') ? 1 : 0,
+            page: page || 1
         };
     },
     textSelectors:   '#search-input',
-    changeSelectors: '#filter-select',
+    changeSelectors: '#filter-select, #hide-inactive',
     resetFields: function() {
         $('#search-input').val('');
         $('#filter-select').val(null).trigger('change');
@@ -123,272 +247,580 @@ window.myListFilters = bindAjaxListFilters({
 });
 ```
 
+### 6d. AJAX response contract
+
+Every list filter request **must** return:
+
+```json
+{
+  "html": "<tr>...</tr>",
+  "pagination": "<nav>...</nav>",
+  "total": 42
+}
+```
+
+### 6e. `hide_inactive` filter
+
+```php
+// Controller — default MUST be false (show all)
+$hideInactive = $request->boolean('hide_inactive', false);
+
+// Query — use integer 1, not boolean true
+->when($hideInactive, fn ($q) => $q->where('is_active', 1))
+```
+
+Checkbox checked = sirf active records. Unchecked/default = sab records.
+
 ---
 
-## 4. DataTables 1.10.20 — Specific Rules
+## 7. Create / Edit Page Pattern
 
-**Yeh version 2019 ka hai. Newer version ke features kaam nahi karte.**
+### Standard form flow
 
-### ✅ Sahi tarika:
+```
+GET create/edit → Blade form with @csrf
+POST/PUT → Controller validate → Repository create/update → redirect with flash
+```
+
+### Edit pages with tabs
+
+Modules like Agent, Hub, Customer, Shipment, Stock use tabbed edit UI:
+
+- Tab buttons: `.tab-item[data-tab="tab-id"]` or `.nav-tab-item[data-target="tab-id"]`
+- Tab panels: `#tab-id` or `#tab-id.tab-panel`
+- Hidden field `active_tab` on update forms — redirect back to same tab after save
+- URL hash support: `#billing-details` restores tab on load
+
+**Before adding a tab:** ensure save/update handler persists tab-specific fields and validation covers them.
+
+### Delete from list
+
+- SweetAlert confirm → AJAX `DELETE` with CSRF header
+- SweetAlert callback mein **destroyed DataTables** par `.draw()` / `.invalidate()` mat karo
+- Success par list row remove ya `bindAjaxListFilters` reload
+
+---
+
+## 8. Select2 & Lookup Fields
+
+### Country dropdown (flag)
+
+```javascript
+$('.select2-flag').select2({
+    placeholder: 'Select Country',
+    allowClear: true,
+    width: '100%',
+    templateResult: formatFlag,
+    templateSelection: formatFlag
+});
+```
+
+Data source: `CountryCache::active()` or `CountryCache::activeRaw()` in controller.
+
+### Port code (from `ports` table)
+
+Use class `select2-port-code` on Agent, Hub, Customer, Supplier, Other Company, Shipment forms.
+
+```javascript
+$('.select2-port-code').select2({
+    placeholder: 'Search port code',
+    width: '100%',
+    minimumInputLength: 0,
+    ajax: {
+        url: '{{ route('api.ports') }}',
+        dataType: 'json',
+        delay: 200,
+        data: params => ({ q: params.term || '' }),
+        processResults: data => ({ results: data.results || [] })
+    },
+    templateResult: formatPortResult,      // code + city, country subtitle
+    templateSelection: formatPortSelection
+});
+```
+
+API: `GET /api/ports?q=ABC` → `{ results: [{ id, text, code, city, country }] }`
+
+**Edit pages:** pre-select saved value:
+
+```blade
+@if (old('port_code', $model->port_code))
+    <option value="{{ old('port_code', $model->port_code) }}" selected>
+        {{ old('port_code', $model->port_code) }}
+    </option>
+@endif
+```
+
+### Party lookups (Shipment)
+
+- Departure: `GET /api/parties`
+- Consignee: `GET /api/consignees`
+- Composite IDs: `hub:1`, `agent:2`, `customer:3`
+
+---
+
+## 9. DataTables 1.10.20 Rules
+
+**Version 2019 — newer API features crash karte hain.**
+
+### Correct config
+
 ```javascript
 $('#my-table').DataTable({
-    "dom":          'rt',
-    "paging":       false,
-    "info":         false,
-    "searching":    false,
-    "ordering":     true,
-    "autoWidth":    false,
-    "columnDefs": [
-        { "orderable": false, "targets": 8 }  // ← INTEGER, array [8] nahi
+    dom: 'rt',
+    paging: false,
+    info: false,
+    searching: false,
+    ordering: true,
+    autoWidth: false,
+    columnDefs: [
+        { orderable: false, targets: 8 }  // INTEGER — not [8]
     ]
 });
 ```
 
-### ❌ Galat — crash karta hai:
+### Wrong (crashes)
+
 ```javascript
-"columnDefs": [{ "orderable": false, "targets": [8] }]  // array crash karega 1.10.x mein
-"scrollX": true  // bhi crash kar sakta hai agar parent hidden ho
+columnDefs: [{ orderable: false, targets: [8] }]  // array = crash
+scrollX: true  // crash if parent hidden
+table.rows.add($rows)  // DOM nodes don't work in 1.10
 ```
 
-### AJAX ke baad rows replace karna:
+### After AJAX row replace
+
 ```javascript
-// ✅ Sahi: destroy + tbody replace + reinit
 table.destroy(true);
-$('#wrapper').html('<table id="my-table" class="..."></table>');
-$('#my-table').html(theadHtml + '<tbody>' + html + '</tbody>');
+$('#my-table tbody').html(html);
 table = $('#my-table').DataTable(dtConfig);
-
-// ❌ Galat: rows.add() kaam nahi karta DOM nodes se DT 1.10 mein
-table.rows.add($rows);
 ```
 
-### table variable stub (jab DataTables nahi use karna):
+### Stub when DT not used but code references `table`
+
 ```javascript
-// Agar DataTables nahi use kar rahe but baaki code table.x call karta hai:
-var table = { 
-    columns: { adjust: function(){} },
-    row: function() { return { invalidate: function() { return { draw: function(){} }; } }; }
+var table = {
+    columns: { adjust: function() {} },
+    row: function() {
+        return { invalidate: function() { return { draw: function() {} }; } };
+    }
 };
 ```
 
+**Prefer:** newer list pages use `bindAjaxListFilters` without DataTables entirely.
+
 ---
 
-## 5. SweetAlert v1 Rules
+## 10. SweetAlert v1 Rules
 
 ```javascript
-// ✅ Confirmation dialog (closeOnConfirm: false — manually close karo)
 swal({
     title: 'Are you sure?',
     type: 'warning',
     showCancelButton: true,
-    closeOnConfirm: false,   // ← important
+    closeOnConfirm: false,      // required
     showLoaderOnConfirm: true
 }, function(isConfirm) {
     if (!isConfirm) return;
 
-    $.ajax({ ... }).done(function(response) {
-        swal('Done!', 'Success message', 'success'); // ← yeh close karega
+    $.ajax({ /* ... */ }).done(function(response) {
+        swal('Done!', 'Success message', 'success');  // this closes dialog
+    }).fail(function() {
+        swal('Error', 'Something went wrong.', 'error');
     });
 });
-
-// ❌ Galat — AJAX ke andar koi bhi JS error ho to swal kabhi close nahi hoga
-// Isliye AJAX success callback mein koi bhi .invalidate(), .draw() call
-// DataTables ke bina mat karo
 ```
+
+- Callback mein JS error = alert stuck forever.
+- Success callback mein DataTables calls tabhi karo jab table instance valid ho.
 
 ---
 
-## 6. Boolean / is_active DB Field Rules
+## 11. Repository Pattern
 
-**Production DB mein `is_active` tinyint(1) hai.**
+**Project-wide standard.** Controllers direct `Model::query()` use nahi karte — repository inject karo.
+
+### Layer responsibilities
+
+| Layer | Responsibility |
+|---|---|
+| **Controller** | HTTP: validate input, call repository/service, return view/JSON/redirect |
+| **Repository** | Data access: queries, filters, pagination, CRUD |
+| **Service** | Business logic: PDF generation, mail compose, complex multi-step workflows |
+| **Model** | Eloquent: relationships, casts, accessors, scopes |
+
+### Base classes
+
+```
+App\Repositories\Contracts\BaseRepositoryInterface
+App\Repositories\BaseRepository
+```
+
+Shared methods:
+
+| Method | Purpose |
+|---|---|
+| `query()` | New Eloquent builder |
+| `findModelOrFail($id, $with)` | Find with optional eager load |
+| `create($data)` | Insert |
+| `updateModel($model, $data)` | Update (named to avoid child signature clash) |
+| `deleteById($id)` | Delete |
+| `paginateQuery($query, $perPage)` | Paginate builder |
+| `transaction($callback)` | DB::transaction wrapper |
+| `applyCriteria($query, $criteria)` | Criteria pipeline |
+
+### New repository checklist
+
+1. Create `App\Repositories\Contracts\XxxRepositoryInterface`
+2. Create `App\Repositories\XxxRepository extends BaseRepository`
+3. Set `protected string $modelClass = Xxx::class;`
+4. Bind in `AppServiceProvider::register()`
+5. Inject interface in controller constructor
+6. Move query logic from controller to repository methods (`paginate`, `findWithRelations`, etc.)
+
+### Example
 
 ```php
-// ✅ Sahi query
-->where('is_active', 1)       // active records
-->where('is_active', 0)       // inactive records
-
-// ⚠️ Ye bhi kaam karta hai (Model mein boolean cast ho to)
-->where('is_active', true)
-
-// Controller mein default:
-$hideInactive = $request->boolean('hide_inactive', false); // DEFAULT false — sab dikhao
-```
-
-**Note:** Production mein naye records ka `is_active` migration default se aata hai.
-Purane records (migration se pehle ke) manually update karne padenge:
-```bash
-php artisan tinker --execute="DB::table('agents')->update(['is_active' => 1]);"
-```
-
----
-
-## 7. File Storage Rules
-
-```php
-// Private files (manifests, pre-alerts, documents):
-use App\Support\PrivateDisk;
-
-$path = $file->store('folder_name', 'private');  // store
-PrivateDisk::delete($document->file_path);        // delete (DB record alag hatao)
-PrivateDisk::downloadResponse($path, $filename);  // download
-
-// ❌ Storage::delete() seedha mat use karo — PrivateDisk use karo
-```
-
----
-
-## 8. AJAX Filter — ListSearch Helper
-
-```php
-use App\Support\ListSearch;
-
-// Large tables (shipments, stocks) — index use karta hai, fast
-->when($term, fn($q) => $q->where('shipment_number', 'like', ListSearch::prefix($term)))
-
-// Small master data tables (agents, hubs, vessels) — contains search
-->when($term, fn($q) => $q->where('name', 'like', ListSearch::contains($term)))
-```
-
----
-
-## 9. Repository Pattern (New Code Only)
-
-**Existing code touch nahi karna — sirf naye modules/features mein follow karo.**
-
-### Structure
-```
-app/
-  Repositories/
-    Contracts/
-      AgentRepositoryInterface.php   ← Interface
-    AgentRepository.php              ← Implementation
-  Services/
-    AgentService.php                 ← Business logic (optional, heavy logic ke liye)
-```
-
-### Interface
-```php
-namespace App\Repositories\Contracts;
-
-interface AgentRepositoryInterface
+// Contract
+interface HubRepositoryInterface
 {
-    public function paginate(array $filters, int $perPage = 25);
-    public function findById(int $id);
-    public function create(array $data);
-    public function update(int $id, array $data);
-    public function delete(int $id): bool;
+    public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator;
+    public function findOrFail(int $id): Hub;
+    public function create(array $data): Hub;
+    public function update(Hub $hub, array $data): bool;
 }
-```
 
-### Implementation
-```php
-namespace App\Repositories;
+// Controller
+public function __construct(private HubRepositoryInterface $hubs) {}
 
-use App\Models\Agent;
-use App\Repositories\Contracts\AgentRepositoryInterface;
-
-class AgentRepository implements AgentRepositoryInterface
+public function index(Request $request)
 {
-    public function paginate(array $filters, int $perPage = 25)
-    {
-        return Agent::query()
-            ->when($filters['name'] ?? '', fn($q, $v) => $q->where('agent_name', 'like', '%'.$v.'%'))
-            ->paginate($perPage);
-    }
+    $hubs = $this->hubs->paginate($request->all(), 25);
     // ...
 }
 ```
 
-### Bind in AppServiceProvider
+### Naming rules
+
+- Interface: `{Entity}RepositoryInterface`
+- Implementation: `{Entity}Repository`
+- Method `paginate()` on child repos is OK — **do not** add generic `paginate()` on `BaseRepository` (signature clash)
+- Method `update($model, $data)` on child repos is OK — base uses `updateModel()`
+
+---
+
+## 12. Services vs Controllers
+
+Use **Services** when logic involves:
+
+- PDF generation (manifest, pre-alert, combined PO)
+- Mail preview + send (ManifestMailService, PreAlertMailService)
+- Multi-model transactions with side effects
+- External API calls (currency rates)
+- Change log snapshots
+
+Use **Repository** when logic is:
+
+- Filtered lists
+- CRUD
+- Simple lookups / existence checks
+
+**Never** put 200+ lines of query logic in controllers — extract to repository.
+
+---
+
+## 13. Validation & Mass Assignment
+
+### Always validate before save
+
 ```php
-// app/Providers/AppServiceProvider.php — register() method
-$this->app->bind(
-    \App\Repositories\Contracts\AgentRepositoryInterface::class,
-    \App\Repositories\AgentRepository::class,
-);
+$validated = $request->validate([
+    'hub_name'       => 'required|string|max:255',
+    'contact_person' => 'required|string|max:255',
+    'email'          => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+]);
 ```
 
-### Controller mein inject karo
+### Mass assignment
+
 ```php
-class AgentController extends Controller
-{
-    public function __construct(private AgentRepositoryInterface $agents) {}
+// ✅ Correct
+$this->repository->create($request->validated());
+$this->repository->update($model, $request->only([...]));
 
-    public function index(Request $request)
-    {
-        $items = $this->agents->paginate($request->only(['name', 'city']));
-        // ...
-    }
-}
+// ❌ Wrong
+Model::create($request->all());
 ```
 
-### Rules
-- Naya module → Repository zaroor banao
-- Existing controllers (`AgentController`, `ShipmentController`, etc.) → **mat chhedo**
-- Business logic Controller mein nahi, Repository ya Service mein
-- Direct `Model::query()` sirf existing files mein acceptable hai
+### File uploads
+
+Always validate `mimes` and `max` size:
+
+```php
+'files.*' => 'nullable|file|max:20480|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg',
+```
+
+### Blade output
+
+User-controlled strings in views: use `{{ }}` (escaped). PDF/HTML builders: use `e()` for dynamic labels.
 
 ---
 
-## 10. Git Rules
+## 14. Database & Query Rules
 
-- **Bina permission ke `git push` mat karo** — pehle user se confirm karo
-- Local changes karo → user ko dikhao → user bole tab push karo
-- Commit message clear aur descriptive rakho
+### ListSearch helper
+
+```php
+use App\Support\ListSearch;
+
+// Large tables (shipments, stocks) — prefix search (uses index)
+->when($term, fn ($q) => $q->where('shipment_number', 'like', ListSearch::prefix($term)))
+
+// Small master data — contains search OK
+->when($term, fn ($q) => $q->where('agent_name', 'like', ListSearch::contains($term)))
+```
+
+### `is_active` / booleans
+
+```php
+->where('is_active', 1)   // preferred
+$request->boolean('hide_inactive', false)  // filter default false
+```
+
+### N+1 prevention
+
+List and edit queries must `->with([...])` required relations in repository.
+
+### Indexes
+
+New filterable/sortable column → add DB index in migration.
+
+### Transactions
+
+Multi-table writes (Shipment + CRR attach, CRR + packages) → `DB::transaction()` or `$repo->transaction()`.
 
 ---
 
-## 11. Checklist — Koi bhi Change Karne Se Pehle
+## 15. File Storage
 
+```php
+use App\Support\PrivateDisk;
+
+// Store
+$path = $file->store('folder/subfolder', 'private');
+
+// Delete (always when removing DB record)
+PrivateDisk::delete($document->file_path);
+
+// Download
+PrivateDisk::downloadResponse($path, $filename);
 ```
-[ ] Is page ka controller index method dekha?
-[ ] partials/rows.blade.php mein <td> count = <thead> <th> count?
-[ ] DataTables use ho raha hai? columnDefs targets integer hai (array nahi)?
-[ ] SweetAlert callback mein koi DataTables call toh nahi jo table destroy ke baad toot jaye?
-[ ] is_active filter ka default false hai?
-[ ] PrivateDisk use ho raha hai file delete ke liye?
-[ ] Agar koi import/model/helper remove kiya hai, file mein us symbol ke saare usages search kiye? (`Country::`, `new Country`, type-hints, static calls, etc.)
-[ ] Affected route/page localhost pe open karke manual smoke test kiya? (sirf `php -l` ya grep enough nahi)
-[ ] Affected AJAX action / form submit / filter / delete flow bhi manually test kiya?
-[ ] "Verified" tabhi bolo jab affected page actual run karke dekh liya ho
-[ ] Local pe test kiya? Phir push kiya?
-```
+
+**Never** use raw `Storage::delete()` for private documents.
+
+Applies to: hub/agent/customer documents, shipment documents, manifests, pre-alerts, CRR documents.
 
 ---
 
-## 12. Performance Rules
+## 16. Mail Flows
 
-### Country List — Always use CountryCache
+### Shipment mail (browser-triggered, AJAX)
+
+| Action | Route pattern |
+|---|---|
+| Manifest prepare | `POST /shipments/{id}/manifest-mail/prepare` |
+| Manifest send | `POST /shipments/{id}/manifest-mail/send` |
+| Pre-alert prepare | `POST /shipments/{id}/pre-alert-mail/prepare` |
+| Pre-alert send | `POST /shipments/{id}/pre-alert-mail/send` |
+| Pre-alert reminder | `POST /shipments/{id}/pre-alert-reminder-mail/dispatch` |
+| Delivery status reminder | `POST /shipments/{id}/delivery-status-reminder-mail/send` |
+| Invoice request | `POST /shipments/{id}/invoice-request-mail/send` |
+
+Send endpoints require: `to`, `subject`; optional `cc`, `bcc`, `body`, `files[]`.
+
+### Login OTP mail
+
+- Sent on login via `OtpController::issueOtp()`
+- Local env may show OTP on screen when mail delivery unavailable
+
+### Scheduled mail/commands
+
+- `currency:update-rates` — hourly via scheduler
+- Scheduler: `* * * * * php artisan schedule:run`
+
+---
+
+## 17. Security Rules
+
+| Rule | Implementation |
+|---|---|
+| Auth on all app routes | `auth` + `otp.verified` middleware |
+| Admin routes protected | `admin` middleware on `/users` |
+| Ops read-only on admin modules | `DenyOperationsAdministrationWrite` middleware |
+| Mass assignment | `$request->validated()` / explicit `$request->only()` |
+| File upload validation | `mimes` + `max` on all upload endpoints |
+| Private files | `PrivateDisk` + auth-checked download routes |
+| CSRF | All forms + AJAX POST with `X-CSRF-TOKEN` |
+| Sensitive routes | e.g. `/update-currency-rates` inside `auth` group |
+| `.env` secrets | Never commit; rotate if exposed |
+| Production OTP | Always required; `LOCAL_OTP_BYPASS` production mein ignored |
+| XSS in PDF/views | Escape dynamic strings with `e()` |
+
+---
+
+## 18. Performance Rules
+
+### CountryCache (mandatory)
+
 ```php
 use App\Support\CountryCache;
 
-// Eloquent collection (Agent, Supplier, Vessel, Shipment controllers)
-$countries = CountryCache::active();
-
-// Plain DB rows (Hub controller — DB::table based)
-$countries = CountryCache::activeRaw();
-
-// Currencies list
+$countries  = CountryCache::active();      // Eloquent collection
+$countries  = CountryCache::activeRaw();   // stdClass rows (Hub views)
 $currencies = CountryCache::currencies();
 
-// After any country create/update/delete:
-CountryCache::flush();
+CountryCache::flush();  // after country CRUD
 ```
-**Never** call `Country::where('is_active', true)->get()` directly — always use CountryCache.
 
+**Never** `Country::where('is_active', true)->get()` directly in controllers.
 
+### Query performance
 
-- `LIKE '%term%'` (contains) — B-tree index use nahi hota, small tables pe acceptable
-- `LIKE 'term%'` (prefix) — index use hota hai, large tables pe use karo (`ListSearch::prefix`)
-- Har list controller mein `->with('relation')` hona chahiye (N+1 avoid)
-- New filterable column add karo → migration mein index bhi add karo
-- Production deploy ke baad: `php artisan config:cache && route:cache && view:cache`
+- Prefix `LIKE` on large tables (`ListSearch::prefix`)
+- Eager load on list/edit (`->with()`)
+- Add indexes for filtered columns
+- Avoid queries inside Blade loops
+
+### Production cache (after deploy)
+
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+### OPcache
+
+Enable on production PHP for faster bootstrap.
 
 ---
 
-## 13. Production Deploy Notes
+## 19. QA & Manual Testing
 
-- **Git push** → Production pe `git pull` karna hoga manually ya deploy hook se
-- **Scheduler:** `* * * * *` cron Hostinger hPanel mein set hai (`php artisan schedule:run`)
-- **Currency rates:** `currency:update-rates` command har ghante chalti hai
-- **Logs:** `storage/logs/laravel.log` aur `storage/logs/scheduler.log`
+### Minimum smoke test (every change)
+
+1. Open affected page on `http://localhost/laravel`
+2. Test list load + at least one filter
+3. Test create OR update (whichever changed)
+4. Test delete/AJAX action if applicable
+5. Check Laravel log for errors: `storage/logs/laravel.log`
+
+### Never say "verified" based only on
+
+- `php -l` syntax check
+- grep/search without running the page
+- Assuming AJAX works without clicking filters
+
+### Local QA scripts (optional)
+
+```bash
+php scripts/check_db.php          # core tables exist
+php scripts/seed_ops_qa_data.php  # seed test stock + shipment
+node scripts/browser-qa.js        # automated browser smoke (needs Playwright)
+```
+
+Requires `LOCAL_OTP_BYPASS=true` in local `.env` for headless login.
+
+### Import/model removal safety
+
+Before removing any class/import, search **all** usages:
+
+```
+Country::
+new Country
+use App\Models\Country
+type-hints referencing the class
+```
+
+---
+
+## 20. Git Rules
+
+- **Bina user ke kehne `git push` mat karo**
+- Commit message clear aur descriptive (why, not just what)
+- `.env`, credentials, API keys — **never commit**
+- Branch workflow: feature branch → user review → push
+- After push, user decides production deploy timing
+
+---
+
+## 21. Production Deploy
+
+### Steps
+
+```bash
+cd /home/u887677533/domains/portal.marinecaddie.com/public_html
+git pull origin main   # or merged feature branch
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan config:cache && php artisan route:cache && php artisan view:cache
+```
+
+### Cron (Hostinger hPanel)
+
+```
+* * * * * cd /home/u887677533/domains/portal.marinecaddie.com/public_html && /opt/alt/php84/usr/bin/php artisan schedule:run >> /dev/null 2>&1
+```
+
+Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | tail -10`
+
+### Post-deploy verify
+
+- Login + OTP flow
+- One list page filter
+- One critical operations action (shipment list load)
+
+---
+
+## 22. Pre-Change Checklist
+
+```
+[ ] PROJECT_STANDARDS.md (this file) — affected section read?
+[ ] Module route + controller + repository identified?
+[ ] partials/rows.blade.php td count == thead th count?
+[ ] bindAjaxListFilters getParams sends all active filters?
+[ ] hide_inactive default = false in controller?
+[ ] DataTables columnDefs targets = integer (not array)?
+[ ] SweetAlert callback safe (no broken DT calls)?
+[ ] PrivateDisk used for file delete?
+[ ] CountryCache used (not direct Country query)?
+[ ] Repository used for data access (not Model:: in controller)?
+[ ] Validation uses validated()/only() — not all()?
+[ ] Removed import/model — all usages searched?
+[ ] Affected page opened on localhost and manually tested?
+[ ] Form submit / AJAX / filter / delete flow tested?
+[ ] Only say "verified" after actual browser test
+[ ] User asked before git push?
+```
+
+---
+
+## 23. Common Mistakes
+
+| Mistake | Fix |
+|---|---|
+| `hide_inactive` default `true` | Default must be `false` |
+| `targets: [8]` in DataTables | Use `targets: 8` |
+| `table.rows.add($rows)` | Replace tbody HTML instead |
+| SweetAlert stuck | JS error in callback — check console |
+| Email in `un_locode` field | Add `autocomplete="off"` on non-email fields |
+| `Storage::delete()` for private files | Use `PrivateDisk::delete()` |
+| `Country::all()` in controller | Use `CountryCache::active()` |
+| `Model::create($request->all())` | Use `$request->validated()` |
+| Filter checkbox not in AJAX params | Add to `getParams()` in bindAjaxListFilters |
+| Tab fields not saved | Check validation + `$fillable` + active_tab redirect |
+| Port code free text | Use `select2-port-code` + `api.ports` |
+| OTP bypass on production | Never set `LOCAL_OTP_BYPASS` on production |
+| Push without user permission | Wait for explicit "push karo" |
+
+---
+
+*Last updated: reflects repository pattern rollout, hub port Select2, local OTP bypass, and QA scripts.*
