@@ -825,7 +825,7 @@
                 "ordering": true,
                 "autoWidth": false,
                 "columnDefs": [
-                    { "orderable": false, "targets": [8] }
+                    { "orderable": false, "targets": 8 }
                 ],
                 "language": {
                     "emptyTable": "No agents found."
