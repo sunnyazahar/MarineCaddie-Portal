@@ -69,7 +69,7 @@ class CustomerRepository extends BaseRepository implements CustomerRepositoryInt
             ->when($accountMgrFilter, fn ($q) => $q->whereHas('responsible.accountManager', fn ($sub) => $sub->whereIn('name', $accountMgrFilter)))
             ->when($salesMgrFilter, fn ($q) => $q->whereHas('responsible.salesManager', fn ($sub) => $sub->whereIn('name', $salesMgrFilter)))
             ->when($countriesFilter, fn ($q) => $q->whereHas('primaryAddress.country', fn ($sub) => $sub->whereIn('name', $countriesFilter)))
-            ->orderBy('customer_name')
+            ->orderByDesc('id')
             ->paginate($perPage);
     }
 

@@ -512,6 +512,7 @@
                 "dom": 't',
                 "pageLength": 100,
                 "ordering": true,
+                "order": [],
                 "autoWidth": false,
                 "responsive": false,
                 "scrollX": true,

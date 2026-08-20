@@ -29,7 +29,7 @@ class SupplierRepository extends BaseRepository implements SupplierRepositoryInt
                         ->orWhereHas('country', fn ($c) => $c->where('name', 'like', $pattern));
                 });
             })
-            ->orderBy('supplier_name')
+            ->orderByDesc('id')
             ->paginate($perPage);
     }
 

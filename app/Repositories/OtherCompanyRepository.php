@@ -39,7 +39,7 @@ class OtherCompanyRepository extends BaseRepository implements OtherCompanyRepos
                 });
             })
             ->when($countries, fn ($q) => $q->whereHas('country', fn ($sub) => $sub->whereIn('name', $countries)))
-            ->orderBy('company_name')
+            ->orderByDesc('id')
             ->paginate($perPage);
     }
 

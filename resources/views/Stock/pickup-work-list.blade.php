@@ -896,6 +896,7 @@
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
+                "order": [],
                 "autoWidth": false,
                 "scrollX": true
             });

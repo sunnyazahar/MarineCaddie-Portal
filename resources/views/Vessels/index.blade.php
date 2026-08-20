@@ -72,10 +72,20 @@
             line-height: 26px !important;
             padding: 0 10px !important;
             color: #333 !important;
+            background-color: #fff !important;
+        }
+
+        .filter-row .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: #9ca3af !important;
+            font-style: italic;
         }
 
         .filter-row .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 26px !important;
+        }
+
+        .filter-row .select2-container--default .select2-selection--single .select2-selection__arrow b {
+            border-color: #64748b transparent transparent transparent !important;
         }
 
         /* Hide DataTables scrollX cloned header */
@@ -298,6 +308,7 @@
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
+                "order": [],
                 "autoWidth": false,
                 "scrollX": true
             });

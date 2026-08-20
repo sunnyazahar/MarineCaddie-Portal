@@ -32,7 +32,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
             })
             ->when($role !== '', fn ($query) => $query->where('role', $role))
             ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', (bool) $status))
-            ->orderBy('name')
+            ->orderByDesc('id')
             ->paginate($perPage)
             ->withQueryString();
     }

@@ -1156,6 +1156,7 @@
                 "paging": false,
                 "info": false,
                 "ordering": true,
+                "order": [],
                 "autoWidth": false,
                 "responsive": false,
                 "scrollX": true

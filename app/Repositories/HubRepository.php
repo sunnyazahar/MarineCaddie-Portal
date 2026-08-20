@@ -35,7 +35,7 @@ class HubRepository extends BaseRepository implements HubRepositoryInterface
             })
             ->when($countries, fn ($q) => $q->whereIn('country', $countries))
             ->when($hideInactive, fn ($q) => $q->where('hide_in_portal', false))
-            ->orderBy('hub_name')
+            ->orderByDesc('id')
             ->paginate($perPage);
     }
 

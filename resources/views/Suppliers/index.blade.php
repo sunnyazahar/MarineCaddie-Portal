@@ -18,10 +18,17 @@
             width: 100%;
             border-collapse: collapse;
         }
+        .table-other-companies th,
+        .table-other-companies td,
+        #suppliers-table th,
+        #suppliers-table td,
+        #suppliers-table_wrapper th,
+        #suppliers-table_wrapper td {
+            font-size: 13px !important;
+        }
         .table-other-companies th {
             text-align: left;
             padding: 8px 10px;
-            font-size: 11px;
             font-weight: 600;
             color: #1b5e6f;
             border-bottom: 1px solid #eee;
@@ -30,7 +37,6 @@
         }
         .table-other-companies td {
             padding: 8px 10px;
-            font-size: 13px;
             color: #333;
             border-bottom: 1px solid #f0f0f0;
             border-right: 1px solid #f0f0f0;
@@ -38,6 +44,16 @@
         }
         .table-other-companies tr:hover td {
             background-color: #f9fafb;
+        }
+        #suppliers-table th.col-address {
+            width: 280px;
+        }
+        #suppliers-table td.col-address .cell-ellipsis {
+            display: block;
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .filter-input {
             height: 28px;
@@ -235,7 +251,7 @@
                                                         <x-slot:head>
                                                             <tr>
                                                                 <th>Supplier name</th>
-                                                                <th>Address</th>
+                                                                <th class="col-address">Address</th>
                                                                 <th>City</th>
                                                                 <th>Country</th>
                                                                 <th>Phone number</th>
@@ -303,6 +319,7 @@
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
+                "order": [],
                 "autoWidth": false,
                 "scrollX": true,
                 "dom": 'rt'

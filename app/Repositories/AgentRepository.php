@@ -37,7 +37,7 @@ class AgentRepository extends BaseRepository implements AgentRepositoryInterface
             ->when($countries, fn ($q) => $q->whereHas('country', fn ($sub) => $sub->whereIn('name', $countries)))
             ->when($types, fn ($q) => $q->whereIn('agent_type', $types))
             ->when($hideInactive, fn ($q) => $q->where('is_active', 1))
-            ->orderBy('agent_name')
+            ->orderByDesc('id')
             ->paginate($perPage);
     }
 

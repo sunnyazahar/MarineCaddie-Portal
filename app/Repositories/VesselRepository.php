@@ -28,7 +28,7 @@ class VesselRepository extends BaseRepository implements VesselRepositoryInterfa
             })
             ->when(ListSearch::contains($imo), fn ($q, $p) => $q->where('vessel_imo', 'like', $p))
             ->when($type !== '', fn ($q) => $q->where('vessel_type_alias', $type))
-            ->orderBy('vessel')
+            ->orderByDesc('id')
             ->paginate($perPage);
     }
 

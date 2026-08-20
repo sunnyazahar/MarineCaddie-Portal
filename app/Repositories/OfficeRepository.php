@@ -12,7 +12,7 @@ class OfficeRepository extends BaseRepository implements OfficeRepositoryInterfa
 
     public function all(): Collection
     {
-        return $this->query()->with('country')->get();
+        return $this->query()->with('country')->orderByDesc('id')->get();
     }
 
     public function findWithRelations(int $id, array $relations = []): Office

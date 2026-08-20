@@ -252,6 +252,8 @@ window.myListFilters = bindAjaxListFilters({
 });
 ```
 
+**Default sort:** list queries `orderByDesc('id')` (latest first). DataTables init must include `"order": []` so it does not re-sort the current page by column 0.
+
 ### 6d. AJAX response contract
 
 Every list filter request **must** return:
