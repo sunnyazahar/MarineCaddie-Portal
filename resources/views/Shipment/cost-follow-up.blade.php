@@ -13,6 +13,8 @@
     <!-- Date-range picker css  -->
     <link rel="stylesheet" type="text/css" href="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/css/sweetalert.css') }}" />
+    <x-lists.base-styles bodyClass="cost-filters-open" toolbarClass="cost-filters-toolbar" />
+    <x-lists.multiselect-assets />
     <style>
         #offices-table {
             width: 100% !important;
@@ -388,9 +390,6 @@
             z-index: 40;
             padding-bottom: 6px;
         }
-        .cost-filters-toolbar {
-            display: none;
-        }
         .cost-filters-fields {
             width: 100%;
         }
@@ -428,13 +427,6 @@
                 height: calc(100vh - 64px) !important;
                 margin-top: 8px !important;
             }
-            .cost-filters-toolbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                padding: 4px 0 8px;
-            }
             .cost-filters-fields {
                 display: none !important;
                 flex-direction: column;
@@ -448,10 +440,6 @@
             }
             body.cost-filters-open .cost-filters-fields {
                 display: flex !important;
-            }
-            #btn-cost-filters-toggle.is-open {
-                background: #008080 !important;
-                color: #fff !important;
             }
             .cost-filters-fields .custom-col[style*="flex: 0 0 50px"],
             .cost-filters-fields .btn-filter-toggle {
@@ -496,9 +484,6 @@
         }
 
         @media (min-width: 992px) {
-            .cost-filters-toolbar {
-                display: none !important;
-            }
             .cost-filters-fields {
                 display: flex !important;
                 max-height: none !important;
@@ -559,7 +544,6 @@
         }
         @include('Shipment.partials.reminder-compose-styles')
     </style>
-    @include('partials.searchable-filter-multiselect-styles')
 @endsection
 
 @section('content')
@@ -625,11 +609,11 @@
                                         <div class="card cost-list-card mt-4">
                                             <div class="card-block">
                                                 <div class="cost-filters-fixed">
-                                                <div class="cost-filters-toolbar">
-                                                    <button type="button" id="btn-cost-filters-toggle" class="btn btn-outline-teal btn-sm">
-                                                        <i class="ti-filter"></i> <span class="cost-filters-toggle-label">Show filters</span>
-                                                    </button>
-                                                </div>
+                                                <x-lists.filter-toolbar
+                                                    toggle-id="btn-cost-filters-toggle"
+                                                    body-class="cost-filters-open"
+                                                    toolbar-class="cost-filters-toolbar"
+                                                />
                                                 <div class="d-flex justify-content-between align-items-start pt-2 cost-filters-fields">
                                                     <div style="width: 100%;">
                                                         <div class="row custom-row filter-row">
@@ -715,7 +699,7 @@
                                                             </div>
 
                                                             <div class="custom-col">
-                                                                <a class="clear-filters"><i class="ti-close"></i> Clear filters</a>
+                                                                <x-lists.clear-filters id="clear-cost-filters" />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -804,12 +788,12 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    @include('partials.searchable-filter-multiselect-script')
-    <!-- date-range-picker js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/moment/moment.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
+@endsection
 
+@push('scripts')
     <script>
         $(document).ready(function() {
             $('body').addClass('cost-follow-up-list-page');
@@ -952,18 +936,6 @@
                 "drawCallback": function() {
                     this.api().columns.adjust();
                 }
-            });
-
-            $('#btn-cost-filters-toggle').on('click', function () {
-                $('body').toggleClass('cost-filters-open');
-                var isOpen = $('body').hasClass('cost-filters-open');
-                $(this).toggleClass('is-open', isOpen);
-                $(this).find('.cost-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
-                if (isOpen) {
-                    ensureCostMobileFiltersVisible();
-                }
-                setTimeout(adjustCostTableLayout, 50);
-                setTimeout(adjustCostTableLayout, 200);
             });
 
             $(window).on('resize', function() {
@@ -1123,7 +1095,7 @@
                 setTimeout(scheduleFetch, 0);
             });
 
-            $('.clear-filters').on('click', function(e) {
+            $('#clear-cost-filters').on('click', function(e) {
                 e.preventDefault();
                 clearTimeout(searchTimer);
                 clearSearchableFilterMultiselect(
@@ -1137,4 +1109,4 @@
             @include('Shipment.partials.reminder-compose-script')
         });
     </script>
-@endsection
+@endpush

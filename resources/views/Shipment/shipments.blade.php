@@ -739,6 +739,7 @@
         }
     </style>
     @include('partials.searchable-filter-multiselect-styles')
+    <x-lists.multiselect-assets />
 @endsection
 
 @section('content')
@@ -917,7 +918,7 @@
                                                                     </select>
                                                                 </div>
                                                             </div>
-                                                            <a class="clear-filters">Clear filters</a>
+                                                            <a href="#" id="clear-shipments-filters" class="clear-filters">Clear filters</a>
                                                         </div>
                                                 </div>
                                                 <div class="text-right shipments-create-desktop">
@@ -996,8 +997,9 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    @include('partials.searchable-filter-multiselect-script')
+@endsection
 
+@push('scripts')
     <script>
         $(document).ready(function() {
             $('body').addClass('shipments-list-page');
@@ -1311,7 +1313,7 @@
                 loadShipments(page);
             });
 
-            $(document).on('click', '.clear-filters', function (e) {
+            $(document).on('click', '#clear-shipments-filters', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 clearTimeout(searchTimer);
@@ -1337,4 +1339,4 @@
             }, 200);
         });
     </script>
-@endsection
+@endpush

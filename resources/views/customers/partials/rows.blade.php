@@ -32,7 +32,7 @@
                 {{ $customer->customer_name }}
             </a>
         </td>
-        <td>{{ $customer->responsible->accountManager->office->phone_number ?? '—' }}</td>
+        <td>{{ $mainContactName ?: '—' }}</td>
         <td>{{ $responsibleOffice ?: '—' }}</td>
         <td>{{ $accountManager ?: '—' }}</td>
         <td>

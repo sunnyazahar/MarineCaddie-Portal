@@ -42,14 +42,9 @@ class SupplierController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'supplier_name'  => 'required|string|max:255',
-            'email'          => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
-            'phone_number'   => 'nullable|string|max:255',
-            'contact_person' => 'required|string|max:255',
-        ]);
+        $request->validate($this->supplierRules());
 
-        $supplier = $this->suppliers->create($request->validated());
+        $supplier = $this->suppliers->create($this->supplierPayload($request));
         $supplier->load('country');
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -83,18 +78,13 @@ class SupplierController extends Controller
         $activeTab = $this->resolveActiveTab($request);
 
         try {
-            $request->validate([
-                'supplier_name'  => 'required|string|max:255',
-                'email'          => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
-                'phone_number'   => 'nullable|string|max:255',
-                'contact_person' => 'required|string|max:255',
-            ]);
+            $request->validate($this->supplierRules());
         } catch (\Illuminate\Validation\ValidationException $e) {
             $e->redirectTo(route('suppliers.edit', $id) . '#' . $activeTab);
             throw $e;
         }
 
-        $this->suppliers->update($supplier, $request->validated());
+        $this->suppliers->update($supplier, $this->supplierPayload($request));
 
         return redirect()
             ->route('suppliers.edit', $id)
@@ -173,6 +163,28 @@ class SupplierController extends Controller
             ->route('suppliers.edit', $supplierId)
             ->with('success', 'Contact updated successfully.')
             ->withFragment('contacts');
+    }
+
+    private function supplierRules(): array
+    {
+        return [
+            'supplier_name'      => 'required|string|max:255',
+            'email'              => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+            'phone_number'       => 'nullable|string|max:255',
+            'contact_person'     => 'required|string|max:255',
+            'country_id'         => 'nullable|exists:countries,id',
+            'office_country_id'  => 'nullable|exists:countries,id',
+        ];
+    }
+
+    private function supplierPayload(Request $request): array
+    {
+        return $request->only([
+            'supplier_name', 'phone_number', 'contact_person', 'email', 'remarks', 'special_considerations',
+            'supplier_address', 'city', 'district_state', 'zip_code', 'country_id', 'port_code',
+            'office_address', 'office_city', 'office_district_state', 'office_zip_code', 'office_country_id',
+            'vat_number', 'eori_number', 'currency', 'un_locode',
+        ]);
     }
 
     private function resolveActiveTab(Request $request): string

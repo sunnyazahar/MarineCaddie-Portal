@@ -23,4 +23,6 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 Compress.zip
-/docs/
+/scripts/smoke-*.json
+/scripts/smoke-storage.json
+/scripts/smoke-session.json

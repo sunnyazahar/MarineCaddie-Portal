@@ -13,6 +13,8 @@
     <!-- Date-range picker css  -->
     <link rel="stylesheet" type="text/css" href="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/css/sweetalert.css') }}" />
+    <x-lists.base-styles bodyClass="followup-filters-open" toolbarClass="followup-filters-toolbar" />
+    <x-lists.multiselect-assets />
     <style>
         /* High Density Table Styles */
         #offices-table {
@@ -177,21 +179,11 @@
             border-color: #008080 !important;
             background-color: #ffffff !important;
         }
-        .followup-filters-toolbar {
-            display: none;
-        }
         .followup-filters-fields {
             width: 100%;
         }
 
         @media (max-width: 991.98px) {
-            .followup-filters-toolbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                padding: 4px 0 8px;
-            }
             .followup-filters-fields {
                 display: none !important;
                 flex-direction: column;
@@ -205,10 +197,6 @@
             }
             body.followup-filters-open .followup-filters-fields {
                 display: flex !important;
-            }
-            #btn-followup-filters-toggle.is-open {
-                background: #008080 !important;
-                color: #fff !important;
             }
             .followup-filters-fields .mr-2,
             .followup-filters-fields .btn-filter-toggle {
@@ -235,7 +223,7 @@
                 width: 100%;
                 max-width: 100%;
             }
-            .followup-filters-fields .clear-filters {
+            .followup-filters-fields .btn-clear-filters {
                 margin: 4px 0 8px;
             }
             .table-scroll-wrapper,
@@ -257,9 +245,6 @@
         }
 
         @media (min-width: 992px) {
-            .followup-filters-toolbar {
-                display: none !important;
-            }
             .followup-filters-fields {
                 display: flex !important;
                 max-height: none !important;
@@ -268,43 +253,6 @@
             body.followup-filters-open .followup-filters-fields {
                 display: flex !important;
             }
-        }
-        .filter-group {
-            display: flex;
-            align-items: center;
-            border: 1px solid #ced4da;
-            padding: 0 10px;
-            border-radius: 4px;
-            height: 32px;
-            background: #fff;
-            overflow: hidden;
-        }
-        .filter-group .filter-label {
-            font-size: 11px;
-            color: #64748b;
-            margin-bottom: 0;
-            padding-right: 10px;
-            margin-right: 10px;
-            white-space: nowrap;
-            font-weight: 500;
-            border-right: 1px solid #ced4da;
-            height: 100%;
-            display: flex;
-            align-items: center;
-        }
-        .filter-group .filter-input {
-            border: none !important;
-            box-shadow: none !important;
-            height: 100% !important;
-            font-size: 12px;
-            padding: 0 !important;
-            background: transparent !important;
-            width: 100%;
-        }
-        .filter-group .select2-container--default .select2-selection--single,
-        .filter-group .select2-container--default .select2-selection--multiple {
-            border: none !important;
-            background: transparent !important;
         }
         #col-Status .select2-container--default .select2-selection--single,
         #col-Status .select2-container--default.select2-container--focus .select2-selection--single,
@@ -321,27 +269,10 @@
         #col-Status .select2-container--open .select2-selection--single .select2-selection__arrow b {
             border-color: transparent transparent #64748b transparent !important;
         }
-        .filter-group .select2-container--default .select2-selection--single .select2-selection__rendered {
-            padding-left: 0 !important;
-        }
-        .filter-group i {
-            color: #008080;
-            font-size: 14px;
-        }
         .custom-col {
             padding-right: 5px;
             padding-left: 5px;
             margin-bottom: 10px;
-        }
-        .clear-filters {
-            font-size: 12px;
-            color: #008080;
-            text-decoration: none;
-            cursor: pointer;
-            margin-left: 10px;
-            align-self: center;
-            display: flex;
-            align-items: center;
         }
         .filter-input {
             height: 30px;
@@ -902,7 +833,6 @@
             padding: 10px 5px;
         }
     </style>
-    @include('partials.searchable-filter-multiselect-styles')
 @endsection
 
 @section('content')
@@ -968,11 +898,11 @@
                                         <!-- Base Style - Compact start -->
                                         <div class="card">
                                             <div class="card-block">
-                                                <div class="followup-filters-toolbar">
-                                                    <button type="button" id="btn-followup-filters-toggle" class="btn btn-outline-teal btn-sm">
-                                                        <i class="ti-filter"></i> <span class="followup-filters-toggle-label">Show filters</span>
-                                                    </button>
-                                                </div>
+                                                <x-lists.filter-toolbar
+                                                    toggle-id="btn-followup-filters-toggle"
+                                                    body-class="followup-filters-open"
+                                                    toolbar-class="followup-filters-toolbar"
+                                                />
                                                 <div class="d-flex justify-content-between align-items-start pt-2 followup-filters-fields">
                                                     <div style="width: 100%;">
                                                         <div class="row no-gutters">
@@ -1057,7 +987,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            <a class="clear-filters">Clear filters</a>
+                                                            <x-lists.clear-filters id="clear-followup-filters" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1165,12 +1095,13 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    @include('partials.searchable-filter-multiselect-script')
     <!-- date-range-picker js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/moment/moment.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
+@endsection
 
+@push('scripts')
     <script>
         $(document).ready(function() {
             initializeSearchableFilterMultiselect(
@@ -1320,18 +1251,6 @@
                 });
             }
 
-            $('#btn-followup-filters-toggle').on('click', function () {
-                $('body').toggleClass('followup-filters-open');
-                var isOpen = $('body').hasClass('followup-filters-open');
-                $(this).toggleClass('is-open', isOpen);
-                $(this).find('.followup-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
-                if (isOpen) {
-                    ensureFollowupMobileFiltersVisible();
-                }
-                setTimeout(adjustFollowupTableLayout, 50);
-                setTimeout(adjustFollowupTableLayout, 200);
-            });
-
             $(window).on('resize', function() {
                 toggleFilterVisibility();
                 ensureFollowupMobileFiltersVisible();
@@ -1350,6 +1269,7 @@
                 paginationSelector: '#followup-pagination',
                 indexUrl: @json(route('shipment-follow-up')),
                 existingTable: table,
+                clearSelector: '#clear-followup-filters',
                 getParams: function (page) {
                     return {
                         account_manager: $('#filter-account-manager').val() || [],
@@ -1451,4 +1371,4 @@
             });
         });
     </script>
-@endsection
+@endpush

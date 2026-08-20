@@ -950,16 +950,15 @@
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
                                                                 <label class="crr-label">Country of origin</label>
-                                                                <select class="form-control select2-country"
-                                                                    name="country_of_origin">
-                                                                    <option></option>
-                                                                    @foreach($countries as $country)
-                                                                        <option value="{{ $country->name }}"
-                                                                            data-flag="{{ $country->flag_url }}">
-                                                                            {{ $country->name }}
-                                                                        </option>
-                                                                    @endforeach
-                                                                </select>
+                                                                <x-forms.country-select
+                                                                    name="country_of_origin"
+                                                                    :countries="$countries"
+                                                                    valueKey="name"
+                                                                    wrapperClass=""
+                                                                    class="form-control"
+                                                                    placeholder="Select country"
+                                                                    :allowClear="true"
+                                                                />
                                                             </div>
                                                         </div>
                                                         <div class="col-sm-6">
@@ -1189,12 +1188,16 @@
                                 </div>
                                 <div class="crr-field-group">
                                     <label class="crr-label">Country</label>
-                                    <select class="crr-input modal-supplier-country" name="country_id" id="modal-supplier-country">
-                                        <option value="">Select an option</option>
-                                        @foreach($countries as $country)
-                                            <option value="{{ $country->id }}" data-flag-url="{{ $country->flag_url }}">{{ $country->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    <x-forms.country-select
+                                        name="country_id"
+                                        id="modal-supplier-country"
+                                        :countries="$countries"
+                                        wrapperClass=""
+                                        class="crr-input modal-supplier-country"
+                                        placeholder="Select an option"
+                                        :allowClear="true"
+                                        dropdownParent="#add-supplier-modal"
+                                    />
                                 </div>
                                 <div class="crr-field-group">
                                     <label class="crr-label">Port code</label>
@@ -1229,12 +1232,16 @@
                                 </div>
                                 <div class="crr-field-group">
                                     <label class="crr-label">Country</label>
-                                    <select class="crr-input modal-supplier-country" name="office_country_id" id="modal-office-country">
-                                        <option value="">Select an option</option>
-                                        @foreach($countries as $country)
-                                            <option value="{{ $country->id }}" data-flag-url="{{ $country->flag_url }}">{{ $country->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    <x-forms.country-select
+                                        name="office_country_id"
+                                        id="modal-office-country"
+                                        :countries="$countries"
+                                        wrapperClass=""
+                                        class="crr-input modal-supplier-country"
+                                        placeholder="Select an option"
+                                        :allowClear="true"
+                                        dropdownParent="#add-supplier-modal"
+                                    />
                                 </div>
                             </div>
 
@@ -1581,29 +1588,6 @@
 
                 return $result;
             }
-
-            // Flag display formatting for Country
-            function formatCountry(state) {
-                if (!state.id) {
-                    return state.text;
-                }
-                var flagUrl = $(state.element).data('flag');
-                if (!flagUrl) {
-                    return state.text;
-                }
-                var $state = $(
-                    '<span><img src="' + flagUrl + '" class="img-flag" style="width: 20px; height: 15px; margin-right: 8px; vertical-align: middle;" /> ' + state.text + '</span>'
-                );
-                return $state;
-            };
-
-            $('.select2-country').select2({
-                placeholder: "Select country",
-                allowClear: false,
-                width: '100%',
-                templateResult: formatCountry,
-                templateSelection: formatCountry
-            });
 
             // Hub Select2 with 2-line display
             function formatHub(hub) {
@@ -2031,33 +2015,17 @@
                 }, 50);
             }
 
-            function formatModalCountry(state) {
-                if (!state.id) {
-                    return state.text;
-                }
-                var flagUrl = $(state.element).data('flag-url');
-                if (!flagUrl) {
-                    return state.text;
-                }
-                return $('<span><img src="' + flagUrl + '" class="flag-icon" alt="" /> ' +
-                    $('<div>').text(state.text).html() + '</span>');
-            }
-
             function initModalSupplierSelect2() {
                 $('.modal-supplier-country').each(function () {
                     var $el = $(this);
                     if ($el.hasClass('select2-hidden-accessible')) {
                         $el.select2('destroy');
                     }
-                    $el.select2({
-                        placeholder: 'Select an option',
-                        allowClear: true,
-                        width: '100%',
-                        dropdownParent: $modal,
-                        templateResult: formatModalCountry,
-                        templateSelection: formatModalCountry
-                    });
                 });
+
+                if (window.MarineCaddieInitCountrySelect) {
+                    window.MarineCaddieInitCountrySelect($modal);
+                }
 
                 $('.modal-supplier-currency').each(function () {
                     var $el = $(this);

@@ -11,6 +11,8 @@
     <!-- Select 2 css -->
     <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/css/sweetalert.css') }}" />
+    <x-lists.base-styles />
+    <x-lists.multiselect-assets />
     <style>
         .office-table {
             width: 1900px !important;
@@ -55,25 +57,6 @@
         .btn-outline-teal:hover {
             background-color: #008080;
             color: white;
-        }
-        .filter-label {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 2px;
-            display: block;
-        }
-        .filter-input {
-            height: 32px;
-            font-size: 13px;
-            border-radius: 2px;
-        }
-        .clear-filters {
-            font-size: 12px;
-            color: #ff5252;
-            text-decoration: none;
-            cursor: pointer;
-            margin-top: 25px;
-            display: inline-block;
         }
         .card-header-actions .btn {
             font-size: 12px;
@@ -406,44 +389,7 @@
             flex: 0 0 auto;
         }
 
-        .stock-followup-filters {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            gap: 12px 16px;
-            background: #fff;
-            padding: 12px 15px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
-            max-width: 100%;
-        }
-        .stock-followup-filter-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 0;
-            flex: 1 1 200px;
-            max-width: 280px;
-        }
-        .stock-followup-filter-item .filter-control {
-            width: 100%;
-            min-width: 0;
-        }
-        .stock-followup-filters .clear-filters {
-            margin-top: 0;
-            align-self: center;
-            white-space: nowrap;
-        }
-
         @media (max-width: 991.98px) {
-            .stock-followup-filter-item {
-                flex: 1 1 100%;
-                max-width: 100%;
-            }
-            .stock-followup-filters .clear-filters {
-                width: 100%;
-            }
             .table-scroll-wrapper {
                 max-height: none;
                 max-height: calc(100vh - 220px);
@@ -520,7 +466,6 @@
             color: #6c757d !important;
         }
     </style>
-    @include('partials.searchable-filter-multiselect-styles')
 @endsection
 
 @section('content')
@@ -567,29 +512,23 @@
                                         <div class="card" style="border: none; box-shadow: none; background: transparent;">
                                             <div class="card-block" style="padding: 10px 0;">
                                                 <!-- Filter Row -->
-                                                <div class="stock-followup-filters">
-                                                    <div class="stock-followup-filter-item">
-                                                        <span class="filter-label" style="margin-bottom: 0;">Account manager</span>
-                                                        <div class="filter-control">
-                                                            <select id="filter-account-manager" class="form-control searchable-filter-multiselect" multiple="multiple">
-                                                                @foreach ($accountManagers as $manager)
-                                                                    <option value="{{ $manager }}">{{ $manager }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="stock-followup-filter-item">
-                                                        <span class="filter-label" style="margin-bottom: 0;">Customer</span>
-                                                        <div class="filter-control">
-                                                            <select id="filter-customer" class="form-control searchable-filter-multiselect" multiple="multiple">
-                                                                @foreach ($customers as $customer)
-                                                                    <option value="{{ $customer }}">{{ $customer }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <a href="#" class="clear-filters">Clear filters</a>
-                                                </div>
+                                                <x-lists.filter-bar style="margin-bottom: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                                    <x-lists.filter-field label="Account manager" width="240px">
+                                                        <select id="filter-account-manager" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
+                                                            @foreach ($accountManagers as $manager)
+                                                                <option value="{{ $manager }}">{{ $manager }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </x-lists.filter-field>
+                                                    <x-lists.filter-field label="Customer" width="240px">
+                                                        <select id="filter-customer" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
+                                                            @foreach ($customers as $customer)
+                                                                <option value="{{ $customer }}">{{ $customer }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </x-lists.filter-field>
+                                                    <x-lists.clear-filters id="clear-stock-followup-filters" />
+                                                </x-lists.filter-bar>
 
                                                 <!-- Data Table -->
                                                 <div class="stock-followup-table-area" style="background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -680,9 +619,10 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    @include('partials.searchable-filter-multiselect-script')
     <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
+@endsection
 
+@push('scripts')
     <script>
         $(document).ready(function() {
             var csrfToken = $('meta[name="csrf-token"]').attr('content');
@@ -749,6 +689,7 @@
                 paginationSelector: '#stock-followup-pagination',
                 indexUrl: @json(route('stock-follow-up')),
                 existingTable: table,
+                clearSelector: '#clear-stock-followup-filters',
                 getParams: function (page) {
                     return {
                         account_manager: $('#filter-account-manager').val() || [],
@@ -840,4 +781,4 @@
             });
         });
     </script>
-@endsection
+@endpush

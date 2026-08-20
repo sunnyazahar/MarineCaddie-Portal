@@ -30,9 +30,6 @@ Route::middleware('admin')->group(function () {
 Route::post('/customers', [App\Http\Controllers\CustomerController::class, 'store'])->name('customers.store');
 
 Route::get('/offices', [App\Http\Controllers\OfficeController::class, 'index'])->name('offices.index');
-Route::get('/offices/create', function () {
-    return view('offices.create');
-})->name('offices.create');
 
 Route::get('/offices/edit/{id}', [App\Http\Controllers\OfficeController::class, 'edit'])->name('offices.edit');
 Route::put('/offices/update/{id}', [App\Http\Controllers\OfficeController::class, 'update'])->name('offices.update');
@@ -81,28 +78,28 @@ Route::get('/shipments', [App\Http\Controllers\ShipmentController::class, 'index
 Route::post('/shipments', [App\Http\Controllers\ShipmentController::class, 'store'])->name('shipments.store');
 
 Route::get('/shipments/edit/{id}', [App\Http\Controllers\ShipmentController::class, 'edit'])->name('shipments.edit');
-Route::get('/shipments/{id}/combined-po-documents', [App\Http\Controllers\ShipmentController::class, 'combinedPoDocuments'])->name('shipments.combined-po-documents');
-Route::get('/shipments/{id}/combined-manifest-documents', [App\Http\Controllers\ShipmentController::class, 'combinedManifestDocuments'])->name('shipments.combined-manifest-documents');
-Route::post('/shipments/{id}/manifests/generate', [App\Http\Controllers\ShipmentController::class, 'generateManifest'])->name('shipments.manifests.generate');
-Route::get('/shipments/{shipmentId}/manifests/{manifestId}', [App\Http\Controllers\ShipmentController::class, 'showManifest'])->name('shipments.manifests.show');
-Route::delete('/shipments/{shipmentId}/manifests/{manifestId}', [App\Http\Controllers\ShipmentController::class, 'deleteManifest'])->name('shipments.manifests.delete');
-Route::post('/shipments/{id}/manifest-mail/prepare', [App\Http\Controllers\ShipmentController::class, 'prepareManifestMail'])->name('shipments.manifest-mail.prepare');
-Route::post('/shipments/{id}/manifest-mail/send', [App\Http\Controllers\ShipmentController::class, 'sendManifestMail'])->name('shipments.manifest-mail.send');
-Route::get('/shipments/{id}/manifest-mail/open', [App\Http\Controllers\ShipmentController::class, 'manifestMailOpen'])->name('shipments.manifest-mail.open');
-Route::get('/shipments/{id}/manifest-mail/launcher', [App\Http\Controllers\ShipmentController::class, 'manifestMailLauncher'])->name('shipments.manifest-mail-launcher');
-Route::get('/shipments/{id}/manifest-mail', [App\Http\Controllers\ShipmentController::class, 'manifestMail'])->name('shipments.manifest-mail');
-Route::post('/shipments/{id}/pre-alerts/generate', [App\Http\Controllers\ShipmentController::class, 'generatePreAlert'])->name('shipments.pre-alerts.generate');
-Route::get('/shipments/{shipmentId}/pre-alerts/{preAlertId}', [App\Http\Controllers\ShipmentController::class, 'showPreAlert'])->name('shipments.pre-alerts.show');
-Route::delete('/shipments/{shipmentId}/pre-alerts/{preAlertId}', [App\Http\Controllers\ShipmentController::class, 'deletePreAlert'])->name('shipments.pre-alerts.delete');
-Route::post('/shipments/{id}/pre-alert-mail/prepare', [App\Http\Controllers\ShipmentController::class, 'preparePreAlertMail'])->name('shipments.pre-alert-mail.prepare');
-Route::post('/shipments/{id}/pre-alert-mail/send', [App\Http\Controllers\ShipmentController::class, 'sendPreAlertMail'])->name('shipments.pre-alert-mail.send');
-Route::get('/shipments/{id}/pre-alert-mail/open', [App\Http\Controllers\ShipmentController::class, 'preAlertMailOpen'])->name('shipments.pre-alert-mail.open');
-Route::get('/shipments/{id}/pre-alert-mail', [App\Http\Controllers\ShipmentController::class, 'preAlertMail'])->name('shipments.pre-alert-mail');
-Route::post('/shipments/{id}/documents', [App\Http\Controllers\ShipmentController::class, 'uploadDocument'])->name('shipments.documents.upload');
-Route::get('/shipments/{shipmentId}/documents/{docId}', [App\Http\Controllers\ShipmentController::class, 'showDocument'])->name('shipments.documents.show');
-Route::delete('/shipments/documents/{docId}', [App\Http\Controllers\ShipmentController::class, 'deleteDocument'])->name('shipments.documents.delete');
-Route::patch('/shipments/documents/{docId}/type', [App\Http\Controllers\ShipmentController::class, 'updateDocumentType'])->name('shipments.documents.update-type');
-Route::patch('/shipments/documents/{docId}/internal', [App\Http\Controllers\ShipmentController::class, 'updateDocumentInternal'])->name('shipments.documents.update-internal');
+Route::get('/shipments/{id}/combined-po-documents', [App\Http\Controllers\Shipments\ShipmentManifestController::class, 'combinedPoDocuments'])->name('shipments.combined-po-documents');
+Route::get('/shipments/{id}/combined-manifest-documents', [App\Http\Controllers\Shipments\ShipmentManifestController::class, 'combinedManifestDocuments'])->name('shipments.combined-manifest-documents');
+Route::post('/shipments/{id}/manifests/generate', [App\Http\Controllers\Shipments\ShipmentManifestController::class, 'generateManifest'])->name('shipments.manifests.generate');
+Route::get('/shipments/{shipmentId}/manifests/{manifestId}', [App\Http\Controllers\Shipments\ShipmentManifestController::class, 'showManifest'])->name('shipments.manifests.show');
+Route::delete('/shipments/{shipmentId}/manifests/{manifestId}', [App\Http\Controllers\Shipments\ShipmentManifestController::class, 'deleteManifest'])->name('shipments.manifests.delete');
+Route::post('/shipments/{id}/manifest-mail/prepare', [App\Http\Controllers\Shipments\ShipmentMailController::class, 'prepareManifestMail'])->name('shipments.manifest-mail.prepare');
+Route::post('/shipments/{id}/manifest-mail/send', [App\Http\Controllers\Shipments\ShipmentMailController::class, 'sendManifestMail'])->name('shipments.manifest-mail.send');
+Route::get('/shipments/{id}/manifest-mail/open', [App\Http\Controllers\Shipments\ShipmentMailController::class, 'manifestMailOpen'])->name('shipments.manifest-mail.open');
+Route::get('/shipments/{id}/manifest-mail/launcher', [App\Http\Controllers\Shipments\ShipmentMailController::class, 'manifestMailLauncher'])->name('shipments.manifest-mail-launcher');
+Route::get('/shipments/{id}/manifest-mail', [App\Http\Controllers\Shipments\ShipmentMailController::class, 'manifestMail'])->name('shipments.manifest-mail');
+Route::post('/shipments/{id}/pre-alerts/generate', [App\Http\Controllers\Shipments\ShipmentManifestController::class, 'generatePreAlert'])->name('shipments.pre-alerts.generate');
+Route::get('/shipments/{shipmentId}/pre-alerts/{preAlertId}', [App\Http\Controllers\Shipments\ShipmentManifestController::class, 'showPreAlert'])->name('shipments.pre-alerts.show');
+Route::delete('/shipments/{shipmentId}/pre-alerts/{preAlertId}', [App\Http\Controllers\Shipments\ShipmentManifestController::class, 'deletePreAlert'])->name('shipments.pre-alerts.delete');
+Route::post('/shipments/{id}/pre-alert-mail/prepare', [App\Http\Controllers\Shipments\ShipmentMailController::class, 'preparePreAlertMail'])->name('shipments.pre-alert-mail.prepare');
+Route::post('/shipments/{id}/pre-alert-mail/send', [App\Http\Controllers\Shipments\ShipmentMailController::class, 'sendPreAlertMail'])->name('shipments.pre-alert-mail.send');
+Route::get('/shipments/{id}/pre-alert-mail/open', [App\Http\Controllers\Shipments\ShipmentMailController::class, 'preAlertMailOpen'])->name('shipments.pre-alert-mail.open');
+Route::get('/shipments/{id}/pre-alert-mail', [App\Http\Controllers\Shipments\ShipmentMailController::class, 'preAlertMail'])->name('shipments.pre-alert-mail');
+Route::post('/shipments/{id}/documents', [App\Http\Controllers\Shipments\ShipmentDocumentController::class, 'uploadDocument'])->name('shipments.documents.upload');
+Route::get('/shipments/{shipmentId}/documents/{docId}', [App\Http\Controllers\Shipments\ShipmentDocumentController::class, 'showDocument'])->name('shipments.documents.show');
+Route::delete('/shipments/documents/{docId}', [App\Http\Controllers\Shipments\ShipmentDocumentController::class, 'deleteDocument'])->name('shipments.documents.delete');
+Route::patch('/shipments/documents/{docId}/type', [App\Http\Controllers\Shipments\ShipmentDocumentController::class, 'updateDocumentType'])->name('shipments.documents.update-type');
+Route::patch('/shipments/documents/{docId}/internal', [App\Http\Controllers\Shipments\ShipmentDocumentController::class, 'updateDocumentInternal'])->name('shipments.documents.update-internal');
 Route::put('/shipments/{id}', [App\Http\Controllers\ShipmentController::class, 'update'])->name('shipments.update');
 Route::post('/shipments/{id}/finalize', [App\Http\Controllers\ShipmentController::class, 'finalize'])->name('shipments.finalize');
 Route::post('/shipments/{id}/mark-as-arrived', [App\Http\Controllers\ShipmentController::class, 'markAsArrived'])->name('shipments.mark-as-arrived');
@@ -110,16 +107,16 @@ Route::post('/shipments/{id}/status', [App\Http\Controllers\ShipmentController::
 Route::post('/shipments/{id}/flags', [App\Http\Controllers\ShipmentController::class, 'updateFlags'])->name('shipments.update-flags');
 
 Route::get('/pre-alert-reminders', [App\Http\Controllers\ShipmentController::class, 'preAlertReminders'])->name('pre-alert-reminders');
-Route::get('/shipments/{id}/pre-alert-reminder-mail/preview', [App\Http\Controllers\ShipmentController::class, 'preAlertReminderMailPreview'])->name('shipments.pre-alert-reminder-mail.preview');
-Route::post('/shipments/{id}/pre-alert-reminder-mail/dispatch', [App\Http\Controllers\ShipmentController::class, 'sendPreAlertReminderMail'])->name('shipments.pre-alert-reminder-mail.dispatch');
-Route::post('/shipments/{id}/pre-alert-reminder-mail/send', [App\Http\Controllers\ShipmentController::class, 'recordPreAlertReminderSend'])->name('shipments.pre-alert-reminder-mail.send');
-Route::get('/shipments/{id}/pre-alert-reminder-mail', [App\Http\Controllers\ShipmentController::class, 'preAlertReminderMail'])->name('shipments.pre-alert-reminder-mail');
-Route::get('/shipments/{id}/delivery-status-reminder-mail/preview', [App\Http\Controllers\ShipmentController::class, 'deliveryStatusReminderMailPreview'])->name('shipments.delivery-status-reminder-mail.preview');
-Route::post('/shipments/{id}/delivery-status-reminder-mail/send', [App\Http\Controllers\ShipmentController::class, 'sendDeliveryStatusReminderMail'])->name('shipments.delivery-status-reminder-mail.send');
-Route::get('/shipments/{id}/delivery-status-reminder-mail', [App\Http\Controllers\ShipmentController::class, 'deliveryStatusReminderMail'])->name('shipments.delivery-status-reminder-mail');
-Route::get('/shipments/{id}/invoice-request-mail/preview', [App\Http\Controllers\ShipmentController::class, 'invoiceRequestMailPreview'])->name('shipments.invoice-request-mail.preview');
-Route::post('/shipments/{id}/invoice-request-mail/send', [App\Http\Controllers\ShipmentController::class, 'sendInvoiceRequestMail'])->name('shipments.invoice-request-mail.send');
-Route::get('/shipments/{id}/invoice-request-mail', [App\Http\Controllers\ShipmentController::class, 'invoiceRequestMail'])->name('shipments.invoice-request-mail');
+Route::get('/shipments/{id}/pre-alert-reminder-mail/preview', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'preAlertReminderMailPreview'])->name('shipments.pre-alert-reminder-mail.preview');
+Route::post('/shipments/{id}/pre-alert-reminder-mail/dispatch', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'sendPreAlertReminderMail'])->name('shipments.pre-alert-reminder-mail.dispatch');
+Route::post('/shipments/{id}/pre-alert-reminder-mail/send', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'recordPreAlertReminderSend'])->name('shipments.pre-alert-reminder-mail.send');
+Route::get('/shipments/{id}/pre-alert-reminder-mail', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'preAlertReminderMail'])->name('shipments.pre-alert-reminder-mail');
+Route::get('/shipments/{id}/delivery-status-reminder-mail/preview', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'deliveryStatusReminderMailPreview'])->name('shipments.delivery-status-reminder-mail.preview');
+Route::post('/shipments/{id}/delivery-status-reminder-mail/send', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'sendDeliveryStatusReminderMail'])->name('shipments.delivery-status-reminder-mail.send');
+Route::get('/shipments/{id}/delivery-status-reminder-mail', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'deliveryStatusReminderMail'])->name('shipments.delivery-status-reminder-mail');
+Route::get('/shipments/{id}/invoice-request-mail/preview', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'invoiceRequestMailPreview'])->name('shipments.invoice-request-mail.preview');
+Route::post('/shipments/{id}/invoice-request-mail/send', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'sendInvoiceRequestMail'])->name('shipments.invoice-request-mail.send');
+Route::get('/shipments/{id}/invoice-request-mail', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'invoiceRequestMail'])->name('shipments.invoice-request-mail');
 
 Route::get('/shipment-follow-up', [App\Http\Controllers\ShipmentController::class, 'shipmentFollowUp'])->name('shipment-follow-up');
 

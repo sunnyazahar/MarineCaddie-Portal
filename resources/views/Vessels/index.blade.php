@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="{{ asset('files/bower_components/bootstrap-multiselect/dist/css/bootstrap-multiselect.css') }}" />
     <!-- Select 2 css -->
     <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
+    <x-lists.base-styles bodyClass="vessels-filters-open" toolbarClass="vessels-filters-toolbar" />
+    <x-lists.multiselect-assets />
     <style>
         .table-other-companies {
             width: 100%;
@@ -37,201 +39,12 @@
         .table-other-companies tr:hover td {
             background-color: #f9fafb;
         }
-        .btn-teal {
-            background-color: #008080;
-            border-color: #008080;
-            color: white;
-        }
-        .btn-teal:hover {
-            background-color: #006666;
-            border-color: #006666;
-        }
-        .btn-outline-teal {
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-outline-teal:hover {
-            background-color: #008080;
-            color: white;
-        }
-        .filter-label {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 2px;
-            display: block;
-        }
-        .filter-input {
-            height: 32px;
-            font-size: 13px;
-            border-radius: 2px;
-        }
-        .clear-filters {
-            font-size: 12px;
-            color: #ff5252;
-            text-decoration: none;
-            cursor: pointer;
-            margin-top: 25px;
-            display: inline-block;
-        }
-        .card-header-actions .btn {
-            font-size: 12px;
-            padding: 6px 15px;
-            border-radius: 2px;
-        }
-        .custom-row {
-            margin-right: -10px;
-            margin-left: -10px;
-        }
-        .custom-col {
-            padding-right: 10px;
-            padding-left: 10px;
-            flex: 0 0 11.5%;
-            max-width: 11.5%;
-        }
-        @media (max-width: 992px) {
-            .custom-col {
-                flex: 0 0 33.33%;
-                max-width: 33.33%;
-            }
-        }
-        @media (max-width: 768px) {
-            .custom-col {
-                flex: 0 0 50%;
-                max-width: 50%;
-            }
-        }
-        .filter-input {
-            height: 30px;
-            font-size: 11px;
-            border-radius: 2px;
-        }
-        
-        /* Bootstrap Multiselect Custom Styling */
-        .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .multiselect-native-select .multiselect {
-            width: 100%;
-            text-align: left;
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 11px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .multiselect-native-select .multiselect-container {
-            width: 235px;
-            font-size: 11px;
-        }
-        .multiselect-native-select .multiselect-container li a label {
-            padding: 5px 10px 5px 0;
-            display: block;
-            margin: 0;
-            cursor: pointer;
-        }
-        .multiselect-native-select .multiselect-selected .form-check-label {
-            color: #008080;
-            font-weight: bold;
-        }
-        .multiselect-item.multiselect-all label {
-            font-weight: bold;
-            color: #333;
-        }
-        input.form-control.multiselect-search {
-            font-size: 11px;
-        }
-        .multiselect-container .input-group {
-            margin: 2px;
-        }
-        .input-group-addon {
-            background-color: #01a9ac;
-            color: #fff;
-            max-height: 31px;
-        }
-        .multiselect-container>li {
-            padding: 0px 5px;
-        }
-        .multiselect-item .input-group {
-            width: 114%;
-        }
-        /* Select2 Custom Styling */
-        .select2-container--default .select2-selection--single {
-            height: 28px !important;
-            font-size: 11px;
-            background-color: transparent !important;
-            background: transparent !important;
-            border: 1px solid #ced4da !important;
-            border-radius: 2px !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 26px !important;
-            padding: 0 8px !important;
-            background-color: transparent !important;
-            background: transparent !important;
-            color: #333 !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 26px !important;
-        }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            background-color: #008080;
-            border: 1px solid #006666;
-            color: #fff;
-            font-size: 10px;
-            margin-top: 2px;
-        }
-        .select2-container--default .select2-selection--multiple {
-            min-height: 30px;
-            border: 1px solid #ced4da;
-            border-radius: 2px;
-        }
-        /* Filter Toggle Button Styling */
-        .btn-filter-toggle {
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 14px;
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-filter-toggle:hover, .btn-filter-toggle:focus, .btn-filter-toggle:active {
-            background-color: #008080 !important;
-            color: white !important;
-            border-color: #008080 !important;
-        }
 
-        /* Reduce gap/margin between sidebar and content */
         .pcoded-inner-content {
             padding: 5px !important;
         }
         .main-body .page-wrapper {
             padding: 5px !important;
-        }
-        .select2-container--default .select2-selection--multiple {
-            padding: 0px !important;
-        }
-
-        .vessels-filters-toolbar {
-            display: none;
-        }
-
-        .vessels-filters-panel {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 12px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
-
-        .vessels-filters-fields {
-            display: flex;
-            align-items: flex-end;
-            gap: 15px;
-            flex-grow: 1;
-            flex-wrap: wrap;
         }
 
         #vessels-table {
@@ -244,6 +57,25 @@
             font-size: 13px !important;
             line-height: 1.35;
             white-space: nowrap;
+        }
+
+        .filter-row .select2-container--default .select2-selection--single {
+            height: 28px !important;
+            min-height: 28px !important;
+            font-size: 11px !important;
+            background-color: #fff !important;
+            border: none !important;
+            border-radius: 0 !important;
+        }
+
+        .filter-row .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 26px !important;
+            padding: 0 10px !important;
+            color: #333 !important;
+        }
+
+        .filter-row .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 26px !important;
         }
 
         /* Hide DataTables scrollX cloned header */
@@ -271,85 +103,15 @@
         }
 
         @media (max-width: 991.98px) {
-            .vessels-filters-toolbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                padding: 0 0 10px;
-            }
-
-            .vessels-filters-panel {
-                display: none !important;
-                flex-direction: column;
-                justify-content: flex-start !important;
-                align-items: stretch !important;
-                gap: 8px;
-                max-height: 42vh;
-                overflow-x: hidden;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                margin-bottom: 12px;
-                padding: 0 2px 8px;
-                -webkit-text-size-adjust: 100%;
-                text-size-adjust: 100%;
-            }
-
-            body.vessels-filters-open .vessels-filters-panel {
-                display: flex !important;
-            }
-
-            #btn-vessels-filters-toggle.is-open {
-                background: #008080 !important;
-                color: #fff !important;
-            }
-
-            .vessels-filters-fields {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 8px !important;
-                width: 100%;
-                flex-grow: 0 !important;
-            }
-
-            .vessels-filters-fields > div {
-                width: 100% !important;
-                max-width: 100% !important;
-                margin: 0 !important;
-                flex: 0 0 auto !important;
-            }
-
-            .vessels-filters-fields input.filter-input {
-                width: 100% !important;
-                margin: 0 !important;
-            }
-
-            .vessels-filters-fields select.filter-input,
-            .vessels-filters-fields select.select2,
-            .vessels-filters-panel .select2-hidden-accessible {
-                position: absolute !important;
-                width: 1px !important;
-                height: 1px !important;
-                padding: 0 !important;
-                margin: -1px !important;
-                overflow: hidden !important;
-                clip: rect(0, 0, 0, 0) !important;
-                border: 0 !important;
-            }
-
-            .vessels-filters-panel .select2-container {
+            .filter-row .select2-container {
                 width: 100% !important;
                 max-width: 100% !important;
                 display: block !important;
             }
 
-            .vessels-filters-panel .select2-container .select2-selection--single {
+            .filter-row .select2-container .select2-selection--single {
                 height: 28px !important;
                 min-height: 28px !important;
-            }
-
-            .clear-filters {
-                margin-top: 0;
             }
 
             .card-block {
@@ -381,15 +143,6 @@
             .dataTables_scrollBody {
                 overflow-x: auto !important;
                 -webkit-overflow-scrolling: touch;
-            }
-        }
-
-        @media (min-width: 992px) {
-            .vessels-filters-toolbar {
-                display: none !important;
-            }
-            .vessels-filters-panel {
-                display: flex !important;
             }
         }
     </style>
@@ -437,53 +190,48 @@
     @include('layouts.partials.pcoded-shell-start')
                                         <div class="card" style="border-radius: 0; box-shadow: none; border: 1px solid #eef2f7;">
                                             <div class="card-block" style="padding: 15px;">
-                                                <div class="vessels-filters-toolbar">
-                                                    <button type="button" id="btn-vessels-filters-toggle" class="btn btn-outline-teal btn-sm">
-                                                        <i class="ti-filter"></i> <span class="vessels-filters-toggle-label">Show filters</span>
-                                                    </button>
-                                                </div>
-                                                <div class="vessels-filters-panel">
-                                                    <div class="vessels-filters-fields">
-                                                        <div style="width: 200px;">
-                                                            <span class="filter-label" style="font-size: 10px; font-weight: 600;">Vessel name</span>
-                                                            <input type="text" id="vesselNameFilter" class="form-control filter-input" placeholder="type here" style="height: 28px; font-size: 11px;">
-                                                        </div>
-                                                        <div style="width: 120px;">
-                                                            <span class="filter-label" style="font-size: 10px; font-weight: 600;">IMO</span>
-                                                            <input type="text" id="imoFilter" class="form-control filter-input" placeholder="type here" style="height: 28px; font-size: 11px;">
-                                                        </div>
-                                                        <div style="width: 150px;">
-                                                            <span class="filter-label" style="font-size: 10px; font-weight: 600;">Type</span>
-                                                            <select id="typeFilter" class="form-control filter-input select2" style="height: 28px; font-size: 11px;">
-                                                                <option value="">Click here</option>
-                                                                @foreach($vesselTypes as $type)
-                                                                    <option value="{{ $type }}">{{ $type }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div style="padding-bottom: 5px;">
-                                                            <span class="clear-filters" style="font-size: 11px; color: #3b82f6; cursor: pointer;">Clear filters</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <x-lists.filter-toolbar
+                                                    toggle-id="btn-vessels-filters-toggle"
+                                                    body-class="vessels-filters-open"
+                                                    toolbar-class="vessels-filters-toolbar"
+                                                />
+
+                                                <x-lists.filter-bar>
+                                                    <x-lists.filter-field label="Vessel name" width="200px">
+                                                        <input type="text" id="vesselNameFilter" class="form-control filter-input" placeholder="type here">
+                                                    </x-lists.filter-field>
+                                                    <x-lists.filter-field label="IMO" width="120px">
+                                                        <input type="text" id="imoFilter" class="form-control filter-input" placeholder="type here">
+                                                    </x-lists.filter-field>
+                                                    <x-lists.filter-field label="Type" width="150px">
+                                                        <select id="typeFilter" class="form-control filter-input select2">
+                                                            <option value="">Click here</option>
+                                                            @foreach($vesselTypes as $type)
+                                                                <option value="{{ $type }}">{{ $type }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </x-lists.filter-field>
+                                                    <x-lists.clear-filters id="clear-vessel-filters" />
+                                                </x-lists.filter-bar>
 
                                                 <div class="dt-responsive">
-                                                    <table id="vessels-table" class="table-other-companies">
-                                                        <thead>
+                                                    <x-lists.ajax-table
+                                                        table-id="vessels-table"
+                                                        table-class="table-other-companies"
+                                                        pagination-id="vessels-pagination"
+                                                        :paginator="$vessels->links()"
+                                                        min-width="720px"
+                                                    >
+                                                        <x-slot:head>
                                                             <tr>
                                                                 <th style="width: 25%;">Vessel name</th>
                                                                 <th style="width: 15%;">IMO</th>
                                                                 <th style="width: 15%;">Type</th>
                                                                 <th style="width: 45%;">Connected customers</th>
                                                             </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @include('Vessels.partials.rows')
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <div id="vessels-pagination" class="mt-3 px-3 pb-2">
-                                                    {{ $vessels->links() }}
+                                                        </x-slot:head>
+                                                        @include('Vessels.partials.rows')
+                                                    </x-lists.ajax-table>
                                                 </div>
                                             </div>
                                         </div>
@@ -527,8 +275,9 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    @include('partials.searchable-filter-multiselect-script')
+@endsection
 
+@push('scripts')
     <script>
         $(document).ready(function() {
             $('.select2').select2({
@@ -538,7 +287,7 @@
             });
 
             function fixVesselsFilterSelect2Width() {
-                $('.vessels-filters-panel .select2-container').css('width', '100%');
+                $('.filter-row .select2-container').css('width', '100%');
             }
 
             var table = $('#vessels-table').DataTable({
@@ -553,11 +302,7 @@
                 "scrollX": true
             });
 
-            $('#btn-vessels-filters-toggle').on('click', function () {
-                $('body').toggleClass('vessels-filters-open');
-                var isOpen = $('body').hasClass('vessels-filters-open');
-                $(this).toggleClass('is-open', isOpen);
-                $(this).find('.vessels-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+            $(document).on('click', '.list-filters-toggle[data-body-class="vessels-filters-open"]', function () {
                 setTimeout(function () {
                     fixVesselsFilterSelect2Width();
                     table.columns.adjust();
@@ -579,6 +324,7 @@
                 paginationSelector: '#vessels-pagination',
                 indexUrl: @json(route('vessels.index')),
                 existingTable: table,
+                clearSelector: '#clear-vessel-filters',
                 getParams: function (page) {
                     return {
                         name: $.trim($('#vesselNameFilter').val() || ''),
@@ -593,10 +339,11 @@
                     $('#vesselNameFilter, #imoFilter').val('');
                     $('#typeFilter').val(null).trigger('change');
                 },
+                resetClickScope: '.filter-item',
                 afterDraw: function () {
                     table.columns.adjust();
                 }
             });
         });
     </script>
-@endsection
+@endpush

@@ -939,15 +939,14 @@
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="form-group col-md-12 mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Port code</label>
-                                                            <select id="departure-port-code" name="departure_port_code" class="form-control select2-port-code" style="width: 100%;">
-                                                                <option value=""></option>
-                                                                @if (old('departure_port_code'))
-                                                                    <option value="{{ old('departure_port_code') }}" selected>{{ old('departure_port_code') }}</option>
-                                                                @endif
-                                                            </select>
-                                                        </div>
+                                                        <x-forms.port-select
+                                                            name="departure_port_code"
+                                                            id="departure-port-code"
+                                                            label="Port code"
+                                                            wrapperClass="form-group col-md-12 mb-2"
+                                                            labelClass="mb-0"
+                                                            class="form-control"
+                                                        />
                                                         <div class="form-group col-md-6 mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Service</label>
                                                             <select name="service" class="form-control select2">
@@ -1137,35 +1136,31 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="form-group mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Consignee
-                                                                country</label>
-                                                            <select id="consignee-country" class="form-control select2-country"
-                                                                name="consignee_country">
-                                                                <option></option>
-                                                                @foreach($countries as $country)
-                                                                    <option value="{{ $country->name }}"
-                                                                        data-flag="{{ $country->flag_url }}"
-                                                                        {{ old('consignee_country') === $country->name ? 'selected' : '' }}>
-                                                                        {{ $country->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
+                                                        <x-forms.country-select
+                                                            name="consignee_country"
+                                                            id="consignee-country"
+                                                            label="Consignee country"
+                                                            :countries="$countries"
+                                                            valueKey="name"
+                                                            wrapperClass="form-group mb-2"
+                                                            labelClass="mb-0"
+                                                            class="form-control"
+                                                            placeholder="Select country"
+                                                            :allowClear="true"
+                                                        />
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Contact person <span class="text-danger">*</span></label>
                                                             <input type="text" id="consignee-att" name="consignee_att" class="form-control filter-input"
                                                                 placeholder="" value="{{ old('consignee_att') }}" required>
                                                         </div>
-                                                        <div class="form-group mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Port code</label>
-                                                            <select id="consignee-port-code" name="consignee_port_code" class="form-control select2-port-code" style="width: 100%;">
-                                                                <option value=""></option>
-                                                                @if (old('consignee_port_code'))
-                                                                    <option value="{{ old('consignee_port_code') }}" selected>{{ old('consignee_port_code') }}</option>
-                                                                @endif
-                                                            </select>
-                                                        </div>
+                                                        <x-forms.port-select
+                                                            name="consignee_port_code"
+                                                            id="consignee-port-code"
+                                                            label="Port code"
+                                                            wrapperClass="form-group mb-2"
+                                                            labelClass="mb-0"
+                                                            class="form-control"
+                                                        />
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Location</label>
                                                             <input type="text" id="location" name="location" class="form-control filter-input"
@@ -1886,28 +1881,6 @@
             });
 
             // Flag display formatting for Country
-            function formatCountry(state) {
-                if (!state.id) {
-                    return state.text;
-                }
-                var flagUrl = $(state.element).data('flag');
-                if (!flagUrl) {
-                    return state.text;
-                }
-                var $state = $(
-                    '<span><img src="' + flagUrl + '" class="img-flag" style="width: 20px; height: 15px; margin-right: 8px; vertical-align: middle;" /> ' + state.text + '</span>'
-                );
-                return $state;
-            };
-
-            $('.select2-country').select2({
-                placeholder: "Select country",
-                allowClear: false,
-                width: '100%',
-                templateResult: formatCountry,
-                templateSelection: formatCountry
-            });
-
             // Departure select2 (hubs / agents / customers)
             function formatParty(item) {
                 if (!item.id) return item.text;
@@ -1931,29 +1904,6 @@
 
             var hubDepartureCodes = @json($hubs->mapWithKeys(fn ($hub) => ['hub:' . $hub->id => $hub->code ?? '']));
 
-            function formatPortResult(port) {
-                if (port.loading || !port.id) {
-                    return port.text;
-                }
-                var title = (port.code || port.id) + (port.city ? ', ' + port.city : '');
-                var $option = $(
-                    '<div class="port-option">' +
-                        '<div style="font-weight: 600; font-size: 13px; color: #111827;"></div>' +
-                        '<div style="font-size: 12px; color: #6b7280;"></div>' +
-                    '</div>'
-                );
-                $option.find('div').eq(0).text(title);
-                $option.find('div').eq(1).text(port.country || '');
-                return $option;
-            }
-
-            function formatPortSelection(port) {
-                if (!port.id) return port.text;
-                return port.code
-                    ? (port.code + (port.city ? ', ' + port.city : ''))
-                    : (port.text || port.id);
-            }
-
             function setPortCodeSelect($select, code) {
                 code = $.trim((code || '').toString());
                 if (!code) {
@@ -1969,27 +1919,6 @@
 
                 $select.val(code).trigger('change');
             }
-
-            $('.select2-port-code').select2({
-                placeholder: 'Search port code',
-                allowClear: false,
-                width: '100%',
-                minimumInputLength: 0,
-                ajax: {
-                    url: '{{ route('api.ports') }}',
-                    dataType: 'json',
-                    delay: 200,
-                    data: function (params) {
-                        return { q: params.term || '' };
-                    },
-                    processResults: function (data) {
-                        return { results: data.results || [] };
-                    },
-                    cache: true
-                },
-                templateResult: formatPortResult,
-                templateSelection: formatPortSelection
-            });
 
             function applyDeparturePortCode(data) {
                 if (!data || !data.id) {

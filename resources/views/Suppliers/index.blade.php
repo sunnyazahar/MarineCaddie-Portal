@@ -12,6 +12,7 @@
     <!-- Select 2 css -->
     <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/css/sweetalert.css') }}" />
+    <x-lists.base-styles />
     <style>
         .table-other-companies {
             width: 100%;
@@ -38,12 +39,6 @@
         .table-other-companies tr:hover td {
             background-color: #f9fafb;
         }
-        .filter-label {
-            font-size: 10px;
-            font-weight: 600;
-            margin-bottom: 2px;
-            display: block;
-        }
         .filter-input {
             height: 28px;
             font-size: 11px;
@@ -51,7 +46,7 @@
             border: 1px solid #ced4da;
             padding: 4px 8px;
         }
-        
+
         /* Select2 Custom Styling */
         .select2-container--default .select2-selection--single {
             height: 28px !important;
@@ -107,25 +102,6 @@
             padding-top: 10px !important;
         }
 
-        .suppliers-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .suppliers-toolbar-search {
-            width: 200px;
-        }
-
-        .suppliers-toolbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
         .table-other-companies {
             min-width: 0;
         }
@@ -160,27 +136,6 @@
         }
 
         @media (max-width: 991.98px) {
-            .suppliers-toolbar {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-            }
-
-            .suppliers-toolbar-search {
-                width: 100%;
-            }
-
-            .suppliers-toolbar-actions {
-                width: 100%;
-                justify-content: stretch;
-            }
-
-            .suppliers-toolbar-actions .btn,
-            .suppliers-toolbar-actions a.btn {
-                flex: 1 1 auto;
-                text-align: center;
-            }
-
             .filter-input {
                 width: 100%;
             }
@@ -254,12 +209,12 @@
     @include('layouts.partials.pcoded-shell-start')
                                         <div class="card" style="border-radius: 0; box-shadow: none; border: 1px solid #eef2f7;">
                                             <div class="card-block" style="padding: 15px;">
-                                                <div class="suppliers-toolbar">
-                                                    <div class="suppliers-toolbar-search">
-                                                        <span class="filter-label">Search</span>
+                                                <x-lists.inline-toolbar toolbarClass="suppliers-toolbar">
+                                                    <x-slot:search>
+                                                        <span class="filter-label" style="font-size: 10px; font-weight: 600; margin-bottom: 2px; display: block;">Search</span>
                                                         <input type="text" id="supplier-search-filter" class="form-control filter-input" placeholder="type here">
-                                                    </div>
-                                                    <div class="suppliers-toolbar-actions">
+                                                    </x-slot:search>
+                                                    <x-slot:actions>
                                                         <a href="#" style="border: 1px solid #ced4da; padding: 4px 10px; border-radius: 2px; color: #666; font-size: 14px;">
                                                             <i class="ti-download"></i>
                                                         </a>
@@ -267,12 +222,17 @@
                                                            style="font-size: 11px; padding: 6px 15px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
                                                            Add supplier
                                                         </a>
-                                                    </div>
-                                                </div>
+                                                    </x-slot:actions>
+                                                </x-lists.inline-toolbar>
 
                                                 <div class="dt-responsive">
-                                                    <table id="suppliers-table" class="table-other-companies">
-                                                        <thead>
+                                                    <x-lists.ajax-table
+                                                        table-id="suppliers-table"
+                                                        table-class="table-other-companies"
+                                                        pagination-id="suppliers-pagination"
+                                                        :paginator="$suppliers->links()"
+                                                    >
+                                                        <x-slot:head>
                                                             <tr>
                                                                 <th>Supplier name</th>
                                                                 <th>Address</th>
@@ -282,14 +242,9 @@
                                                                 <th>Email</th>
                                                                 <th style="width: 50px;"></th>
                                                             </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @include('Suppliers.partials.rows')
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <div id="suppliers-pagination" class="mt-3 px-3 pb-2">
-                                                    {{ $suppliers->links() }}
+                                                        </x-slot:head>
+                                                        @include('Suppliers.partials.rows')
+                                                    </x-lists.ajax-table>
                                                 </div>
                                             </div>
                                         </div>
@@ -334,6 +289,9 @@
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
+@endsection
+
+@push('scripts')
     @include('partials.searchable-filter-multiselect-script')
 
     <script>
@@ -433,4 +391,4 @@
             });
         });
     </script>
-@endsection
+@endpush

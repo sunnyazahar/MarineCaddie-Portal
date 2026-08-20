@@ -14,17 +14,36 @@ Full standards: `PROJECT_STANDARDS.md` (read it before any non-trivial change).
 - Local: `http://localhost/laravel` (XAMPP, `.env` points to production DB)
 
 ## Pre-change checklist (always run mentally)
-1. Read `PROJECT_STANDARDS.md` for the affected module
+1. Read `PROJECT_STANDARDS.md` for the affected module — **§6g pehle agar Blade/form/list ho**
+2. §6g component reuse ho sakta hai? → use karo, duplicate markup/JS mat likho
 2. `<td>` count in `partials/rows.blade.php` == `<th>` count in `<thead>`
 3. DataTables `columnDefs.targets` = integer (not array) — DT 1.10.x requirement
 4. SweetAlert callback mein koi DataTables call mat karo agar table destroy ho sakta hai
 5. `is_active` filter default = `false`; query mein `where('is_active', 1)` use karo
 6. File delete = `PrivateDisk::delete()` — seedha `Storage::delete()` nahi
 7. Agar import/model/helper remove karo to us symbol ke saare usages search karo (`Country::`, `new Country`, type-hints, static calls, etc.)
-8. Sirf syntax check ya grep par rely mat karo — affected route/page localhost pe khol ke manual smoke test karo
+8. Sirf syntax check, grep, ya `composer test` par rely mat karo — **affected route/page localhost pe khol ke** desktop + mobile layout smoke test karo (filters, Create/Add button, pagination AJAX)
 9. Affected form submit / AJAX / filter / delete flow bhi manually test karo
 10. **`composer test` run karo** — PHPUnit green hone ke baad hi push
 11. Local test karo, phir `git push`
+
+## Blade components — ALWAYS automatic (user ko dubara batane ki zaroorat nahi)
+
+**Har list / form / Select2 touch se pehle** `PROJECT_STANDARDS.md` **§6g** padho — bina user ke kehne.
+
+### Mandatory workflow
+1. **Pehle reuse check** — kya `<x-forms.*>` ya `<x-lists.*>` kaam kar sakta hai? Agar haan → component use karo, inline duplicate mat likho.
+2. **Naya list page** → §6g starter template follow karo (`multiselect-assets` + `bindAjaxListFilters` + `partials/rows.blade.php`).
+3. **Port field** → `<x-forms.port-select />` — `formatPortResult` / `$('.select2-port-code')` page mein mat copy karo.
+4. **Country + flag** → `<x-forms.country-select />` — `formatCountry` / `formatFlag` / `$('.select2-country')` mat copy karo; currency/other Select2 ko `.not('[data-country-select]')` se init karo.
+5. **Custom multi-row grids** (`Shipment/shipments`, `Stock/stocks`) → `<x-lists.base-styles />` **mat** lagana; sirf `multiselect-assets` + page-local CSS.
+6. **Naya shared component banaya** → §6g catalog update karo (master table + props + example) — user ko remind karne ka wait mat karo.
+7. **Component migrate kiya** → `MigratedBladeViewsTest` mein marker assert add/update karo; `composer test` green.
+8. **Claim "done"** tabhi jab affected page localhost smoke (desktop + mobile) + tests pass hon.
+
+### Catalog (§6g — full detail PROJECT_STANDARDS.md mein)
+- **Forms:** `port-select`, `country-select`
+- **Lists:** `base-styles`, `filter-toolbar`, `filter-bar`, `filter-field`, `hide-inactive`, `clear-filters`, `inline-toolbar`, `ajax-table`, `multiselect-assets`
 
 ## List page pattern
 Every list page follows: Controller `index()` → `partials/rows.blade.php` → `bindAjaxListFilters()` JS helper (`partials/searchable-filter-multiselect-script.blade.php`).

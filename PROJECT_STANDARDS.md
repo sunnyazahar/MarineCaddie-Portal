@@ -13,6 +13,7 @@
 4. [Application Modules & Routes](#4-application-modules--routes)
 5. [Request / Auth Flow](#5-request--auth-flow)
 6. [List Page Pattern (CRITICAL)](#6-list-page-pattern-critical)
+   - [6g. Blade components catalog](#6g-blade-components-catalog-reuse-before-copy-paste)
 7. [Create / Edit Page Pattern](#7-create--edit-page-pattern)
 8. [Select2 & Lookup Fields](#8-select2--lookup-fields)
 9. [DataTables 1.10.20 Rules](#9-datatables-11020-rules)
@@ -83,6 +84,9 @@ app/
   Console/Commands/       — Scheduled/maintenance commands
 
 resources/views/
+  components/             — Reusable Blade components (see Section 6g)
+    forms/                — port-select, country-select
+    lists/                — list page filters, table shell, multiselect assets
   Agents/, customers/, hub/, Suppliers/, offices/, Shipment/, Stock/, Vessels/
     index.blade.php       — List + filters
     partials/rows.blade.php — AJAX tbody rows (only <tr> tags)
@@ -95,6 +99,7 @@ routes/web.php            — All web routes + inline API lookups (ports, partie
 config/app.php            — App config incl. local_otp_bypass flag
 
 scripts/                  — Local QA helpers (not for production runtime)
+  smoke-country-select-http.php  — Authenticated HTML smoke (no secrets written)
   browser-qa.js
   check_db.php
   seed_ops_qa_data.php
@@ -271,6 +276,239 @@ $hideInactive = $request->boolean('hide_inactive', false);
 
 Checkbox checked = sirf active records. Unchecked/default = sab records.
 
+### 6f. Blade list components (preferred for new / migrated list pages)
+
+Shared UI lives under `resources/views/components/lists/`. **Full prop reference:** Section [6g](#6g-blade-components-catalog-reuse-before-copy-paste).
+
+| Component | Use when |
+|-----------|----------|
+| `<x-lists.base-styles />` | Filter bar + mobile toolbar CSS (`bodyClass` / `toolbarClass`; set `:mobileOnlyToolbar="false"` when desktop toolbar must stay visible e.g. Create button top-right) |
+| `<x-lists.filter-toolbar />` | Mobile “Show filters” toggle + optional `actions` slot (Create button) |
+| `<x-lists.filter-bar />` | Horizontal filter row wrapper |
+| `<x-lists.filter-field />` | Label + input group (`label`, `width` props) |
+| `<x-lists.hide-inactive />` | Standard hide-inactive checkbox |
+| `<x-lists.clear-filters />` | Clear filters link |
+| `<x-lists.inline-toolbar />` | Search + actions row (Suppliers-style lists) |
+| `<x-lists.ajax-table />` | Table wrapper, optional `head-template-id` for DataTables rebuild; row markup via default slot (`@include('Module.partials.rows')`) |
+| `<x-lists.multiselect-assets />` | Multiselect filter CSS + `bindAjaxListFilters` script via `@stack` |
+
+**Migrated examples (list):**
+
+| Page | Components used |
+|------|-----------------|
+| `Agents/index` | Full stack: `base-styles`, `multiselect-assets`, `filter-toolbar`, `filter-bar`, `ajax-table` |
+| `Suppliers/index` | `base-styles`, `inline-toolbar`, `ajax-table`, `multiselect-assets` |
+| `Vessels/index`, `Other Companies/index` | Full filter-bar stack |
+| `Stock/stock-follow-up`, `Stock/pickup-work-list` | Full filter-bar stack |
+| `Shipment/pre-alert-reminders` | Full filter-bar stack |
+| `Shipment/shipment-follow-up`, `Shipment/cost-follow-up` | Partial (`multiselect-assets` + some list pieces) |
+| `Shipment/shipments`, `Stock/stocks` | **`multiselect-assets` only** — custom multi-row filter grid (no `base-styles`) |
+
+**Not yet migrated:** `customers/index`, `hub/index`, `contacts/index`, `offices/index`, Billing lists.
+
+Page-specific JS that calls `bindAjaxListFilters()` should live in `@push('scripts')` so it runs after the shared helper (pushed by `<x-lists.multiselect-assets />` or `@include('partials.searchable-filter-multiselect-script')`).
+
+**Do NOT use `<x-lists.base-styles />` on pages with a custom multi-row filter grid** (e.g. `Shipment/shipments`, `Stock/stocks`) unless you override all conflicting CSS — prefer page-local styles + `multiselect-assets` only.
+
+**After any list-page Blade migration:** open the affected route on localhost and verify filters + primary action button (Create/Add) on desktop **and** mobile width before push.
+
+### 6g. Blade components catalog (reuse before copy-paste)
+
+> **Rule:** Naya filter row, port field, ya country dropdown likhne se pehle yahan dekho. Duplicate Select2 init / filter CSS copy mat karo.
+
+#### Master index (11 components)
+
+| Blade tag | File | Purpose |
+|-----------|------|---------|
+| `<x-forms.port-select />` | `components/forms/port-select.blade.php` | AJAX port code Select2 |
+| `<x-forms.country-select />` | `components/forms/country-select.blade.php` | Country Select2 with flag |
+| `<x-lists.base-styles />` | `components/lists/base-styles.blade.php` | Shared list filter + toolbar CSS |
+| `<x-lists.filter-toolbar />` | `components/lists/filter-toolbar.blade.php` | Mobile show/hide filters toggle |
+| `<x-lists.filter-bar />` | `components/lists/filter-bar.blade.php` | `.filter-row` wrapper |
+| `<x-lists.filter-field />` | `components/lists/filter-field.blade.php` | Label + `.filter-group` slot |
+| `<x-lists.hide-inactive />` | `components/lists/hide-inactive.blade.php` | Hide inactive checkbox |
+| `<x-lists.clear-filters />` | `components/lists/clear-filters.blade.php` | Clear filters link |
+| `<x-lists.inline-toolbar />` | `components/lists/inline-toolbar.blade.php` | Search + actions row |
+| `<x-lists.ajax-table />` | `components/lists/ajax-table.blade.php` | Table + optional pagination shell |
+| `<x-lists.multiselect-assets />` | `components/lists/multiselect-assets.blade.php` | Multiselect CSS/JS + `bindAjaxListFilters` |
+
+All form/list components load assets via `@once` + `@push('styles'|'scripts')` — parent layout must have `@stack('styles')` and `@stack('scripts')` (`layouts/app.blade.php`).
+
+---
+
+#### Forms — `<x-forms.port-select />`
+
+**Props:**
+
+| Prop | Default | Notes |
+|------|---------|-------|
+| `name` | `port_code` | Form field name |
+| `id` | same as `name` | |
+| `value` | `null` | Pre-selected port code (edit pages) |
+| `label` | `null` | Omit for slot-only layout |
+| `labelClass` | `form-label-custom` | |
+| `wrapperClass` | `form-group-custom` | Set `""` to skip wrapper div |
+| `placeholder` | `Search port code` | |
+| `allowClear` | `false` | |
+| `required` | `false` | |
+
+**Extra HTML classes:** pass via `class="..."` attribute merge (e.g. `form-control`, `form-control-sm-custom`).
+
+**Example:**
+
+```blade
+<x-forms.port-select
+    name="port_code"
+    label="Port code"
+    :value="old('port_code', $model->port_code ?? null)"
+/>
+```
+
+**Test marker:** `data-port-select="1"` on `<select>`.  
+**JS init:** `window.MarineCaddieInitPortSelect()` (auto on `document.ready`).  
+**Do NOT** copy `formatPortResult` / `$('.select2-port-code').select2(...)` into page scripts.
+
+---
+
+#### Forms — `<x-forms.country-select />`
+
+**Props:**
+
+| Prop | Default | Notes |
+|------|---------|-------|
+| `name` | *(required)* | |
+| `id` | same as `name` | |
+| `value` | `null` | Selected id or name |
+| `label` | `null` | |
+| `countries` | `[]` | From controller: `CountryCache::active()` |
+| `valueKey` | `id` | Use `"name"` for hub / shipment consignee fields |
+| `labelClass` | `form-label-custom` | |
+| `wrapperClass` | `form-group-custom` | Set `""` inside existing `.form-group` |
+| `placeholder` | `Select Country` | |
+| `allowClear` | auto | `true` when `valueKey="name"`, else `false` |
+| `required` | `false` | |
+| `emptyOption` | `true` | |
+| `emptyOptionText` | `null` | |
+| `dropdownParent` | `null` | CSS selector for modals, e.g. `#add-supplier-modal` |
+
+**Example (ID-based):**
+
+```blade
+<x-forms.country-select
+    name="country_id"
+    label="Country"
+    :countries="$countries"
+    :value="old('country_id', $model->country_id ?? null)"
+/>
+```
+
+**Example (name-based + modal):**
+
+```blade
+<x-forms.country-select
+    name="consignee_country"
+    :countries="$countries"
+    valueKey="name"
+    dropdownParent="#add-supplier-modal"
+    wrapperClass=""
+    class="crr-input modal-supplier-country"
+/>
+```
+
+**Test marker:** `data-country-select="1"`.  
+**JS init:** `window.MarineCaddieInitCountrySelect()`; re-init inside modal: `MarineCaddieInitCountrySelect($modal)` after destroy.  
+**Flags:** `data-flag-url` on options; fallback `iso_code` → flagcdn.com.  
+**Do NOT** apply flag `templateResult` to non-country Select2 (currency, etc.) — use `.not('[data-country-select]')`.
+
+---
+
+#### Lists — props quick reference
+
+| Component | Key props / slots |
+|-----------|-------------------|
+| `base-styles` | `bodyClass`, `toolbarClass`, `mobileOnlyToolbar` (default `true`; set `false` if desktop toolbar visible) |
+| `filter-toolbar` | `toggleId` (required), `bodyClass`, `toolbarClass`; slot `actions` for Create button |
+| `filter-bar` | Default slot = filter fields row |
+| `filter-field` | `label`, `width` (e.g. `180px`); slot = input/select |
+| `hide-inactive` | `id`, `label`, `checked` |
+| `clear-filters` | `id`, `label`; class merge for page-specific ID |
+| `inline-toolbar` | slot `search` or default slot; slot `actions` |
+| `ajax-table` | `tableId`, `wrapperId`, `tableClass`, `paginationId`, `paginator`, `minWidth`, `headTemplateId`; slots `head`, `headTemplate`, default = tbody rows |
+| `multiselect-assets` | No props — includes multiselect CSS/JS once per page |
+
+---
+
+#### Starter — standard list page (filter-bar style)
+
+```blade
+@section('content')
+    <x-lists.base-styles bodyClass="module-filters-open" toolbarClass="module-filters-toolbar" />
+    <x-lists.multiselect-assets />
+
+    {{-- card / page shell --}}
+    <x-lists.filter-toolbar toggleId="btn-module-filters-toggle">
+        <x-slot:actions>
+            <a href="{{ route('module.create') }}" class="btn btn-teal btn-sm">Add</a>
+        </x-slot:actions>
+    </x-lists.filter-toolbar>
+
+    <x-lists.filter-bar>
+        <x-lists.filter-field label="Name" width="180px">
+            <input type="text" id="filter-name" class="filter-input">
+        </x-lists.filter-field>
+        <x-lists.hide-inactive id="hide-inactive-check" />
+        <x-lists.clear-filters id="clear-module-filters" />
+    </x-lists.filter-bar>
+
+    <x-lists.ajax-table
+        tableId="module-table"
+        paginationId="module-pagination"
+        :paginator="$items"
+    >
+        @include('Module.partials.rows', ['items' => $items])
+    </x-lists.ajax-table>
+@endsection
+
+@push('scripts')
+<script>
+$(function () {
+    bindAjaxListFilters({
+        tableSelector: '#module-table',
+        paginationSelector: '#module-pagination',
+        indexUrl: @json(route('module.index')),
+        getParams: function (page) {
+            return {
+                name: $('#filter-name').val(),
+                hide_inactive: $('#hide-inactive-check').is(':checked') ? 1 : 0,
+                page: page || 1
+            };
+        },
+        textSelectors: '#filter-name',
+        changeSelectors: '#hide-inactive-check',
+        resetFields: function () { $('#filter-name').val(''); }
+    });
+});
+</script>
+@endpush
+```
+
+#### Starter — create/edit form (lookup fields)
+
+```blade
+<x-forms.country-select name="country_id" label="Country" :countries="$countries" />
+<x-forms.port-select name="port_code" label="Port code" :value="$model->port_code ?? null" />
+```
+
+#### Regression tests
+
+Component-migrated Blade → add asserts in `tests/Feature/MigratedViews/MigratedBladeViewsTest.php`:
+
+- List pages: filter IDs, table id, Create/Add button, clear-filters id
+- Forms: `data-port-select="1"`, `data-country-select="1"` on field names
+- Edit sources: no inline `formatPortResult`, `formatCountry`, `formatFlag`
+
+Run `composer test` before push.
+
 ---
 
 ## 7. Create / Edit Page Pattern
@@ -303,7 +541,45 @@ Modules like Agent, Hub, Customer, Shipment, Stock use tabbed edit UI:
 
 ## 8. Select2 & Lookup Fields
 
+> **Component catalog (props + examples):** Section [6g](#6g-blade-components-catalog-reuse-before-copy-paste).  
+> Naya port/country field = component use karo; legacy patterns sirf unmigrated pages ke liye.
+
+### Blade component (preferred for port code)
+
+Use `<x-forms.port-select>` on new or migrated forms — markup + Select2 init in one place.
+
+```blade
+<x-forms.port-select
+    name="port_code"
+    label="Port code"
+    :value="old('port_code', $model->port_code ?? null)"
+/>
+```
+
+- JS loads once via `@push('scripts')` + `@stack('scripts')` in `layouts/app.blade.php`
+- Do **not** copy `formatPortResult` / `$('.select2-port-code').select2(...)` into page scripts
+- Legacy pages not yet migrated may still use the manual pattern below
+
 ### Country dropdown (flag)
+
+Use `<x-forms.country-select>` on new or migrated forms — markup + flag Select2 init in one place.
+
+```blade
+<x-forms.country-select
+    name="country_id"
+    label="Country"
+    :countries="$countries"
+    :value="old('country_id', $model->country_id ?? null)"
+/>
+```
+
+- `valueKey="name"` when the form stores country **name** (hub, shipment consignee) instead of ID
+- `dropdownParent="#modal-id"` for country selects inside modals (Stock supplier modal)
+- Flag URL: `data-flag-url` on options; falls back to `iso_code` → flagcdn.com (Agents)
+- Do **not** copy `formatCountry` / `formatFlag` / `$('.select2-country').select2(...)` into page scripts
+- Non-country Select2 fields (currency, etc.) must **not** use country flag templates — init with `.not('[data-country-select]')`
+
+Legacy manual pattern (migrate away):
 
 ```javascript
 $('.select2-flag').select2({
@@ -319,7 +595,9 @@ Data source: `CountryCache::active()` or `CountryCache::activeRaw()` in controll
 
 ### Port code (from `ports` table)
 
-Use class `select2-port-code` on Agent, Hub, Customer, Supplier, Other Company, Shipment forms.
+**Preferred:** `<x-forms.port-select />` (see above).
+
+Legacy manual pattern — use class `select2-port-code` only when component migration is pending:
 
 ```javascript
 $('.select2-port-code').select2({
@@ -721,12 +999,14 @@ composer test
 | Auth | login page, valid/invalid login, guest redirects |
 | Security | response security headers |
 | Agents | list page + AJAX filter contract `{ html, pagination, total }` |
+| Migrated UI | `tests/Feature/MigratedViews/MigratedBladeViewsTest.php` — list shells + port-select + country-select on every component-migrated Blade |
 | API | `/api/ports` lookup + auth required |
 | Dashboard | operations KPI calculations |
 
 **Rules:**
 
 - Naya module / route / filter add karo → us module ka Feature test bhi add karo
+- **Component-migrated Blade** (`x-lists.*`, `x-forms.port-select`, `x-forms.country-select`) → `MigratedBladeViewsTest` mein marker assert add karo (Create button, filter IDs, port/country field names)
 - Test DB = SQLite in-memory (`phpunit.xml`) — production DB kabhi use mat karo
 - OTP in tests = `LOCAL_OTP_BYPASS=true` (phpunit env only; production pe ignored)
 - Shared schema helpers: `tests/RegressionTestCase.php`, `tests/Concerns/*`
@@ -810,8 +1090,11 @@ Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | ta
 
 ## 22. Pre-Change Checklist
 
+> **Agent note:** Ye steps user ko bataye bina automatically follow karo — especially §6g component reuse, tests, aur localhost smoke.
+
 ```
 [ ] PROJECT_STANDARDS.md (this file) — affected section read?
+[ ] Section 6g — existing Blade component reuse ho sakta hai? (x-forms.* / x-lists.*)
 [ ] Module route + controller + repository identified?
 [ ] partials/rows.blade.php td count == thead th count?
 [ ] bindAjaxListFilters getParams sends all active filters?
@@ -845,10 +1128,13 @@ Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | ta
 | `Model::create($request->all())` | Use `$request->validated()` |
 | Filter checkbox not in AJAX params | Add to `getParams()` in bindAjaxListFilters |
 | Tab fields not saved | Check validation + `$fillable` + active_tab redirect |
-| Port code free text | Use `select2-port-code` + `api.ports` |
+| Port code free text | Use `<x-forms.port-select />` + `api.ports` (Section 6g) |
+| Country Select2 copied per page | Use `<x-forms.country-select />` (Section 6g) |
+| List filter CSS duplicated | Use `<x-lists.* />` stack (Section 6g) |
+| `base-styles` on shipments/stocks grid | Custom toolbar only + `multiselect-assets` |
 | OTP bypass on production | Never set `LOCAL_OTP_BYPASS` on production |
 | Push without user permission | Wait for explicit "push karo" |
 
 ---
 
-*Last updated: automated regression test suite, login throttle, security headers, repository pattern.*
+*Last updated: Blade components catalog (§6g), country-select + list components, regression tests.*

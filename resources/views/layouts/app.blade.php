@@ -113,6 +113,7 @@
     </style>
     @include('partials.stock-status-badge-styles')
     @yield('styles')
+    @stack('styles')
 </head>
 
 <body class="{{ auth()->user()?->isOperations() && request()->routeIs('offices.*', 'hub.*', 'agents.*', 'customers.*', 'contacts.*') ? 'ops-admin-readonly' : '' }}">
@@ -124,6 +125,8 @@
     </div>
 
     @include('partials.mail-busy-overlay')
+
+    @stack('scripts')
 
     @if(app()->environment('production') && ! config('app.debug'))
         <script>

@@ -13,6 +13,8 @@
     <!-- Date-range picker css  -->
     <link rel="stylesheet" type="text/css" href="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/css/sweetalert.css') }}" />
+    <x-lists.base-styles bodyClass="prealert-filters-open" toolbarClass="prealert-filters-toolbar" />
+    <x-lists.multiselect-assets />
     <style>
         /* High Density Table Styles */
         #offices-table {
@@ -88,11 +90,6 @@
         .btn-teal:hover {
             background-color: #006666;
             border-color: #006666;
-        }
-        .btn-outline-teal {
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
         }
         .btn-outline-teal:hover,
         .btn-outline-teal:focus,
@@ -337,21 +334,11 @@
             display: flex;
             justify-content: flex-end;
         }
-        .prealert-filters-toolbar {
-            display: none;
-        }
         .prealert-filters-fields {
             width: 100%;
         }
 
         @media (max-width: 991.98px) {
-            .prealert-filters-toolbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                padding: 4px 0 8px;
-            }
             .prealert-filters-fields {
                 display: none !important;
                 flex-direction: column;
@@ -365,10 +352,6 @@
             }
             body.prealert-filters-open .prealert-filters-fields {
                 display: flex !important;
-            }
-            #btn-prealert-filters-toggle.is-open {
-                background: #008080 !important;
-                color: #fff !important;
             }
             .prealert-filters-fields .mr-2,
             .prealert-filters-fields .btn-filter-toggle {
@@ -395,7 +378,7 @@
                 width: 100%;
                 max-width: 100%;
             }
-            .prealert-filters-fields .clear-filters {
+            .prealert-filters-fields .btn-clear-filters {
                 margin: 4px 0 8px;
             }
             .table-scroll-wrapper,
@@ -417,9 +400,6 @@
         }
 
         @media (min-width: 992px) {
-            .prealert-filters-toolbar {
-                display: none !important;
-            }
             .prealert-filters-fields {
                 display: flex !important;
                 max-height: none !important;
@@ -441,7 +421,6 @@
         }
         @include('Shipment.partials.reminder-compose-styles')
     </style>
-    @include('partials.searchable-filter-multiselect-styles')
 @endsection
 
 @section('content')
@@ -507,11 +486,11 @@
                                         <!-- Base Style - Compact start -->
                                         <div class="card">
                                             <div class="card-block">
-                                                <div class="prealert-filters-toolbar">
-                                                    <button type="button" id="btn-prealert-filters-toggle" class="btn btn-outline-teal btn-sm">
-                                                        <i class="ti-filter"></i> <span class="prealert-filters-toggle-label">Show filters</span>
-                                                    </button>
-                                                </div>
+                                                <x-lists.filter-toolbar
+                                                    toggle-id="btn-prealert-filters-toggle"
+                                                    body-class="prealert-filters-open"
+                                                    toolbar-class="prealert-filters-toolbar"
+                                                />
                                                 <div class="d-flex justify-content-between align-items-start pt-2 prealert-filters-fields">
                                                     <div style="width: 100%;">
                                                         <div class="row no-gutters">
@@ -606,15 +585,19 @@
                                                                 </div>
                                                             </div>
 
-                                                            <a class="clear-filters">Clear filters</a>
+                                                            <x-lists.clear-filters id="clear-prealert-filters" />
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                                 <div class="dt-responsive table-responsive">
-                                                    <table id="offices-table"
-                                                        class="office-table">
-                                                        <thead>
+                                                    <x-lists.ajax-table
+                                                        table-id="offices-table"
+                                                        table-class="office-table"
+                                                        pagination-id="prealert-pagination"
+                                                        :paginator="$shipments->links()"
+                                                    >
+                                                        <x-slot:head>
                                                             <tr>
                                                                 <th>Shipment no</th>
                                                                 <th>Customer</th>
@@ -631,15 +614,9 @@
                                                                 <th>Rem. sent</th>
                                                                 <th></th>
                                                             </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @include('Shipment.partials.pre-alert-rows')
-
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <div id="prealert-pagination" class="mt-3 px-3 pb-2">
-                                                    {{ $shipments->links() }}
+                                                        </x-slot:head>
+                                                        @include('Shipment.partials.pre-alert-rows')
+                                                    </x-lists.ajax-table>
                                                 </div>
                                                 </div>
                                             </div>
@@ -700,12 +677,13 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    @include('partials.searchable-filter-multiselect-script')
     <!-- date-range-picker js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/moment/moment.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
+@endsection
 
+@push('scripts')
     <script>
         $(document).ready(function() {
             initializeSearchableFilterMultiselect(
@@ -819,12 +797,8 @@
                 "scrollX": true
             });
 
-            $('#btn-prealert-filters-toggle').on('click', function () {
-                $('body').toggleClass('prealert-filters-open');
-                var isOpen = $('body').hasClass('prealert-filters-open');
-                $(this).toggleClass('is-open', isOpen);
-                $(this).find('.prealert-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
-                if (isOpen) {
+            $(document).on('click', '.list-filters-toggle[data-body-class="prealert-filters-open"]', function () {
+                if ($('body').hasClass('prealert-filters-open')) {
                     ensurePrealertMobileFiltersVisible();
                 }
                 setTimeout(function () {
@@ -847,6 +821,7 @@
                 paginationSelector: '#prealert-pagination',
                 indexUrl: @json(route('pre-alert-reminders')),
                 existingTable: table,
+                clearSelector: '#clear-prealert-filters',
                 getParams: function (page) {
                     return {
                         account_manager: $('#filter-account-manager').val() || [],
@@ -878,4 +853,4 @@
             @include('Shipment.partials.reminder-compose-script')
         });
     </script>
-@endsection
+@endpush

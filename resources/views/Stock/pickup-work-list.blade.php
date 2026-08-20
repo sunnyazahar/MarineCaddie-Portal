@@ -532,7 +532,7 @@
             color: #6c757d !important;
         }
     </style>
-    @include('partials.searchable-filter-multiselect-styles')
+    <x-lists.multiselect-assets />
 @endsection
 
 @section('content')
@@ -672,14 +672,19 @@
                                                                     </select>
                                                                 </div>
                                                             </div>
-                                                            <a class="clear-filters">Clear filters</a>
+                                                            <x-lists.clear-filters id="clear-pickup-filters" />
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div class="dt-responsive table-responsive">
-                                                    <table id="offices-table" class="office-table">
-                                                        <thead>
+                                                    <x-lists.ajax-table
+                                                        table-id="offices-table"
+                                                        table-class="office-table"
+                                                        pagination-id="pickup-pagination"
+                                                        :paginator="$crrs->links()"
+                                                    >
+                                                        <x-slot:head>
                                                             <tr>
                                                                 <th>Stock number</th>
                                                                 <th>Customer</th>
@@ -694,15 +699,9 @@
                                                                 <th>Handled by</th>
                                                                 <th>Pick up date</th>
                                                             </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @include('Stock.partials.pickup-rows')
-
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <div id="pickup-pagination" class="mt-3 px-3 pb-2">
-                                                    {{ $crrs->links() }}
+                                                        </x-slot:head>
+                                                        @include('Stock.partials.pickup-rows')
+                                                    </x-lists.ajax-table>
                                                 </div>
                                                 </div>
                                             </div>
@@ -748,11 +747,12 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    @include('partials.searchable-filter-multiselect-script')
     <!-- date-range-picker js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/moment/moment.js') }}"></script>
     <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
+@endsection
 
+@push('scripts')
     <script>
         $(document).ready(function() {
             initializeSearchableFilterMultiselect(
@@ -918,6 +918,7 @@
                 paginationSelector: '#pickup-pagination',
                 indexUrl: @json(route('pickup-work-list')),
                 existingTable: table,
+                clearSelector: '#clear-pickup-filters',
                 getParams: function (page) {
                     return {
                         account_manager: $('#filter-account-manager').val() || [],
@@ -947,4 +948,4 @@
             });
         });
     </script>
-@endsection
+@endpush

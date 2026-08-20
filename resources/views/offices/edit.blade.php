@@ -946,15 +946,14 @@
                                                 <div class="form-group-custom">
                                                     <label class="form-label-custom">Country</label>
                                                     <div class="input-with-append">
-                                                        <select name="country_id" class="select2-flag" style="width: 100%;">
-                                                            <option value="">Select country</option>
-                                                            @foreach ($countries as $country)
-                                                                <option value="{{ $country->id }}"
-                                                                    data-flag="{{ $country->flag_url }}" {{ old('country_id', $office->country_id) == $country->id ? 'selected' : '' }}>
-                                                                    {{ $country->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
+                                                        <x-forms.country-select
+                                                            name="country_id"
+                                                            :countries="$countries"
+                                                            :value="$office->country_id"
+                                                            wrapperClass=""
+                                                            class="select2-flag"
+                                                            dropdownParent=".pcoded-inner-content"
+                                                        />
                                                     </div>
                                                 </div>
 
@@ -990,14 +989,14 @@
                                                 <div class="form-group-custom">
                                                     <label class="form-label-custom">Country</label>
                                                     <div class="input-with-append">
-                                                        <select name="office_country_id" class="select2-flag"
-                                                            style="width: 100%;">
-                                                            <option value="">Select country</option>
-                                                            @foreach ($countries as $country)
-                                                                <option value="{{ $country->id }}"
-                                                                    data-flag="{{ $country->flag_url }}" {{ old('office_country_id', $office->office_country_id) == $country->id ? 'selected' : '' }}>{{ $country->name }}</option>
-                                                            @endforeach
-                                                        </select>
+                                                        <x-forms.country-select
+                                                            name="office_country_id"
+                                                            :countries="$countries"
+                                                            :value="$office->office_country_id"
+                                                            wrapperClass=""
+                                                            class="select2-flag"
+                                                            dropdownParent=".pcoded-inner-content"
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
@@ -1530,23 +1529,8 @@
                 setTimeout(fixedFooterOffset, 300);
             });
 
-            // Select2 Flag Formatter
-            function formatFlag(state) {
-                if (!state.id) return state.text;
-                var flagUrl = $(state.element).data('flag');
-                if (!flagUrl) return state.text;
-                return $(`<span><img src="${flagUrl}" class="img-flag" style="width: 20px; height: 15px; margin-right: 8px; vertical-align: middle;" /> ${state.text}</span>`);
-            }
-
             // Initialize Select2
             function initSelect2() {
-                $('.select2-flag').select2({
-                    templateResult: formatFlag,
-                    templateSelection: formatFlag,
-                    width: '100%',
-                    dropdownParent: $('.pcoded-inner-content') // Still using inner-content for flags as they are more complex
-                });
-
                 $('.select2-simple, .select-custom').each(function () {
                     if (!$(this).hasClass("select2-hidden-accessible")) {
                         $(this).select2({

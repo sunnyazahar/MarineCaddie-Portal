@@ -792,6 +792,7 @@
             bottom: 116px;
         }
     </style>
+    <x-lists.multiselect-assets />
 @endsection
 
 @section('content')
@@ -966,7 +967,7 @@
                                                                 </div>
                                                             </div>
                                                             <div class="custom-col">
-                                                                <a class="clear-filters"><i class="ti-close"></i> Clear filters</a>
+                                                                <x-lists.clear-filters id="clear-stocks-filters" />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1090,8 +1091,9 @@
     <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
     <!-- Select 2 js -->
     <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    @include('partials.searchable-filter-multiselect-script')
+@endsection
 
+@push('scripts')
     <script>
         $(document).ready(function() {
             $('body').addClass('stocks-list-page');
@@ -1326,6 +1328,7 @@
                 paginationSelector: '#stocks-pagination',
                 indexUrl: @json(route('stocks')),
                 existingTable: table,
+                clearSelector: '#clear-stocks-filters',
                 getParams: function (page) {
                     return {
                         hub_agent: $('#col-Hub-Agent select').val() || [],
@@ -1761,4 +1764,4 @@
             });
         });
     </script>
-@endsection
+@endpush

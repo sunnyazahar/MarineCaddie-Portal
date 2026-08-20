@@ -593,26 +593,24 @@
                                                         <input type="text" name="zip_code" class="form-control" value="{{ $customer->primaryAddress->zip_code ?? '' }}">
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label>Country</label>
-                                                    <select name="country" class="form-control select2-field">
-                                                        <option></option>
-                                                        @foreach($countries as $country)
-                                                            <option value="{{ $country->id }}" data-flag="{{ $country->flag_url }}" {{ ($customer->primaryAddress->country_id ?? '') == $country->id ? 'selected' : '' }}>{{ $country->name }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Port code</label>
-                                                    <select name="port_code" class="select2-port-code" style="width: 100%;">
-                                                        <option value=""></option>
-                                                        @if (old('port_code', $customer->primaryAddress->port_code ?? ''))
-                                                            <option value="{{ old('port_code', $customer->primaryAddress->port_code ?? '') }}" selected>
-                                                                {{ old('port_code', $customer->primaryAddress->port_code ?? '') }}
-                                                            </option>
-                                                        @endif
-                                                    </select>
-                                                </div>
+                                                <x-forms.country-select
+                                                    name="country"
+                                                    label="Country"
+                                                    :countries="$countries"
+                                                    :value="$customer->primaryAddress->country_id ?? null"
+                                                    wrapperClass="form-group"
+                                                    labelClass=""
+                                                    class="form-control select2-field"
+                                                    placeholder="Select an option"
+                                                    :allowClear="false"
+                                                />
+                                                <x-forms.port-select
+                                                    name="port_code"
+                                                    label="Port code"
+                                                    wrapperClass="form-group"
+                                                    labelClass=""
+                                                    :value="$customer->primaryAddress->port_code ?? ''"
+                                                />
 
                                                 <div class="form-section-title" style="margin-top: 30px;">Postal address (Optional)</div>
                                                 <div class="form-group">
@@ -633,15 +631,17 @@
                                                         <input type="text" name="postal_zip_code" class="form-control" value="{{ $customer->postalAddress->zip_code ?? '' }}">
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label>Country</label>
-                                                    <select name="postal_country" class="form-control select2-field">
-                                                        <option></option>
-                                                        @foreach($countries as $country)
-                                                            <option value="{{ $country->id }}" data-flag="{{ $country->flag_url }}" {{ ($customer->postalAddress->country_id ?? '') == $country->id ? 'selected' : '' }}>{{ $country->name }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
+                                                <x-forms.country-select
+                                                    name="postal_country"
+                                                    label="Country"
+                                                    :countries="$countries"
+                                                    :value="$customer->postalAddress->country_id ?? null"
+                                                    wrapperClass="form-group"
+                                                    labelClass=""
+                                                    class="form-control select2-field"
+                                                    placeholder="Select an option"
+                                                    :allowClear="false"
+                                                />
                                             </div>
 
                                             <!-- Column 3: Invoice details -->
@@ -669,15 +669,17 @@
                                                         <input type="text" name="invoice_zip_code" class="form-control" value="{{ $customer->invoiceAddress->zip_code ?? '' }}">
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label>Country</label>
-                                                    <select name="invoice_country" class="form-control select2-field">
-                                                        <option></option>
-                                                        @foreach($countries as $country)
-                                                            <option value="{{ $country->id }}" data-flag="{{ $country->flag_url }}" {{ ($customer->invoiceAddress->country_id ?? '') == $country->id ? 'selected' : '' }}>{{ $country->name }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
+                                                <x-forms.country-select
+                                                    name="invoice_country"
+                                                    label="Country"
+                                                    :countries="$countries"
+                                                    :value="$customer->invoiceAddress->country_id ?? null"
+                                                    wrapperClass="form-group"
+                                                    labelClass=""
+                                                    class="form-control select2-field"
+                                                    placeholder="Select an option"
+                                                    :allowClear="false"
+                                                />
                                                 <div class="form-group">
                                                     <label>Currency</label>
                                                     <select name="currency" class="form-control select2-field">
@@ -1088,20 +1090,11 @@
                 $('.nav-tabs a[href="' + hash + '"]').tab('show');
             }
 
-            // Initialize Select2 on specified fields
-            function formatCountry(state) {
-                if (!state.id) {
-                    return state.text;
-                }
-                var flagUrl = $(state.element).data('flag');
-                if (!flagUrl) {
-                    return state.text;
-                }
-                var $state = $(
-                    '<span><img src="' + flagUrl + '" class="img-flag" style="width: 20px; height: 15px; margin-right: 8px; vertical-align: middle;" /> ' + state.text + '</span>'
-                );
-                return $state;
-            };
+            $('.select2-field').not('[data-country-select]').select2({
+                placeholder: 'Select an option',
+                allowClear: false,
+                width: '100%'
+            });
 
             function formatOfficeUser(item) {
                 if (!item.id) {
@@ -1174,63 +1167,6 @@
                     $preselectedAccountingUser.attr('data-office-short-name') || $('#responsible-office-input').val()
                 );
             }
-
-            $('.select2-field').select2({
-                placeholder: 'Select an option',
-                allowClear: false,
-                width: '100%',
-                templateResult: formatCountry,
-                templateSelection: formatCountry
-            });
-
-            function formatPortResult(port) {
-                if (port.loading || !port.id) {
-                    return port.text;
-                }
-
-                var title = port.code + (port.city ? ', ' + port.city : '');
-                var $option = $(
-                    '<div class="port-option">' +
-                        '<div style="font-weight: 600; font-size: 13px; color: #111827;"></div>' +
-                        '<div style="font-size: 12px; color: #6b7280;"></div>' +
-                    '</div>'
-                );
-                $option.find('div').eq(0).text(title);
-                $option.find('div').eq(1).text(port.country || '');
-
-                return $option;
-            }
-
-            function formatPortSelection(port) {
-                if (!port.id) {
-                    return port.text;
-                }
-
-                return port.code
-                    ? port.code + (port.city ? ', ' + port.city : '')
-                    : port.text;
-            }
-
-            $('.select2-port-code').select2({
-                placeholder: 'Search port code',
-                allowClear: false,
-                width: '100%',
-                minimumInputLength: 0,
-                ajax: {
-                    url: '{{ route('api.ports') }}',
-                    dataType: 'json',
-                    delay: 200,
-                    data: function (params) {
-                        return { q: params.term || '' };
-                    },
-                    processResults: function (data) {
-                        return { results: data.results || [] };
-                    },
-                    cache: true
-                },
-                templateResult: formatPortResult,
-                templateSelection: formatPortSelection
-            });
 
             // Trigger validation on Select2 change
             $('.select2-field, .select2-office-user').on('change', function() {

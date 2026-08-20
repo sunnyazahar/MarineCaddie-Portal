@@ -3735,9 +3735,6 @@
 
         // Initialize Select2
         $('.select2').each(function() {
-            if ($(this).hasClass('select2-country')) {
-                return;
-            }
             $(this).select2({
                 placeholder: "Select",
                 allowClear: false,
@@ -3745,27 +3742,6 @@
             });
         });
 
-        function formatCountry(state) {
-            if (!state.id) {
-                return state.text;
-            }
-            var flagUrl = $(state.element).data('flag');
-            if (!flagUrl) {
-                return state.text;
-            }
-            return $(
-                '<span><img src="' + flagUrl + '" class="img-flag" style="width: 20px; height: 15px; margin-right: 8px; vertical-align: middle;" /> ' + state.text + '</span>'
-            );
-        }
-
-        $('.select2-country').select2({
-            placeholder: 'Select country',
-            allowClear: false,
-            width: '100%',
-            templateResult: formatCountry,
-            templateSelection: formatCountry
-        });
-        
         // Initialize Datepickers
         $('.datepicker').each(function() {
             $(this).datepicker({
@@ -5132,29 +5108,6 @@
         var hubDepartureCodes = @json($hubs->mapWithKeys(fn ($hub) => ['hub:' . $hub->id => $hub->code ?? '']));
         var consigneePartyCodes = @json($consigneePartyCodes ?? []);
 
-        function formatPortResult(port) {
-            if (port.loading || !port.id) {
-                return port.text;
-            }
-            var title = (port.code || port.id) + (port.city ? ', ' + port.city : '');
-            var $option = $(
-                '<div class="port-option">' +
-                    '<div style="font-weight: 600; font-size: 13px; color: #111827;"></div>' +
-                    '<div style="font-size: 12px; color: #6b7280;"></div>' +
-                '</div>'
-            );
-            $option.find('div').eq(0).text(title);
-            $option.find('div').eq(1).text(port.country || '');
-            return $option;
-        }
-
-        function formatPortSelection(port) {
-            if (!port.id) return port.text;
-            return port.code
-                ? (port.code + (port.city ? ', ' + port.city : ''))
-                : (port.text || port.id);
-        }
-
         function setPortCodeSelect($select, code) {
             code = $.trim((code || '').toString());
             if (!code) {
@@ -5170,27 +5123,6 @@
 
             $select.val(code).trigger('change');
         }
-
-        $('.select2-port-code').select2({
-            placeholder: 'Search port code',
-            allowClear: false,
-            width: '100%',
-            minimumInputLength: 0,
-            ajax: {
-                url: '{{ route('api.ports') }}',
-                dataType: 'json',
-                delay: 200,
-                data: function (params) {
-                    return { q: params.term || '' };
-                },
-                processResults: function (data) {
-                    return { results: data.results || [] };
-                },
-                cache: true
-            },
-            templateResult: formatPortResult,
-            templateSelection: formatPortSelection
-        });
 
         function resolveConsigneeCodeFromSelection(data) {
             if (!data || !data.id) {

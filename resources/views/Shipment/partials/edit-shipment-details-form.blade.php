@@ -44,17 +44,13 @@
                 @endif
             </select>
         </div>
-        <div class="form-group-custom">
-            <label>Port code</label>
-            <select id="departure-port-code" name="departure_port_code" class="form-control-sm-custom select2-port-code" style="width: 100%;">
-                <option value=""></option>
-                @if (old('departure_port_code', $shipment->departure_port_code))
-                    <option value="{{ old('departure_port_code', $shipment->departure_port_code) }}" selected>
-                        {{ old('departure_port_code', $shipment->departure_port_code) }}
-                    </option>
-                @endif
-            </select>
-        </div>
+        <x-forms.port-select
+            name="departure_port_code"
+            id="departure-port-code"
+            label="Port code"
+            :value="$shipment->departure_port_code"
+            class="form-control-sm-custom"
+        />
         <div class="row">
             <div class="col-6">
                 <div class="form-group-custom">
@@ -179,30 +175,29 @@
                 </div>
             </div>
         </div>
-        <div class="form-group-custom">
-            <label>Consignee country</label>
-            <select id="consignee-country" name="consignee_country" class="form-control-sm-custom select2-country">
-                <option></option>
-                @foreach ($countries as $country)
-                    <option value="{{ $country->name }}" data-flag="{{ $country->flag_url }}" {{ old('consignee_country', $shipment->consignee_country) === $country->name ? 'selected' : '' }}>{{ $country->name }}</option>
-                @endforeach
-            </select>
-        </div>
+        <x-forms.country-select
+            name="consignee_country"
+            id="consignee-country"
+            label="Consignee country"
+            :countries="$countries"
+            valueKey="name"
+            :value="$shipment->consignee_country"
+            wrapperClass="form-group-custom"
+            class="form-control-sm-custom"
+            placeholder="Select country"
+            :allowClear="true"
+        />
         <div class="form-group-custom">
             <label>Contact person <span class="text-danger">*</span></label>
             <input type="text" id="consignee-att" name="consignee_att" class="form-control-sm-custom" value="{{ old('consignee_att', $shipment->consignee_att) }}" required>
         </div>
-        <div class="form-group-custom">
-            <label>Port code</label>
-            <select id="consignee-port-code" name="consignee_port_code" class="form-control-sm-custom select2-port-code" style="width: 100%;">
-                <option value=""></option>
-                @if (old('consignee_port_code', $shipment->consignee_port_code))
-                    <option value="{{ old('consignee_port_code', $shipment->consignee_port_code) }}" selected>
-                        {{ old('consignee_port_code', $shipment->consignee_port_code) }}
-                    </option>
-                @endif
-            </select>
-        </div>
+        <x-forms.port-select
+            name="consignee_port_code"
+            id="consignee-port-code"
+            label="Port code"
+            :value="$shipment->consignee_port_code"
+            class="form-control-sm-custom"
+        />
         <div class="form-group-custom">
             <label>Location</label>
             <input type="text" id="location" name="location" class="form-control-sm-custom" value="{{ old('location', $shipment->location) }}">

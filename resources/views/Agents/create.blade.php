@@ -757,28 +757,16 @@
                                                                                     </div>
                                                                                 </div>
 
-                                                                                <div class="form-group-custom">
-                                                                                    <label
-                                                                                        class="form-label-custom">Country</label>
-                                                                                     <select name="country_id" class="select2-country">
-                                                                                         <option value="">Select Country</option>
-                                                                                         @foreach($countries as $country)
-                                                                                             <option value="{{ $country->id }}" data-flag="{{ $country->iso_code }}">
-                                                                                                 {{ $country->name }}
-                                                                                             </option>
-                                                                                         @endforeach
-                                                                                     </select>
-                                                                                </div>
+                                                                                <x-forms.country-select
+                                                                                    name="country_id"
+                                                                                    label="Country"
+                                                                                    :countries="$countries"
+                                                                                />
 
-                                                                                <div class="form-group-custom">
-                                                                                    <label class="form-label-custom">Port
-                                                                                        code</label>
-                                                                                    <select name="port_code"
-                                                                                        class="select2-port-code"
-                                                                                        style="width: 100%;">
-                                                                                        <option value=""></option>
-                                                                                    </select>
-                                                                                </div>
+                                                                                <x-forms.port-select
+                                                                                    name="port_code"
+                                                                                    label="Port code"
+                                                                                />
 
                                                                                 <div class="form-section-header"
                                                                                     style="margin-top: 15px;">Office address
@@ -818,18 +806,11 @@
                                                                                     </div>
                                                                                 </div>
 
-                                                                                <div class="form-group-custom">
-                                                                                    <label
-                                                                                        class="form-label-custom">Country</label>
-                                                                                     <select name="office_country_id" class="select2-country">
-                                                                                         <option value="">Select Country</option>
-                                                                                         @foreach($countries as $country)
-                                                                                             <option value="{{ $country->id }}" data-flag="{{ $country->iso_code }}">
-                                                                                                 {{ $country->name }}
-                                                                                             </option>
-                                                                                         @endforeach
-                                                                                     </select>
-                                                                                </div>
+                                                                                <x-forms.country-select
+                                                                                    name="office_country_id"
+                                                                                    label="Country"
+                                                                                    :countries="$countries"
+                                                                                />
                                                                             </div>
 
                                                                             <!-- Column 3: Agent details -->
@@ -967,70 +948,6 @@
     <script src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
     <script>
         $(document).ready(function () {
-            // Initialize Select2 with Flags
-            function formatCountry(country) {
-                if (!country.id) {
-                    return country.text;
-                }
-                var flagCode = $(country.element).data('flag');
-                if (!flagCode) return country.text;
-                
-                var flagUrl = "https://flagcdn.com/w20/" + flagCode.toLowerCase() + ".png";
-                var $country = $(
-                    '<span><img src="' + flagUrl + '" class="flag-icon" /> ' + country.text + '</span>'
-                );
-                return $country;
-            };
-
-            $('.select2-country').select2({
-                templateResult: formatCountry,
-                templateSelection: formatCountry,
-                width: '100%'
-            });
-
-            // Port code — searched dynamically from the ports table
-            function formatPortResult(port) {
-                if (port.loading || !port.id) {
-                    return port.text;
-                }
-                var title = port.code + (port.city ? ', ' + port.city : '');
-                var $option = $(
-                    '<div class="port-option">' +
-                        '<div style="font-weight: 600; font-size: 13px; color: #111827;"></div>' +
-                        '<div style="font-size: 12px; color: #6b7280;"></div>' +
-                    '</div>'
-                );
-                $option.find('div').eq(0).text(title);
-                $option.find('div').eq(1).text(port.country || '');
-                return $option;
-            }
-
-            function formatPortSelection(port) {
-                if (!port.id) return port.text;
-                return port.code ? (port.code + (port.city ? ', ' + port.city : '')) : port.text;
-            }
-
-            $('.select2-port-code').select2({
-                placeholder: 'Search port code',
-                allowClear: false,
-                width: '100%',
-                minimumInputLength: 0,
-                ajax: {
-                    url: '{{ route('api.ports') }}',
-                    dataType: 'json',
-                    delay: 200,
-                    data: function (params) {
-                        return { q: params.term || '' };
-                    },
-                    processResults: function (data) {
-                        return { results: data.results || [] };
-                    },
-                    cache: true
-                },
-                templateResult: formatPortResult,
-                templateSelection: formatPortSelection
-            });
-
             // Initialize Select2 for Agent Type
             $('.select2-agent-type').select2({
                 placeholder: 'Select agent type',

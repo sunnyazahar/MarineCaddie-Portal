@@ -473,16 +473,12 @@
                                                     <label class="form-label-custom">Country</label>
                                                     <div class="input-with-append">
                                                         <div style="flex: 1; position: relative;">
-                                                            <select class="form-control-custom select2-flag"
-                                                                name="country_id">
-                                                                <option value="">Select country</option>
-                                                                @foreach($countries as $country)
-                                                                    <option value="{{ $country->id }}"
-                                                                        data-flag="{{ $country->flag_url }}" {{ old('country_id') == $country->id ? 'selected' : '' }}>
-                                                                        {{ $country->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
+                                                            <x-forms.country-select
+                                                                name="country_id"
+                                                                :countries="$countries"
+                                                                wrapperClass=""
+                                                                class="form-control-custom select2-flag"
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -515,19 +511,12 @@
                                                     </div>
                                                 </div>
 
-                                                <div class="form-group-custom">
-                                                    <label class="form-label-custom">Country</label>
-                                                    <select class="form-control-custom select2-flag"
-                                                        name="office_country_id">
-                                                        <option value="">Select country</option>
-                                                        @foreach($countries as $country)
-                                                            <option value="{{ $country->id }}"
-                                                                data-flag="{{ $country->flag_url }}" {{ old('office_country_id') == $country->id ? 'selected' : '' }}>
-                                                                {{ $country->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
+                                                <x-forms.country-select
+                                                    name="office_country_id"
+                                                    label="Country"
+                                                    :countries="$countries"
+                                                    class="form-control-custom select2-flag"
+                                                />
                                             </div>
 
                                             <!-- Pillar 3: Billing details -->
@@ -692,21 +681,6 @@
 
     <script>
         $(document).ready(function () {
-            // Select2 Flag Formatter
-            function formatFlag(state) {
-                if (!state.id) return state.text;
-                var flagUrl = $(state.element).data('flag');
-                if (!flagUrl) return state.text;
-                return $(`<span><img src="${flagUrl}" class="img-flag" style="width: 20px; height: 15px; margin-right: 8px; vertical-align: middle;" /> ${state.text}</span>`);
-            }
-
-            // Initialize Static Select2
-            $('.select2-flag').select2({
-                templateResult: formatFlag,
-                templateSelection: formatFlag,
-                width: '100%'
-            });
-
             $('.select2-simple').select2({
                 width: '100%'
             });
