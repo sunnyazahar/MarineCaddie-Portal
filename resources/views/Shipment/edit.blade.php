@@ -4327,23 +4327,63 @@
                 .filter(function(key) { return key !== '' && !currentKeys[key]; });
         }
 
+        function revokePdfPreviewBlob() {
+            var $frame = $('#pdf-preview-frame');
+            var previous = $frame.data('blobUrl');
+            if (previous) {
+                URL.revokeObjectURL(previous);
+                $frame.removeData('blobUrl');
+            }
+        }
+
+        function loadPdfIntoPreviewFrame(url) {
+            var $frame = $('#pdf-preview-frame');
+            revokePdfPreviewBlob();
+            $frame.attr('src', 'about:blank');
+
+            return fetch(url, {
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/pdf,image/*,*/*' }
+            }).then(function (res) {
+                if (!res.ok) {
+                    throw new Error('Failed to load document (' + res.status + ')');
+                }
+                return res.blob();
+            }).then(function (blob) {
+                var type = (blob && blob.type) ? blob.type : '';
+                if (type.indexOf('pdf') === -1 && type.indexOf('image/') !== 0) {
+                    blob = new Blob([blob], { type: 'application/pdf' });
+                }
+                var objectUrl = URL.createObjectURL(blob);
+                $frame.data('blobUrl', objectUrl);
+                $frame.attr('src', objectUrl);
+            });
+        }
+
         function openComposeAttachmentPreview(url, title) {
             if (!url) {
                 return;
             }
 
             $('#pdfPreviewModalLabel').text(title || 'Attachment preview');
-            $('#pdf-preview-frame').attr('src', url);
 
             var $compose = $('#compose-manifest-mail-modal');
             var $preview = $('#pdf-preview-modal');
 
             // Temporarily hide compose so the PDF modal is fully usable, then restore it.
             $compose.one('hidden.bs.modal', function() {
+                loadPdfIntoPreviewFrame(url).catch(function (err) {
+                    if (typeof swal === 'function') {
+                        swal({ title: 'Preview failed', text: err.message || 'Could not open document.', type: 'error' });
+                    } else {
+                        alert(err.message || 'Could not open document.');
+                    }
+                });
                 $preview.modal('show');
             });
             $preview.one('hidden.bs.modal', function() {
-                $('#pdf-preview-frame').attr('src', '');
+                revokePdfPreviewBlob();
+                $('#pdf-preview-frame').attr('src', 'about:blank');
                 if (pendingManifestMail) {
                     $compose.modal('show');
                 }
@@ -6488,12 +6528,19 @@
                 return;
             }
             $('#pdfPreviewModalLabel').text(title);
-            $('#pdf-preview-frame').attr('src', pdfUrl);
             $('#pdf-preview-modal').modal('show');
+            loadPdfIntoPreviewFrame(pdfUrl).catch(function (err) {
+                if (typeof swal === 'function') {
+                    swal({ title: 'Preview failed', text: err.message || 'Could not open document.', type: 'error' });
+                } else {
+                    alert(err.message || 'Could not open document.');
+                }
+            });
         });
 
         $('#pdf-preview-modal').on('hidden.bs.modal', function() {
-            $('#pdf-preview-frame').attr('src', '');
+            revokePdfPreviewBlob();
+            $('#pdf-preview-frame').attr('src', 'about:blank');
         });
 
         var shipmentDocDropzone = $('#shipment-doc-dropzone');

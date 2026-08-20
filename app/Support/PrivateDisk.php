@@ -5,6 +5,7 @@ namespace App\Support;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class PrivateDisk
 {
@@ -95,12 +96,38 @@ class PrivateDisk
 
         $safeFilename = self::sanitizeFilename($filename, basename($path));
         $mime = mime_content_type($path) ?: 'application/octet-stream';
+        $extension = strtolower(pathinfo($safeFilename, PATHINFO_EXTENSION) ?: pathinfo($path, PATHINFO_EXTENSION));
+
+        // PDFs/images must be inline so iframe preview and browser tabs can open them.
+        // Attachment + sandboxed CSP forces download and blanks the PDF viewer.
+        if (self::isInlinePreviewable($mime, $extension)) {
+            if ($extension === 'pdf') {
+                $mime = 'application/pdf';
+            }
+
+            $fallback = preg_replace('/[^\x20-\x7E]/', '_', $safeFilename) ?: 'document';
+
+            return response()->file($path, [
+                'Content-Type' => $mime,
+                'X-Content-Type-Options' => 'nosniff',
+            ])->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE, $safeFilename, $fallback);
+        }
 
         return response()->download($path, $safeFilename, [
             'Content-Type' => $mime,
             'X-Content-Type-Options' => 'nosniff',
             'Content-Security-Policy' => "default-src 'none'; sandbox",
         ]);
+    }
+
+    private static function isInlinePreviewable(string $mime, string $extension): bool
+    {
+        if ($mime === 'application/pdf' || $extension === 'pdf') {
+            return true;
+        }
+
+        return in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)
+            || in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true);
     }
 
     public static function imageResponse(string $relativePath, ?string $filename = null): BinaryFileResponse

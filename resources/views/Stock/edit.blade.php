@@ -2616,7 +2616,7 @@
                                             @endphp
                                             <div class="doc-item" data-id="{{ $doc->id }}">
                                                 <div class="doc-main">
-                                                    <a href="{{ $doc->fileUrl() }}" target="_blank" class="doc-name" title="{{ $doc->file_name }}">
+                                                    <a href="{{ $doc->fileUrl() }}" class="doc-name js-doc-preview" data-preview-url="{{ $doc->fileUrl() }}" data-title="{{ $doc->file_name }}" title="{{ $doc->file_name }}">
                                                         {{ $doc->file_name }}
                                                     </a>
                                                     <select class="doc-type-select" data-id="{{ $doc->id }}">
@@ -2873,6 +2873,22 @@
                         <button type="submit" class="btn btn-sm btn-teal" id="add-supplier-save-btn" style="background:#008080;border-color:#008080;color:#fff;">Save supplier</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="pdf-preview-modal" tabindex="-1" role="dialog" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document" style="max-width: 95%;">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h5 class="modal-title" id="pdfPreviewModalLabel" style="font-size: 14px; font-weight: 600;">Document preview</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-0" style="height: 80vh; background: #f3f4f6;">
+                    <iframe id="pdf-preview-frame" title="PDF preview" style="width: 100%; height: 100%; border: 0;" src="about:blank"></iframe>
+                </div>
             </div>
         </div>
     </div>
@@ -3447,7 +3463,7 @@ function updatePackageSummary() {
                 return `
                     <div class="doc-item" data-id="${doc.id}">
                         <div class="doc-main">
-                            <a href="${escapeHtml(doc.file_url)}" target="_blank" class="doc-name" title="${escapeHtml(doc.file_name)}">
+                            <a href="${escapeHtml(doc.file_url)}" class="doc-name js-doc-preview" data-preview-url="${escapeHtml(doc.file_url)}" data-title="${escapeHtml(doc.file_name)}" title="${escapeHtml(doc.file_name)}">
                                 ${escapeHtml(doc.file_name)}
                             </a>
                             <select class="doc-type-select" data-id="${doc.id}">
@@ -3537,6 +3553,63 @@ function updatePackageSummary() {
                         toastr.error('Could not update internal flag');
                     }
                 });
+            });
+
+            // Document PDF/image preview (blob URL avoids blank iframe + Save As)
+            function revokePdfPreviewBlob() {
+                var $frame = $('#pdf-preview-frame');
+                var previous = $frame.data('blobUrl');
+                if (previous) {
+                    URL.revokeObjectURL(previous);
+                    $frame.removeData('blobUrl');
+                }
+            }
+
+            function loadPdfIntoPreviewFrame(url) {
+                var $frame = $('#pdf-preview-frame');
+                revokePdfPreviewBlob();
+                $frame.attr('src', 'about:blank');
+
+                return fetch(url, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/pdf,image/*,*/*' }
+                }).then(function (res) {
+                    if (!res.ok) {
+                        throw new Error('Failed to load document (' + res.status + ')');
+                    }
+                    return res.blob();
+                }).then(function (blob) {
+                    var type = (blob && blob.type) ? blob.type : '';
+                    if (type.indexOf('pdf') === -1 && type.indexOf('image/') !== 0) {
+                        blob = new Blob([blob], { type: 'application/pdf' });
+                    }
+                    var objectUrl = URL.createObjectURL(blob);
+                    $frame.data('blobUrl', objectUrl);
+                    $frame.attr('src', objectUrl);
+                });
+            }
+
+            $(document).on('click', '.js-doc-preview', function (e) {
+                e.preventDefault();
+                var url = $(this).data('preview-url') || $(this).attr('href');
+                var title = $(this).data('title') || 'Document preview';
+                if (!url) {
+                    return;
+                }
+                $('#pdfPreviewModalLabel').text(title);
+                $('#pdf-preview-modal').modal('show');
+                loadPdfIntoPreviewFrame(url).catch(function (err) {
+                    if (typeof swal === 'function') {
+                        swal({ title: 'Preview failed', text: err.message || 'Could not open document.', type: 'error' });
+                    } else {
+                        alert(err.message || 'Could not open document.');
+                    }
+                });
+            });
+
+            $('#pdf-preview-modal').on('hidden.bs.modal', function () {
+                revokePdfPreviewBlob();
+                $('#pdf-preview-frame').attr('src', 'about:blank');
             });
 
             // Delete document
