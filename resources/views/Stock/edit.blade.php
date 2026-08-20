@@ -2894,6 +2894,13 @@
 
     <script>
         $(document).ready(function () {
+            // Refresh exchange rates in the background when Stock edit opens.
+            $.ajax({
+                url: @json(route('currency.update')),
+                type: 'GET',
+                dataType: 'json'
+            });
+
             // ─── Fixed header/tabs left-offset ────────────────────────────
             function fixedHeaderOffset() {
                 var isMobile = window.matchMedia('(max-width: 991.98px)').matches;

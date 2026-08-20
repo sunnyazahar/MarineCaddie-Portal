@@ -10,8 +10,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Cached country lookups.
  *
- * Countries change very rarely — cache for 1 hour.
- * Call CountryCache::flush() after any country update to invalidate.
+ * Cache keys include the active-country count so new countries appear on every
+ * server without a manual cache clear. Call CountryCache::flush() after updates
+ * that do not change the active count (e.g. rename).
  */
 class CountryCache
 {
@@ -20,7 +21,9 @@ class CountryCache
     /** All active countries ordered by name (Eloquent collection). */
     public static function active(): Collection
     {
-        return Cache::remember('countries_active', self::TTL, fn () =>
+        $count = self::activeCount();
+
+        return Cache::remember("countries_active_{$count}", self::TTL, fn () =>
             Country::where('is_active', true)->orderBy('name')->get()
         );
     }
@@ -28,7 +31,9 @@ class CountryCache
     /** Distinct non-null currencies from active countries, sorted. */
     public static function currencies(): Collection
     {
-        return Cache::remember('countries_currencies', self::TTL, fn () =>
+        $count = self::activeCount();
+
+        return Cache::remember("countries_currencies_{$count}", self::TTL, fn () =>
             Country::where('is_active', true)
                 ->whereNotNull('currency')
                 ->distinct()
@@ -41,7 +46,9 @@ class CountryCache
     /** Active countries as plain DB rows (for controllers using DB::table). */
     public static function activeRaw(): Collection
     {
-        return Cache::remember('countries_active_raw', self::TTL, fn () =>
+        $count = self::activeCount();
+
+        return Cache::remember("countries_active_raw_{$count}", self::TTL, fn () =>
             DB::table('countries')->where('is_active', 1)->orderBy('name')->get()
         );
     }
@@ -49,8 +56,18 @@ class CountryCache
     /** Flush all country caches (call after create/update/delete a country). */
     public static function flush(): void
     {
-        Cache::forget('countries_active');
-        Cache::forget('countries_currencies');
-        Cache::forget('countries_active_raw');
+        foreach (['countries_active', 'countries_currencies', 'countries_active_raw'] as $legacyKey) {
+            Cache::forget($legacyKey);
+        }
+
+        $count = self::activeCount();
+        Cache::forget("countries_active_{$count}");
+        Cache::forget("countries_currencies_{$count}");
+        Cache::forget("countries_active_raw_{$count}");
+    }
+
+    private static function activeCount(): int
+    {
+        return (int) DB::table('countries')->where('is_active', 1)->count();
     }
 }

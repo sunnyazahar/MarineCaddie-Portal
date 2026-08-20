@@ -1351,6 +1351,13 @@
             $('#package-summary-text').text(`(Total : ${totalWeight.toFixed(2)} kg, ${count} Packages, ${totalCbm.toFixed(4)} CBM)`);
         }
         $(document).ready(function () {
+            // Refresh exchange rates in the background when Create CRR opens.
+            $.ajax({
+                url: @json(route('currency.update')),
+                type: 'GET',
+                dataType: 'json'
+            });
+
             // Copy Row Logic
             $(document).on('click', '.btn-copy-row', function () {
                 let currentTr = $(this).closest('tr');
