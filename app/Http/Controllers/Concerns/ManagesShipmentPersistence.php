@@ -315,13 +315,14 @@ trait ManagesShipmentPersistence
     protected function manifestMailAttachmentSources(Shipment $shipment, CombinedPoPdfService $combinedPoPdfService): array
     {
         $sources = [];
-        $latestManifest = $shipment->manifests->sortByDesc('version')->first();
+        $latestManifest = $shipment->latestManifest();
 
         if ($latestManifest) {
             $sources[] = [
                 'key' => 'manifest',
                 'url' => route('shipments.manifests.show', [$shipment->id, $latestManifest->id]),
-                'filename' => $latestManifest->displayLabel() . '-' . $shipment->shipment_number . '.pdf',
+                'filename' => str_replace(' ', '-', $latestManifest->displayLabel())
+                    . '-' . $shipment->shipment_number . '.pdf',
             ];
         } else {
             $sources[] = [
@@ -348,13 +349,14 @@ trait ManagesShipmentPersistence
     protected function preAlertMailAttachmentSources(Shipment $shipment, CombinedPoPdfService $combinedPoPdfService): array
     {
         $sources = [];
-        $latestPreAlert = $shipment->preAlerts->sortByDesc('version')->first();
+        $latestPreAlert = $shipment->latestPreAlert();
 
         if ($latestPreAlert) {
             $sources[] = [
                 'key' => 'pre_alert',
                 'url' => route('shipments.pre-alerts.show', [$shipment->id, $latestPreAlert->id]),
-                'filename' => 'pre-alert-' . $shipment->shipment_number . '-' . $latestPreAlert->version . '.pdf',
+                'filename' => str_replace(' ', '-', $latestPreAlert->displayLabel())
+                    . '-' . $shipment->shipment_number . '.pdf',
             ];
         }
 

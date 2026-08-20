@@ -16,6 +16,7 @@ class ManifestMailService
         private CombinedPoPdfService $combinedPoPdfService,
         private EmlMessageBuilder $emlMessageBuilder,
         private ShipmentPdfCompanyFooter $companyFooter,
+        private ShipmentManifestService $manifestService,
     ) {}
 
     public function buildEml(
@@ -309,13 +310,35 @@ class ManifestMailService
         $exclude = array_flip(array_map('strval', $excludeAttachments));
 
         if (! isset($exclude['manifest'])) {
-            $latestManifest = $shipment->manifests->sortByDesc('version')->first();
-            if ($latestManifest && is_file(\App\Support\PrivateDisk::path($latestManifest->file_path))) {
-                $attachments[] = [
-                    'filename' => $latestManifest->file_name . '-' . $shipment->shipment_number . '.pdf',
-                    'content' => (string) file_get_contents(\App\Support\PrivateDisk::path($latestManifest->file_path)),
-                    'mime' => 'application/pdf',
-                ];
+            $latestManifest = $shipment->latestManifest();
+            if ($latestManifest) {
+                try {
+                    $path = $this->manifestService->ensureFileExists($latestManifest);
+                    $attachments[] = [
+                        'filename' => str_replace(' ', '-', $latestManifest->displayLabel())
+                            . '-' . $shipment->shipment_number . '.pdf',
+                        'content' => (string) file_get_contents($path),
+                        'mime' => 'application/pdf',
+                    ];
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Latest manifest attachment fallback to generated PDF: '.$e->getMessage(), [
+                        'shipment_id' => $shipment->id,
+                        'manifest_id' => $latestManifest->id,
+                        'version' => $latestManifest->version,
+                    ]);
+
+                    $manifestPdf = $this->companyFooter->output(
+                        Pdf::loadView('Shipment.pdf.manifest', $manifestData)->setPaper('a4', 'portrait'),
+                        (string) ($manifestData['createdAt'] ?? '')
+                    );
+
+                    $attachments[] = [
+                        'filename' => str_replace(' ', '-', $latestManifest->displayLabel())
+                            . '-' . $shipment->shipment_number . '.pdf',
+                        'content' => $manifestPdf,
+                        'mime' => 'application/pdf',
+                    ];
+                }
             } else {
                 $manifestPdf = $this->companyFooter->output(
                     Pdf::loadView('Shipment.pdf.manifest', $manifestData)->setPaper('a4', 'portrait'),

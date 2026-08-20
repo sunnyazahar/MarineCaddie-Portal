@@ -78,7 +78,7 @@ class ShipmentManifestService
 
     public function latestForShipment(Shipment $shipment): ?ShipmentManifest
     {
-        return $shipment->manifests()->latest('version')->first();
+        return $shipment->latestManifest();
     }
 
     private function buildPdfContent(Shipment $shipment, ?int $manifestVersion = null): string

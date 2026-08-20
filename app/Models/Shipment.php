@@ -88,8 +88,17 @@ class Shipment extends Model
 
     public function latestManifest(): ?ShipmentManifest
     {
-        return $this->manifests->sortByDesc('version')->first()
-            ?? $this->manifests()->latest('version')->first();
+        if ($this->relationLoaded('manifests') && $this->manifests->isNotEmpty()) {
+            return $this->manifests
+                ->sort(fn ($a, $b) => [(int) $b->version, (int) $b->id] <=> [(int) $a->version, (int) $a->id])
+                ->first();
+        }
+
+        return $this->manifests()
+            ->reorder()
+            ->orderByDesc('version')
+            ->orderByDesc('id')
+            ->first();
     }
 
     public function needsManifestMailSend(): bool
@@ -106,8 +115,12 @@ class Shipment extends Model
 
     public function latestPreAlert(): ?ShipmentPreAlert
     {
-        return $this->preAlerts->sortByDesc('version')->first()
-            ?? $this->preAlerts()->latest('version')->first();
+        // reorder() clears the relationship's ASC version order so DESC actually wins.
+        return $this->preAlerts()
+            ->reorder()
+            ->orderByDesc('version')
+            ->orderByDesc('id')
+            ->first();
     }
 
     public function needsPreAlertMailSend(): bool

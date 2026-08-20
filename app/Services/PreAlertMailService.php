@@ -21,6 +21,7 @@ class PreAlertMailService
         private ShipmentPreAlertPdfBuilder $preAlertPdfBuilder,
         private CombinedPoPdfService $combinedPoPdfService,
         private EmlMessageBuilder $emlMessageBuilder,
+        private ShipmentPreAlertService $preAlertService,
     ) {}
 
     public function buildEml(
@@ -538,13 +539,23 @@ class PreAlertMailService
         $exclude = array_flip(array_map('strval', $excludeAttachments));
 
         if (! isset($exclude['pre_alert'])) {
-            $latestPreAlert = $shipment->preAlerts->sortByDesc('version')->first();
-            if ($latestPreAlert && is_file(\App\Support\PrivateDisk::path($latestPreAlert->file_path))) {
-                $attachments[] = [
-                    'filename' => 'pre-alert-' . $shipment->shipment_number . '-' . $latestPreAlert->version . '.pdf',
-                    'content' => (string) file_get_contents(\App\Support\PrivateDisk::path($latestPreAlert->file_path)),
-                    'mime' => 'application/pdf',
-                ];
+            $latestPreAlert = $shipment->latestPreAlert();
+            if ($latestPreAlert) {
+                try {
+                    $path = $this->preAlertService->ensureFileExists($latestPreAlert);
+                    $attachments[] = [
+                        'filename' => str_replace(' ', '-', $latestPreAlert->displayLabel())
+                            . '-' . $shipment->shipment_number . '.pdf',
+                        'content' => (string) file_get_contents($path),
+                        'mime' => 'application/pdf',
+                    ];
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Latest pre-alert attachment skipped: '.$e->getMessage(), [
+                        'shipment_id' => $shipment->id,
+                        'pre_alert_id' => $latestPreAlert->id,
+                        'version' => $latestPreAlert->version,
+                    ]);
+                }
             }
         }
 

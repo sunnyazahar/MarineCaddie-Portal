@@ -259,9 +259,9 @@ class ShipmentMailController extends BaseShipmentController
         ]);
     }
 
-    public function preparePreAlertMail(Request $request, $id, PreAlertMailService $preAlertMailService, CombinedPoPdfService $combinedPoPdfService)
+    public function preparePreAlertMail(Request $request, $id, PreAlertMailService $preAlertMailService, CombinedPoPdfService $combinedPoPdfService, ShipmentPreAlertService $preAlertService, \App\Services\ShipmentPdfFingerprintService $fingerprintService)
     {
-        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['manifests', 'documents', 'crrs']);
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['manifests', 'documents', 'crrs', 'preAlerts']);
         $this->normalizeManifestGenerationRequest($request);
 
         try {
@@ -273,6 +273,9 @@ class ShipmentMailController extends BaseShipmentController
                 'errors' => $e->errors(),
             ], 422);
         }
+
+        $fingerprintService->prepareForFingerprint($shipment);
+        $preAlertFingerprintBefore = $fingerprintService->preAlertFingerprint($shipment);
 
         try {
             DB::transaction(function () use ($shipment, $request, $validated) {
@@ -335,12 +338,23 @@ class ShipmentMailController extends BaseShipmentController
         }
 
         try {
-            if (! $shipment->preAlerts()->exists()) {
-                app(ShipmentPreAlertService::class)->generate($shipment);
+            $fingerprintService->prepareForFingerprint($shipment);
+            if (
+                $fingerprintService->preAlertFingerprint($shipment) !== $preAlertFingerprintBefore
+                || ! $shipment->preAlerts()->exists()
+            ) {
+                $preAlertService->generate($shipment);
                 $shipment->load('preAlerts');
             }
         } catch (\Throwable $e) {
             Log::warning('Pre-alert generation before mail prepare failed: ' . $e->getMessage());
+        }
+
+        if (! $shipment->latestPreAlert()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not prepare the latest pre-alert PDF for email.',
+            ], 500);
         }
 
         try {

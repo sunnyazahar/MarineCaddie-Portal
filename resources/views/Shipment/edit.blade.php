@@ -3254,7 +3254,7 @@
                                                                 <div class="doc-side-row">
                                                                     <div class="doc-internal checkbox-fade fade-in-primary">
                                                                         <label>
-                                                                            <input type="checkbox" class="doc-internal-check" disabled title="Generated document">
+                                                                            <input type="checkbox" class="doc-internal-check">
                                                                             <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
                                                                         </label>
                                                                     </div>
@@ -3940,12 +3940,12 @@
         });
 
         @php
-            $latestManifest = $shipment->manifests->sortByDesc('version')->first();
+            $latestManifest = $shipment->latestManifest();
             $manifestCoreAttachmentSources = [];
             if ($latestManifest) {
                 $manifestCoreAttachmentSources[] = [
                     'url' => route('shipments.manifests.show', [$shipment->id, $latestManifest->id]),
-                    'filename' => $latestManifest->displayLabel() . '-' . $shipment->shipment_number . '.pdf',
+                    'filename' => str_replace(' ', '-', $latestManifest->displayLabel()) . '-' . $shipment->shipment_number . '.pdf',
                 ];
             } elseif ($shipment->crrs->isNotEmpty()) {
                 $manifestCoreAttachmentSources[] = [
