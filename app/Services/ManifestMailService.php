@@ -245,7 +245,7 @@ class ManifestMailService
             'With kind regards,',
             $senderName,
             $senderEmail,
-            'Marincaddie',
+            'Marinecaddie',
         );
 
         return implode("\r\n", $lines);

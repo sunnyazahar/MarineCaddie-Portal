@@ -266,7 +266,7 @@ class PreAlertMailService
         $lines[] = '';
         $lines[] = $senderName;
         $lines[] = $senderEmail;
-        $lines[] = 'Marincaddie';
+        $lines[] = 'Marinecaddie';
 
         return implode("\r\n", $lines);
     }

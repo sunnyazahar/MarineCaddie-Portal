@@ -285,7 +285,7 @@ class PreAlertReminderMailService
             '',
             $senderName,
             $senderEmail,
-            'Marincaddie',
+            'Marinecaddie',
         );
 
         return implode("\r\n", $lines);
@@ -383,7 +383,7 @@ class PreAlertReminderMailService
             '',
             $senderName,
             $senderEmail,
-            'Marincaddie',
+            'Marinecaddie',
         );
 
         return implode("\r\n", $lines);

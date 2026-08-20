@@ -3,8 +3,8 @@
 namespace App\Support;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PrivateDisk
 {
@@ -85,7 +85,7 @@ class PrivateDisk
         return $filename !== '' ? $filename : $fallback;
     }
 
-    public static function downloadResponse(string $relativePath, ?string $filename = null): Response
+    public static function downloadResponse(string $relativePath, ?string $filename = null): BinaryFileResponse
     {
         $path = self::path($relativePath);
 
@@ -103,7 +103,7 @@ class PrivateDisk
         ]);
     }
 
-    public static function imageResponse(string $relativePath, ?string $filename = null): Response
+    public static function imageResponse(string $relativePath, ?string $filename = null): BinaryFileResponse
     {
         $path = self::path($relativePath);
 
