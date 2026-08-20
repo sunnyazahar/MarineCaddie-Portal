@@ -84,7 +84,7 @@
                         var $select = $(this);
 
                         if ($select.hasClass('select2-hidden-accessible')) {
-                            return;
+                            $select.select2('destroy');
                         }
 
                         $select.select2({
@@ -110,7 +110,9 @@
                     });
                 };
 
-                $(document).ready(window.MarineCaddieInitPortSelect);
+                $(document).ready(function () {
+                    setTimeout(window.MarineCaddieInitPortSelect, 0);
+                });
             })();
         </script>
     @endpush

@@ -575,12 +575,7 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <label>UN / LOCODE</label>
-                                                        <select name="un_locode" class="form-control select2-field">
-                                                            <option></option>
-                                                            @if(old('un_locode'))
-                                                                <option value="{{ old('un_locode') }}" selected>{{ old('un_locode') }}</option>
-                                                            @endif
-                                                        </select>
+                                                        <input type="text" name="un_locode" class="form-control" value="{{ old('un_locode') }}" autocomplete="off">
                                                     </div>
 
                                                     <div class="custom-checkbox-group d-none">
@@ -1054,8 +1049,8 @@
             });
 
             // Also initialize the existing responsible accounting users select
-            if ($('select.form-control').not('.select2-field, .select2-office-user').length) {
-                $('select.form-control').not('.select2-field, .select2-office-user').select2({
+            if ($('select.form-control').not('.select2-field, .select2-office-user, [data-port-select], [data-country-select]').length) {
+                $('select.form-control').not('.select2-field, .select2-office-user, [data-port-select], [data-country-select]').select2({
                     placeholder: 'Select user',
                     width: '100%'
                 });

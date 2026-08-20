@@ -1264,8 +1264,8 @@
             });
 
             // Also initialize the existing responsible accounting users select
-            if ($('select.form-control').not('.select2-field, .select2-office-user').length) {
-                $('select.form-control').not('.select2-field, .select2-office-user').select2({
+            if ($('select.form-control').not('.select2-field, .select2-office-user, [data-port-select], [data-country-select]').length) {
+                $('select.form-control').not('.select2-field, .select2-office-user, [data-port-select], [data-country-select]').select2({
                     placeholder: 'Select user',
                     width: '100%'
                 });

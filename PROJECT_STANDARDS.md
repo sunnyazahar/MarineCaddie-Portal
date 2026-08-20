@@ -365,8 +365,9 @@ All form/list components load assets via `@once` + `@push('styles'|'scripts')` â
 ```
 
 **Test marker:** `data-port-select="1"` on `<select>`.  
-**JS init:** `window.MarineCaddieInitPortSelect()` (auto on `document.ready`).  
-**Do NOT** copy `formatPortResult` / `$('.select2-port-code').select2(...)` into page scripts.
+**JS init:** `window.MarineCaddieInitPortSelect()` (auto on `document.ready`, re-applies after other Select2 inits).  
+**Do NOT** copy `formatPortResult` / `$('.select2-port-code').select2(...)` into page scripts.  
+**Do NOT** generic `$('select.form-control').select2(...)` without `.not('[data-port-select]')` â€” that wipes AJAX and shows "No results found".
 
 ---
 
