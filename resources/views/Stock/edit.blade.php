@@ -2886,8 +2886,12 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body p-0" style="height: 80vh; background: #f3f4f6;">
+                <div class="modal-body p-0" style="height: 80vh; background: #f3f4f6; position: relative;">
                     <iframe id="pdf-preview-frame" title="PDF preview" style="width: 100%; height: 100%; border: 0;" src="about:blank"></iframe>
+                    <div id="pdf-preview-mobile-fallback" style="display:none; height:100%; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:24px; text-align:center;">
+                        <p style="margin:0; color:#374151; font-size:14px;">This device cannot show PDFs inside the page.</p>
+                        <a id="pdf-preview-mobile-open" href="#" target="_blank" rel="noopener" class="btn btn-sm" style="background:#008080;border-color:#008080;color:#fff;">Open PDF</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3555,7 +3559,8 @@ function updatePackageSummary() {
                 });
             });
 
-            // Document PDF/image preview (blob URL avoids blank iframe + Save As)
+            // Document PDF/image preview.
+            // Desktop: blob URL in iframe. Mobile Chrome/Safari: open native PDF viewer (iframe stays blank).
             function revokePdfPreviewBlob() {
                 var $frame = $('#pdf-preview-frame');
                 var previous = $frame.data('blobUrl');
@@ -3565,10 +3570,42 @@ function updatePackageSummary() {
                 }
             }
 
+            function isMobilePdfPreview() {
+                var ua = navigator.userAgent || '';
+                if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) {
+                    return true;
+                }
+                return !!(window.matchMedia && window.matchMedia('(max-width: 991.98px)').matches);
+            }
+
+            function showMobilePdfFallback(objectUrl, sourceUrl) {
+                var $frame = $('#pdf-preview-frame');
+                var $fallback = $('#pdf-preview-mobile-fallback');
+                var $open = $('#pdf-preview-mobile-open');
+                var openUrl = objectUrl || sourceUrl;
+
+                $frame.hide().attr('src', 'about:blank');
+                $fallback.css('display', 'flex');
+                $open.attr('href', openUrl);
+
+                var opened = window.open(openUrl, '_blank');
+                if (!opened && sourceUrl && sourceUrl !== openUrl) {
+                    window.open(sourceUrl, '_blank');
+                }
+            }
+
+            function showDesktopPdfPreview(objectUrl) {
+                var $frame = $('#pdf-preview-frame');
+                $('#pdf-preview-mobile-fallback').hide();
+                $frame.show().attr('src', objectUrl);
+            }
+
             function loadPdfIntoPreviewFrame(url) {
                 var $frame = $('#pdf-preview-frame');
                 revokePdfPreviewBlob();
                 $frame.attr('src', 'about:blank');
+                $('#pdf-preview-mobile-fallback').hide();
+                $frame.show();
 
                 return fetch(url, {
                     credentials: 'same-origin',
@@ -3580,12 +3617,20 @@ function updatePackageSummary() {
                     return res.blob();
                 }).then(function (blob) {
                     var type = (blob && blob.type) ? blob.type : '';
-                    if (type.indexOf('pdf') === -1 && type.indexOf('image/') !== 0) {
+                    var isImage = type.indexOf('image/') === 0;
+                    if (!isImage && type.indexOf('pdf') === -1) {
                         blob = new Blob([blob], { type: 'application/pdf' });
+                        type = 'application/pdf';
                     }
                     var objectUrl = URL.createObjectURL(blob);
                     $frame.data('blobUrl', objectUrl);
-                    $frame.attr('src', objectUrl);
+
+                    if (!isImage && isMobilePdfPreview()) {
+                        showMobilePdfFallback(objectUrl, url);
+                        return;
+                    }
+
+                    showDesktopPdfPreview(objectUrl);
                 });
             }
 
@@ -3609,7 +3654,8 @@ function updatePackageSummary() {
 
             $('#pdf-preview-modal').on('hidden.bs.modal', function () {
                 revokePdfPreviewBlob();
-                $('#pdf-preview-frame').attr('src', 'about:blank');
+                $('#pdf-preview-mobile-fallback').hide();
+                $('#pdf-preview-frame').show().attr('src', 'about:blank');
             });
 
             // Delete document
