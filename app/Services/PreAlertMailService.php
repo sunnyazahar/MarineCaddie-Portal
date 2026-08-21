@@ -559,6 +559,8 @@ class PreAlertMailService
             }
         }
 
+        $attachments = array_merge($attachments, $this->buildUploadedDocumentAttachments($shipment, $documentIds));
+
         if (! isset($exclude['combined_po'])) {
             $combinedPoAttachment = $this->combinedPoPdfService->buildAttachmentForShipment($shipment);
             if ($combinedPoAttachment !== null) {
@@ -570,7 +572,7 @@ class PreAlertMailService
             }
         }
 
-        return array_merge($attachments, $this->buildUploadedDocumentAttachments($shipment, $documentIds));
+        return $attachments;
     }
 
     /**

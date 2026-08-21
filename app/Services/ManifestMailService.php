@@ -353,6 +353,8 @@ class ManifestMailService
             }
         }
 
+        $attachments = array_merge($attachments, $this->buildUploadedDocumentAttachments($shipment, $documentIds));
+
         if (! isset($exclude['combined_po'])) {
             $combinedPoAttachment = $this->combinedPoPdfService->buildAttachmentForShipment($shipment);
             if ($combinedPoAttachment !== null) {
@@ -364,7 +366,7 @@ class ManifestMailService
             }
         }
 
-        return array_merge($attachments, $this->buildUploadedDocumentAttachments($shipment, $documentIds));
+        return $attachments;
     }
 
     /**

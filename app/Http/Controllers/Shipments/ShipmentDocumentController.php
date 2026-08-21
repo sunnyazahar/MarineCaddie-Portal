@@ -25,7 +25,7 @@ class ShipmentDocumentController extends BaseShipmentController
             'file_name' => $file->getClientOriginalName(),
             'file_path' => $path,
             'file_type' => 'Unspecified',
-            'is_internal' => false,
+            'is_internal' => true,
         ]);
 
         $changeLogService->log($shipment, 'Document added', $document->file_name);

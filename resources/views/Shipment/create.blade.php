@@ -887,6 +887,134 @@
             border: 1px solid #d1d5db;
             border-radius: 4px;
         }
+
+        @media (max-width: 991.98px) {
+            #styleSelector {
+                display: none !important;
+            }
+
+            #service-details-airfreight,
+            #service-details-sea-freight,
+            #service-details-truck,
+            #service-details-courier,
+            #service-details-release,
+            #service-details-hand-carry,
+            #service-details-on-board {
+                overflow-x: hidden;
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+
+            .airfreight-flight-row,
+            .sea-freight-leg-row,
+            .truck-leg-row,
+            .courier-leg-row,
+            .release-leg-row,
+            .on-board-leg-row,
+            .hand-carry-leg-row {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                align-items: flex-start !important;
+                gap: 12px 10px !important;
+                padding: 8px 28px 14px 0 !important;
+                margin-bottom: 16px !important;
+                border-bottom: 1px solid #f1f5f9;
+                position: relative;
+            }
+
+            .airfreight-flight-row > .flight-field,
+            .airfreight-flight-row > .flight-field-time,
+            .sea-freight-leg-row > .sea-leg-field,
+            .sea-freight-leg-row > .sea-leg-field-time,
+            .truck-leg-row > .truck-leg-field,
+            .truck-leg-row > .truck-leg-field-time,
+            .courier-leg-row > .courier-leg-field,
+            .courier-leg-row > .courier-leg-field-time,
+            .release-leg-row > .release-leg-field,
+            .release-leg-row > .release-leg-field-time,
+            .on-board-leg-row > .on-board-leg-field,
+            .on-board-leg-row > .on-board-leg-field-time,
+            .hand-carry-leg-row > .hand-carry-leg-field,
+            .hand-carry-leg-row > .hand-carry-leg-field-time {
+                flex: 1 1 calc(50% - 5px) !important;
+                min-width: calc(50% - 5px) !important;
+                max-width: calc(50% - 5px) !important;
+                width: auto !important;
+            }
+
+            .hand-carry-leg-row > .hand-carry-leg-checkbox {
+                flex: 1 1 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+            }
+
+            .airfreight-flight-row label,
+            .sea-freight-leg-row label,
+            .truck-leg-row label,
+            .courier-leg-row label,
+            .release-leg-row label,
+            .on-board-leg-row label,
+            .hand-carry-leg-row label {
+                white-space: normal !important;
+                overflow: visible !important;
+                line-height: 1.25 !important;
+                overflow-wrap: anywhere;
+            }
+
+            .airfreight-flight-row .flight-remove-btn,
+            .sea-freight-leg-row .sea-leg-remove-btn,
+            .truck-leg-row .truck-leg-remove-btn,
+            .courier-leg-row .courier-leg-remove-btn,
+            .release-leg-row .release-leg-remove-btn,
+            .on-board-leg-row .on-board-leg-remove-btn,
+            .hand-carry-leg-row .hand-carry-leg-remove-btn {
+                position: absolute !important;
+                top: 4px !important;
+                right: 0 !important;
+                margin: 0 !important;
+                flex: none !important;
+            }
+
+            .airfreight-flight-row .form-control-sm-custom,
+            .sea-freight-leg-row .form-control-sm-custom,
+            .truck-leg-row .form-control-sm-custom,
+            .courier-leg-row .form-control-sm-custom,
+            .release-leg-row .form-control-sm-custom,
+            .on-board-leg-row .form-control-sm-custom,
+            .hand-carry-leg-row .form-control-sm-custom,
+            .airfreight-flight-row .input-with-icon,
+            .sea-freight-leg-row .input-with-icon,
+            .truck-leg-row .input-with-icon,
+            .courier-leg-row .input-with-icon,
+            .release-leg-row .input-with-icon,
+            .on-board-leg-row .input-with-icon,
+            .hand-carry-leg-row .input-with-icon {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .airfreight-flight-row > .flight-field,
+            .airfreight-flight-row > .flight-field-time,
+            .sea-freight-leg-row > .sea-leg-field,
+            .sea-freight-leg-row > .sea-leg-field-time,
+            .truck-leg-row > .truck-leg-field,
+            .truck-leg-row > .truck-leg-field-time,
+            .courier-leg-row > .courier-leg-field,
+            .courier-leg-row > .courier-leg-field-time,
+            .release-leg-row > .release-leg-field,
+            .release-leg-row > .release-leg-field-time,
+            .on-board-leg-row > .on-board-leg-field,
+            .on-board-leg-row > .on-board-leg-field-time,
+            .hand-carry-leg-row > .hand-carry-leg-field,
+            .hand-carry-leg-row > .hand-carry-leg-field-time,
+            .hand-carry-leg-row > .hand-carry-leg-checkbox {
+                flex: 1 1 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
     </style>
 @endsection
 
@@ -2251,6 +2379,68 @@
                     });
                 });
             }
+
+            var serviceTimeInputSelector = [
+                '.flight-time-input',
+                '.sea-leg-time-input',
+                '.truck-leg-time-input',
+                '.courier-leg-time-input',
+                '.release-leg-time-input',
+                '.hand-carry-leg-time-input',
+                '.on-board-leg-time-input'
+            ].join(', ');
+
+            function formatServiceTimeMask(value) {
+                var digits = String(value || '').replace(/\D/g, '').slice(0, 4);
+                if (digits.length <= 2) {
+                    return digits;
+                }
+                return digits.slice(0, 2) + ':' + digits.slice(2);
+            }
+
+            $(document).on('input', serviceTimeInputSelector, function () {
+                var $input = $(this);
+                var formatted = formatServiceTimeMask($input.val());
+                if ($input.val() !== formatted) {
+                    $input.val(formatted);
+                }
+            });
+
+            $(document).on('blur', serviceTimeInputSelector, function () {
+                var $input = $(this);
+                var digits = String($input.val() || '').replace(/\D/g, '');
+                if (!digits.length) {
+                    $input.val('');
+                    return;
+                }
+                if (digits.length === 1) {
+                    digits = '0' + digits;
+                }
+                if (digits.length === 2) {
+                    digits = digits + '00';
+                }
+                if (digits.length === 3) {
+                    digits = digits + '0';
+                }
+                $input.val(formatServiceTimeMask(digits));
+            });
+
+            $(document).on('keydown', serviceTimeInputSelector, function (e) {
+                if (e.ctrlKey || e.metaKey || e.altKey) {
+                    return;
+                }
+                var allowed = [
+                    'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                    'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'
+                ];
+                if (allowed.indexOf(e.key) !== -1) {
+                    return;
+                }
+                if (/^\d$/.test(e.key)) {
+                    return;
+                }
+                e.preventDefault();
+            });
 
             function reindexLegRowNames(containerSelector, rowSelector, prefix) {
                 $(containerSelector).find(rowSelector).each(function(index) {

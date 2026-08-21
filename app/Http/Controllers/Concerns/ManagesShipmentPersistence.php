@@ -332,6 +332,8 @@ trait ManagesShipmentPersistence
             ];
         }
 
+        $sources = array_merge($sources, $this->checkedShipmentDocumentAttachmentSources($shipment));
+
         if ($combinedPoPdfService->documentsForShipment($shipment)->isNotEmpty()) {
             $sources[] = [
                 'key' => 'combined_po',
@@ -340,7 +342,7 @@ trait ManagesShipmentPersistence
             ];
         }
 
-        return array_merge($sources, $this->checkedShipmentDocumentAttachmentSources($shipment));
+        return $sources;
     }
 
     /**
@@ -360,6 +362,8 @@ trait ManagesShipmentPersistence
             ];
         }
 
+        $sources = array_merge($sources, $this->checkedShipmentDocumentAttachmentSources($shipment));
+
         if ($combinedPoPdfService->documentsForShipment($shipment)->isNotEmpty()) {
             $sources[] = [
                 'key' => 'combined_po',
@@ -368,7 +372,7 @@ trait ManagesShipmentPersistence
             ];
         }
 
-        return array_merge($sources, $this->checkedShipmentDocumentAttachmentSources($shipment));
+        return $sources;
     }
 
     /**

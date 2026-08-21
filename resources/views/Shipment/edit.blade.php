@@ -148,12 +148,49 @@
                 display: flex;
                 flex-wrap: wrap;
                 gap: 8px;
+                align-items: flex-start;
+            }
+
+            .header-actions > .shipment-manifest-action,
+            .header-actions > #send-prealert-btn {
+                flex: 1 1 calc(50% - 4px);
+                min-width: 0;
+                max-width: calc(50% - 4px);
+            }
+
+            .header-actions > .shipment-manifest-action {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .header-actions > .shipment-manifest-action > .btn-premium,
+            .header-actions > #send-prealert-btn {
+                width: 100%;
+            }
+
+            .header-actions > #finalize-shipment-btn {
+                flex: 1 1 100%;
+                max-width: 100%;
+                width: 100%;
             }
 
             .header-actions .btn-premium {
-                flex: 1 1 auto;
+                flex: unset;
                 min-width: 0;
                 white-space: nowrap;
+                font-size: 11px;
+                padding: 8px 10px;
+            }
+
+            .header-actions .manifest-rev-badge {
+                position: static;
+                transform: none;
+                left: auto;
+                top: auto;
+                display: inline-block;
+                margin-top: 6px;
+                align-self: center;
             }
 
             .custom-nav-tabs {
@@ -253,7 +290,6 @@
             }
 
             .header-actions .btn-premium {
-                flex: 1 1 calc(50% - 8px);
                 font-size: 11px;
                 padding: 8px 10px;
             }
@@ -339,6 +375,30 @@
             display: flex;
             gap: 10px;
             align-items: center;
+        }
+
+        .shipment-manifest-action {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .manifest-rev-badge {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: calc(100% + 5px);
+            white-space: nowrap;
+            font-size: 10px;
+            font-weight: 600;
+            color: #fe8a7d;
+            background: #fff5f4;
+            border: 1.5px solid #fe8a7d;
+            border-radius: 4px;
+            padding: 1px 8px;
+            letter-spacing: 0.4px;
+            z-index: 2;
         }
 
         /* Tabs Styling */
@@ -2459,6 +2519,147 @@
         @keyframes compose-spin {
             to { transform: rotate(360deg); }
         }
+
+        /*
+         * Service details — must come AFTER desktop flex rules so cascade wins.
+         * Each service has different fields; all leg rows stack on mobile.
+         */
+        @media (max-width: 991.98px) {
+            #styleSelector {
+                display: none !important;
+            }
+
+            #service-details-airfreight,
+            #service-details-sea-freight,
+            #service-details-truck,
+            #service-details-courier,
+            #service-details-release,
+            #service-details-hand-carry,
+            #service-details-on-board {
+                overflow-x: hidden;
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+
+            .airfreight-flight-row,
+            .sea-freight-leg-row,
+            .truck-leg-row,
+            .courier-leg-row,
+            .release-leg-row,
+            .on-board-leg-row,
+            .hand-carry-leg-row {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                align-items: flex-start !important;
+                gap: 12px 10px !important;
+                padding: 8px 28px 14px 0 !important;
+                margin-bottom: 16px !important;
+                border-bottom: 1px solid #f1f5f9;
+                position: relative;
+            }
+
+            /* Airfreight: Airway bill / Flight / Dep / Arr / Time */
+            .airfreight-flight-row > .flight-field,
+            .airfreight-flight-row > .flight-field-time,
+            /* Sea freight: BOL / Container / IMO / Vessel / ETD / ETA / Time */
+            .sea-freight-leg-row > .sea-leg-field,
+            .sea-freight-leg-row > .sea-leg-field-time,
+            /* Truck: CMR / Freight co / Dep / Arr / Time */
+            .truck-leg-row > .truck-leg-field,
+            .truck-leg-row > .truck-leg-field-time,
+            /* Courier: AWB / Carrier / Dep / Arr / Time */
+            .courier-leg-row > .courier-leg-field,
+            .courier-leg-row > .courier-leg-field-time,
+            /* Release: Freight co / Delivery date / Time */
+            .release-leg-row > .release-leg-field,
+            .release-leg-row > .release-leg-field-time,
+            /* On-board: Dep / Delivery date / Time */
+            .on-board-leg-row > .on-board-leg-field,
+            .on-board-leg-row > .on-board-leg-field-time,
+            /* Hand carry: Dep / Arr / Time / Contact name / phone / checkbox */
+            .hand-carry-leg-row > .hand-carry-leg-field,
+            .hand-carry-leg-row > .hand-carry-leg-field-time {
+                flex: 1 1 calc(50% - 5px) !important;
+                min-width: calc(50% - 5px) !important;
+                max-width: calc(50% - 5px) !important;
+                width: auto !important;
+            }
+
+            .hand-carry-leg-row > .hand-carry-leg-checkbox {
+                flex: 1 1 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                margin-top: 4px;
+            }
+
+            .airfreight-flight-row label,
+            .sea-freight-leg-row label,
+            .truck-leg-row label,
+            .courier-leg-row label,
+            .release-leg-row label,
+            .on-board-leg-row label,
+            .hand-carry-leg-row label {
+                white-space: normal !important;
+                overflow: visible !important;
+                line-height: 1.25 !important;
+                word-break: normal !important;
+                overflow-wrap: anywhere;
+            }
+
+            .airfreight-flight-row .flight-remove-btn,
+            .sea-freight-leg-row .sea-leg-remove-btn,
+            .truck-leg-row .truck-leg-remove-btn,
+            .courier-leg-row .courier-leg-remove-btn,
+            .release-leg-row .release-leg-remove-btn,
+            .on-board-leg-row .on-board-leg-remove-btn,
+            .hand-carry-leg-row .hand-carry-leg-remove-btn {
+                position: absolute !important;
+                top: 4px !important;
+                right: 0 !important;
+                margin: 0 !important;
+                flex: none !important;
+            }
+
+            .airfreight-flight-row .form-control-sm-custom,
+            .sea-freight-leg-row .form-control-sm-custom,
+            .truck-leg-row .form-control-sm-custom,
+            .courier-leg-row .form-control-sm-custom,
+            .release-leg-row .form-control-sm-custom,
+            .on-board-leg-row .form-control-sm-custom,
+            .hand-carry-leg-row .form-control-sm-custom,
+            .airfreight-flight-row .input-with-icon,
+            .sea-freight-leg-row .input-with-icon,
+            .truck-leg-row .input-with-icon,
+            .courier-leg-row .input-with-icon,
+            .release-leg-row .input-with-icon,
+            .on-board-leg-row .input-with-icon,
+            .hand-carry-leg-row .input-with-icon {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .airfreight-flight-row > .flight-field,
+            .airfreight-flight-row > .flight-field-time,
+            .sea-freight-leg-row > .sea-leg-field,
+            .sea-freight-leg-row > .sea-leg-field-time,
+            .truck-leg-row > .truck-leg-field,
+            .truck-leg-row > .truck-leg-field-time,
+            .courier-leg-row > .courier-leg-field,
+            .courier-leg-row > .courier-leg-field-time,
+            .release-leg-row > .release-leg-field,
+            .release-leg-row > .release-leg-field-time,
+            .on-board-leg-row > .on-board-leg-field,
+            .on-board-leg-row > .on-board-leg-field-time,
+            .hand-carry-leg-row > .hand-carry-leg-field,
+            .hand-carry-leg-row > .hand-carry-leg-field-time,
+            .hand-carry-leg-row > .hand-carry-leg-checkbox {
+                flex: 1 1 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
     </style>
 @endsection
 
@@ -2562,7 +2763,7 @@
                                                         $latestManifest = $shipment->latestManifest();
                                                         $manifestRevision = ($latestManifest && $latestManifest->version >= 2) ? ($latestManifest->version - 1) : null;
                                                     @endphp
-                                                    <div style="position: relative;">
+                                                    <div class="shipment-manifest-action">
                                                         <button type="button"
                                                             id="send-manifest-btn"
                                                             class="btn btn-premium btn-outline-custom{{ $manifestMailPending ? ' send-manifest-pending' : '' }}"
@@ -2572,7 +2773,7 @@
                                                             @disabled(! $manifestMailPending)
                                                             title="{{ $manifestMailPending ? 'New manifest ready — send email' : 'Send manifest after a new manifest is generated' }}">Send manifest</button>
                                                         @if($manifestRevision)
-                                                            <span style="position: absolute; left: 50%; transform: translateX(-50%); top: calc(100% + 5px); white-space: nowrap; font-size: 10px; font-weight: 600; color: #fe8a7d; background: #fff5f4; border: 1.5px solid #fe8a7d; border-radius: 4px; padding: 1px 8px; letter-spacing: 0.4px;">MI Rev - {{ $manifestRevision }}</span>
+                                                            <span class="manifest-rev-badge">MI Rev - {{ $manifestRevision }}</span>
                                                         @endif
                                                     </div>
                                                     <button type="button"
@@ -3186,31 +3387,6 @@
                                                             <span class="shipment-docs-internal-label">Internal</span>
                                                         </div>
                                                         <div id="shipment-docs-scroll">
-                                                        @if ($combinedPoDocuments->count() > 0)
-                                                        <div class="doc-item">
-                                                            <div class="doc-main">
-                                                                <a href="#"
-                                                                   class="doc-name po-document-link"
-                                                                   data-pdf-url="{{ route('shipments.combined-po-documents', $shipment->id) }}"
-                                                                   data-title="Combined PO documents">
-                                                                    Combined PO documents
-                                                                </a>
-                                                                <span class="doc-type-label">PO · {{ $combinedPoDocuments->unique('file_path')->count() }} PDF(s) merged</span>
-                                                            </div>
-                                                            <div class="doc-side">
-                                                                <div class="doc-side-row">
-                                                                    <div class="doc-internal checkbox-fade fade-in-primary">
-                                                                        <label>
-                                                                            <input type="checkbox" class="doc-internal-check" >
-                                                                            <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                                                                        </label>
-                                                                    </div>
-                                                                    <i class="ti-trash doc-trash" style="visibility: hidden;"></i>
-                                                                </div>
-                                                                <span class="doc-date">{{ $combinedPoDocuments->max('created_at')?->format('d.m.Y') }}</span>
-                                                            </div>
-                                                        </div>
-                                                        @endif
                                                         <div id="shipment-manifests-list">
                                                         @foreach ($shipment->manifests as $manifest)
                                                         <div class="doc-item shipment-manifest-doc" data-id="{{ $manifest->id }}">
@@ -3305,6 +3481,34 @@
                                                         </div>
                                                         @endforeach
                                                         </div>
+                                                        @if ($combinedPoDocuments->count() > 0)
+                                                        <div class="doc-item shipment-combined-po-doc" id="shipment-combined-po-doc">
+                                                            <div class="doc-main">
+                                                                <a href="#"
+                                                                   class="doc-name po-document-link"
+                                                                   data-pdf-url="{{ route('shipments.combined-po-documents', $shipment->id) }}"
+                                                                   data-title="Combined PO documents">
+                                                                    Combined PO documents
+                                                                </a>
+                                                                <span class="doc-type-label">PO · {{ $combinedPoDocuments->unique('file_path')->count() }} PDF(s) merged</span>
+                                                            </div>
+                                                            <div class="doc-side">
+                                                                <div class="doc-side-row">
+                                                                    <div class="doc-internal checkbox-fade fade-in-primary">
+                                                                        <label>
+                                                                            <input type="checkbox"
+                                                                                   class="doc-internal-check shipment-combined-po-attach-checkbox"
+                                                                                   id="shipment-combined-po-attach-checkbox"
+                                                                                   checked>
+                                                                            <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
+                                                                        </label>
+                                                                    </div>
+                                                                    <i class="ti-trash doc-trash" style="visibility: hidden;"></i>
+                                                                </div>
+                                                                <span class="doc-date">{{ $combinedPoDocuments->max('created_at')?->format('d.m.Y') }}</span>
+                                                            </div>
+                                                        </div>
+                                                        @endif
                                                         </div>
 
                                                     <div class="dropzone-placeholder drag-drop-zone" id="shipment-doc-dropzone">
@@ -3427,8 +3631,12 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body p-0" style="height: 80vh; background: #f3f4f6;">
+            <div class="modal-body p-0" style="height: 80vh; background: #f3f4f6; position: relative;">
                 <iframe id="pdf-preview-frame" title="PDF preview" style="width: 100%; height: 100%; border: 0;" src=""></iframe>
+                <div id="pdf-preview-mobile-fallback" style="display:none; height:100%; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:24px; text-align:center;">
+                    <p style="margin:0; color:#374151; font-size:14px;">This device cannot show PDFs inside the page.</p>
+                    <a id="pdf-preview-mobile-open" href="#" target="_blank" rel="noopener" class="btn btn-premium btn-teal btn-sm">Open PDF</a>
+                </div>
             </div>
         </div>
     </div>
@@ -3953,12 +4161,6 @@
                     'filename' => 'manifest-' . $shipment->shipment_number . '.pdf',
                 ];
             }
-            if ($combinedPoDocuments->count() > 0) {
-                $manifestCoreAttachmentSources[] = [
-                    'url' => route('shipments.combined-po-documents', $shipment->id),
-                    'filename' => 'combined-po-documents-' . $shipment->shipment_number . '.pdf',
-                ];
-            }
         @endphp
         var manifestCoreAttachmentSources = @json($manifestCoreAttachmentSources);
 
@@ -3996,8 +4198,58 @@
             });
         }
 
+        function isCombinedPoAttachChecked() {
+            var $cb = $('#shipment-combined-po-attach-checkbox');
+            if (!$cb.length) {
+                return combinedPoDocumentCount > 0;
+            }
+
+            return !!$cb.prop('checked');
+        }
+
+        function applyDocsListAttachmentFilters(attachments) {
+            var list = (attachments || []).filter(function(item) {
+                if (!item) {
+                    return false;
+                }
+
+                if (item.document_id) {
+                    var $cb = $('.shipment-doc-attach-checkbox[data-doc-id="' + item.document_id + '"]');
+                    return $cb.length > 0 && !!$cb.prop('checked');
+                }
+
+                if (String(item.key || '') === 'combined_po') {
+                    return isCombinedPoAttachChecked();
+                }
+
+                return true;
+            });
+
+            list = mergeCheckedDocumentAttachments(list);
+
+            if (combinedPoDocumentCount > 0 && isCombinedPoAttachChecked()) {
+                var hasCombined = list.some(function(item) {
+                    return item && String(item.key || '') === 'combined_po';
+                });
+
+                if (!hasCombined) {
+                    list.push({
+                        key: 'combined_po',
+                        url: @json(route('shipments.combined-po-documents', $shipment->id)),
+                        filename: @json('combined-po-documents-' . $shipment->shipment_number . '.pdf')
+                    });
+                }
+            } else {
+                list = list.filter(function(item) {
+                    return !(item && String(item.key || '') === 'combined_po');
+                });
+            }
+
+            return list;
+        }
+
         function buildMailAttachmentSources(coreSources) {
-            return mergeCheckedDocumentAttachments(coreSources || []);
+            return applyDocsListAttachmentFilters(coreSources || []);
         }
 
         function mergeCheckedDocumentAttachments(attachments) {
@@ -4008,10 +4260,27 @@
                     return existing && existing.document_id && String(existing.document_id) === String(item.document_id);
                 });
 
-                if (!alreadyIncluded) {
-                    list.push($.extend({
-                        key: 'document-' + item.document_id
-                    }, item));
+                if (alreadyIncluded) {
+                    return;
+                }
+
+                var entry = $.extend({
+                    key: 'document-' + item.document_id
+                }, item);
+
+                // Keep manual uploads above Combined PO (last).
+                var combinedIndex = -1;
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i] && String(list[i].key || '') === 'combined_po') {
+                        combinedIndex = i;
+                        break;
+                    }
+                }
+
+                if (combinedIndex >= 0) {
+                    list.splice(combinedIndex, 0, entry);
+                } else {
+                    list.push(entry);
                 }
             });
 
@@ -4310,21 +4579,28 @@
         }
 
         function getComposeExcludedAttachmentKeys() {
-            if (!pendingManifestMail) {
-                return [];
+            var excluded = [];
+
+            if (pendingManifestMail) {
+                var original = pendingManifestMail.originalAttachments || [];
+                var currentKeys = {};
+                (pendingManifestMail.attachments || []).forEach(function(item) {
+                    if (item && item.key) {
+                        currentKeys[String(item.key)] = true;
+                    }
+                });
+
+                excluded = original
+                    .map(function(item) { return item && item.key ? String(item.key) : ''; })
+                    .filter(function(key) { return key !== '' && !currentKeys[key]; });
             }
 
-            var original = pendingManifestMail.originalAttachments || [];
-            var currentKeys = {};
-            (pendingManifestMail.attachments || []).forEach(function(item) {
-                if (item && item.key) {
-                    currentKeys[String(item.key)] = true;
-                }
-            });
+            // Docs-list Combined PO checkbox gates auto-attach (server always prepares it).
+            if (combinedPoDocumentCount > 0 && !isCombinedPoAttachChecked() && excluded.indexOf('combined_po') === -1) {
+                excluded.push('combined_po');
+            }
 
-            return original
-                .map(function(item) { return item && item.key ? String(item.key) : ''; })
-                .filter(function(key) { return key !== '' && !currentKeys[key]; });
+            return excluded;
         }
 
         function revokePdfPreviewBlob() {
@@ -4336,10 +4612,43 @@
             }
         }
 
+        function isMobilePdfPreview() {
+            var ua = navigator.userAgent || '';
+            if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) {
+                return true;
+            }
+            return !!(window.matchMedia && window.matchMedia('(max-width: 991.98px)').matches);
+        }
+
+        function showMobilePdfFallback(objectUrl, sourceUrl) {
+            var $frame = $('#pdf-preview-frame');
+            var $fallback = $('#pdf-preview-mobile-fallback');
+            var $open = $('#pdf-preview-mobile-open');
+            var openUrl = objectUrl || sourceUrl;
+
+            $frame.hide().attr('src', 'about:blank');
+            $fallback.css('display', 'flex');
+            $open.attr('href', openUrl);
+
+            // Prefer native Chrome PDF viewer in a new tab (iframe PDF is blank on Android/iOS).
+            var opened = window.open(openUrl, '_blank');
+            if (!opened && sourceUrl && sourceUrl !== openUrl) {
+                window.open(sourceUrl, '_blank');
+            }
+        }
+
+        function showDesktopPdfPreview(objectUrl) {
+            var $frame = $('#pdf-preview-frame');
+            $('#pdf-preview-mobile-fallback').hide();
+            $frame.show().attr('src', objectUrl);
+        }
+
         function loadPdfIntoPreviewFrame(url) {
             var $frame = $('#pdf-preview-frame');
             revokePdfPreviewBlob();
             $frame.attr('src', 'about:blank');
+            $('#pdf-preview-mobile-fallback').hide();
+            $frame.show();
 
             return fetch(url, {
                 credentials: 'same-origin',
@@ -4351,12 +4660,20 @@
                 return res.blob();
             }).then(function (blob) {
                 var type = (blob && blob.type) ? blob.type : '';
-                if (type.indexOf('pdf') === -1 && type.indexOf('image/') !== 0) {
+                var isImage = type.indexOf('image/') === 0;
+                if (!isImage && type.indexOf('pdf') === -1) {
                     blob = new Blob([blob], { type: 'application/pdf' });
+                    type = 'application/pdf';
                 }
                 var objectUrl = URL.createObjectURL(blob);
                 $frame.data('blobUrl', objectUrl);
-                $frame.attr('src', objectUrl);
+
+                if (!isImage && isMobilePdfPreview()) {
+                    showMobilePdfFallback(objectUrl, url);
+                    return;
+                }
+
+                showDesktopPdfPreview(objectUrl);
             });
         }
 
@@ -4383,7 +4700,8 @@
             });
             $preview.one('hidden.bs.modal', function() {
                 revokePdfPreviewBlob();
-                $('#pdf-preview-frame').attr('src', 'about:blank');
+                $('#pdf-preview-mobile-fallback').hide();
+                $('#pdf-preview-frame').show().attr('src', 'about:blank');
                 if (pendingManifestMail) {
                     $compose.modal('show');
                 }
@@ -4402,7 +4720,7 @@
         }
 
         function openComposeMailModal(response, mailType) {
-            var attachments = mergeCheckedDocumentAttachments((response.attachments || []).map(function(item, index) {
+            var attachments = applyDocsListAttachmentFilters((response.attachments || []).map(function(item, index) {
                 var copy = $.extend({}, item);
                 if (!copy.key) {
                     copy.key = copy.document_id ? ('document-' + copy.document_id) : ('attach-' + index);
@@ -5594,6 +5912,69 @@
             });
         }
 
+        var serviceTimeInputSelector = [
+            '.flight-time-input',
+            '.sea-leg-time-input',
+            '.truck-leg-time-input',
+            '.courier-leg-time-input',
+            '.release-leg-time-input',
+            '.hand-carry-leg-time-input',
+            '.on-board-leg-time-input'
+        ].join(', ');
+
+        function formatServiceTimeMask(value) {
+            var digits = String(value || '').replace(/\D/g, '').slice(0, 4);
+            if (digits.length <= 2) {
+                return digits;
+            }
+            return digits.slice(0, 2) + ':' + digits.slice(2);
+        }
+
+        $(document).on('input', serviceTimeInputSelector, function() {
+            var $input = $(this);
+            var formatted = formatServiceTimeMask($input.val());
+            if ($input.val() !== formatted) {
+                $input.val(formatted);
+            }
+        });
+
+        $(document).on('blur', serviceTimeInputSelector, function() {
+            var $input = $(this);
+            var digits = String($input.val() || '').replace(/\D/g, '');
+            if (!digits.length) {
+                $input.val('');
+                return;
+            }
+            if (digits.length === 1) {
+                digits = '0' + digits;
+            }
+            if (digits.length === 2) {
+                digits = digits + '00';
+            }
+            if (digits.length === 3) {
+                digits = digits + '0';
+            }
+            $input.val(formatServiceTimeMask(digits));
+        });
+
+        $(document).on('keydown', serviceTimeInputSelector, function(e) {
+            // Allow navigation / edit keys; block non-digit except colon (auto) and modifiers
+            if (e.ctrlKey || e.metaKey || e.altKey) {
+                return;
+            }
+            var allowed = [
+                'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'
+            ];
+            if (allowed.indexOf(e.key) !== -1) {
+                return;
+            }
+            if (/^\d$/.test(e.key)) {
+                return;
+            }
+            e.preventDefault();
+        });
+
         function reindexLegRowNames(containerSelector, rowSelector, prefix) {
             $(containerSelector).find(rowSelector).each(function(index) {
                 $(this).find('[name^="' + prefix + '"]').each(function() {
@@ -6540,7 +6921,8 @@
 
         $('#pdf-preview-modal').on('hidden.bs.modal', function() {
             revokePdfPreviewBlob();
-            $('#pdf-preview-frame').attr('src', 'about:blank');
+            $('#pdf-preview-mobile-fallback').hide();
+            $('#pdf-preview-frame').show().attr('src', 'about:blank');
         });
 
         var shipmentDocDropzone = $('#shipment-doc-dropzone');
