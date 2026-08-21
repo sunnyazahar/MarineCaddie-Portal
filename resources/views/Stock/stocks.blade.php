@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('styles')
+    @include('partials.list-pagination-footer-styles')
 
     <!-- Select 2 css -->
 
@@ -108,16 +109,17 @@
         }
         .filter-group .filter-label {
             font-size: 11px;
-            color: #64748b;
+            color: #ffffff;
             margin-bottom: 0;
             padding: 0 10px;
             white-space: nowrap;
-            font-weight: 500;
-            border-right: 1px solid #e2e8f0;
+            font-weight: 700;
+            border-right: 1px solid #5a7fa0;
             height: 100%;
             display: flex;
             align-items: center;
-            background: #f8fafc;
+            background: #6992b5;
+            background-color: #6992b5;
             min-width: fit-content;
         }
         .filter-group .filter-input {
@@ -197,7 +199,7 @@
             padding-left: 10px !important;
             font-size: 11px !important;
             color: #1e293b !important;
-            line-height: 30px !important;
+            line-height: 1.25 !important;
         }
         .filter-group .select2-container--default .select2-selection--multiple .select2-selection__rendered,
         .filter-group .select2-container--default .select2-search--inline .select2-search__field {
@@ -375,12 +377,12 @@
         
         /* Reduce gap/margin between sidebar and content */
         .pcoded-inner-content {
-            padding: 5px !important;
+            padding: 0 !important;
         }
         .main-body .page-wrapper {
-            padding: 5px !important;
+            padding: 0 !important;
         }
-        /* Stocks list: lock page scroll; only table body scrolls */
+        /* Stocks list: lock page scroll; only table body scrolls; full-bleed width */
         body.stocks-list-page {
             overflow: hidden !important;
             height: 100vh;
@@ -395,18 +397,20 @@
             height: 100%;
             overflow: hidden !important;
             margin: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
+            padding: 0 !important;
         }
         .stocks-list-card {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 104px);
-            margin-bottom: 0 !important;
+            height: calc(100vh - 64px);
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
             overflow: hidden;
         }
         body.stock-bulk-footer-visible .stocks-list-card {
-            height: calc(100vh - 160px);
+            height: calc(100vh - 120px);
         }
         .stocks-list-card > .card-block {
             display: flex;
@@ -414,7 +418,7 @@
             flex: 1;
             min-height: 0;
             overflow: hidden;
-            padding-bottom: 8px !important;
+            padding: 8px 12px 8px !important;
         }
         .stocks-filters-fixed {
             flex-shrink: 0;
@@ -449,7 +453,7 @@
             }
             .stocks-list-card {
                 height: calc(100vh - 64px) !important;
-                margin-top: 8px !important;
+                margin: 0 !important;
             }
             body.stock-bulk-footer-visible .stocks-list-card {
                 height: calc(100vh - 120px) !important;
@@ -536,11 +540,6 @@
             .stocks-table-area .dataTables_scrollBody {
                 overflow-x: auto !important;
                 -webkit-overflow-scrolling: touch;
-            }
-            .pagination-sticky-footer {
-                padding: 8px 12px !important;
-                height: auto !important;
-                min-height: 48px;
             }
         }
 
@@ -654,26 +653,7 @@
             padding-right: 10px !important;
         }
 
-        /* Pagination Styling */
-        .pagination-sticky-footer {
-            position: fixed !important;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            padding: 10px 20px;
-            background: #ffffff;
-            border-top: 1px solid #e9ecef;
-            z-index: 1040;
-            margin: 0 !important;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-        }
-        body.stock-bulk-footer-visible .pagination-sticky-footer {
-            bottom: 56px;
-        }
+        /* Pagination look: partials/list-pagination-footer-styles (in-flow under table) */
         .dataTables_wrapper .dataTables_paginate {
             margin-top: 0 !important;
             padding: 0;
@@ -848,8 +828,19 @@
                                     @endif
 
                                         <!-- Base Style - Compact start -->
-                                        <div class="card stocks-list-card mt-4">
+                                        <div class="card stocks-list-card">
                                             <div class="card-block">
+                                                <x-lists.page-header
+                                                    title="Stock list"
+                                                    subtitle="Search, filter, and manage warehouse stock"
+                                                    icon="ti-package"
+                                                    :count="$crrs->total()"
+                                                    countLabel="stocks"
+                                                >
+                                                    <x-slot:actions>
+                                                        <a href="{{ route('create-crr') }}" class="btn btn-teal btn-sm d-none d-lg-inline-flex">Create CRR</a>
+                                                    </x-slot:actions>
+                                                </x-lists.page-header>
                                                 <div class="stocks-filters-fixed">
                                                 <div class="stocks-filters-toolbar">
                                                     <button type="button" id="btn-stocks-filters-toggle" class="btn btn-outline-teal btn-sm">
@@ -1038,8 +1029,8 @@
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                                <div id="stocks-pagination" class="mt-3">
-                                                    {{ $crrs->links() }}
+                                                <div id="stocks-pagination" class="pagination-sticky-footer">
+                                                    @include('partials.list-pagination-footer-inner', ['paginator' => $crrs])
                                                 </div>
                                             </div>
                                         </div>
@@ -1229,7 +1220,7 @@
             $(window).on('resize.stocksFilters', ensureStocksMobileFiltersVisible);
 
             var table = $('#offices-table').DataTable({
-                "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
+                "dom": '<"table-scroll-wrapper"rt>',
                 "lengthChange": false,
                 "paging": false,
                 "info": false,
@@ -1253,24 +1244,25 @@
                 var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
                 var $tableArea = $('.stocks-table-area');
                 var areaHeight = $tableArea.length ? $tableArea.innerHeight() : 0;
+                // Pagination is in-flow sibling under table-area — use full area height.
                 var available = areaHeight - 2;
-                var bulkHeight = $('body').hasClass('stock-bulk-footer-visible')
-                    ? ($('#stock-bulk-footer').outerHeight() || 56)
-                    : 0;
 
                 if (isMobile) {
-                    var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
+                    var paginationHeight = $('#stocks-pagination').outerHeight() || 52;
+                    var bulkHeight = $('body').hasClass('stock-bulk-footer-visible')
+                        ? ($('#stock-bulk-footer').outerHeight() || 56)
+                        : 0;
                     var topOffset = $tableArea.length && $tableArea.offset()
                         ? $tableArea.offset().top
                         : 160;
-                    available = window.innerHeight - topOffset - paginationHeight - bulkHeight - 8;
+                    available = window.innerHeight - topOffset - paginationHeight - bulkHeight;
                     return Math.max(260, available);
                 }
 
                 if (available < 180) {
                     var topOffsetFallback = $tableArea.length ? $tableArea.offset().top : 220;
-                    var paginationHeightFallback = $('.pagination-sticky-footer').outerHeight() || 48;
-                    available = window.innerHeight - topOffsetFallback - paginationHeightFallback - bulkHeight - 4;
+                    var paginationHeightFallback = $('#stocks-pagination').outerHeight() || 52;
+                    available = window.innerHeight - topOffsetFallback - paginationHeightFallback;
                 }
 
                 return Math.max(180, available);

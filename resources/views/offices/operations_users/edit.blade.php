@@ -135,7 +135,7 @@
             font-size: 11px;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 28px !important;
+            line-height: 1.25 !important;
             padding: 2px 8px;
         }
         .select2-container--default .select2-selection--multiple .select2-selection__choice {

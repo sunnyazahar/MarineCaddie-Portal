@@ -34,8 +34,10 @@
     </div>
 @endif
 
-<div class="form-grid-3">
+<div class="form-grid-3 cs-pillars">
     <div class="form-col">
+        <div class="cs-pillar">
+        <div class="cs-pillar__title">Departure</div>
         <div class="form-group-custom">
             <label>Departure</label>
             <select id="departure-select" name="departure" class="form-control-sm-custom select2-departure">
@@ -139,9 +141,12 @@
                 <span class="text-inverse" style="font-size: 11px;">Not applicable for consolidation</span>
             </label>
         </div>
+        </div>{{-- .cs-pillar --}}
     </div>
 
     <div class="form-col">
+        <div class="cs-pillar">
+        <div class="cs-pillar__title">Consignee</div>
         <div class="form-group-custom">
             <label>Consignee</label>
             <input type="hidden" id="consignee-party-code" value="{{ $consigneeCode ?? '' }}">
@@ -153,7 +158,7 @@
         </div>
         <div class="form-group-custom">
             <label>Consignee address</label>
-            <textarea name="consignee_address" id="consignee-address" class="form-control" style="font-size: 11px; height: 60px;">{{ old('consignee_address', $shipment->consignee_address) }}</textarea>
+            <textarea name="consignee_address" id="consignee-address" class="form-control" style="height: 120px;">{{ old('consignee_address', $shipment->consignee_address) }}</textarea>
         </div>
         <div class="row">
             <div class="col-6">
@@ -186,6 +191,7 @@
             class="form-control-sm-custom"
             placeholder="Select country"
             :allowClear="true"
+            dropdownParent="body"
         />
         <div class="form-group-custom">
             <label>Contact person <span class="text-danger">*</span></label>
@@ -206,12 +212,15 @@
             <label>Consignee email</label>
             <input type="text" id="consignee-email" name="consignee_email" class="form-control-sm-custom" value="{{ old('consignee_email', $shipment->consignee_email) }}">
         </div>
+        </div>{{-- .cs-pillar --}}
     </div>
 
     <div class="form-col">
+        <div class="cs-pillar">
+        <div class="cs-pillar__title">Account &amp; comments</div>
         <div class="form-group-custom">
             <label>Special considerations for destination</label>
-            <textarea name="special_considerations_destination" class="form-control" style="font-size: 11px; height: 50px;">{{ old('special_considerations_destination', $shipment->special_considerations_destination) }}</textarea>
+            <textarea name="special_considerations_destination" class="form-control" style="height: 120px;">{{ old('special_considerations_destination', $shipment->special_considerations_destination) }}</textarea>
             <div class="checkbox-fade fade-in-primary mt-1">
                 <label>
                     <input type="checkbox" name="skip_instruction_dest" value="1" {{ old('skip_instruction_dest', $shipment->skip_instruction_dest) ? 'checked' : '' }}>
@@ -222,7 +231,7 @@
         </div>
         <div class="form-group-custom">
             <label>Comments to departure hub</label>
-            <textarea name="comments_departure_hub" id="comments_departure_hub" class="form-control" style="font-size: 11px; height: 50px;">{{ old('comments_departure_hub', $shipment->comments_departure_hub) }}</textarea>
+            <textarea name="comments_departure_hub" id="comments_departure_hub" class="form-control" style="height: 120px;">{{ old('comments_departure_hub', $shipment->comments_departure_hub) }}</textarea>
             <div class="checkbox-fade fade-in-primary mt-1">
                 <label>
                     <input type="checkbox" name="skip_instruction_hub" value="1" {{ old('skip_instruction_hub', $shipment->skip_instruction_hub) ? 'checked' : '' }}>
@@ -233,7 +242,7 @@
         </div>
         <div class="form-group-custom">
             <label>Comments to consignee</label>
-            <textarea name="comments_consignee" class="form-control" style="font-size: 11px; height: 50px;">{{ old('comments_consignee', $shipment->comments_consignee) }}</textarea>
+            <textarea name="comments_consignee" class="form-control" style="height: 120px;">{{ old('comments_consignee', $shipment->comments_consignee) }}</textarea>
             <div class="checkbox-fade fade-in-primary mt-1">
                 <label>
                     <input type="checkbox" name="skip_prealert" value="1" {{ old('skip_prealert', $shipment->skip_prealert) ? 'checked' : '' }}>
@@ -262,14 +271,23 @@
                 </div>
             </div>
         </div>
+        </div>{{-- .cs-pillar --}}
     </div>
 </div>
 
-<div class="stock-items-wrapper">
+<div class="stock-items-wrapper cs-section-shell">
     <div class="stock-tabs">
-        <div class="stock-tab active" data-panel="stock-panel-items">Stock items ({{ $stockCount }})</div>
-        <div class="stock-tab" data-panel="stock-panel-service">Service details</div>
-        <div class="stock-tab" data-panel="stock-panel-irregularities">Irregularities ({{ $shipment->irregularities->count() }})</div>
+        <div class="stock-tab active" data-panel="stock-panel-items">
+            <span class="stock-tab__label">Stock items</span>
+            <span class="stock-tab__count" data-stock-tab-count>{{ $stockCount }}</span>
+        </div>
+        <div class="stock-tab" data-panel="stock-panel-service">
+            <span class="stock-tab__label">Service details</span>
+        </div>
+        <div class="stock-tab" data-panel="stock-panel-irregularities">
+            <span class="stock-tab__label">Irregularities</span>
+            <span class="stock-tab__count" data-irregularity-tab-count>{{ $shipment->irregularities->count() }}</span>
+        </div>
     </div>
 
     <div id="stock-panel-items" class="stock-panel active">
@@ -327,49 +345,30 @@
             </table>
         </div>
         <div class="stock-totals">
-            <span>Total packages: {{ $totalPackages }} pcs</span>
-            <span>Total weight: {{ number_format($totalWeight, 2) }} kg</span>
-            <span>Total CBM: {{ number_format($totalCbm, 2) }}</span>
-            <span>Total value: {{ number_format($totalValue, 2) }}</span>
+            <div class="stock-total-chip">
+                <span class="stock-total-chip__label">Packages</span>
+                <span class="stock-total-chip__value">{{ $totalPackages }} pcs</span>
+            </div>
+            <div class="stock-total-chip">
+                <span class="stock-total-chip__label">Weight</span>
+                <span class="stock-total-chip__value">{{ number_format($totalWeight, 2) }} kg</span>
+            </div>
+            <div class="stock-total-chip">
+                <span class="stock-total-chip__label">CBM</span>
+                <span class="stock-total-chip__value">{{ number_format($totalCbm, 2) }}</span>
+            </div>
+            <div class="stock-total-chip">
+                <span class="stock-total-chip__label">Value</span>
+                <span class="stock-total-chip__value">{{ number_format($totalValue, 2) }}</span>
+            </div>
             <div class="ml-auto">
                 <button type="button" id="add-stock-items-btn" class="btn btn-premium btn-outline-custom ml-2" @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif>Add stock items</button>
             </div>
         </div>
-        <div class="stock-repacked-section">
-            <div class="stock-repacked-heading">Repacked as:</div>
-            <div class="stock-repacked-fields">
-                <div class="stock-repacked-field">
-                    <label for="repacked_items" class="stock-repacked-field-label">Repacked item(s)</label>
-                    <input
-                        type="text"
-                        name="repacked_items"
-                        id="repacked_items"
-                        class="form-control stock-repacked-input"
-                        inputmode="numeric"
-                        autocomplete="off"
-                        value="{{ old('repacked_items', $shipment->repacked_items) }}"
-                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif
-                    >
-                </div>
-                <div class="stock-repacked-field">
-                    <label for="repacked_weight" class="stock-repacked-field-label">Repacked weight (kg)</label>
-                    <input
-                        type="text"
-                        name="repacked_weight"
-                        id="repacked_weight"
-                        class="form-control stock-repacked-input"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        value="{{ old('repacked_weight', $shipment->repacked_weight !== null ? number_format((float) $shipment->repacked_weight, 2, '.', '') : '') }}"
-                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif
-                    >
-                </div>
-            </div>
-        </div>
     </div>
 
-    <div id="stock-panel-service" class="stock-panel" style="display: none;">
-        <div id="service-details-placeholder" class="p-4 text-center text-muted">Select a service type to enter service details.</div>
+    <div id="stock-panel-service" class="stock-panel">
+        <div id="service-details-placeholder" class="text-center">Select a service type to enter service details.</div>
         <div id="service-details-airfreight" class="p-3" style="display: none;">
             <div id="airfreight-flights-container">
                 @forelse ($shipment->flights as $flight)
@@ -447,23 +446,55 @@
                 <a href="#" id="add-on-board-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add delivery</a>
             </div>
         </div>
+        <div class="stock-repacked-section">
+            <div class="stock-repacked-heading">Repacked as:</div>
+            <div class="stock-repacked-fields">
+                <div class="stock-repacked-field">
+                    <label for="repacked_items" class="stock-repacked-field-label">Repacked item(s)</label>
+                    <input
+                        type="text"
+                        name="repacked_items"
+                        id="repacked_items"
+                        class="form-control stock-repacked-input"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        value="{{ old('repacked_items', $shipment->repacked_items) }}"
+                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif
+                    >
+                </div>
+                <div class="stock-repacked-field">
+                    <label for="repacked_weight" class="stock-repacked-field-label">Repacked weight (kg)</label>
+                    <input
+                        type="text"
+                        name="repacked_weight"
+                        id="repacked_weight"
+                        class="form-control stock-repacked-input"
+                        inputmode="decimal"
+                        autocomplete="off"
+                        value="{{ old('repacked_weight', $shipment->repacked_weight !== null ? number_format((float) $shipment->repacked_weight, 2, '.', '') : '') }}"
+                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif
+                    >
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="stock-panel-irregularities" class="stock-panel" style="display: none;">
+    <div id="stock-panel-irregularities" class="stock-panel">
         <div class="p-3" id="irregularities-container">
             @forelse ($shipment->irregularities as $irregularity)
-                <div class="irregularity-item border-bottom pb-4 mb-4">
+                @php $irIndex = $loop->index; @endphp
+                <div class="irregularity-item" data-irregularity-index="{{ $irIndex }}">
                     <div class="row">
                         <div class="col-md-2 pr-1">
                             <div class="form-group-custom">
                                 <label>Date</label>
-                                <input type="text" name="irregularities[][irregularity_date]" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY" value="{{ $irregularity->irregularity_date?->format('d.m.Y') }}">
+                                <input type="text" name="irregularities[{{ $irIndex }}][irregularity_date]" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY" value="{{ $irregularity->irregularity_date?->format('d.m.Y') }}">
                             </div>
                         </div>
                         <div class="col-md-2 px-1">
                             <div class="form-group-custom">
                                 <label>Irregularity</label>
-                                <select name="irregularities[][irregularity_type]" class="form-control-sm-custom select2">
+                                <select name="irregularities[{{ $irIndex }}][irregularity_type]" class="form-control-sm-custom select2">
                                     <option></option>
                                     @foreach ($irregularityTypeOptions as $option)
                                         <option {{ $irregularity->irregularity_type === $option ? 'selected' : '' }}>{{ $option }}</option>
@@ -474,7 +505,7 @@
                         <div class="col-md-2 px-1">
                             <div class="form-group-custom">
                                 <label>Party responsible</label>
-                                <select name="irregularities[][party_responsible]" class="form-control-sm-custom select2">
+                                <select name="irregularities[{{ $irIndex }}][party_responsible]" class="form-control-sm-custom select2">
                                     <option></option>
                                     @foreach ($partyResponsibleOptions as $option)
                                         <option {{ $irregularity->party_responsible === $option ? 'selected' : '' }}>{{ $option }}</option>
@@ -485,7 +516,7 @@
                         <div class="col-md-2 px-1">
                             <div class="form-group-custom">
                                 <label>Consequence</label>
-                                <select name="irregularities[][consequence]" class="form-control-sm-custom select2">
+                                <select name="irregularities[{{ $irIndex }}][consequence]" class="form-control-sm-custom select2">
                                     <option></option>
                                     @foreach ($consequenceOptions as $option)
                                         <option {{ $irregularity->consequence === $option ? 'selected' : '' }}>{{ $option }}</option>
@@ -496,13 +527,13 @@
                         <div class="col-md-2 px-1">
                             <div class="form-group-custom">
                                 <label>Extra cost for MT (USD)</label>
-                                <input type="text" name="irregularities[][extra_cost_mt_usd]" class="form-control-sm-custom" value="{{ $irregularity->extra_cost_mt_usd }}">
+                                <input type="text" name="irregularities[{{ $irIndex }}][extra_cost_mt_usd]" class="form-control-sm-custom" value="{{ $irregularity->extra_cost_mt_usd }}">
                             </div>
                         </div>
                         <div class="col-md-2 pl-1 d-flex align-items-end">
                             <div class="form-group-custom flex-grow-1 mr-2">
                                 <label>Status</label>
-                                <select name="irregularities[][status]" class="form-control-sm-custom select2">
+                                <select name="irregularities[{{ $irIndex }}][status]" class="form-control-sm-custom select2">
                                     <option></option>
                                     @foreach ($statusOptions as $option)
                                         <option {{ $irregularity->status === $option ? 'selected' : '' }}>{{ $option }}</option>
@@ -516,19 +547,19 @@
                         <div class="col-md-4 pr-1">
                             <div class="form-group-custom">
                                 <label>Cause of irregularity</label>
-                                <textarea name="irregularities[][cause_of_irregularity]" class="form-control" style="font-size: 11px; height: 80px;">{{ $irregularity->cause_of_irregularity }}</textarea>
+                                <textarea name="irregularities[{{ $irIndex }}][cause_of_irregularity]" class="form-control" style="height: 80px;">{{ $irregularity->cause_of_irregularity }}</textarea>
                             </div>
                         </div>
                         <div class="col-md-4 px-1">
                             <div class="form-group-custom">
                                 <label>Action taken</label>
-                                <textarea name="irregularities[][action_taken]" class="form-control" style="font-size: 11px; height: 80px;">{{ $irregularity->action_taken }}</textarea>
+                                <textarea name="irregularities[{{ $irIndex }}][action_taken]" class="form-control" style="height: 80px;">{{ $irregularity->action_taken }}</textarea>
                             </div>
                         </div>
                         <div class="col-md-4 pl-1">
                             <div class="form-group-custom">
                                 <label>Customer response</label>
-                                <textarea name="irregularities[][customer_response]" class="form-control" style="font-size: 11px; height: 80px;">{{ $irregularity->customer_response }}</textarea>
+                                <textarea name="irregularities[{{ $irIndex }}][customer_response]" class="form-control" style="height: 80px;">{{ $irregularity->customer_response }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -536,30 +567,30 @@
                         <div class="col-md-4 pr-1">
                             <div class="form-group-custom">
                                 <label>Hub/agent comments</label>
-                                <textarea name="irregularities[][hub_agent_comments]" class="form-control" style="font-size: 11px; height: 80px;">{{ $irregularity->hub_agent_comments }}</textarea>
+                                <textarea name="irregularities[{{ $irIndex }}][hub_agent_comments]" class="form-control" style="height: 80px;">{{ $irregularity->hub_agent_comments }}</textarea>
                             </div>
                         </div>
                         <div class="col-md-4 px-1">
                             <div class="form-group-custom">
                                 <label>Handled by</label>
-                                <input type="text" name="irregularities[][handled_by]" class="form-control-sm-custom" value="{{ $irregularity->handled_by }}">
+                                <input type="text" name="irregularities[{{ $irIndex }}][handled_by]" class="form-control-sm-custom" value="{{ $irregularity->handled_by }}">
                             </div>
                         </div>
                     </div>
                 </div>
             @empty
-                <div class="irregularity-item border-bottom pb-4 mb-4">
+                <div class="irregularity-item" data-irregularity-index="0">
                     <div class="row">
                         <div class="col-md-2 pr-1">
                             <div class="form-group-custom">
                                 <label>Date</label>
-                                <input type="text" name="irregularities[][irregularity_date]" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY">
+                                <input type="text" name="irregularities[{{ 0 }}][irregularity_date]" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY">
                             </div>
                         </div>
                         <div class="col-md-2 px-1">
                             <div class="form-group-custom">
                                 <label>Irregularity</label>
-                                <select name="irregularities[][irregularity_type]" class="form-control-sm-custom select2">
+                                <select name="irregularities[{{ 0 }}][irregularity_type]" class="form-control-sm-custom select2">
                                     <option></option>
                                     @foreach ($irregularityTypeOptions as $option)
                                         <option>{{ $option }}</option>
@@ -570,7 +601,7 @@
                         <div class="col-md-2 px-1">
                             <div class="form-group-custom">
                                 <label>Party responsible</label>
-                                <select name="irregularities[][party_responsible]" class="form-control-sm-custom select2">
+                                <select name="irregularities[{{ 0 }}][party_responsible]" class="form-control-sm-custom select2">
                                     <option></option>
                                     @foreach ($partyResponsibleOptions as $option)
                                         <option>{{ $option }}</option>
@@ -581,7 +612,7 @@
                         <div class="col-md-2 px-1">
                             <div class="form-group-custom">
                                 <label>Consequence</label>
-                                <select name="irregularities[][consequence]" class="form-control-sm-custom select2">
+                                <select name="irregularities[{{ 0 }}][consequence]" class="form-control-sm-custom select2">
                                     <option></option>
                                     @foreach ($consequenceOptions as $option)
                                         <option>{{ $option }}</option>
@@ -592,13 +623,13 @@
                         <div class="col-md-2 px-1">
                             <div class="form-group-custom">
                                 <label>Extra cost for MT (USD)</label>
-                                <input type="text" name="irregularities[][extra_cost_mt_usd]" class="form-control-sm-custom">
+                                <input type="text" name="irregularities[{{ 0 }}][extra_cost_mt_usd]" class="form-control-sm-custom">
                             </div>
                         </div>
                         <div class="col-md-2 pl-1">
                             <div class="form-group-custom">
                                 <label>Status</label>
-                                <select name="irregularities[][status]" class="form-control-sm-custom select2">
+                                <select name="irregularities[{{ 0 }}][status]" class="form-control-sm-custom select2">
                                     <option></option>
                                     @foreach ($statusOptions as $option)
                                         <option>{{ $option }}</option>

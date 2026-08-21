@@ -61,7 +61,7 @@
         }
 
         .filter-row .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 26px !important;
+            line-height: 1.25 !important;
             padding: 0 10px !important;
             color: #333 !important;
             background-color: #fff !important;

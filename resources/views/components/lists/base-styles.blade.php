@@ -44,26 +44,29 @@
             .filter-group {
                 display: flex;
                 align-items: center;
-                border: 1px solid #ced4da;
-                border-radius: 4px;
+                border: 1px solid #9ec9d6;
+                border-radius: 8px;
                 height: 32px;
                 background: #fff;
                 overflow: visible;
                 width: 100%;
+                box-shadow: 0 1px 2px rgba(14, 29, 74, 0.05);
             }
 
             .filter-group .filter-label {
                 font-size: 11px;
-                color: #64748b;
+                color: #ffffff;
                 margin-bottom: 0;
                 padding: 0 10px;
                 white-space: nowrap;
-                font-weight: 500;
-                border-right: 1px solid #e2e8f0;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                border-right: 1px solid #5a7fa0;
                 height: 100%;
                 display: flex;
                 align-items: center;
-                background: #f8fafc;
+                background: #6992b5;
+                background-color: #6992b5;
                 min-width: fit-content;
             }
 
@@ -71,11 +74,30 @@
                 border: none !important;
                 box-shadow: none !important;
                 height: 100% !important;
-                font-size: 11px;
+                font-size: 12px;
+                font-weight: 600;
                 padding: 0 10px !important;
                 background: transparent !important;
                 width: 100%;
-                color: #1e293b;
+                color: #0e1d4a;
+            }
+
+            .filter-checkbox-group label {
+                font-size: 11px;
+                color: #334155;
+                margin-bottom: 0;
+                cursor: pointer;
+                order: 2;
+                font-weight: 600;
+            }
+
+            .btn-clear-filters {
+                font-size: 11px;
+                color: #0088c7;
+                font-weight: 700;
+                text-decoration: none;
+                white-space: nowrap;
+                margin-left: 15px;
             }
 
             .filter-group .searchable-filter-wrapper,
@@ -108,28 +130,12 @@
                 white-space: nowrap;
             }
 
-            .filter-checkbox-group label {
-                font-size: 11px;
-                color: #666;
-                margin-bottom: 0;
-                cursor: pointer;
-                order: 2;
-            }
-
             .filter-checkbox-group input[type="checkbox"] {
                 width: 14px;
                 height: 14px;
                 cursor: pointer;
                 accent-color: #1b5e6f;
                 order: 1;
-            }
-
-            .btn-clear-filters {
-                font-size: 11px;
-                color: #01a9ac;
-                text-decoration: none;
-                white-space: nowrap;
-                margin-left: 15px;
             }
 
             .list-ajax-table-wrapper {

@@ -86,8 +86,22 @@
                                                             </tr>
                                                             @empty
                                                             <tr>
-                                                                <td colspan="15" class="text-center py-4 text-muted" style="font-size: 12px;">
+                                                                <td class="text-center py-4 text-muted" style="font-size: 12px;">
                                                                     No stock entries found. <a href="{{ route('create-crr') }}" style="color: #008080;">Create a CRR</a> to get started.
                                                                 </td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
                                                             </tr>
                                                             @endforelse

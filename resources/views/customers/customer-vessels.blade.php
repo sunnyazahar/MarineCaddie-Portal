@@ -146,7 +146,7 @@
             height: 30px !important;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 28px !important;
+            line-height: 1.25 !important;
             padding: 2px 8px;
         }
         .contact-card .select2-container--default .select2-selection--single {

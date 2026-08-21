@@ -1,10 +1,151 @@
 @extends('layouts.app')
 
 @section('styles')
+    <script>
+        /* Apply ASAP in <head> so first paint is not sand/grey */
+        document.documentElement.classList.add('pickup-list-page');
+    </script>
+    @include('partials.list-pagination-footer-styles')
 
     <!-- Date-range picker css  -->
 
     <style>
+        /* Full-viewport list shell — use vh on the card (not % chain) like stocks list */
+        html.pickup-list-page,
+        html.pickup-list-page body {
+            height: 100% !important;
+            overflow: hidden !important;
+        }
+        html.pickup-list-page body,
+        body.pickup-list-page {
+            overflow: hidden !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            background: #ffffff !important;
+            background-image: none !important;
+        }
+        html.pickup-list-page #app,
+        html.pickup-list-page main,
+        html.pickup-list-page .pcoded,
+        html.pickup-list-page .pcoded-container.navbar-wrapper,
+        body.pickup-list-page #app,
+        body.pickup-list-page main,
+        body.pickup-list-page .pcoded,
+        body.pickup-list-page .pcoded-container.navbar-wrapper {
+            height: 100vh !important;
+            max-height: 100vh !important;
+            overflow: hidden !important;
+            background: #ffffff !important;
+        }
+        html.pickup-list-page .pcoded-main-container,
+        body.pickup-list-page .pcoded-main-container {
+            height: 100vh !important;
+            max-height: 100vh !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            background: #ffffff !important;
+        }
+        html.pickup-list-page .pcoded-wrapper,
+        body.pickup-list-page .pcoded-wrapper {
+            height: calc(100vh - 4rem) !important;
+            min-height: calc(100vh - 4rem) !important;
+            max-height: calc(100vh - 4rem) !important;
+            overflow: hidden !important;
+            background: #ffffff !important;
+        }
+        html.pickup-list-page .pcoded-navbar,
+        body.pickup-list-page .pcoded-navbar {
+            top: 4rem !important;
+            bottom: 0 !important;
+            height: calc(100vh - 4rem) !important;
+            min-height: calc(100vh - 4rem) !important;
+        }
+        html.pickup-list-page .pcoded-content,
+        body.pickup-list-page .pcoded-content {
+            overflow: hidden !important;
+            height: calc(100vh - 4rem) !important;
+            min-height: calc(100vh - 4rem) !important;
+            max-height: calc(100vh - 4rem) !important;
+            background: #ffffff !important;
+            background-image: none !important;
+        }
+        html.pickup-list-page .pcoded-inner-content,
+        html.pickup-list-page .main-body,
+        html.pickup-list-page .page-wrapper,
+        html.pickup-list-page .page-body,
+        body.pickup-list-page .pcoded-inner-content,
+        body.pickup-list-page .main-body,
+        body.pickup-list-page .page-wrapper,
+        body.pickup-list-page .page-body {
+            height: 100% !important;
+            min-height: 100% !important;
+            max-height: 100% !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            position: relative !important;
+        }
+        .pickup-list-card {
+            display: flex !important;
+            flex-direction: column !important;
+            position: absolute !important;
+            top: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
+        }
+        .pickup-list-card > .card-block {
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            padding: 8px 12px 0 !important;
+            background: #ffffff !important;
+        }
+        .pickup-filters-fixed {
+            flex-shrink: 0;
+            padding: 8px 0 0;
+            margin: 0;
+            background: #fff;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .pickup-table-area {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background: #ffffff !important;
+        }
+        #pickup-pagination.pagination-sticky-footer {
+            flex-shrink: 0 !important;
+            margin-top: auto !important;
+        }
+        .pickup-table-area .dataTables_wrapper,
+        .pickup-table-area .dt-responsive,
+        .pickup-table-area .list-ajax-table-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
         .office-table {
             width: 100%;
             border-collapse: collapse;
@@ -45,62 +186,88 @@
         }
         .filter-group {
             display: flex;
-            align-items: center;
-            border: 1px solid #ced4da;
-            padding: 0 10px;
-            border-radius: 4px;
+            align-items: stretch;
+            border: 1px solid #9ec9d6;
+            padding: 0 !important;
+            border-radius: 8px;
             height: 32px;
             background: #fff;
             overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
         }
         .filter-group .filter-label {
             font-size: 11px;
-            color: #64748b;
-            margin-bottom: 0;
-            padding-right: 10px;
-            margin-right: 10px;
+            color: #ffffff;
+            margin: 0 !important;
+            padding: 0 10px !important;
             white-space: nowrap;
-            font-weight: 500;
-            border-right: 1px solid #ced4da;
-            height: 100%;
-            display: flex;
+            font-weight: 700;
+            border-right: 1px solid #5a7fa0;
+            height: auto !important;
+            display: inline-flex;
             align-items: center;
+            background: #6992b5;
+            flex: 0 0 auto;
+            min-width: fit-content;
         }
         .filter-group .filter-input {
             border: none !important;
             box-shadow: none !important;
             height: 100% !important;
             font-size: 12px;
-            padding: 0 !important;
+            padding: 0 8px !important;
             background: transparent !important;
             width: 100%;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+        .filter-group .searchable-filter-wrapper,
+        .filter-group .select2-container {
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 100%;
         }
         .filter-group .select2-container--default .select2-selection--single,
         .filter-group .select2-container--default .select2-selection--multiple {
             border: none !important;
             background: transparent !important;
+            height: 30px !important;
+            min-height: 30px !important;
         }
         .filter-group .select2-container--default .select2-selection--single .select2-selection__rendered {
-            padding-left: 0 !important;
+            padding-left: 8px !important;
         }
-        .filter-group i {
-            color: #008080;
-            font-size: 14px;
-        }
-        .custom-col {
-            padding-right: 5px;
-            padding-left: 5px;
-            margin-bottom: 10px;
-        }
-        .clear-filters {
-            font-size: 12px;
-            color: #008080;
-            text-decoration: none;
-            cursor: pointer;
-            margin-left: 10px;
-            align-self: center;
-            display: flex;
+        .filter-group .filter-date-icon,
+        .filter-group > i.ti-calendar {
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
+            flex: 0 0 28px;
+            width: 28px;
+            color: #0088c7 !important;
+            font-size: 13px !important;
+            opacity: 1 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .pickup-filters-fields .row.no-gutters {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            gap: 8px !important;
+            margin: 0 !important;
+        }
+        .pickup-filters-fields .custom-col {
+            padding: 0 !important;
+            margin: 0 !important;
+            min-width: 0;
+        }
+        .pickup-filters-fields .clear-filters,
+        .pickup-filters-fields .btn-clear-filters {
+            margin: 0 !important;
+            align-self: center;
+            white-space: nowrap;
         }
         .label {
             border-radius: 2px;
@@ -300,17 +467,28 @@
         .main-body .page-wrapper {
             padding: 5px !important;
         }
+        body.pickup-list-page .main-body .page-wrapper,
+        body.pickup-list-page .pcoded-inner-content {
+            padding: 0 !important;
+        }
         /* Table visibility fixes */
         .dt-responsive {
             width: 100%;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         .table-scroll-wrapper {
             width: 100%;
-            overflow-x: auto;
-            max-height: 750px;
-            overflow-y: auto;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto !important;
+            max-height: none !important;
             -webkit-overflow-scrolling: touch;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: none;
+            position: relative;
         }
         .office-table {
             min-width: 0;
@@ -357,7 +535,8 @@
                 border-bottom: 1px solid #eef2f7;
             }
 
-            body.pickup-filters-collapsed .pickup-filters-fields {
+            body.pickup-filters-collapsed .pickup-filters-fields,
+            .pickup-filters-fields.is-collapsed {
                 display: none !important;
             }
 
@@ -445,14 +624,9 @@
 
             .table-scroll-wrapper,
             .dt-responsive.table-responsive {
-                max-height: calc(100vh - 260px);
+                max-height: none !important;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
-            }
-
-            .pagination-sticky-footer {
-                justify-content: center !important;
-                overflow-x: auto;
             }
 
             .dataTables_wrapper .dataTables_paginate {
@@ -494,40 +668,27 @@
             padding-right: 10px !important; /* Reset padding usually reserved for arrows */
         }
 
-        /* Pagination Styling */
-        .pagination-sticky-footer {
-            position: sticky;
-            bottom: 0;
-            background-color: #ffffff;
-            padding: 10px 0;
-            border-top: 1px solid #e9ecef;
-            z-index: 10;
-            margin-top: 0 !important;
-        }
+        /* Pagination look: partials/list-pagination-footer-styles */
         .dataTables_wrapper .dataTables_paginate {
             margin-top: 0 !important;
             padding: 0;
             display: flex;
             justify-content: flex-end;
+            float: none !important;
+            width: 100%;
         }
-        .pagination .page-item.active .page-link {
-            background-color: #008080 !important;
-            border-color: #008080 !important;
-            color: #fff !important;
-        }
-        .pagination .page-link {
-            color: #008080 !important;
-            font-size: 12px;
-            padding: 5px 10px;
-        }
-        .pagination .page-item.disabled .page-link {
-            color: #6c757d !important;
+        .dataTables_wrapper {
+            padding-bottom: 0 !important;
         }
     </style>
     <x-lists.multiselect-assets />
 @endsection
 
 @section('content')
+<script>
+    document.documentElement.classList.add('pickup-list-page');
+    document.body.classList.add('pickup-list-page');
+</script>
 <!-- Pre-loader start -->
     <div class="theme-loader">
         <div class="ball-scale">
@@ -566,16 +727,23 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    @include('layouts.partials.pcoded-shell-start')
-                                        <!-- Base Style - Compact start -->
-                                        <div class="card">
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+                                        <div class="card pickup-list-card">
                                             <div class="card-block">
+                                                <x-lists.page-header
+                                                    title="Pick up work list"
+                                                    subtitle="Plan and track stock pickups"
+                                                    icon="ti-truck"
+                                                    :count="$crrs->total()"
+                                                    countLabel="pickups"
+                                                />
+                                                <div class="pickup-filters-fixed">
                                                 <div class="pickup-filters-toolbar">
                                                     <button type="button" id="btn-pickup-filters-toggle" class="btn btn-outline-teal btn-sm">
                                                         <i class="ti-filter"></i> <span class="pickup-filters-toggle-label">Hide filters</span>
                                                     </button>
                                                 </div>
-                                                <div class="d-flex justify-content-between align-items-start pt-2 pickup-filters-fields">
+                                                <div class="justify-content-between align-items-start pt-2 pickup-filters-fields">
                                                     <div style="width: 100%;">
                                                         <div class="row no-gutters">
                                                             <div class="mr-2" style="margin-top: 2px;">
@@ -611,21 +779,21 @@
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Expected del. date</span>
                                                                     <input type="text" id="filter-expected-delivery" class="form-control filter-input date-range-filter" placeholder="Select range">
-                                                                    <i class="ti-calendar ml-1" style="font-size: 12px; opacity: 0.7;"></i>
+                                                                    <i class="ti-calendar filter-date-icon" aria-hidden="true"></i>
                                                                 </div>
                                                             </div>
                                                             <div id="col-Pick-up-date" class="custom-col" style="flex: 0 0 225px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Pick up date</span>
                                                                     <input type="text" id="filter-pickup-date" class="form-control filter-input date-range-filter" placeholder="Select range">
-                                                                    <i class="ti-calendar ml-1" style="font-size: 12px; opacity: 0.7;"></i>
+                                                                    <i class="ti-calendar filter-date-icon" aria-hidden="true"></i>
                                                                 </div>
                                                             </div>
                                                             <div id="col-Deadline-warehouse" class="custom-col" style="flex: 0 0 320px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Deadline warehouse</span>
                                                                     <input type="text" id="filter-deadline-warehouse" class="form-control filter-input date-range-filter" placeholder="Select range">
-                                                                    <i class="ti-calendar ml-1" style="font-size: 12px; opacity: 0.7;"></i>
+                                                                    <i class="ti-calendar filter-date-icon" aria-hidden="true"></i>
                                                                 </div>
                                                             </div>
                                                             <div id="col-Handled-by" class="custom-col" style="flex: 0 0 227px;">
@@ -668,13 +836,14 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                </div>{{-- .pickup-filters-fixed --}}
 
+                                                <div class="pickup-table-area">
                                                 <div class="dt-responsive table-responsive">
                                                     <x-lists.ajax-table
                                                         table-id="offices-table"
                                                         table-class="office-table"
-                                                        pagination-id="pickup-pagination"
-                                                        :paginator="$crrs->links()"
+                                                        :paginator="null"
                                                     >
                                                         <x-slot:head>
                                                             <tr>
@@ -695,10 +864,12 @@
                                                         @include('Stock.partials.pickup-rows')
                                                     </x-lists.ajax-table>
                                                 </div>
+                                                </div>{{-- .pickup-table-area --}}
+                                                <div id="pickup-pagination" class="pagination-sticky-footer">
+                                                    @include('partials.list-pagination-footer-inner', ['paginator' => $crrs])
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Base Style - Compact end -->
     @include('layouts.partials.pcoded-shell-end')
 
 
@@ -709,6 +880,7 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            $('body').addClass('pickup-list-page');
             initializeSearchableFilterMultiselect(
                 '#filter-account-manager, #filter-handled-by, #filter-vessel, #filter-hub-agent',
                 {
@@ -826,6 +998,24 @@
                 ensureMobileFiltersVisible();
             });
 
+            var pickupTable = null;
+
+            // Bind before DataTable so Hide/Show filters works even if DT init fails
+            $('#btn-pickup-filters-toggle').on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $fields = $('.pickup-filters-fields');
+                var collapsed = !$('body').hasClass('pickup-filters-collapsed');
+                $('body').toggleClass('pickup-filters-collapsed', collapsed);
+                $fields.toggleClass('is-collapsed', collapsed);
+                $(this).toggleClass('is-collapsed', collapsed);
+                $(this).find('.pickup-filters-toggle-label').text(collapsed ? 'Show filters' : 'Hide filters');
+                if (!collapsed) {
+                    ensureMobileFiltersVisible();
+                }
+                setTimeout(adjustPickupTableLayout, 50);
+            });
+
             // Initialize Date Range Picker
             $('.date-range-filter').daterangepicker({
                 autoUpdateInput: false,
@@ -843,7 +1033,7 @@
                 $(this).val('').trigger('change');
             });
 
-            var table = $('#offices-table').DataTable({
+            pickupTable = $('#offices-table').DataTable({
                 "dom": '<"table-scroll-wrapper"rt>',
                 "lengthChange": false,
                 "paging": false,
@@ -855,24 +1045,64 @@
                 "scrollX": true
             });
 
-            $('#btn-pickup-filters-toggle').on('click', function () {
-                $('body').toggleClass('pickup-filters-collapsed');
-                var collapsed = $('body').hasClass('pickup-filters-collapsed');
-                $(this).toggleClass('is-collapsed', collapsed);
-                $(this).find('.pickup-filters-toggle-label').text(collapsed ? 'Show filters' : 'Hide filters');
-                if (!collapsed) {
-                    ensureMobileFiltersVisible();
+            function getPickupTableScrollHeight() {
+                var $tableArea = $('.pickup-table-area');
+                var $scroll = $('.pickup-table-area .table-scroll-wrapper');
+                if (!$tableArea.length) {
+                    return 180;
                 }
-                setTimeout(function () {
-                    table.columns.adjust();
-                }, 50);
-            });
+
+                // Prefer flex-allocated area height; keep pagination in view.
+                var areaHeight = $tableArea.innerHeight() || 0;
+                var paginationHeight = $('#pickup-pagination').outerHeight() || 52;
+
+                if (areaHeight >= 120) {
+                    return Math.max(120, areaHeight - 2);
+                }
+
+                // Fallback when flex height is not ready yet
+                var topOffset = $tableArea.offset() ? $tableArea.offset().top : 220;
+                var available = window.innerHeight - topOffset - paginationHeight - 8;
+                return Math.max(120, available);
+            }
+
+            function adjustPickupTableLayout() {
+                var height = getPickupTableScrollHeight();
+                var $scroll = $('.pickup-table-area .table-scroll-wrapper');
+                $scroll.css({
+                    height: height + 'px',
+                    maxHeight: height + 'px',
+                    flex: '1 1 auto',
+                    minHeight: '0'
+                });
+
+                // Keep card pinned to page-body (absolute inset)
+                $('.pickup-list-card').css({
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                    height: 'auto',
+                    maxHeight: 'none'
+                });
+                $('.page-body').css({ position: 'relative' });
+
+                if (pickupTable) {
+                    pickupTable.columns.adjust();
+                }
+            }
+
+            $(window).on('resize', adjustPickupTableLayout);
+            setTimeout(adjustPickupTableLayout, 50);
+            setTimeout(adjustPickupTableLayout, 250);
+            setTimeout(adjustPickupTableLayout, 600);
 
             window.pickupListFilters = bindAjaxListFilters({
                 tableSelector: '#offices-table',
                 paginationSelector: '#pickup-pagination',
                 indexUrl: @json(route('pickup-work-list')),
-                existingTable: table,
+                existingTable: pickupTable,
                 clearSelector: '#clear-pickup-filters',
                 getParams: function (page) {
                     return {
@@ -898,7 +1128,7 @@
                     $('#filter-stock-number, #filter-supplier-ref, #filter-expected-delivery, #filter-deadline-warehouse, #filter-pickup-date').val('');
                 },
                 afterDraw: function () {
-                    table.columns.adjust();
+                    adjustPickupTableLayout();
                 }
             });
         });

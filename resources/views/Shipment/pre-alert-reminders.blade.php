@@ -6,6 +6,7 @@
 
     <x-lists.base-styles bodyClass="prealert-filters-open" toolbarClass="prealert-filters-toolbar" />
     <x-lists.multiselect-assets />
+    @include('partials.list-pagination-footer-styles')
     <style>
         /* High Density Table Styles */
         #offices-table {
@@ -309,16 +310,7 @@
         #offices-table {
             min-width: 1100px;
         }
-        .pagination-sticky-footer {
-            position: sticky;
-            bottom: 0;
-            padding: 10px 20px;
-            background: #ffffff;
-            border-top: 1px solid #e9ecef;
-            z-index: 10;
-            margin-top: 0 !important;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
-        }
+        /* Pagination look: partials/list-pagination-footer-styles */
         .dataTables_wrapper .dataTables_paginate {
             margin-top: 0 !important;
             padding: 0;
@@ -400,12 +392,95 @@
                 display: flex !important;
             }
         }
-        /* Reduce gap/margin between sidebar and content */
-        .pcoded-inner-content {
-            padding: 5px !important;
+        /* Reduce gap/margin between sidebar and content — full-height list shell */
+        body.prealert-list-page {
+            overflow: hidden !important;
+            height: 100vh;
         }
-        .main-body .page-wrapper {
-            padding: 5px !important;
+        body.prealert-list-page .pcoded-content {
+            overflow: hidden !important;
+        }
+        body.prealert-list-page .pcoded-inner-content,
+        body.prealert-list-page .main-body,
+        body.prealert-list-page .page-wrapper,
+        body.prealert-list-page .page-body {
+            height: 100%;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .prealert-list-card {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
+            overflow: hidden;
+        }
+        .prealert-list-card > .card-block {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            padding: 8px 12px 8px !important;
+        }
+        .prealert-list-card .list-page-header,
+        .prealert-filters-fixed {
+            flex-shrink: 0;
+        }
+        .prealert-filters-fixed {
+            background: #fff;
+            position: relative;
+            z-index: 40;
+            padding-bottom: 6px;
+        }
+        .prealert-table-area {
+            flex: 1;
+            min-height: 0;
+            overflow: auto !important;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
+        }
+        #prealert-pagination.pagination-sticky-footer {
+            flex-shrink: 0;
+        }
+        .filter-group-etl {
+            min-height: 32px;
+        }
+        .filter-etl-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            margin: 0;
+            padding: 0 10px;
+            cursor: pointer;
+            user-select: none;
+            background: #fff;
+        }
+        .filter-etl-control input[type="checkbox"] {
+            width: 15px;
+            height: 15px;
+            margin: 0;
+            flex-shrink: 0;
+            cursor: pointer;
+            accent-color: #008080;
+        }
+        .filter-etl-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #0e1d4a;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .filter-etl-control:has(input:checked) .filter-etl-text {
+            color: #008080;
         }
         td a {
             color: rgb(24, 100, 131) !important;
@@ -453,30 +528,17 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
-                                        <!-- Base Style - Compact start -->
-                                        <div class="card">
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+                                        <div class="card prealert-list-card">
                                             <div class="card-block">
+                                                <x-lists.page-header
+                                                    title="Pre-alert reminders"
+                                                    subtitle="Shipments due for pre-alert follow-up"
+                                                    icon="ti-bell"
+                                                    :count="$shipments->total()"
+                                                    countLabel="shipments"
+                                                />
+                                                <div class="prealert-filters-fixed">
                                                 <x-lists.filter-toolbar
                                                     toggle-id="btn-prealert-filters-toggle"
                                                     body-class="prealert-filters-open"
@@ -509,12 +571,13 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Show-ETL-shipments" class="custom-col" style="flex: 0 0 160px;">
-                                                                <div class="filter-group" style="border: none; background: transparent;">
-                                                                    <div class="d-flex align-items-center" style="font-size: 11px; color: #64748b; font-weight: 500;">
-                                                                        <span>Show ETL shipments</span>
-                                                                        <input type="checkbox" id="filter-show-etl" class="ml-2" style="width: 14px; height: 14px; margin-top: 0;">
-                                                                    </div>
+                                                            <div id="col-Show-ETL-shipments" class="custom-col" style="flex: 0 0 168px;">
+                                                                <div class="filter-group filter-group-etl">
+                                                                    <span class="filter-label">ETL</span>
+                                                                    <label class="filter-etl-control" for="filter-show-etl">
+                                                                        <input type="checkbox" id="filter-show-etl">
+                                                                        <span class="filter-etl-text">Show only</span>
+                                                                    </label>
                                                                 </div>
                                                             </div>
 
@@ -580,13 +643,12 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                                <div class="dt-responsive table-responsive">
+                                                </div>
+
+                                                <div class="prealert-table-area">
                                                     <x-lists.ajax-table
                                                         table-id="offices-table"
                                                         table-class="office-table"
-                                                        pagination-id="prealert-pagination"
-                                                        :paginator="$shipments->links()"
                                                     >
                                                         <x-slot:head>
                                                             <tr>
@@ -609,24 +671,12 @@
                                                         @include('Shipment.partials.pre-alert-rows')
                                                     </x-lists.ajax-table>
                                                 </div>
+                                                <div id="prealert-pagination" class="pagination-sticky-footer">
+                                                    @include('partials.list-pagination-footer-inner', ['paginator' => $shipments])
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    @include('layouts.partials.pcoded-shell-end')
     @include('Shipment.partials.reminder-compose-modal')
 
 
@@ -637,6 +687,8 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            $('body').addClass('prealert-list-page');
+
             initializeSearchableFilterMultiselect(
                 '#filter-account-manager, #filter-customer, #filter-vessel, #filter-status, #filter-created-by',
                 {
@@ -736,7 +788,7 @@
             ensurePrealertMobileFiltersVisible();
 
             var table = $('#offices-table').DataTable({
-                "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
+                "dom": '<"table-scroll-wrapper"rt>',
                 "lengthChange": false,
                 "paging": false,
                 "info": false,

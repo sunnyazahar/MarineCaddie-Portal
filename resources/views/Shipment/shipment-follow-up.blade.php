@@ -6,6 +6,7 @@
 
     <x-lists.base-styles bodyClass="followup-filters-open" toolbarClass="followup-filters-toolbar" />
     <x-lists.multiselect-assets />
+    @include('partials.list-pagination-footer-styles')
     <style>
         /* High Density Table Styles */
         #offices-table {
@@ -16,7 +17,14 @@
             border-spacing: 0 !important;
         }
         .followup-table-area,
-        .followup-table-area.table-responsive,
+        .followup-table-area.table-responsive {
+            overflow: auto !important;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
+        }
         .card-block > .table-responsive,
         .dt-responsive.table-responsive {
             overflow: visible !important;
@@ -130,10 +138,16 @@
         #offices-table td:nth-child(13) { width: 110px; min-width: 110px; }
         .followup-table-area {
             min-height: 0;
+            flex: 1;
+            overflow: auto !important;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
         }
         .table-scroll-wrapper {
             overflow: auto !important;
-            max-height: calc(100vh - 280px);
+            flex: 1;
+            min-height: 0;
             width: 100%;
             position: relative;
             -webkit-overflow-scrolling: touch;
@@ -390,28 +404,60 @@
             border-color: #008080 !important;
         }
         
-        .pagination-sticky-footer {
-            position: sticky;
-            bottom: 0;
-            padding: 10px 20px;
-            background: #ffffff;
-            border-top: 1px solid #e9ecef;
-            z-index: 10;
-            margin-top: 0 !important;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
-        }
+        /* Pagination look: partials/list-pagination-footer-styles */
         .dataTables_wrapper .dataTables_paginate {
             margin-top: 0 !important;
             padding: 0;
             display: flex;
             justify-content: flex-end;
         }
-        /* Reduce gap/margin between sidebar and content */
-        .pcoded-inner-content {
-            padding: 5px !important;
+        /* Full-height list shell — header flush, footer pinned to card bottom */
+        body.shipment-followup-list-page {
+            overflow: hidden !important;
+            height: 100vh;
         }
-        .main-body .page-wrapper {
-            padding: 5px !important;
+        body.shipment-followup-list-page .pcoded-content {
+            overflow: hidden !important;
+        }
+        body.shipment-followup-list-page .pcoded-inner-content,
+        body.shipment-followup-list-page .main-body,
+        body.shipment-followup-list-page .page-wrapper,
+        body.shipment-followup-list-page .page-body {
+            height: 100%;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .shipment-followup-list-card {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
+            overflow: hidden;
+        }
+        .shipment-followup-list-card > .card-block {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            padding: 8px 12px 8px !important;
+        }
+        .shipment-followup-list-card .list-page-header,
+        .followup-filters-fixed {
+            flex-shrink: 0;
+        }
+        .followup-filters-fixed {
+            background: #fff;
+            position: relative;
+            z-index: 40;
+            padding-bottom: 6px;
+        }
+        #followup-pagination.pagination-sticky-footer {
+            flex-shrink: 0;
         }
         td a {
             color: rgb(24, 100, 131) !important;
@@ -865,30 +911,17 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
-                                        <!-- Base Style - Compact start -->
-                                        <div class="card">
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+                                        <div class="card shipment-followup-list-card">
                                             <div class="card-block">
+                                                <x-lists.page-header
+                                                    title="Shipment follow-up"
+                                                    subtitle="Open shipments that still need action"
+                                                    icon="ti-flag-alt"
+                                                    :count="$shipments->total()"
+                                                    countLabel="shipments"
+                                                />
+                                                <div class="followup-filters-fixed">
                                                 <x-lists.filter-toolbar
                                                     toggle-id="btn-followup-filters-toggle"
                                                     body-class="followup-filters-open"
@@ -1023,26 +1056,12 @@
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                                <div id="followup-pagination" class="mt-3 px-3 pb-2">
-                                                    {{ $shipments->links() }}
-                                                </div>
+                                                <div id="followup-pagination" class="pagination-sticky-footer">
+                                                    @include('partials.list-pagination-footer-inner', ['paginator' => $shipments])
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
 <!-- Compose Reminder Modal -->
 @include('Shipment.partials.reminder-compose-modal')
 <!-- End Compose Reminder Modal -->
@@ -1055,6 +1074,8 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            $('body').addClass('shipment-followup-list-page');
+
             initializeSearchableFilterMultiselect(
                 '#filter-account-manager, #filter-customer, #filter-vessel, #filter-status, #filter-created-by',
                 {

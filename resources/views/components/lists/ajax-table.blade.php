@@ -6,6 +6,7 @@
     'paginator' => null,
     'minWidth' => null,
     'headTemplateId' => null,
+    'paginationClass' => 'mt-3 px-3 pb-2 list-ajax-pagination',
 ])
 
 @php
@@ -38,7 +39,7 @@
 </div>
 
 @if ($paginationId)
-    <div id="{{ $paginationId }}" class="mt-3 px-3 pb-2 list-ajax-pagination">
+    <div id="{{ $paginationId }}" @class([$paginationClass, 'list-ajax-pagination'])>
         {!! $paginator ?? '' !!}
     </div>
 @endif

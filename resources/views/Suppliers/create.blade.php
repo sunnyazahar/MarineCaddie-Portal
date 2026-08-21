@@ -139,7 +139,7 @@
             border-radius: 3px !important;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 28px !important;
+            line-height: 1.25 !important;
             padding: 0 8px !important;
             background-color: transparent !important;
             background: transparent !important;

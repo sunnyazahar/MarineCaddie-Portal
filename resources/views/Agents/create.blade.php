@@ -520,7 +520,7 @@
         }
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 26px !important;
+            line-height: 1.25 !important;
             color: #374151 !important;
             padding-left: 0 !important;
             background: transparent !important;

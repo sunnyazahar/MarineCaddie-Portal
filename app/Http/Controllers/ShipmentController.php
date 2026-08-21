@@ -37,7 +37,7 @@ class ShipmentController extends BaseShipmentController
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('Shipment.partials.rows', compact('shipments', 'partyNames', 'vesselCustomerMap'))->render(),
-                'pagination' => (string) $shipments->links(),
+                'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $shipments])->render(),
                 'total' => $shipments->total(),
             ]);
         }
@@ -62,7 +62,7 @@ class ShipmentController extends BaseShipmentController
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('Shipment.partials.pre-alert-rows', compact('shipments', 'partyNames'))->render(),
-                'pagination' => (string) $shipments->links(),
+                'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $shipments])->render(),
                 'total' => $shipments->total(),
             ]);
         }
@@ -86,7 +86,7 @@ class ShipmentController extends BaseShipmentController
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('Shipment.partials.follow-up-rows', compact('shipments', 'partyNames'))->render(),
-                'pagination' => (string) $shipments->links(),
+                'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $shipments])->render(),
                 'total' => $shipments->total(),
             ]);
         }

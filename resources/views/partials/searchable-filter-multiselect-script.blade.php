@@ -291,6 +291,13 @@
                 }
 
                 replaceRows(response.html, response.pagination);
+
+                if (typeof response.total === 'number') {
+                    var $count = $('.list-page-header-count strong');
+                    if ($count.length) {
+                        $count.text(Number(response.total).toLocaleString());
+                    }
+                }
             });
         }
 

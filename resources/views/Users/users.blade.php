@@ -2,13 +2,82 @@
 
 @section('styles')
     <!-- Data Table Css -->
+    @include('partials.list-pagination-footer-styles')
 
     <style>
-        #offices-table tbody td {
-            padding: 4px 5px !important;
-            vertical-align: middle !important;
-            font-size: 12px;
-            white-space: normal !important;
+        /* Users list: stocks-like full-height shell */
+        body.users-list-page {
+            overflow: hidden !important;
+            height: 100vh;
+        }
+        body.users-list-page .pcoded-content {
+            overflow: hidden !important;
+        }
+        body.users-list-page .pcoded-inner-content,
+        body.users-list-page .main-body,
+        body.users-list-page .page-wrapper,
+        body.users-list-page .page-body {
+            height: 100%;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .users-list-card {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
+            overflow: hidden;
+        }
+        .users-list-card > .card-block {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            padding: 8px 12px 8px !important;
+        }
+        .users-list-card .list-page-header {
+            flex-shrink: 0;
+            margin-bottom: 8px;
+        }
+        .users-toolbar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .users-search-input {
+            height: var(--mc-control-height, 34px);
+            min-width: 220px;
+            max-width: 320px;
+            width: 100%;
+            border: 1px solid #d6e3ee;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 13px;
+            color: #0e1d4a;
+            background: #fff;
+        }
+        .users-search-input:focus {
+            outline: none;
+            border-color: #00aeef;
+            box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.15);
+        }
+        .users-table-area {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #users-pagination.pagination-sticky-footer {
+            flex-shrink: 0;
         }
         .btn-teal {
             background-color: #008080;
@@ -18,6 +87,7 @@
         .btn-teal:hover {
             background-color: #006666;
             border-color: #006666;
+            color: #fff;
         }
         .btn-outline-teal {
             color: #008080;
@@ -27,6 +97,49 @@
         .btn-outline-teal:hover {
             background-color: #008080;
             color: white;
+        }
+
+        #addUserModal .modal-footer,
+        #editUserModal .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 14px;
+        }
+        #addUserModal .btn-modal-cancel,
+        #editUserModal .btn-modal-cancel {
+            color: #008080;
+            font-size: 13px;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            padding: 8px 4px;
+            box-shadow: none;
+        }
+        #addUserModal .btn-modal-cancel:hover,
+        #editUserModal .btn-modal-cancel:hover {
+            color: #0e1d4a;
+            text-decoration: underline;
+            background: transparent;
+        }
+        #addUserModal .btn-modal-save,
+        #editUserModal .btn-modal-save {
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.28);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        #addUserModal .btn-modal-save:hover,
+        #editUserModal .btn-modal-save:hover {
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 128, 128, 0.34);
         }
         .filter-label {
             font-size: 11px;
@@ -135,7 +248,7 @@
             font-size: 11px;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 28px !important;
+            line-height: 1.25 !important;
             padding: 2px 8px;
         }
         #addUserModal .select2-container--default .select2-selection--single,
@@ -484,18 +597,38 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    @include('layouts.partials.pcoded-shell-start')
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
                                    @if (session('success'))
-                                       <div class="alert alert-success">{{ session('success') }}</div>
-                                   @endif
-                                   <div class="header-search-bar">
-                                       <div class="search-inner">
-
+                                       <div class="alert alert-success alert-dismissible fade show" role="alert" style="font-size: 12px; margin: 8px 12px 0;">
+                                           {{ session('success') }}
+                                           <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                        </div>
-                                       <button type="button" class="btn-add-office" data-toggle="modal" data-target="#addUserModal">Add User</button>
-                                   </div>
+                                   @endif
 
-                                   <div class="users-table-wrap">
+                                   <div class="card users-list-card">
+                                       <div class="card-block">
+                                           <x-lists.page-header
+                                               title="Users"
+                                               subtitle="Manage portal accounts, roles, and OTP unlocks"
+                                               icon="ti-user"
+                                               :count="$users->total()"
+                                               countLabel="users"
+                                           >
+                                               <x-slot:actions>
+                                                   <button type="button" id="btn-add-user" class="btn btn-teal btn-sm d-none d-lg-inline-flex" data-toggle="modal" data-target="#addUserModal">
+                                                       Add user
+                                                   </button>
+                                               </x-slot:actions>
+                                           </x-lists.page-header>
+
+                                           <div class="users-toolbar">
+                                               <input type="text" class="users-search-input search-input-custom" placeholder="Search users…" aria-label="Search users">
+                                               <button type="button" id="btn-add-user-mobile" class="btn btn-teal btn-sm d-lg-none" data-toggle="modal" data-target="#addUserModal">
+                                                   Add user
+                                               </button>
+                                           </div>
+
+                                           <div class="users-table-area">
                                    <table id="offices-table" class="office-table">
                                        <thead>
                                            <tr>
@@ -563,15 +696,18 @@
                                            @endforeach
                                        </tbody>
                                    </table>
-                                   </div>
-                                   <div class="mt-3">
-                                       {{ $users->links() }}
+                                           </div>
+
+                                           <div id="users-pagination" class="pagination-sticky-footer">
+                                               @include('partials.list-pagination-footer-inner', ['paginator' => $users])
+                                           </div>
+                                       </div>
                                    </div>
 
                                    <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
                                        <div class="modal-dialog modal-dialog-centered" role="document">
                                            <div class="modal-content">
-                                               <form id="add-user-form" method="POST" action="{{ route('users.store') }}">
+                                               <form id="add-user-form" method="POST" action="{{ route('users.store') }}" autocomplete="off">
                                                    @csrf
                                                    <div class="modal-header">
                                                        <h5 class="modal-title" id="addUserModalLabel">Create new user</h5>
@@ -583,7 +719,7 @@
                                                        <div class="form-group">
                                                            <label for="user-name">Name</label>
                                                            <input type="text" id="user-name" name="name" value="{{ old('name') }}"
-                                                               class="form-control @error('name') is-invalid @enderror" required>
+                                                               class="form-control @error('name') is-invalid @enderror" autocomplete="off" required>
                                                            @error('name')
                                                                <div class="invalid-feedback">{{ $message }}</div>
                                                            @enderror
@@ -591,7 +727,7 @@
                                                        <div class="form-group">
                                                            <label for="user-email">Email</label>
                                                            <input type="email" id="user-email" name="email" value="{{ old('email') }}"
-                                                               class="form-control @error('email') is-invalid @enderror" required>
+                                                               class="form-control @error('email') is-invalid @enderror" autocomplete="off" required>
                                                            @error('email')
                                                                <div class="invalid-feedback">{{ $message }}</div>
                                                            @enderror
@@ -599,7 +735,7 @@
                                                        <div class="form-group">
                                                            <label for="user-phone-number">Phone number</label>
                                                            <input type="text" id="user-phone-number" name="phone_number" value="{{ old('phone_number') }}"
-                                                               class="form-control @error('phone_number') is-invalid @enderror">
+                                                               class="form-control @error('phone_number') is-invalid @enderror" autocomplete="off">
                                                            @error('phone_number')
                                                                <div class="invalid-feedback">{{ $message }}</div>
                                                            @enderror
@@ -620,7 +756,7 @@
                                                        <div class="form-group">
                                                            <label for="user-password">Password</label>
                                                            <input type="password" id="user-password" name="password"
-                                                               class="form-control @error('password') is-invalid @enderror" required>
+                                                               class="form-control @error('password') is-invalid @enderror" autocomplete="new-password" required>
                                                            @error('password')
                                                                <div class="invalid-feedback">{{ $message }}</div>
                                                            @enderror
@@ -634,13 +770,13 @@
                                                        <div class="form-group mb-0">
                                                            <label for="user-password-confirmation">Confirm password</label>
                                                            <input type="password" id="user-password-confirmation" name="password_confirmation"
-                                                               class="form-control" required>
+                                                               class="form-control" autocomplete="new-password" required>
                                                            <div id="password-confirmation-text" class="password-feedback"></div>
                                                        </div>
                                                    </div>
                                                    <div class="modal-footer">
-                                                       <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                                                       <button type="submit" class="btn btn-primary">Create user</button>
+                                                       <button type="button" class="btn-modal-cancel" data-dismiss="modal">Cancel</button>
+                                                       <button type="submit" class="btn-modal-save">Create user</button>
                                                    </div>
                                                </form>
                                            </div>
@@ -651,7 +787,8 @@
                                        <div class="modal-dialog modal-dialog-centered" role="document">
                                            <div class="modal-content">
                                                <form id="edit-user-form" method="POST"
-                                                   action="{{ old('editing_user_id') ? route('users.update', old('editing_user_id')) : '#' }}">
+                                                   action="{{ old('editing_user_id') ? route('users.update', old('editing_user_id')) : '#' }}"
+                                                   autocomplete="off">
                                                    @csrf
                                                    @method('PUT')
                                                    <input type="hidden" id="editing-user-id" name="editing_user_id" value="{{ old('editing_user_id') }}">
@@ -665,7 +802,7 @@
                                                        <div class="form-group">
                                                            <label for="edit-user-name">Name</label>
                                                            <input type="text" id="edit-user-name" name="name" value="{{ old('name') }}"
-                                                               class="form-control @error('name', 'editUser') is-invalid @enderror" required>
+                                                               class="form-control @error('name', 'editUser') is-invalid @enderror" autocomplete="off" required>
                                                            @error('name', 'editUser')
                                                                <div class="invalid-feedback">{{ $message }}</div>
                                                            @enderror
@@ -673,7 +810,7 @@
                                                        <div class="form-group">
                                                            <label for="edit-user-email">Email</label>
                                                            <input type="email" id="edit-user-email" name="email" value="{{ old('email') }}"
-                                                               class="form-control @error('email', 'editUser') is-invalid @enderror" required>
+                                                               class="form-control @error('email', 'editUser') is-invalid @enderror" autocomplete="off" required>
                                                            @error('email', 'editUser')
                                                                <div class="invalid-feedback">{{ $message }}</div>
                                                            @enderror
@@ -681,7 +818,7 @@
                                                        <div class="form-group">
                                                            <label for="edit-user-phone-number">Phone number</label>
                                                            <input type="text" id="edit-user-phone-number" name="phone_number" value="{{ old('phone_number') }}"
-                                                               class="form-control @error('phone_number', 'editUser') is-invalid @enderror">
+                                                               class="form-control @error('phone_number', 'editUser') is-invalid @enderror" autocomplete="off">
                                                            @error('phone_number', 'editUser')
                                                                <div class="invalid-feedback">{{ $message }}</div>
                                                            @enderror
@@ -746,8 +883,8 @@
                                                        </div>
                                                    </div>
                                                    <div class="modal-footer">
-                                                       <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                                                       <button type="submit" class="btn btn-primary">Save changes</button>
+                                                       <button type="button" class="btn-modal-cancel" data-dismiss="modal">Cancel</button>
+                                                       <button type="submit" class="btn-modal-save">Save changes</button>
                                                    </div>
                                                </form>
                                            </div>
@@ -760,6 +897,16 @@
 
     <script>
         $(document).ready(function() {
+            $('body').addClass('users-list-page');
+
+            // Keep modals above list chrome / Select2
+            $('#addUserModal, #editUserModal').appendTo('body');
+
+            $(document).on('click', '#btn-add-user, #btn-add-user-mobile', function (e) {
+                e.preventDefault();
+                $('#addUserModal').modal('show');
+            });
+
              // Initialize Select2 for standard filters
             $('.select2').select2({
                 placeholder: "Click here",

@@ -207,5 +207,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             $view->with('canWriteAdministration', auth()->user()?->canWriteAdministration() ?? true);
         });
+
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
     }
 }

@@ -19,7 +19,7 @@
     $fieldId = $id ?? $name;
     $selectedValue = old($name, $value);
     if ($allowClear === null) {
-        $allowClear = $valueKey === 'name';
+        $allowClear = false;
     }
     $emptyLabel = $emptyOptionText ?? ($allowClear ? '' : $placeholder);
 @endphp
@@ -38,7 +38,7 @@
     data-country-select="1"
     data-placeholder="{{ $placeholder }}"
     data-allow-clear="{{ $allowClear ? '1' : '0' }}"
-    @if ($dropdownParent) data-dropdown-parent="{{ $dropdownParent }}" @endif
+    @if ($dropdownParent) data-mc-dropdown-parent="{{ $dropdownParent }}" @endif
     @if ($required) required @endif
     {{ $attributes->class(['mc-input', 'form-control', 'select2-country-select']) }}
     style="width: 100%;"
@@ -151,17 +151,21 @@
                             return;
                         }
 
-                        var allowClearAttr = $select.attr('data-allow-clear');
                         var options = {
                             placeholder: $select.attr('data-placeholder') || 'Select Country',
-                            allowClear: allowClearAttr === '1' || allowClearAttr === 'true',
+                            allowClear: false,
                             width: '100%',
                             templateResult: formatCountrySelect,
                             templateSelection: formatCountrySelect
                         };
 
-                        // Prefer explicit host (modals / .mc-select2-host), else body
-                        var dropdownParent = $select.attr('data-dropdown-parent');
+                        // Use data-mc-dropdown-parent (NOT data-dropdown-parent).
+                        // Select2 auto-maps data-dropdown-parent and a raw "body" string
+                        // breaks open() with: TypeError: m.css is not a function.
+                        var dropdownParent = $select.attr('data-mc-dropdown-parent') || $select.attr('data-dropdown-parent');
+                        $select.removeAttr('data-dropdown-parent');
+                        $select.removeData('dropdownParent');
+
                         var $parent = null;
                         if (dropdownParent) {
                             if (dropdownParent === 'body' || dropdownParent === 'document.body') {
@@ -181,6 +185,11 @@
                         }
 
                         $select.select2(options);
+                        // Re-assert jQuery parent in case Select2 merged a string from leftover data-*
+                        var s2 = $select.data('select2');
+                        if (s2 && s2.options && typeof s2.options.set === 'function') {
+                            s2.options.set('dropdownParent', options.dropdownParent);
+                        }
                         $select.next('.select2.select2-container').css('width', '100%');
 
                         $select.off('change.countrySelectValidation').on('change.countrySelectValidation', function () {

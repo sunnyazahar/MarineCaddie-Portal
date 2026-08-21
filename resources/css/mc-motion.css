@@ -1,0 +1,675 @@
+/* MarineCaddie — global page motion (shared across app + guest) */
+
+@keyframes mc-rise {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.985);
+        filter: blur(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes mc-panel-in {
+    from {
+        opacity: 0;
+        transform: translateX(28px) scale(0.98);
+        filter: blur(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes mc-chip-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes mc-icon-bloom {
+    0% {
+        opacity: 0;
+        transform: scale(0.6) rotate(-8deg);
+        box-shadow: 0 0 0 0 rgba(0, 174, 239, 0);
+    }
+    55% {
+        opacity: 1;
+        transform: scale(1.08) rotate(2deg);
+        box-shadow: 0 6px 18px rgba(0, 128, 128, 0.35);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+@keyframes mc-icon-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes mc-orb-drift {
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.9;
+    }
+    50% {
+        transform: translate(-18px, 10px) scale(1.12);
+        opacity: 1;
+    }
+}
+
+@keyframes mc-tab-swap {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.99);
+        filter: blur(2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes mc-doc-row {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes mc-footer-up {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mc-rise-soft {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* ========== Global page shell ========== */
+.page-body > .card,
+.page-body > .list-page-header,
+.page-body > .list-filters-toolbar,
+.page-body > .list-inline-toolbar,
+.page-body > .app-breadcrumb,
+.page-body > .row,
+.page-body > form,
+.guest-layout #app > main > * {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* No filter blur on full-page edit shells (keeps position:fixed footers stable) */
+.page-body > .master-container,
+.page-body > .stock-edit-wrapper {
+    animation: mc-rise-soft 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.page-body > .list-page-header {
+    animation-delay: 0.04s;
+}
+
+.page-body > .list-filters-toolbar,
+.page-body > .list-inline-toolbar {
+    animation-delay: 0.12s;
+}
+
+.page-body > .card:nth-of-type(1) {
+    animation-delay: 0.16s;
+}
+
+.page-body > .card:nth-of-type(2) {
+    animation-delay: 0.22s;
+}
+
+.page-body > .card:nth-of-type(3) {
+    animation-delay: 0.28s;
+}
+
+.page-body > .card:nth-of-type(n + 4) {
+    animation-delay: 0.32s;
+}
+
+/* List page header polish */
+.list-page-header {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.list-page-header-icon {
+    animation:
+        mc-icon-bloom 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both,
+        mc-icon-float 3.2s ease-in-out 0.9s infinite;
+}
+
+.list-page-header-aside {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+.list-filters-toolbar,
+.list-inline-toolbar {
+    animation: mc-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both;
+}
+
+/* Dashboard / generic cards */
+.dash-panel.card,
+.page-body .card {
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease;
+}
+
+.dash-panel.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(14, 29, 74, 0.08);
+}
+
+/* ========== Shipment edit ========== */
+body.shipment-edit-page .summary-header {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.shipment-edit-page .summary-header::before {
+    animation: mc-orb-drift 7s ease-in-out infinite;
+}
+
+body.shipment-edit-page .summary-header-icon {
+    animation:
+        mc-icon-bloom 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both,
+        mc-icon-float 3.2s ease-in-out 0.9s infinite;
+}
+
+body.shipment-edit-page .header-meta-group > .meta-item {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.shipment-edit-page .header-meta-group > .meta-item:nth-child(1) {
+    animation-delay: 0.12s;
+}
+body.shipment-edit-page .header-meta-group > .meta-item:nth-child(2) {
+    animation-delay: 0.18s;
+}
+body.shipment-edit-page .header-meta-group > .meta-item:nth-child(3) {
+    animation-delay: 0.24s;
+}
+body.shipment-edit-page .header-meta-group > .meta-item:nth-child(4) {
+    animation-delay: 0.3s;
+}
+body.shipment-edit-page .header-meta-group > .meta-item:nth-child(5) {
+    animation-delay: 0.36s;
+}
+body.shipment-edit-page .header-meta-group > .meta-item:nth-child(6) {
+    animation-delay: 0.42s;
+}
+
+body.shipment-edit-page .header-actions {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+
+body.shipment-edit-page .header-actions .btn-premium {
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+body.shipment-edit-page .header-actions .btn-premium:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(14, 29, 74, 0.1);
+}
+
+body.shipment-edit-page .custom-nav-tabs {
+    animation: mc-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+body.shipment-edit-page .nav-tab-item {
+    transition:
+        color 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease,
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.shipment-edit-page .nav-tab-item:hover {
+    transform: translateY(-2px);
+}
+
+body.shipment-edit-page .form-scroller {
+    animation: mc-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both;
+}
+
+body.shipment-edit-page .form-scroller .form-grid-3 > .form-col,
+body.shipment-edit-page .form-scroller .form-grid-3 .cs-pillar {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.shipment-edit-page .form-scroller .form-grid-3 > .form-col:nth-child(1),
+body.shipment-edit-page .form-scroller .form-grid-3 > .form-col:nth-child(1) .cs-pillar {
+    animation-delay: 0.34s;
+}
+body.shipment-edit-page .form-scroller .form-grid-3 > .form-col:nth-child(2),
+body.shipment-edit-page .form-scroller .form-grid-3 > .form-col:nth-child(2) .cs-pillar {
+    animation-delay: 0.42s;
+}
+body.shipment-edit-page .form-scroller .form-grid-3 > .form-col:nth-child(3),
+body.shipment-edit-page .form-scroller .form-grid-3 > .form-col:nth-child(3) .cs-pillar {
+    animation-delay: 0.5s;
+}
+
+body.shipment-edit-page .form-scroller .stock-items-wrapper {
+    animation: mc-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+}
+
+body.shipment-edit-page .shipment-right-panel {
+    animation: mc-panel-in 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+body.shipment-edit-page .shipment-right-panel > .sidebar-section {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.shipment-edit-page .shipment-right-panel > .sidebar-section:nth-child(1) {
+    animation-delay: 0.38s;
+}
+body.shipment-edit-page .shipment-right-panel > .sidebar-section:nth-child(2) {
+    animation-delay: 0.48s;
+}
+
+body.shipment-edit-page .customer-item {
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease;
+}
+
+body.shipment-edit-page .customer-item:hover,
+body.shipment-edit-page .customer-item.is-active {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 6px 14px rgba(14, 29, 74, 0.08);
+}
+
+body.shipment-edit-page .tab-panel.active,
+body.shipment-edit-page .doc-panel.active,
+body.shipment-edit-page .stock-panel.active {
+    animation: mc-tab-swap 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.shipment-edit-page #doc-panel-docs .doc-item {
+    animation: mc-doc-row 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+
+body.shipment-edit-page #shipment-manifests-list > .doc-item:nth-child(1),
+body.shipment-edit-page #shipment-pre-alerts-list > .doc-item:nth-child(1),
+body.shipment-edit-page #shipment-documents-list > .doc-item:nth-child(1) {
+    animation-delay: 0.03s;
+}
+body.shipment-edit-page #shipment-manifests-list > .doc-item:nth-child(2),
+body.shipment-edit-page #shipment-pre-alerts-list > .doc-item:nth-child(2),
+body.shipment-edit-page #shipment-documents-list > .doc-item:nth-child(2) {
+    animation-delay: 0.07s;
+}
+body.shipment-edit-page #shipment-manifests-list > .doc-item:nth-child(3),
+body.shipment-edit-page #shipment-pre-alerts-list > .doc-item:nth-child(3),
+body.shipment-edit-page #shipment-documents-list > .doc-item:nth-child(3) {
+    animation-delay: 0.11s;
+}
+body.shipment-edit-page #shipment-manifests-list > .doc-item:nth-child(4),
+body.shipment-edit-page #shipment-pre-alerts-list > .doc-item:nth-child(4),
+body.shipment-edit-page #shipment-documents-list > .doc-item:nth-child(4) {
+    animation-delay: 0.15s;
+}
+body.shipment-edit-page #shipment-manifests-list > .doc-item:nth-child(5),
+body.shipment-edit-page #shipment-pre-alerts-list > .doc-item:nth-child(5),
+body.shipment-edit-page #shipment-documents-list > .doc-item:nth-child(5) {
+    animation-delay: 0.19s;
+}
+body.shipment-edit-page #shipment-manifests-list > .doc-item:nth-child(n + 6),
+body.shipment-edit-page #shipment-pre-alerts-list > .doc-item:nth-child(n + 6),
+body.shipment-edit-page #shipment-documents-list > .doc-item:nth-child(n + 6) {
+    animation-delay: 0.23s;
+}
+
+body.shipment-edit-page #doc-panel-docs .doc-item:hover {
+    background: rgba(0, 174, 239, 0.05);
+    transform: translateX(3px);
+}
+
+body.shipment-edit-page .edit-footer {
+    animation: none;
+}
+
+body.shipment-edit-page .edit-footer .btn-save-custom:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+}
+
+/* ========== Shipment create ========== */
+body.create-shipment-page .create-shipment-card {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.create-shipment-page .cs-pillars > .custom-col > .cs-pillar {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease,
+        border-color 0.2s ease;
+}
+
+body.create-shipment-page .cs-pillars > .custom-col:nth-child(1) > .cs-pillar {
+    animation-delay: 0.12s;
+}
+
+body.create-shipment-page .cs-pillars > .custom-col:nth-child(2) > .cs-pillar {
+    animation-delay: 0.2s;
+}
+
+body.create-shipment-page .cs-pillars > .custom-col:nth-child(3) > .cs-pillar {
+    animation-delay: 0.28s;
+}
+
+body.create-shipment-page .cs-pillars > .custom-col > .cs-pillar:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 2px 4px rgba(14, 29, 74, 0.05),
+        0 12px 28px rgba(14, 29, 74, 0.08);
+    border-color: #b7d3e4;
+}
+
+body.create-shipment-page .cs-pillar__title {
+    animation: mc-rise-soft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+body.create-shipment-page .cs-tabs-shell {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+}
+
+body.create-shipment-page .cs-tabs-shell > .nav-tabs .nav-link {
+    transition:
+        color 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease,
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.2s ease;
+}
+
+body.create-shipment-page .cs-tabs-shell > .nav-tabs .nav-link:hover {
+    transform: translateY(-2px);
+}
+
+body.create-shipment-page .cs-tabs-shell .tab-pane.active {
+    animation: mc-tab-swap 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.create-shipment-page .stock-totals > span {
+    animation: mc-chip-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.create-shipment-page .stock-totals > span:nth-child(1) {
+    animation-delay: 0.36s;
+}
+body.create-shipment-page .stock-totals > span:nth-child(2) {
+    animation-delay: 0.42s;
+}
+body.create-shipment-page .stock-totals > span:nth-child(3) {
+    animation-delay: 0.48s;
+}
+body.create-shipment-page .stock-totals > span:nth-child(4) {
+    animation-delay: 0.54s;
+}
+
+body.create-shipment-page .create-shipment-footer.edit-footer {
+    animation: mc-footer-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
+body.create-shipment-page .create-shipment-footer .btn-save-custom {
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease;
+}
+
+body.create-shipment-page .create-shipment-footer .btn-save-custom:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+/* ========== Create CRR ========== */
+body.create-crr-page .create-crr-hero {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.create-crr-page .create-crr-hero-icon {
+    animation:
+        mc-icon-bloom 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both,
+        mc-icon-float 3.2s ease-in-out 0.9s infinite;
+}
+
+body.create-crr-page .create-crr-back {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+body.create-crr-page .create-crr-card {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+body.create-crr-page .crr-pillars > .crr-col > .crr-pillar {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease,
+        border-color 0.2s ease;
+}
+
+body.create-crr-page .crr-pillars > .crr-col:nth-child(1) > .crr-pillar {
+    animation-delay: 0.14s;
+}
+
+body.create-crr-page .crr-pillars > .crr-col:nth-child(2) > .crr-pillar {
+    animation-delay: 0.22s;
+}
+
+body.create-crr-page .crr-pillars > .crr-col:nth-child(3) > .crr-pillar {
+    animation-delay: 0.3s;
+}
+
+body.create-crr-page .crr-pillars > .crr-col:nth-child(4) > .crr-pillar {
+    animation-delay: 0.38s;
+}
+
+body.create-crr-page .crr-pillars > .crr-col > .crr-pillar:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 2px 4px rgba(14, 29, 74, 0.05),
+        0 12px 28px rgba(14, 29, 74, 0.08);
+    border-color: #b7d3e4;
+}
+
+body.create-crr-page .crr-pillar__title {
+    animation: mc-rise-soft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
+}
+
+body.create-crr-page .crr-section-shell {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.42s both;
+}
+
+body.create-crr-page .crr-section-shell + .crr-section-shell {
+    animation-delay: 0.52s;
+}
+
+body.create-crr-page .create-crr-footer.edit-footer,
+body.create-crr-page .create-crr-footer.form-footer-custom {
+    animation: mc-footer-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+}
+
+body.create-crr-page .create-crr-footer .btn-save-custom {
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease;
+}
+
+body.create-crr-page .create-crr-footer .btn-save-custom:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+/* ========== Stock edit ========== */
+.stock-edit-wrapper .summary-header,
+.stock-edit-wrapper .stock-summary-header {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stock-right-panel {
+    animation: mc-panel-in 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.stock-edit-wrapper .panel-card {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stock-edit-wrapper .panel-card:nth-child(1) {
+    animation-delay: 0.28s;
+}
+.stock-edit-wrapper .panel-card:nth-child(2) {
+    animation-delay: 0.36s;
+}
+.stock-edit-wrapper .panel-card:nth-child(3) {
+    animation-delay: 0.44s;
+}
+
+.stock-edit-wrapper .crr-pillars > .edit-form-col > .crr-pillar {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease,
+        border-color 0.2s ease;
+}
+
+.stock-edit-wrapper .crr-pillars > .edit-form-col:nth-child(1) > .crr-pillar {
+    animation-delay: 0.14s;
+}
+.stock-edit-wrapper .crr-pillars > .edit-form-col:nth-child(2) > .crr-pillar {
+    animation-delay: 0.22s;
+}
+.stock-edit-wrapper .crr-pillars > .edit-form-col:nth-child(3) > .crr-pillar {
+    animation-delay: 0.3s;
+}
+
+.stock-edit-wrapper .crr-pillars > .edit-form-col > .crr-pillar:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 2px 4px rgba(14, 29, 74, 0.05),
+        0 12px 28px rgba(14, 29, 74, 0.08);
+    border-color: #b7d3e4;
+}
+
+.stock-edit-wrapper .stock-grid-card.crr-section-shell {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-body > .card,
+    .page-body > .list-page-header,
+    .page-body > .list-filters-toolbar,
+    .page-body > .list-inline-toolbar,
+    .page-body > .app-breadcrumb,
+    .page-body > .master-container,
+    .page-body > .stock-edit-wrapper,
+    .page-body > .row,
+    .page-body > form,
+    .guest-layout #app > main > *,
+    .list-page-header,
+    .list-page-header-icon,
+    .list-page-header-aside,
+    .list-filters-toolbar,
+    .list-inline-toolbar,
+    body.shipment-edit-page .summary-header,
+    body.shipment-edit-page .summary-header::before,
+    body.shipment-edit-page .summary-header-icon,
+    body.shipment-edit-page .header-meta-group > .meta-item,
+    body.shipment-edit-page .header-actions,
+    body.shipment-edit-page .custom-nav-tabs,
+    body.shipment-edit-page .form-scroller,
+    body.shipment-edit-page .form-scroller .form-grid-3 > .form-col,
+    body.shipment-edit-page .form-scroller .form-grid-3 .cs-pillar,
+    body.shipment-edit-page .form-scroller .stock-items-wrapper,
+    body.shipment-edit-page .shipment-right-panel,
+    body.shipment-edit-page .shipment-right-panel > .sidebar-section,
+    body.shipment-edit-page .tab-panel.active,
+    body.shipment-edit-page .doc-panel.active,
+    body.shipment-edit-page .stock-panel.active,
+    body.shipment-edit-page #doc-panel-docs .doc-item,
+    body.shipment-edit-page .edit-footer,
+    body.create-shipment-page .create-shipment-card,
+    body.create-shipment-page .cs-pillars > .custom-col > .cs-pillar,
+    body.create-shipment-page .cs-pillar__title,
+    body.create-shipment-page .cs-tabs-shell,
+    body.create-shipment-page .cs-tabs-shell .tab-pane.active,
+    body.create-shipment-page .stock-totals > span,
+    body.create-shipment-page .create-shipment-footer.edit-footer,
+    body.create-crr-page .create-crr-hero,
+    body.create-crr-page .create-crr-hero-icon,
+    body.create-crr-page .create-crr-back,
+    body.create-crr-page .create-crr-card,
+    body.create-crr-page .crr-pillars > .crr-col > .crr-pillar,
+    body.create-crr-page .crr-pillar__title,
+    body.create-crr-page .crr-section-shell,
+    body.create-crr-page .create-crr-footer.edit-footer,
+    body.create-crr-page .create-crr-footer.form-footer-custom,
+    .stock-edit-wrapper .summary-header,
+    .stock-edit-wrapper .stock-summary-header,
+    .stock-right-panel,
+    .stock-edit-wrapper .panel-card,
+    .stock-edit-wrapper .crr-pillars > .edit-form-col > .crr-pillar,
+    .stock-edit-wrapper .stock-grid-card.crr-section-shell {
+        animation: none !important;
+        filter: none !important;
+    }
+
+    .dash-panel.card:hover,
+    body.shipment-edit-page .customer-item:hover,
+    body.shipment-edit-page .nav-tab-item:hover,
+    body.shipment-edit-page .header-actions .btn-premium:hover:not(:disabled),
+    body.shipment-edit-page #doc-panel-docs .doc-item:hover,
+    body.shipment-edit-page .edit-footer .btn-save-custom:hover:not(:disabled),
+    body.create-shipment-page .cs-pillars > .custom-col > .cs-pillar:hover,
+    body.create-shipment-page .cs-tabs-shell > .nav-tabs .nav-link:hover,
+    body.create-shipment-page .create-shipment-footer .btn-save-custom:hover,
+    body.create-crr-page .crr-pillars > .crr-col > .crr-pillar:hover,
+    body.create-crr-page .create-crr-footer .btn-save-custom:hover,
+    .stock-edit-wrapper .crr-pillars > .edit-form-col > .crr-pillar:hover {
+        transform: none;
+    }
+}

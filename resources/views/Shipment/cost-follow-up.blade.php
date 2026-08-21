@@ -6,6 +6,7 @@
 
     <x-lists.base-styles bodyClass="cost-filters-open" toolbarClass="cost-filters-toolbar" />
     <x-lists.multiselect-assets />
+    @include('partials.list-pagination-footer-styles')
     <style>
         #offices-table {
             width: 100% !important;
@@ -192,7 +193,7 @@
             padding-left: 10px !important;
             font-size: 11px !important;
             color: #1e293b !important;
-            line-height: 30px !important;
+            line-height: 1.25 !important;
         }
         .filter-group .select2-container--default .select2-selection--multiple .select2-selection__rendered,
         .filter-group .select2-container--default .select2-search--inline .select2-search__field {
@@ -335,13 +336,6 @@
             border-color: #008080 !important;
         }
 
-        .pcoded-inner-content {
-            padding: 5px !important;
-        }
-        .main-body .page-wrapper {
-            padding: 5px !important;
-        }
-
         body.cost-follow-up-list-page {
             overflow: hidden !important;
             height: 100vh;
@@ -356,14 +350,16 @@
             height: 100%;
             overflow: hidden !important;
             margin: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
+            padding: 0 !important;
         }
         .cost-list-card {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 104px);
-            margin-bottom: 0 !important;
+            height: calc(100vh - 64px);
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
             overflow: hidden;
         }
         .cost-list-card > .card-block {
@@ -372,7 +368,11 @@
             flex: 1;
             min-height: 0;
             overflow: hidden;
-            padding-bottom: 8px !important;
+            padding: 8px 12px 8px !important;
+        }
+        .cost-list-card .list-page-header {
+            flex-shrink: 0;
+            margin-bottom: 6px;
         }
         .cost-filters-fixed {
             flex-shrink: 0;
@@ -390,6 +390,9 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+        #cost-pagination.pagination-sticky-footer {
+            flex-shrink: 0;
         }
         .cost-table-area .dataTables_wrapper {
             display: flex;
@@ -416,7 +419,7 @@
         @media (max-width: 991.98px) {
             .cost-list-card {
                 height: calc(100vh - 64px) !important;
-                margin-top: 8px !important;
+                margin: 0 !important;
             }
             .cost-filters-fields {
                 display: none !important;
@@ -503,29 +506,9 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .pagination-sticky-footer {
-            position: fixed !important;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            padding: 10px 20px;
-            background: #ffffff;
-            border-top: 1px solid #e9ecef;
-            z-index: 1040;
-            margin: 0 !important;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-        }
+        /* Pagination look: partials/list-pagination-footer-styles (in-flow under table) */
         .dataTables_wrapper .dataTables_paginate {
-            margin-top: 0 !important;
-            padding: 0;
-            display: flex;
-            justify-content: flex-end;
-            float: none !important;
-            width: 100%;
+            display: none !important;
         }
         .dataTables_wrapper {
             padding-bottom: 0 !important;
@@ -576,29 +559,16 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
-
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
-                                        <!-- Base Style - Compact start -->
-                                        <div class="card cost-list-card mt-4">
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+                                        <div class="card cost-list-card">
                                             <div class="card-block">
+                                                <x-lists.page-header
+                                                    title="Cost follow-up"
+                                                    subtitle="Filter shipments to review and chase costs"
+                                                    icon="ti-wallet"
+                                                    :count="0"
+                                                    countLabel="shipments"
+                                                />
                                                 <div class="cost-filters-fixed">
                                                 <x-lists.filter-toolbar
                                                     toggle-id="btn-cost-filters-toggle"
@@ -722,22 +692,13 @@
                                                         </tbody>
                                                     </table>
                                                 </div>
+                                                <div id="cost-pagination" class="pagination-sticky-footer">
+                                                    <div class="list-pagination-meta"><strong>No results</strong></div>
+                                                    <div class="list-pagination-links"></div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('layouts.partials.pcoded-shell-end')
     @include('Shipment.partials.reminder-compose-modal')
 
 
@@ -851,9 +812,10 @@
             }
 
             table = $('#offices-table').DataTable({
-                "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
+                "dom": '<"table-scroll-wrapper"rt>',
                 "lengthChange": false,
-                "pageLength": 100,
+                "paging": false,
+                "info": false,
                 "responsive": false,
                 "searching": false,
                 "ordering": true,
@@ -975,8 +937,25 @@
                 ];
             }
 
+            function updateCostPaginationMeta(count) {
+                var $meta = $('#cost-pagination .list-pagination-meta');
+                if (!$meta.length) {
+                    return;
+                }
+                if (count > 0) {
+                    $meta.html('<strong>Showing ' + count.toLocaleString() + ' shipment' + (count === 1 ? '' : 's') + '</strong>');
+                } else {
+                    $meta.html('<strong>No results</strong>');
+                }
+            }
+
             function clearTableRows() {
                 table.clear().draw(false);
+                var $count = $('.list-page-header-count strong');
+                if ($count.length) {
+                    $count.text('0');
+                }
+                updateCostPaginationMeta(0);
                 setTimeout(adjustCostTableLayout, 50);
             }
 
@@ -1014,6 +993,11 @@
                     });
 
                     table.draw(false);
+                    var $count = $('.list-page-header-count strong');
+                    if ($count.length) {
+                        $count.text(rows.length.toLocaleString());
+                    }
+                    updateCostPaginationMeta(rows.length);
                     setTimeout(adjustCostTableLayout, 50);
                     setTimeout(adjustCostTableLayout, 200);
                 }).fail(function(xhr) {

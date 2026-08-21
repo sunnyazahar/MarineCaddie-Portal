@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './mc-motion.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -23,6 +24,105 @@
     --color-mc-sidebar-2: #123a6b;
     /* Match logo column with a bit more room for menu labels */
     --spacing-sidebar: 13.25rem;
+}
+
+/* Unified control size — text inputs + Select2 single (project-wide) */
+:root {
+    --mc-control-height: 34px;
+    --mc-control-font-size: 14px;
+    --mc-label-font-size: 13px;
+    --mc-control-radius: 8px;
+    --shipment-input-height: var(--mc-control-height);
+    --shipment-input-font-size: var(--mc-control-font-size);
+}
+
+/* ========== Scrollbars — visual 1px teal hairline ==========
+   Browsers often clamp native scrollbar width (>1px). We keep a small
+   gutter and paint only a 1px teal line so it actually looks 1px. */
+html,
+body,
+* {
+    scrollbar-width: thin !important;
+    scrollbar-color: #008080 transparent !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+    -webkit-appearance: none !important;
+    width: 5px !important;
+    height: 5px !important;
+    background: transparent !important;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+    background: transparent !important;
+    border: none !important;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    /* 1px teal line on the right / bottom edge of the gutter */
+    box-shadow: inset -1px 0 0 #008080, inset 0 -1px 0 #008080 !important;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+    box-shadow: inset -1px 0 0 #006666, inset 0 -1px 0 #006666 !important;
+}
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner {
+    background: transparent !important;
+}
+
+.form-scroller,
+.shipment-right-panel,
+.stock-form-scroll,
+.stock-right-panel,
+.pcoded-navbar,
+.select2-results__options,
+#shipment-docs-scroll,
+#shipment-log-scroll,
+#shipment-comments-scroll {
+    scrollbar-width: thin !important;
+    scrollbar-color: #008080 transparent !important;
+}
+
+.form-scroller::-webkit-scrollbar,
+.shipment-right-panel::-webkit-scrollbar,
+.stock-form-scroll::-webkit-scrollbar,
+.stock-right-panel::-webkit-scrollbar,
+.pcoded-navbar::-webkit-scrollbar,
+.select2-results__options::-webkit-scrollbar,
+#shipment-docs-scroll::-webkit-scrollbar,
+#shipment-log-scroll::-webkit-scrollbar,
+#shipment-comments-scroll::-webkit-scrollbar {
+    -webkit-appearance: none !important;
+    width: 5px !important;
+    height: 5px !important;
+    background: transparent !important;
+}
+
+.form-scroller::-webkit-scrollbar-thumb,
+.shipment-right-panel::-webkit-scrollbar-thumb,
+.stock-form-scroll::-webkit-scrollbar-thumb,
+.stock-right-panel::-webkit-scrollbar-thumb,
+.pcoded-navbar::-webkit-scrollbar-thumb,
+.select2-results__options::-webkit-scrollbar-thumb,
+#shipment-docs-scroll::-webkit-scrollbar-thumb,
+#shipment-log-scroll::-webkit-scrollbar-thumb,
+#shipment-comments-scroll::-webkit-scrollbar-thumb {
+    background: transparent !important;
+    box-shadow: inset -1px 0 0 #008080, inset 0 -1px 0 #008080 !important;
 }
 
 /* ========== Base ========== */
@@ -105,13 +205,21 @@
         @apply mx-auto w-full max-w-full px-3;
     }
 
+    /*
+     * Bootstrap-compatible grid: flex items need flex-basis + max-width + no-shrink.
+     * Width-only utilities (md:w-1/3) let columns crush (City/District/Zip etc.).
+     */
     .row {
         @apply -mx-2 flex flex-wrap;
+        width: auto;
     }
 
     .row > [class*='col-'],
     .row > .col {
         @apply px-2;
+        min-width: 0;
+        position: relative;
+        width: 100%;
     }
 
     .col,
@@ -119,89 +227,214 @@
     .col-md-12,
     .col-lg-12,
     .col-xl-12 {
-        @apply w-full;
+        flex: 0 0 100%;
+        max-width: 100%;
     }
 
-    .col-6,
-    .col-md-6,
-    .col-lg-6,
-    .col-xl-6 {
-        @apply w-full md:w-1/2;
+    .col-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
     }
 
-    .col-4,
-    .col-md-4,
-    .col-lg-4 {
-        @apply w-full md:w-1/3;
+    .col-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
     }
 
-    .col-3,
-    .col-md-3,
-    .col-lg-3,
-    .col-xl-3 {
-        @apply w-full sm:w-1/2 lg:w-1/4;
+    .col-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
     }
 
-    .col-8,
-    .col-md-8,
-    .col-lg-8 {
-        @apply w-full md:w-2/3;
+    .col-8 {
+        flex: 0 0 66.666667%;
+        max-width: 66.666667%;
     }
 
-    .col-9,
-    .col-md-9,
-    .col-lg-9 {
-        @apply w-full md:w-3/4;
+    .col-9 {
+        flex: 0 0 75%;
+        max-width: 75%;
     }
 
-    .col-md-2,
-    .col-lg-2 {
-        @apply w-full md:w-1/6;
+    @media (min-width: 576px) {
+        .col-sm-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+        }
+
+        .col-sm-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+        }
+
+        .col-sm-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+
+        .col-sm-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+        }
+
+        .col-sm-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
     }
 
-    .col-md-5 {
-        @apply w-full md:w-[41.666%];
+    @media (min-width: 768px) {
+        .col-md-1 {
+            flex: 0 0 8.333333%;
+            max-width: 8.333333%;
+        }
+
+        .col-md-2 {
+            flex: 0 0 16.666667%;
+            max-width: 16.666667%;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+        }
+
+        .col-md-5 {
+            flex: 0 0 41.666667%;
+            max-width: 41.666667%;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+
+        .col-md-7 {
+            flex: 0 0 58.333333%;
+            max-width: 58.333333%;
+        }
+
+        .col-md-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+        }
+
+        .col-md-9 {
+            flex: 0 0 75%;
+            max-width: 75%;
+        }
+
+        .col-md-10 {
+            flex: 0 0 83.333333%;
+            max-width: 83.333333%;
+        }
+
+        .col-md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
     }
 
-    .col-md-7 {
-        @apply w-full md:w-[58.333%];
+    @media (min-width: 992px) {
+        .col-lg-2 {
+            flex: 0 0 16.666667%;
+            max-width: 16.666667%;
+        }
+
+        .col-lg-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+        }
+
+        .col-lg-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+        }
+
+        .col-lg-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+
+        .col-lg-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+        }
+
+        .col-lg-9 {
+            flex: 0 0 75%;
+            max-width: 75%;
+        }
+
+        .col-lg-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
     }
 
-    .col-md-10 {
-        @apply w-full md:w-5/6;
-    }
+    @media (min-width: 1200px) {
+        .col-xl-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+        }
 
-    .col-sm-6 {
-        @apply w-full sm:w-1/2;
-    }
+        .col-xl-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
 
-    .col-sm-4 {
-        @apply w-full sm:w-1/3;
-    }
-
-    .col-sm-3 {
-        @apply w-full sm:w-1/4;
-    }
-
-    .col-sm-8 {
-        @apply w-full sm:w-2/3;
-    }
-
-    .col-sm-12 {
-        @apply w-full;
-    }
-
-    .col-md-1 {
-        @apply w-full md:w-1/12;
+        .col-xl-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
     }
 
     .form-group {
         @apply mb-3;
     }
 
-    .form-control,
-    .mc-input {
+    .form-control:not(textarea):not([multiple]),
+    .mc-input:not(textarea),
+    .form-control-sm:not(textarea):not([multiple]),
+    .form-control-sm-custom:not(textarea):not([multiple]),
+    .field-input:not(textarea),
+    .crr-input:not(textarea) {
+        @apply block w-full rounded-lg border border-mc-border bg-white px-3 text-sm text-mc-ink shadow-sm outline-none transition;
+        height: var(--mc-control-height);
+        min-height: var(--mc-control-height);
+        max-height: var(--mc-control-height);
+        font-size: var(--mc-control-font-size);
+        line-height: 1.25;
+        padding-top: 0;
+        padding-bottom: 0;
+        box-sizing: border-box;
+        border-radius: var(--mc-control-radius);
+    }
+
+    /* Textareas — same look, never force single-line control height */
+    textarea.form-control,
+    textarea.mc-input,
+    textarea.form-control-sm,
+    textarea.form-control-sm-custom,
+    textarea.field-input,
+    textarea.crr-input,
+    textarea.form-control-notes,
+    .comment-textarea {
         @apply block w-full rounded-lg border border-mc-border bg-white px-3 py-2 text-sm text-mc-ink shadow-sm outline-none transition;
+        height: auto;
+        min-height: 80px;
+        max-height: none;
+        font-size: var(--mc-control-font-size);
+        line-height: 1.45;
+        padding: 8px 12px;
+        box-sizing: border-box;
+        border-radius: var(--mc-control-radius);
+        resize: vertical;
     }
 
     select.form-control[multiple] {
@@ -209,12 +442,18 @@
     }
 
     .form-control:focus,
-    .mc-input:focus {
+    .mc-input:focus,
+    .form-control-sm:focus,
+    .form-control-sm-custom:focus,
+    .field-input:focus,
+    .crr-input:focus,
+    .comment-textarea:focus,
+    textarea.form-control-notes:focus {
         @apply border-mc-teal-bright ring-2 ring-mc-teal-bright/20;
     }
 
     .form-control-sm {
-        @apply rounded-md px-2 py-1.5 text-xs;
+        @apply text-sm;
     }
 
     label {
@@ -402,6 +641,28 @@
         @apply border-sky-200 bg-sky-50 text-sky-900;
     }
 
+    .alert-dismissible {
+        position: relative;
+        padding-right: 2.75rem;
+    }
+
+    .alert-dismissible .close,
+    .alert-dismissible .btn-close {
+        position: absolute;
+        top: 50%;
+        right: 0.75rem;
+        transform: translateY(-50%);
+        margin: 0;
+        padding: 0.15rem;
+        line-height: 1;
+        opacity: 0.65;
+    }
+
+    .alert-dismissible .close:hover,
+    .alert-dismissible .btn-close:hover {
+        opacity: 1;
+    }
+
     .nav {
         @apply m-0 flex list-none p-0;
     }
@@ -451,8 +712,11 @@
         @apply block px-3.5 py-2 text-sm text-mc-navy hover:bg-mc-sea;
     }
 
+    /* Above fixed page chrome (stock summary/tabs ~100, edit footer 1000, app header z-50).
+       Keep below Select2/datepicker portals (10060+) so dropdowns still work inside modals. */
     .modal {
-        @apply fixed inset-0 z-50 hidden overflow-y-auto outline-none;
+        @apply fixed inset-0 hidden overflow-y-auto outline-none;
+        z-index: 1050;
     }
 
     .modal.show,
@@ -496,12 +760,17 @@
         @apply px-5 py-4 text-sm text-slate-800;
     }
 
+    .modal-body.p-0 {
+        padding: 0 !important;
+    }
+
     .modal-footer {
         @apply flex items-center justify-end gap-2 border-t border-mc-border px-5 py-3;
     }
 
     .modal-backdrop {
-        @apply fixed inset-0 z-40 bg-mc-ink/45 backdrop-blur-[2px];
+        @apply fixed inset-0 bg-mc-ink/45 backdrop-blur-[2px];
+        z-index: 1040;
     }
 
     .close {
@@ -760,7 +1029,30 @@ body.mc-sidebar-open .pcoded-overlay-box {
 
 .header-navbar.pcoded-header,
 .navbar.header-navbar {
-    @apply fixed left-0 right-0 top-0 z-50 flex h-16 items-center border-b border-slate-200/80 bg-white px-0 shadow-[0_1px_0_rgba(14,29,74,0.06)];
+    @apply fixed left-0 right-0 top-0 z-50 flex h-16 items-center border-b-0 bg-white px-0 shadow-[0_1px_0_rgba(14,29,74,0.06)];
+}
+
+/* Brand accent strip — same as stock edit summary / dash panels
+   Starts after the logo/sidebar column so it does not run across the left nav. */
+.header-navbar.pcoded-header::after,
+.navbar.header-navbar::after {
+    content: '';
+    position: absolute;
+    left: var(--spacing-sidebar, 13.25rem);
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    pointer-events: none;
+    z-index: 60;
+    background: linear-gradient(90deg, #ff5a5f 0%, #e87722 35%, #00aeef 100%);
+}
+
+@media (max-width: 991.98px) {
+    /* Mobile: logo row is full-width, so accent spans the whole header */
+    .header-navbar.pcoded-header::after,
+    .navbar.header-navbar::after {
+        left: 0;
+    }
 }
 
 .header-navbar .navbar-wrapper {
@@ -834,6 +1126,10 @@ body.mc-sidebar-open .pcoded-overlay-box {
 
 .app-breadcrumb {
     @apply ml-1 flex flex-wrap items-center gap-1.5 text-sm font-semibold text-mc-navy;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(0, 174, 239, 0.08);
+    border: 1px solid rgba(0, 136, 199, 0.14);
 }
 
 .app-breadcrumb-sep {
@@ -968,7 +1264,7 @@ body.mc-sidebar-open .pcoded-overlay-box {
 }
 
 .page-body {
-    @apply max-w-full overflow-x-hidden p-4 md:p-6;
+    @apply max-w-full overflow-x-hidden p-0;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -1045,9 +1341,20 @@ body.mc-sidebar-open .pcoded-overlay-box {
         margin: 0;
     }
 
+    /* Keep drawer + dimmer above page chrome (stock edit summary z-100, footers, etc.) */
+    .header-navbar.pcoded-header,
+    .navbar.header-navbar {
+        z-index: 1070;
+    }
+
+    .pcoded-overlay-box {
+        z-index: 1050;
+    }
+
     .pcoded-navbar {
         @apply -translate-x-full;
         width: min(18rem, 82vw);
+        z-index: 1060;
     }
 
     body.mc-sidebar-open .pcoded-navbar {
@@ -1118,13 +1425,54 @@ table.dataTable tbody td {
     z-index: 10060 !important;
 }
 
+/* Never show Select2 clear (×) on any page */
+.select2-selection__clear,
+.select2-container--default .select2-selection--single .select2-selection__clear,
+.select2-container--default .select2-selection--multiple .select2-selection__clear {
+    display: none !important;
+}
+
 .select2-container--default .select2-selection--single,
 .select2-container--default .select2-selection--multiple {
-    @apply min-h-[40px] rounded-lg border border-mc-border bg-white;
+    @apply rounded-lg border border-mc-border bg-white;
+}
+
+.select2-container--default .select2-selection--single {
+    display: flex !important;
+    align-items: center !important;
+    height: var(--mc-control-height) !important;
+    min-height: var(--mc-control-height) !important;
+    max-height: var(--mc-control-height) !important;
+    border-radius: var(--mc-control-radius) !important;
+    box-sizing: border-box !important;
+}
+
+.select2-container--default .select2-selection--multiple {
+    min-height: var(--mc-control-height) !important;
+    border-radius: var(--mc-control-radius) !important;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-    @apply px-3 py-1.5 text-sm text-mc-ink;
+    @apply px-3 text-sm text-mc-ink;
+    display: flex !important;
+    align-items: center !important;
+    line-height: 1.25 !important;
+    font-size: var(--mc-control-font-size) !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 100% !important;
+    top: 0 !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
 }
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
@@ -1453,14 +1801,35 @@ a.dash-kpi:hover {
     }
 }
 
-/* Shell polish — align chrome with dashboard cards */
+/* Form labels — project standard size for all app forms */
+.field-label,
+.form-label-custom,
+.crr-label {
+    font-size: 13px !important;
+}
+
+/* Shell polish — align chrome with dashboard cards; no L/R content gutter */
 .page-wrapper,
 .page-body {
     @apply bg-transparent;
 }
 
 .page-body {
-    @apply p-4 md:p-6 lg:p-7;
+    @apply p-0;
+}
+
+/* Beat page-local "padding: 5px" gutters on the content shell */
+.pcoded-content > .pcoded-inner-content,
+.pcoded-inner-content > .main-body > .page-wrapper,
+.pcoded-inner-content .page-body {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.page-body > .card,
+.pcoded-inner-content .page-body > .card {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 .app-breadcrumb {

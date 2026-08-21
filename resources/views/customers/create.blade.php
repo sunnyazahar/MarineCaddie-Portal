@@ -194,7 +194,7 @@
             background-color: #fff !important;
             background: #fff !important;
             color: #333 !important;
-            line-height: 26px !important;
+            line-height: 1.25 !important;
             font-size: 11px !important;
             padding-left: 8px !important;
         }

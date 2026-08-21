@@ -172,47 +172,68 @@
         }
 
         /* Select2 Reset */
+        .crr-form-container .select2-container--default .select2-selection--single,
         .select2-container--default .select2-selection--single {
             background-color: #fff !important;
             border: 1px solid #d1d5db !important;
-            height: 32px !important;
+            height: var(--mc-control-height, 34px) !important;
+            min-height: var(--mc-control-height, 34px) !important;
             display: flex !important;
             align-items: center !important;
             outline: none !important;
+            position: relative !important;
+            box-sizing: border-box !important;
         }
 
         .select2-container--default .select2-selection--multiple {
             background-color: #fff !important;
             border: 1px solid #d1d5db !important;
-            min-height: 32px !important;
+            min-height: var(--mc-control-height, 34px) !important;
             padding-bottom: 2px !important;
         }
 
+        .crr-form-container .select2-container--default .select2-selection--single .select2-selection__rendered,
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             background-color: transparent !important;
             color: #4b5563 !important;
-            line-height: normal !important;
-            font-size: 12px !important;
+            line-height: 1.25 !important;
+            font-size: var(--mc-control-font-size, 14px) !important;
             padding-left: 10px !important;
-            padding-right: 25px !important;
+            padding-right: 28px !important;
             width: 100% !important;
+            height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            box-sizing: border-box !important;
         }
 
+        .crr-form-container .select2-container--default .select2-selection--single .select2-selection__arrow,
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 30px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
+            position: absolute !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            right: 6px !important;
+            height: auto !important;
+            width: 20px !important;
+            margin: 0 !important;
+            transform: none !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
         }
 
+        .crr-form-container .select2-container--default .select2-selection--single .select2-selection__arrow b,
         .select2-container--default .select2-selection--single .select2-selection__arrow b {
-            border-color: #666 transparent transparent transparent !important;
-            margin-top: 0 !important;
-            position: relative !important;
+            position: static !important;
             top: auto !important;
             left: auto !important;
+            margin: 0 !important;
+            transform: none !important;
+            border-color: #666 transparent transparent transparent !important;
+            border-style: solid !important;
+            border-width: 5px 4px 0 4px !important;
+            height: 0 !important;
+            width: 0 !important;
         }
 
         .select2-container--default .select2-selection--multiple .select2-selection__choice {
@@ -373,17 +394,18 @@
             color: #FFFFFF !important;
         }
 
-        /* Modern Datepicker Theme */
+        /* Modern Datepicker Theme — append to body so pillar columns never clip it */
         .bootstrap-datetimepicker-widget.dropdown-menu {
             border: none !important;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
             border-radius: 12px !important;
             padding: 15px !important;
             background: #fff !important;
-            width: 250px !important;
+            width: 280px !important;
+            min-width: 280px !important;
             margin-top: 5px !important;
-            z-index: 9999 !important;
-            /* Increased z-index */
+            z-index: 10060 !important;
+            overflow: visible !important;
         }
 
         .bootstrap-datetimepicker-widget table th {
@@ -590,12 +612,460 @@
         }
 
         .dgr-field.small {
-            flex: 0 0 120px;
+            flex: 0 0 140px;
+            max-width: 140px;
+            min-width: 120px;
+        }
+
+        /* ========== MarineCaddie v2 — Create CRR polish ========== */
+        body.create-crr-page {
+            padding-bottom: 72px;
+        }
+
+        .page-body:has(.create-crr-page) {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .create-crr-page {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 12px 0 28px;
+            background:
+                radial-gradient(ellipse 70% 40% at 100% 0%, rgba(0, 174, 239, 0.08), transparent 50%),
+                radial-gradient(ellipse 50% 30% at 0% 0%, rgba(14, 29, 74, 0.05), transparent 45%),
+                #f5f7fb;
+            box-sizing: border-box;
+        }
+
+        .create-crr-hero {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 0 0 14px;
+            padding: 4px 16px 0;
+        }
+
+        .create-crr-hero-main {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .create-crr-hero-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+            color: #fff;
+            font-size: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0, 128, 128, 0.28);
+        }
+
+        .create-crr-kicker {
+            margin: 0 0 4px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #0088c7;
+        }
+
+        .create-crr-title {
+            margin: 0;
+            font-size: 1.65rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #0e1d4a;
+            line-height: 1.2;
+        }
+
+        .create-crr-sub {
+            margin: 6px 0 0;
+            font-size: 13px;
+            color: #64748b;
+            max-width: 36rem;
+        }
+
+        .create-crr-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #d6e3ee;
+            background: #fff;
+            color: #0088c7;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(14, 29, 74, 0.04);
+            transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+        }
+
+        .create-crr-back:hover {
+            border-color: #00aeef;
+            background: #e8f6fc;
+            color: #0088c7;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .create-crr-card {
+            position: relative;
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            background: #fff;
+            border: none;
+            border-top: 1px solid rgba(214, 227, 238, 0.95);
+            border-bottom: 1px solid rgba(214, 227, 238, 0.95);
+            border-radius: 0;
+            box-shadow: 0 8px 24px rgba(14, 29, 74, 0.04);
+            overflow: visible;
+        }
+
+        .create-crr-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 3px;
+            border-radius: 0;
+            background: linear-gradient(90deg, #ff5a5f 0%, #e87722 35%, #00aeef 100%);
+            pointer-events: none;
+        }
+
+        .crr-form-container {
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
+            padding: 20px 16px 28px !important;
+            margin-top: 0 !important;
+            background: transparent;
+        }
+
+        .crr-form-row.crr-pillars {
+            width: 100%;
+            margin: 0 -10px !important;
+            align-items: stretch;
+        }
+
+        .crr-pillars > .crr-col {
+            display: flex;
+            box-sizing: border-box;
+            padding: 0 10px;
+            margin-bottom: 16px;
+        }
+
+        .crr-pillar {
+            width: 100%;
+            background: linear-gradient(180deg, #fbfdff 0%, #ffffff 48%);
+            border: 1px solid #d6e3ee;
+            border-radius: 14px;
+            padding: 14px 14px 12px;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 8px 22px rgba(14, 29, 74, 0.04);
+            overflow: visible !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        body.create-crr-page .crr-col,
+        body.create-crr-page .crr-form-container,
+        body.create-crr-page .create-crr-card,
+        body.create-crr-page .crr-field-group,
+        body.create-crr-page .crr-pillars,
+        body.create-crr-page .row {
+            overflow: visible !important;
+        }
+
+        body.create-crr-page .bootstrap-datetimepicker-widget.dropdown-menu {
+            z-index: 10060 !important;
+        }
+
+        .crr-pillar__title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 14px;
+            padding: 0 0 10px 10px;
+            border-bottom: 1px solid #e8eef4;
+            border-left: 3px solid #00aeef;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: #0e1d4a;
+            line-height: 1.2;
+        }
+
+        .crr-section-shell {
+            margin-top: 8px;
+            margin-bottom: 18px;
+            padding: 14px 14px 16px;
+            background: linear-gradient(180deg, #fbfdff 0%, #ffffff 40%);
+            border: 1px solid #d6e3ee;
+            border-radius: 14px;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 8px 22px rgba(14, 29, 74, 0.04);
+        }
+
+        .crr-section-shell .crr-table-header {
+            margin: 0 0 12px !important;
+            padding: 0 0 10px 10px !important;
+            border-bottom: 1px solid #e8eef4;
+            border-left: 3px solid #00aeef;
+        }
+
+        .crr-section-shell .crr-data-table {
+            margin-top: 0 !important;
+        }
+
+        .crr-col {
+            box-sizing: border-box;
+        }
+
+        .crr-label {
+            color: #475569 !important;
+            font-weight: 600 !important;
+            font-size: var(--mc-label-font-size, 13px) !important;
+            margin-bottom: 4px !important;
+            letter-spacing: 0.01em;
+        }
+
+        .crr-input,
+        .crr-form-container textarea.form-control,
+        .crr-form-container .select2-container--default .select2-selection--single,
+        .crr-form-container .select2-container--default .select2-selection--multiple {
+            border: 1px solid #d6e3ee !important;
+            border-radius: 8px !important;
+            background: #fff !important;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .crr-input {
+            height: var(--mc-control-height, 34px) !important;
+            font-size: var(--mc-control-font-size, 14px) !important;
+            padding: 0 12px !important;
+        }
+
+        .crr-input:focus,
+        .crr-form-container textarea.form-control:focus,
+        .crr-form-container .select2-container--default.select2-container--focus .select2-selection--single,
+        .crr-form-container .select2-container--default.select2-container--open .select2-selection--single,
+        .crr-form-container .select2-container--default.select2-container--focus .select2-selection--multiple,
+        .crr-form-container .select2-container--default.select2-container--open .select2-selection--multiple {
+            border-color: #00aeef !important;
+            box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.15) !important;
+            outline: none !important;
+        }
+
+        .crr-form-container .select2-container--default .select2-selection--single {
+            height: var(--mc-control-height, 34px) !important;
+        }
+
+        .crr-form-container .select2-container--default .select2-selection--single .select2-selection__rendered {
+            font-size: var(--mc-control-font-size, 14px) !important;
+            color: #0e1d4a !important;
+        }
+
+        .crr-checkbox-group {
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #f5f9fc;
+            border: 1px solid #e4edf4;
+            font-size: var(--mc-label-font-size, 13px) !important;
+            color: #0e1d4a !important;
+            font-weight: 500;
+        }
+
+        .crr-section-title,
+        .crr-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 28px 0 12px !important;
+            padding: 0 0 8px !important;
+            border-bottom: 1px solid #e8eef4;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            color: #0e1d4a !important;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .crr-table-header span span {
+            color: #0088c7 !important;
+            font-weight: 600 !important;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .crr-data-table {
+            min-width: 960px;
+            border: 1px solid #e8eef4 !important;
+            border-radius: 10px;
+            overflow: hidden;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 8px !important;
+        }
+
+        .crr-data-table th {
+            background: #e8f6fc !important;
+            color: #0e1d4a !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 10px 8px !important;
+            white-space: nowrap;
+            border-bottom: 1px solid #d6e3ee !important;
+        }
+
+        .crr-data-table td {
+            padding: 8px !important;
+            vertical-align: middle;
+            background: #fff;
+        }
+
+        .crr-form-container .btn-outline-teal,
+        .btn-add-package,
+        .btn-add-cost {
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            background: #fff !important;
+            color: #0088c7 !important;
+            border: 1px solid #94c9e3 !important;
+            box-shadow: 0 2px 6px rgba(14, 29, 74, 0.04);
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+        }
+
+        .crr-form-container .btn-outline-teal:hover,
+        .btn-add-package:hover,
+        .btn-add-cost:hover {
+            background: #e8f6fc !important;
+            border-color: #00aeef !important;
+            color: #0e1d4a !important;
+            transform: translateY(-1px);
+        }
+
+        body.create-crr-page .create-crr-footer.form-footer-custom,
+        body.create-crr-page .create-crr-footer.edit-footer {
+            position: fixed !important;
+            left: var(--spacing-sidebar, 13.25rem) !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            top: auto !important;
+            margin: 0 !important;
+            width: calc(100vw - var(--spacing-sidebar, 13.25rem)) !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            padding: 12px 28px !important;
+            box-sizing: border-box !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(8px);
+            display: flex !important;
+            align-items: center !important;
+            gap: 20px;
+            border-top: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 0 !important;
+            z-index: 1040 !important;
+            box-shadow: 0 -8px 24px rgba(14, 29, 74, 0.06);
+        }
+
+        body.create-crr-page .create-crr-footer .btn-save-custom {
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%) !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 10px 28px !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            cursor: pointer;
+            font-weight: 700 !important;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.28);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        body.create-crr-page .create-crr-footer .btn-save-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 128, 128, 0.34);
+            color: #fff !important;
+        }
+
+        body.create-crr-page .create-crr-footer .btn-cancel-custom {
+            color: #008080 !important;
+            font-size: 13px !important;
+            text-decoration: none;
+            font-weight: 700 !important;
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+
+        body.create-crr-page .create-crr-footer .btn-cancel-custom:hover {
+            text-decoration: underline;
+            color: #0e1d4a !important;
+        }
+
+        #crr-form-errors {
+            border-radius: 10px !important;
+            box-shadow: 0 6px 16px rgba(185, 28, 28, 0.08);
+        }
+
+        .add-supplier-section-title {
+            color: #0088c7 !important;
+            border-bottom-color: #00aeef !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #0088c7 !important;
+            color: #fff !important;
+        }
+
+        @media (max-width: 991.98px) {
+            .create-crr-page {
+                padding: 8px 0 20px;
+            }
+
+            .create-crr-hero {
+                padding: 0 12px;
+            }
+
+            .create-crr-title {
+                font-size: 1.35rem;
+            }
+
+            .crr-form-container {
+                padding: 16px 12px 24px !important;
+            }
+
+            body.create-crr-page .create-crr-footer.form-footer-custom,
+            body.create-crr-page .create-crr-footer.edit-footer {
+                left: 0 !important;
+                width: 100vw !important;
+                padding: 12px 16px !important;
+            }
         }
     </style>
 @endsection
 
 @section('content')
+    <script>document.body.classList.add('create-crr-page');</script>
     <!-- Pre-loader start -->
     <div class="theme-loader">
         <div class="ball-scale">
@@ -615,13 +1085,29 @@
     </div>
     <!-- Pre-loader end -->
     @include('layouts.partials.pcoded-shell-start')
-                                    <div class="card">
-                                    <div class="crr-form-container p-4 mt-4" style="padding-bottom: 80px;">
+                                    <div class="create-crr-page">
+                                        <div class="create-crr-hero">
+                                            <div class="create-crr-hero-main">
+                                                <span class="create-crr-hero-icon" aria-hidden="true">
+                                                    <i class="ti-package"></i>
+                                                </span>
+                                                <div>
+                                                    <p class="create-crr-kicker">Stocks</p>
+                                                    <h1 class="create-crr-title">Create CRR</h1>
+                                                    <p class="create-crr-sub">Register a new stock item with vessel, packages, and costs.</p>
+                                                </div>
+                                            </div>
+                                            <a href="{{ route('stocks') }}" class="create-crr-back">
+                                                <i class="ti-arrow-left"></i> Back to stock list
+                                            </a>
+                                        </div>
+                                        <div class="create-crr-card">
+                                    <div class="crr-form-container">
 
                                         <form action="{{ route('stocks.crr.store') }}" method="POST" id="crrForm">
                                             @csrf
                                             @if ($errors->any() || session('error'))
-                                                <div id="crr-form-errors" style="margin-bottom: 16px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 13px;">
+                                                <div id="crr-form-errors" style="margin-bottom: 16px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 10px; font-size: 13px;">
                                                     @if (session('error'))
                                                         <div>{{ session('error') }}</div>
                                                     @endif
@@ -630,9 +1116,11 @@
                                                     @endforeach
                                                 </div>
                                             @endif
-                                            <div class="crr-form-row">
+                                            <div class="crr-form-row crr-pillars">
                                                 <!-- Column 1 -->
                                                 <div class="crr-col">
+                                                    <div class="crr-pillar">
+                                                    <div class="crr-pillar__title">Vessel &amp; PO</div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Vessel</label>
                                                         <select class="form-control select2-vessel" name="vessel_name">
@@ -716,10 +1204,13 @@
                                                         <label class="crr-label">First mile comment</label>
                                                         <input type="text" class="crr-input" name="first_mile_comment">
                                                     </div>
+                                                    </div>{{-- .crr-pillar --}}
                                                 </div>
 
                                                 <!-- Column 2 -->
                                                 <div class="crr-col">
+                                                    <div class="crr-pillar">
+                                                    <div class="crr-pillar__title">Supplier &amp; delivery</div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Supplier</label>
                                                         <div id="supplier-select-wrapper">
@@ -788,7 +1279,7 @@
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Deadline warehouse</label>
                                                         <input type="text" class="crr-input datepicker"
-                                                            name="deadline_warehouse">
+                                                            name="deadline_warehouse" placeholder="YYYY-MM-DD">
                                                     </div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Internal shipment</label>
@@ -826,10 +1317,13 @@
                                                             <option value="FOB - Free On Board">FOB - Free On Board</option>
                                                         </select>
                                                     </div>
+                                                    </div>{{-- .crr-pillar --}}
                                                 </div>
 
                                                 <!-- Column 3 -->
                                                 <div class="crr-col">
+                                                    <div class="crr-pillar">
+                                                    <div class="crr-pillar__title">Hub &amp; customs</div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Hub/agent</label>
                                                         <select class="form-control select2-hub" name="hub_agent" required>
@@ -918,7 +1412,7 @@
                                                             <div class="crr-field-group">
                                                                 <label class="crr-label">Bonded date</label>
                                                                 <input type="text" class="crr-input datepicker"
-                                                                    name="bonded_date">
+                                                                    name="bonded_date" placeholder="YYYY-MM-DD">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1006,27 +1500,32 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    </div>{{-- .crr-pillar --}}
                                                 </div>
 
                                                 <!-- Column 4 -->
                                                 <div class="crr-col">
+                                                    <div class="crr-pillar">
+                                                    <div class="crr-pillar__title">Status &amp; notes</div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Status</label>
                                                         <select class="form-control select2" name="status" id="crr_status">
                                                             @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
-                                                                <option value="{{ $value }}" {{ $value == \App\Models\Crr::STATUS_PENDING ? 'selected' : '' }}>{{ $label }}</option>
+                                                                <option value="{{ $value }}" {{ (string) $value === (string) \App\Models\Crr::STATUS_NEW ? 'selected' : '' }}>{{ $label }}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Internal comments</label>
-                                                        <textarea class="form-control" name="internal_comments" rows="8"
-                                                            style="font-size: 12px; border-radius: 3px;"></textarea>
+                                                        <textarea class="form-control crr-input" name="internal_comments" rows="8"
+                                                            style="height: auto; min-height: 120px; resize: vertical;"></textarea>
                                                     </div>
+                                                    </div>{{-- .crr-pillar --}}
                                                 </div>
                                             </div>
 
                                             <!-- Packages Table -->
+                                            <div class="crr-section-shell">
                                             <div class="crr-table-header"><span>Packages &nbsp; &nbsp; <span
                                                         id="package-summary-text"
                                                         style="font-weight: normal; color: #000000; font-weight: 600;">(Total
@@ -1064,12 +1563,12 @@
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            <button type="button" class="btn btn-outline-teal btn-add-package mt-2"
-                                                style="font-size: 11px; padding: 6px 15px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">Add
+                                            <button type="button" class="btn btn-outline-teal btn-add-package mt-2">Add
                                                 item</button>
-                                            <div class="clearfix"></div>
+                                            </div>{{-- .crr-section-shell packages --}}
 
                                             <!-- Costs Table -->
+                                            <div class="crr-section-shell">
                                             <div class="crr-table-header">Costs</div>
                                             <div class="table-responsive">
                                                 <table class="crr-data-table" id="costsTable">
@@ -1096,18 +1595,20 @@
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            <button type="button" class="btn btn-outline-teal btn-add-cost mt-2 mb-5"
-                                                style="font-size: 11px; padding: 6px 15px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">Add
+                                            <button type="button" class="btn btn-outline-teal btn-add-cost mt-2">Add
                                                 cost</button>
+                                            </div>{{-- .crr-section-shell costs --}}
 
-                                            <!-- Footer Actions (Fixed) -->
-                                            <div class="form-footer-custom">
-                                                <button type="submit" class="btn-save-custom">Save CRR</button>
-                                                <a href="{{ route('stocks') }}" class="btn-cancel-custom">Cancel</a>
-                                            </div>
                                         </form>
-                                    </div>
-                                </div>
+                                    </div>{{-- .crr-form-container --}}
+                                        </div>{{-- .create-crr-card --}}
+                                    </div>{{-- .create-crr-page --}}
+
+        <div class="edit-footer create-crr-footer form-footer-custom">
+            <button type="submit" form="crrForm" class="btn-save-custom">Save CRR</button>
+            <a href="{{ route('stocks') }}" class="btn-cancel-custom">Cancel</a>
+        </div>
+
     @include('layouts.partials.pcoded-shell-end')
 
     {{-- Quick-add supplier modal --}}
@@ -1299,6 +1800,31 @@
             $('#package-summary-text').text(`(Total : ${totalWeight.toFixed(2)} kg, ${count} Packages, ${totalCbm.toFixed(4)} CBM)`);
         }
         $(document).ready(function () {
+            $('body').addClass('create-crr-page');
+
+            var $footer = $('.create-crr-footer');
+            if ($footer.length) {
+                $footer.appendTo('body');
+            }
+
+            function syncCreateCrrFooterOffset() {
+                var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
+                var $navbar = $('.pcoded-navbar');
+                var navType = $('#pcoded').attr('vertical-nav-type') || '';
+                var sidebarWidth = 0;
+                if (!isMobile && $navbar.length && navType !== 'offcanvas' && $navbar.is(':visible')) {
+                    sidebarWidth = $navbar.outerWidth() || 0;
+                }
+                $('.create-crr-footer').css('left', sidebarWidth ? (sidebarWidth + 'px') : '0');
+                if (sidebarWidth) {
+                    $('.create-crr-footer').css('width', 'calc(100vw - ' + sidebarWidth + 'px)');
+                } else {
+                    $('.create-crr-footer').css('width', '100vw');
+                }
+            }
+            syncCreateCrrFooterOffset();
+            $(window).on('resize', syncCreateCrrFooterOffset);
+
             // Refresh exchange rates in the background when Create CRR opens.
             $.ajax({
                 url: @json(route('currency.update')),
@@ -1378,9 +1904,10 @@
 
                     // Re-init Select2 in cloned row
                     newRow.find('.select2-cost-hub').select2({
-                        placeholder: "Select hub",
+                        placeholder: "Select hub/agent",
                         allowClear: false,
                         width: '100%',
+                        dropdownParent: $('#crrForm'),
                         templateResult: formatHub,
                         templateSelection: function (hub) {
                             return hub.text;
@@ -1574,6 +2101,10 @@
             // Initialize Bootstrap Datepicker
             $('.datepicker').datetimepicker({
                 format: 'YYYY-MM-DD',
+                widgetPositioning: {
+                    horizontal: 'auto',
+                    vertical: 'auto'
+                },
                 icons: {
                     time: "icofont icofont-clock-time",
                     date: "icofont icofont-ui-calendar",
@@ -1582,6 +2113,18 @@
                     next: "icofont icofont-rounded-right",
                     previous: "icofont icofont-rounded-left"
                 }
+            });
+
+            // Keep open calendar above neighboring pillars (avoids right-side clip)
+            $('.datepicker').on('dp.show', function () {
+                $('.crr-pillar').css('z-index', '');
+                $(this).closest('.crr-pillar').css('z-index', 40);
+                var $widget = $('.bootstrap-datetimepicker-widget:visible').last();
+                if ($widget.length) {
+                    $widget.css('z-index', 10060);
+                }
+            }).on('dp.hide', function () {
+                $(this).closest('.crr-pillar').css('z-index', '');
             });
 
             // Handle date inputs styling if needed (browser default used for now)
@@ -1644,11 +2187,11 @@
                                                                                                                                                                                                          <label class="crr-label">Dangerous goods description</label>
                                                                                                                                                                                                          <input type="text" class="crr-input" name="packages[${packageIndex}][dgr_description]" placeholder="">
                                                                                                                                                                                                      </div>
-                                                                                                                                                                                                     <div class="dgr-field small" style="max-width: 50px;">
+                                                                                                                                                                                                     <div class="dgr-field small">
                                                                                                                                                                                                          <label class="crr-label">UN number</label>
                                                                                                                                                                                                          <input type="text" class="crr-input" name="packages[${packageIndex}][un_number]" placeholder="">
                                                                                                                                                                                                      </div>
-                                                                                                                                                                                                     <div class="dgr-field small" style="max-width: 50px;">
+                                                                                                                                                                                                     <div class="dgr-field small">
                                                                                                                                                                                                          <label class="crr-label">Class</label>
                                                                                                                                                                                                          <input type="text" class="crr-input" name="packages[${packageIndex}][dgr_class]" placeholder="">
                                                                                                                                                                                                      </div>
@@ -1680,18 +2223,44 @@
             });
 
             // Hub & Currency data for dynamic cost rows
-            var costHubs = @json($hubs);
-            var costCurrencies = @json($currencies->values());
+            @php
+                $costHubsForJs = $hubs->values();
+                $costAgentsForJs = $agents->map(static function ($agent) {
+                    return [
+                        'code' => $agent->code,
+                        'agent_name' => $agent->agent_name,
+                        'city' => $agent->city,
+                        'country' => optional($agent->country)->name,
+                    ];
+                })->values();
+                $costCurrenciesForJs = $currencies->values();
+            @endphp
+            var costHubs = @json($costHubsForJs);
+            var costAgents = @json($costAgentsForJs);
+            var costCurrencies = @json($costCurrenciesForJs);
+
+            function buildCostHubAgentOptions() {
+                var hubOptions = '<option></option><optgroup label="Hubs">';
+                costHubs.forEach(function (hub) {
+                    hubOptions += '<option value="' + (hub.code || '') + '" data-city="' + (hub.city || '') + '" data-country="' + (hub.country || '') + '" data-code="' + (hub.code || '') + '">' +
+                        (hub.code ? hub.code + ' - ' : '') + (hub.hub_name || '') +
+                        '</option>';
+                });
+                hubOptions += '</optgroup><optgroup label="Agents">';
+                costAgents.forEach(function (agent) {
+                    hubOptions += '<option value="' + (agent.code || '') + '" data-city="' + (agent.city || '') + '" data-country="' + (agent.country || '') + '" data-code="' + (agent.code || '') + '">' +
+                        (agent.code ? agent.code + ' - ' : '') + (agent.agent_name || '') +
+                        '</option>';
+                });
+                hubOptions += '</optgroup>';
+                return hubOptions;
+            }
 
             // Add Cost Row
             $('.btn-add-cost').on('click', function () {
                 $('#costsTable tbody .empty-row').remove();
 
-                // Build hub options
-                let hubOptions = '<option></option>';
-                costHubs.forEach(function (hub) {
-                    hubOptions += '<option value="' + hub.code + '" data-city="' + (hub.city || '') + '" data-country="' + (hub.country || '') + '">' + hub.code + ' - ' + hub.hub_name + '</option>';
-                });
+                let hubOptions = buildCostHubAgentOptions();
 
                 // Build currency options
                 let currencyOptions = '<option></option>';

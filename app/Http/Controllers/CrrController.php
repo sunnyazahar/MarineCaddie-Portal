@@ -29,7 +29,7 @@ class CrrController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('Stock.partials.rows', compact('crrs'))->render(),
-                'pagination' => (string) $crrs->links(),
+                'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $crrs])->render(),
                 'total' => $crrs->total(),
             ]);
         }
@@ -119,12 +119,14 @@ class CrrController extends Controller
                 'currency'                => $validated['currency'],
                 'customs_value'           => $validated['customs_value'],
                 'priority'                => $request->input('priority'),
-                'status'                  => $request->input('status', Crr::STATUS_PENDING),
                 'flags'                   => Crr::defaultFlags(),
                 'internal_comments'       => $request->input('internal_comments'),
                 'customs_value_usd'       => $request->input('customs_value_usd'),
                 'landed_from_vessel'      => $request->input('landed_from_vessel'),
             ];
+
+            $status = (int) $request->input('status', Crr::STATUS_NEW);
+            $crrData = array_merge($crrData, Crr::statusUpdateAttributes($status));
 
             $crr = $this->crrRepository->createCrr($crrData);
 
@@ -673,7 +675,7 @@ class CrrController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('Stock.partials.follow-up-rows', compact('crrs'))->render(),
-                'pagination' => (string) $crrs->links(),
+                'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $crrs])->render(),
                 'total' => $crrs->total(),
             ]);
         }
@@ -693,7 +695,7 @@ class CrrController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('Stock.partials.pickup-rows', compact('crrs', 'handledByMap'))->render(),
-                'pagination' => (string) $crrs->links(),
+                'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $crrs])->render(),
                 'total' => $crrs->total(),
             ]);
         }

@@ -30,6 +30,10 @@
     @stack('styles')
     {{-- After page styles so every calendar matches (readable size + brand colors) --}}
     @include('partials.datepicker-styles')
+    {{-- After page styles so filter label colors always win --}}
+    @include('partials.filter-chrome-styles')
+    {{-- After page styles so form control/label font sizes stay readable + consistent --}}
+    @include('partials.form-control-typography')
 </head>
 
 <body class="{{ auth()->user()?->isOperations() && request()->routeIs('offices.*', 'hub.*', 'agents.*', 'customers.*', 'contacts.*') ? 'ops-admin-readonly' : '' }}">

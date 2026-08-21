@@ -148,7 +148,7 @@
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             background-color: transparent !important;
             background: transparent !important;
-            line-height: 30px !important;
+            line-height: 1.25 !important;
             padding-left: 12px !important;
             font-size: 13px !important;
             color: #374151 !important;

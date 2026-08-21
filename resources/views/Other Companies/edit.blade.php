@@ -19,7 +19,7 @@
         }
 
         body .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 30px !important;
+            line-height: 1.25 !important;
             color: #333 !important;
             font-size: 12px !important;
             padding-left: 10px !important;

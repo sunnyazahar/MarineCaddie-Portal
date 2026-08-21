@@ -280,7 +280,7 @@
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             background-color: transparent !important;
-            line-height: 32px !important;
+            line-height: 1.25 !important;
             padding-left: 10px !important;
             font-size: 12px !important;
             color: #4b5563 !important;
@@ -297,7 +297,7 @@
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             background-color: transparent !important;
-            line-height: 32px !important;
+            line-height: 1.25 !important;
             padding-left: 10px !important;
             font-size: 12px !important;
             color: #4b5563 !important;

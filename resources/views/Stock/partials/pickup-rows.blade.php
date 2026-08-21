@@ -87,6 +87,17 @@
                                                             </tr>
                                                             @empty
                                                             <tr>
-                                                                <td colspan="12" class="text-center py-4 text-muted">No pickup stocks found.</td>
+                                                                <td class="text-center py-4 text-muted">No pickup stocks found.</td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
                                                             </tr>
                                                             @endforelse

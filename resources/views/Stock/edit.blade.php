@@ -26,9 +26,13 @@
         /* Modern 3-Pane Layout for Edit Stock */
         .stock-edit-wrapper {
             display: flex;
+            align-items: stretch;
             background: #f8fafc;
-            min-height: calc(100vh - 120px);
+            height: calc(100vh - 4rem);
+            max-height: calc(100vh - 4rem);
+            min-height: 0;
             margin: -20px;
+            overflow: hidden;
             /* Offset parent padding */
         }
 
@@ -236,11 +240,12 @@
         .dgr-container {
             display: flex;
             align-items: flex-end;
-            gap: 20px;
-            background: #fdfdfd;
-            border: 1px solid #edf2f7;
-            border-radius: 4px;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+            gap: 16px;
+            background: linear-gradient(180deg, #fff8f8, #fff5f5);
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            padding: 12px 14px;
         }
 
         .dgr-warning-icon {
@@ -254,7 +259,9 @@
         }
 
         .dgr-field.small {
-            flex: 0 0 120px;
+            flex: 0 0 140px;
+            max-width: 140px;
+            min-width: 120px;
         }
 
         .bootstrap-datetimepicker-widget.dropdown-menu {
@@ -267,38 +274,121 @@
             margin-top: 1px;
         }
 
-        /* 2. Main Content Area */
+        /* 2. Main Content Area — header + tabs pinned; only tab body scrolls */
         .stock-main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            padding-bottom: 80px;
-            /* margin-top: 35px; */
-            /* Space for fixed footer */
+            padding-bottom: 0;
+            min-width: 0;
+            min-height: 0;
+            height: 100%;
         }
 
-        /* Summary Header - Fixed */
+        .stock-main-content > form {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .stock-tab-content {
+            display: none;
+            flex: 1 1 auto;
+            min-height: 0;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .stock-tab-content.active {
+            display: flex !important;
+        }
+
+        /* Summary Header — in-flow (shipment-edit visual language; not fixed) */
         .summary-header {
-            background: #fff;
-            padding: 12px 25px;
+            background:
+                linear-gradient(135deg, rgba(240, 250, 251, 0.95) 0%, #ffffff 48%, #f8fafc 100%);
+            padding: 12px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #e2e8f0;
-            position: fixed;
-            top: 60px;
-            right: 0;
-            left: 0;
-            /* will be overridden by JS */
-            z-index: 100;
-            height: 75px;
+            gap: 12px;
+            flex-wrap: wrap;
+            border: 1px solid rgba(0, 136, 199, 0.14);
+            border-left: 4px solid #008080;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            margin: 8px 8px 0;
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+            width: auto;
+            min-height: 0;
+            height: auto;
+            box-shadow:
+                0 1px 2px rgba(14, 29, 74, 0.04);
+            overflow: hidden;
+        }
+        .summary-header::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -4%;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 174, 239, 0.10), transparent 68%);
+            pointer-events: none;
+        }
+        .summary-header-main {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            min-width: 0;
+            flex: 1 1 auto;
+            position: relative;
+            z-index: 1;
+        }
+        .summary-header-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #00aeef 0%, #008080 55%, #0e1d4a 100%);
+            color: #fff;
+            font-size: 21px;
+            flex-shrink: 0;
+            box-shadow:
+                0 4px 12px rgba(0, 128, 128, 0.32),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            line-height: 1;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .summary-header-icon i {
+            color: #fff !important;
+            line-height: 1;
+        }
+        .header-meta-group {
+            display: flex;
+            gap: 10px 12px;
+            flex-wrap: wrap;
+            min-width: 0;
+            flex: 1 1 auto;
+            align-items: stretch;
         }
 
         @media (max-width: 991.98px) {
             .stock-edit-wrapper {
                 margin: 0 !important;
                 min-height: auto;
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
                 flex-direction: column;
                 width: 100%;
                 max-width: 100%;
@@ -314,38 +404,49 @@
                 min-width: 0 !important;
                 flex: 1 1 auto !important;
                 overflow: visible !important;
+                height: auto !important;
                 padding-bottom: 0px;
             }
 
             .summary-header {
                 position: relative !important;
                 top: auto !important;
-                left: 0 !important;
+                left: auto !important;
                 right: auto !important;
-                width: 100% !important;
+                width: auto !important;
                 height: auto !important;
                 min-height: 0;
                 flex-wrap: wrap;
-                gap: 10px;
-                padding: 10px 12px;
+                gap: 12px;
+                padding: 12px;
+                border-radius: 12px 12px 0 0;
+                margin: 8px 8px 0;
             }
 
-            .summary-info-group {
+            .header-meta-group {
                 flex-wrap: wrap;
-                gap: 12px 16px !important;
+                gap: 10px 12px !important;
                 width: 100%;
+            }
+
+            .summary-header .header-actions,
+            .summary-header .summary-actions {
+                width: 100%;
+                margin-left: 0;
             }
 
             .stock-tabs-container {
                 position: relative !important;
                 top: auto !important;
-                left: 0 !important;
+                left: auto !important;
                 right: auto !important;
-                width: 100% !important;
+                width: auto !important;
+                margin: 0 8px !important;
                 padding: 0 12px !important;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
                 white-space: nowrap;
+                border-radius: 0 !important;
             }
 
             .stock-tabs {
@@ -356,9 +457,8 @@
             }
 
             .stock-form-scroll {
-                padding: 12px !important;
-                padding-top: 12px !important;
-                margin-top: 5px !important;
+                padding: 8px !important;
+                margin: 0 8px !important;
                 overflow: visible !important;
             }
 
@@ -375,18 +475,22 @@
             .stock-right-panel {
                 width: 100% !important;
                 max-width: 100% !important;
+                height: auto !important;
                 margin-top: 5px !important;
                 padding: 12px !important;
                 order: 3;
                 border-left: none;
                 border-top: 1px solid #e2e8f0;
+                overflow: visible !important;
             }
 
             .edit-footer {
-                left: 0 !important;
-                right: 0 !important;
+                position: relative !important;
+                left: auto !important;
+                right: auto !important;
+                bottom: auto !important;
                 width: 100% !important;
-                padding: 12px !important;
+                padding: 12px 16px !important;
                 flex-wrap: wrap;
                 gap: 10px;
             }
@@ -423,32 +527,62 @@
             }
         }
 
+        .header-meta-group,
         .summary-info-group {
             display: flex;
-            align-items: center;
-            gap: 40px;
+            align-items: stretch;
+            gap: 10px 12px;
+            flex-wrap: wrap;
         }
 
+        .meta-item,
         .summary-item {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 3px;
+            min-width: 0;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
         }
 
+        .meta-label,
         .summary-label {
-            font-size: 10px;
+            font-size: 9px;
+            font-weight: 700;
             color: #64748b;
+            margin-bottom: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
+        .meta-value,
         .summary-value {
             font-size: 12px;
-            font-weight: 500;
-            color: #1e293b;
+            font-weight: 700;
+            color: #0f172a;
         }
 
+        .meta-value-primary,
         .summary-value-bold {
-            font-weight: 700;
-            font-size: 13px;
+            color: #0e1d4a !important;
+            font-size: 15px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.02em;
+        }
+
+        .meta-value-with-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-value-with-icon .meta-cal-icon {
+            color: #008080;
+            font-size: 12px;
+            opacity: 0.95;
         }
 
         .summary-link {
@@ -463,32 +597,53 @@
 
         /* Flags Tag */
         .summary-flag {
-            border: 1px solid #e2e8f0;
-            padding: 2px 8px;
-            border-radius: 4px;
+            border: 1px solid #cce7f5;
+            padding: 3px 10px;
+            border-radius: 999px;
             font-size: 11px;
-            color: #475569;
-            background: #fff;
+            color: #0e1d4a;
+            background: linear-gradient(180deg, #f8fcff, #eef7fc);
             display: inline-block;
+            font-weight: 600;
         }
 
         .summary-flag-landed {
             background: #dcf0fa;
             border: 1px solid #bae6fd;
             color: #0369a1;
-            padding: 2px 8px;
-            border-radius: 4px;
+            padding: 3px 10px;
+            border-radius: 999px;
             font-size: 11px;
             display: inline-block;
+            font-weight: 600;
         }
 
         .status-badge {
-            background: #dcfce7;
-            color: #166534;
-            padding: 4px 35px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .header-inline-edit {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-inline-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .header-inline-select {
+            display: none;
+            min-width: 150px;
         }
 
         .flag-icon {
@@ -500,26 +655,51 @@
         }
 
         /* Header Buttons */
+        .header-actions,
         .summary-actions {
             position: relative;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+            margin-left: auto;
+            z-index: 1;
         }
 
+        .btn-premium {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            letter-spacing: 0.01em;
+        }
+
+        .btn-outline-custom,
         .btn-header-outline {
-            border: 1px solid #008080;
-            color: #008080;
-            background: transparent;
-            padding: 6px 15px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
+            border: 1px solid #d1d5db;
+            color: #334155;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
             transition: all 0.2s;
         }
 
-        .btn-header-outline:hover {
-            background: #f0fdfa;
+        .btn-outline-custom:hover:not(:disabled),
+        .btn-header-outline:hover:not(:disabled) {
+            border-color: #00aeef;
+            color: #0e1d4a;
+            background: #f0faff;
+        }
+
+        .btn-header-outline:disabled,
+        .btn-outline-custom:disabled {
+            opacity: 0.55;
+            cursor: default;
         }
 
         .btn-more-circle {
@@ -568,27 +748,29 @@
             background: #f1f5f9;
         }
 
-        /* Tabs */
+        /* Tabs — flush under summary (no gap) */
         .stock-tabs-container {
             background: #fff;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 0 25px;
-            position: fixed;
-            top: 120px;
-            /* 75 navbar + ~68 header */
-            right: 0;
-            left: 0;
-            /* will be overridden by JS */
-            z-index: 99;
+            border: 1px solid rgba(0, 136, 199, 0.14);
+            border-top: 1px solid #e8edf2;
+            border-bottom: 1px solid #e8edf2;
+            border-left: 4px solid #008080;
+            padding: 0 14px;
+            position: relative;
+            z-index: 5;
+            flex-shrink: 0;
+            margin: 0 8px;
+            border-radius: 0;
+            box-shadow: none;
         }
 
         .stock-tabs {
             display: flex;
-            gap: 30px;
+            gap: 24px;
         }
 
         .stock-tab {
-            padding: 15px 5px;
+            padding: 10px 4px;
             font-size: 13px;
             font-weight: 500;
             color: #64748b;
@@ -603,22 +785,28 @@
         .stock-tab.active::after {
             content: '';
             position: absolute;
-            bottom: -1px;
+            bottom: 0;
             left: 0;
             right: 0;
             height: 2px;
             background: #008080;
         }
 
-        /* Form Scroll Area */
+        /* Form Scroll Area — flush under tabs */
         .stock-form-scroll {
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
-            padding: 25px;
-            background: #fff;
-            padding-top: 135px;
-            margin-top: 5px;
-            /* space for fixed header + tabs */
+            overflow-x: hidden;
+            padding: 10px 8px 16px;
+            background: transparent;
+            margin: 0 8px;
+            border: 1px solid rgba(0, 136, 199, 0.14);
+            border-top: none;
+            border-left: 4px solid #008080;
+            border-radius: 0 0 12px 12px;
+            background: #f8fafc;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Form Layout (3 columns) */
@@ -658,13 +846,16 @@
 
         .field-input {
             width: 100%;
-            height: 32px;
-            padding: 5px 10px;
-            font-size: 12px;
+            height: var(--mc-control-height, 34px);
+            min-height: var(--mc-control-height, 34px);
+            padding: 0 10px;
+            font-size: var(--mc-control-font-size, 13px);
             border: 1px solid #e2e8f0;
-            border-radius: 4px;
+            border-radius: var(--mc-control-radius, 8px);
             background: #fff;
             position: relative;
+            line-height: 1.25;
+            box-sizing: border-box;
         }
 
         .field-input-static {
@@ -726,70 +917,213 @@
             font-size: 11px;
         }
 
-        /* Fixed Footer Section */
+        /* Footer — in-flow under form (shipment-edit style) */
         .edit-footer {
-            padding: 15px 30px;
-            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 28px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             gap: 20px;
-            border-top: 1px solid #dee2e6;
-            position: fixed;
-            bottom: 0;
-            left: 185px;
-            right: 0;
-            z-index: 1000;
-            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+            border-top: 1px solid rgba(226, 232, 240, 0.95);
+            position: relative;
+            flex-shrink: 0;
+            width: 100%;
+            left: auto;
+            right: auto;
+            bottom: auto;
+            z-index: 5;
+            box-shadow: 0 -8px 24px rgba(14, 29, 74, 0.06);
+            margin-top: auto;
         }
 
+        .edit-footer .btn-save-custom,
         .btn-save-custom {
-            background-color: #1b5e6f;
-            color: white;
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+            color: #fff;
             border: none;
-            padding: 8px 30px;
-            border-radius: 4px;
-            font-size: 14px;
+            padding: 10px 28px;
+            border-radius: 8px;
+            font-size: 13px;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.28);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
         }
 
+        .edit-footer .btn-save-custom:hover:not(:disabled),
+        .btn-save-custom:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 128, 128, 0.34);
+            color: #fff;
+        }
+
+        .edit-footer .btn-save-custom:disabled,
+        .btn-save-custom:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .edit-footer .btn-cancel-custom,
         .btn-cancel-custom {
-            color: #01a9ac;
-            font-size: 14px;
+            color: #008080;
+            font-size: 13px;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            padding: 0;
+            box-shadow: none;
         }
 
-        /* 3. Right Panel Sidebar */
+        .edit-footer .btn-cancel-custom:hover,
+        .btn-cancel-custom:hover {
+            text-decoration: underline;
+            color: #0e1d4a;
+        }
+
+        /* 3. Right Panel Sidebar — match main column height */
         .stock-right-panel {
             width: 400px;
             background: #f8fafc;
             border-left: 1px solid #e2e8f0;
-            padding: 20px;
+            padding: 8px 8px 8px 4px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 12px;
+            overflow: hidden;
+            overflow-x: hidden;
+            margin-top: 0;
+            align-self: stretch;
+            height: 100%;
+            min-height: 0;
+            min-width: 0;
+            flex: 0 0 400px;
+            box-sizing: border-box;
+        }
+
+        .stock-right-panel > .panel-card {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+            overflow-x: hidden;
+        }
+
+        /* Documents + Activity share column height; dropzone always visible */
+        .stock-right-panel > #crr-documents-panel {
+            flex: 1 1 46%;
+            min-height: 240px;
+            max-height: none;
+        }
+
+        .stock-right-panel > #crr-activity-panel {
+            flex: 1 1 54%;
+            min-height: 0;
+        }
+
+        .stock-right-panel .panel-title,
+        .stock-right-panel .crr-docs-header,
+        .stock-right-panel .panel-tabs,
+        .stock-right-panel > #crr-activity-panel > .panel-tabs {
+            flex-shrink: 0;
+        }
+
+        #crr-doc-list {
+            flex: 1 1 auto;
+            min-height: 0;
+            max-height: none;
             overflow-y: auto;
-            margin-top: 110px;
+        }
+
+        /* Keep upload zone pinned at bottom of documents card (never clipped) */
+        #crr-documents-panel #crr-dropzone,
+        #crr-documents-panel .dropzone-placeholder {
+            flex: 0 0 auto !important;
+            flex-shrink: 0 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            margin-top: 10px;
+            order: 10;
+        }
+
+        #crr-activity-panel #panel-contents {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #crr-activity-panel .panel-tab-content {
+            flex: 1 1 auto;
+            min-height: 0;
+            max-height: none !important;
+            overflow-y: auto;
         }
 
         .panel-card {
             background: #fff;
-            border-radius: 6px;
-            padding: 15px;
-            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 12px;
+            border: 1px solid rgba(214, 227, 238, 0.95);
+            box-shadow:
+                0 1px 2px rgba(14, 29, 74, 0.04),
+                0 8px 22px rgba(14, 29, 74, 0.05);
         }
 
         .panel-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #002d5b;
-            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 0 0 10px;
+            padding: 0 0 10px;
+            border-bottom: 1px solid #e8edf2;
         }
 
-        #crr-doc-list {
-            max-height: 220px;
-            overflow-y: auto;
+        .panel-title__label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #0e1d4a;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .panel-title__label::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #00aeef;
+            box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.16);
+            flex-shrink: 0;
+        }
+
+        .panel-title__count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 22px;
+            padding: 0 8px;
+            border-radius: 999px;
+            background: #e8f6fc;
+            border: 1px solid rgba(0, 136, 199, 0.18);
+            color: #0088c7;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0;
+            line-height: 1;
         }
 
         .crr-docs-header {
@@ -797,27 +1131,57 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 6px;
-            padding: 0 2px 0 0;
+            padding: 0 2px 6px;
+            border-bottom: 1px solid #eef2f6;
+            gap: 8px;
+            min-width: 0;
         }
 
         .crr-docs-header span {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 700;
             color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         .crr-docs-header .crr-docs-internal-label {
-            width: 56px;
-            text-align: center;
-            margin-right: 26px;
+            width: auto;
+            min-width: 0;
+            text-align: right;
+            margin-right: 0;
+            flex: 0 0 auto;
+        }
+
+        #crr-documents-panel {
+            overflow-x: hidden !important;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        #crr-doc-list {
+            overflow-x: hidden;
+            overflow-y: auto;
+            min-width: 0;
+            max-width: 100%;
         }
 
         .doc-item {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid #e8edf2;
+            gap: 8px;
+            padding: 8px 6px;
+            margin: 0 0 2px;
+            border-bottom: none;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .doc-item:hover {
+            background: #f5fafb;
         }
 
         .doc-item:last-child {
@@ -825,23 +1189,181 @@
         }
 
         .doc-main {
-            flex: 1;
+            flex: 1 1 auto;
             min-width: 0;
+            max-width: 100%;
             padding-top: 1px;
+            overflow: hidden;
         }
 
         .doc-name {
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 600;
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
             color: #008080 !important;
-            line-height: 16px;
+            line-height: 1.35;
             text-decoration: none;
             word-break: break-word;
+            overflow-wrap: anywhere;
+            max-width: 100%;
         }
 
         .doc-name:hover {
             text-decoration: underline;
+            color: #00aeef !important;
+        }
+
+        .no-docs-msg {
+            text-align: center;
+            padding: 24px 12px;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Activity tabs */
+        .panel-tabs {
+            display: flex;
+            gap: 2px;
+            padding: 0 4px;
+            background: linear-gradient(180deg, #f8fafc, #fff);
+            border-bottom: 1px solid #e8edf2;
+            flex-shrink: 0;
+        }
+
+        .stock-right-panel .panel-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 6px;
+            font-size: 12px !important;
+            font-weight: 700;
+            color: #94a3b8;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s ease, border-color 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .stock-right-panel .panel-tab:hover {
+            color: #008080;
+        }
+
+        .stock-right-panel .panel-tab.active {
+            color: #0e1d4a !important;
+            border-bottom-color: #00aeef !important;
+            font-weight: 800;
+        }
+
+        #crr-activity-panel {
+            padding: 0 !important;
+            overflow: hidden;
+        }
+
+        #crr-activity-panel #panel-contents {
+            padding: 0;
+        }
+
+        #crr-activity-panel .panel-tab-content {
+            padding: 12px 14px;
+        }
+
+        .change-log-item {
+            border-bottom: none;
+            padding: 10px 10px;
+            margin: 0 0 6px;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #fbfdff, #f8fafc);
+            border: 1px solid #eef2f6;
+        }
+
+        .change-log-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .change-log-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .change-log-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .change-log-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #008080;
+            line-height: 1.35;
+        }
+
+        .change-log-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        .change-log-meta {
+            text-align: right;
+            min-width: 100px;
+            flex-shrink: 0;
+        }
+
+        .change-log-user {
+            font-size: 12px;
+            color: #0e1d4a;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .change-log-time {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .panel-empty-msg {
+            font-size: 13px;
+            color: #94a3b8;
+            text-align: center;
+            padding: 28px 12px;
+            font-weight: 500;
+        }
+
+        /* Drag & Drop Placeholder */
+        .dropzone-placeholder {
+            border: 1.5px dashed #94c9e3;
+            border-radius: 10px;
+            padding: 16px 12px;
+            text-align: center;
+            margin-top: 10px;
+            background: linear-gradient(180deg, #f5fbfe, #eef8fc);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dropzone-placeholder:hover {
+            border-color: #00aeef;
+            background: #e8f6fc;
+            box-shadow: 0 4px 12px rgba(0, 174, 239, 0.12);
+        }
+
+        .dropzone-text {
+            font-size: 12px;
+            color: #0088c7;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .dropzone-placeholder .dropzone-icon {
+            font-size: 20px;
+            color: #00aeef;
+            display: block;
+            margin-bottom: 6px;
         }
 
         .doc-type-select {
@@ -850,7 +1372,7 @@
             border: 0;
             background: transparent;
             color: #64748b;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 500;
             padding: 0;
             max-width: 100%;
@@ -863,30 +1385,37 @@
             display: block;
             margin-top: 4px;
             width: 100% !important;
+            max-width: 100% !important;
         }
 
         #crr-documents-panel .select2-container--default .select2-selection--single {
             border: 0 !important;
             background: transparent !important;
             background-color: transparent !important;
-            height: 18px !important;
-            min-height: 18px !important;
+            height: 22px !important;
+            min-height: 22px !important;
+            max-height: 22px !important;
             display: block !important;
             align-items: unset !important;
+            max-width: 100% !important;
         }
 
         #crr-documents-panel .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: #64748b !important;
-            font-size: 11px !important;
+            font-size: 12px !important;
             font-weight: 500 !important;
-            line-height: 18px;
+            line-height: 22px;
             padding: 0 16px 0 0 !important;
             background: transparent !important;
             background-color: transparent !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            max-width: 100% !important;
         }
 
         #crr-documents-panel .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 18px;
+            height: 22px;
             width: 14px;
             right: 0;
             top: 0;
@@ -895,7 +1424,7 @@
         .select2-dropdown.doc-type-select2-dropdown {
             z-index: 20060;
             min-width: 220px;
-            font-size: 11px;
+            font-size: 13px;
         }
 
         .select2-dropdown.doc-type-select2-dropdown .select2-results__options {
@@ -903,19 +1432,21 @@
         }
 
         .doc-side {
-            flex: 0 0 auto;
-            width: 82px;
+            flex: 0 0 70px;
+            width: 70px;
+            max-width: 70px;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 4px;
+            min-width: 0;
         }
 
         .doc-side-row {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 12px;
+            gap: 10px;
             height: 18px;
             width: 100%;
         }
@@ -1006,129 +1537,274 @@
         }
 
         .doc-date {
-            font-size: 10px;
+            font-size: 13px;
             color: #94a3b8;
-            line-height: 1.2;
+            line-height: 1.3;
             white-space: nowrap;
             text-align: right;
-            min-height: 12px;
-        }
-
-        /* Drag & Drop Placeholder */
-        .dropzone-placeholder {
-            border: 1px dashed #cbd5e1;
-            border-radius: 4px;
-            padding: 22px 16px;
-            text-align: center;
-            margin-top: 14px;
-            background: #fff;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .dropzone-placeholder:hover {
-            border-color: #94a3b8;
-            background: #f8fafc;
-        }
-
-        .dropzone-text {
-            font-size: 12px;
-            color: #94a3b8;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-
-        .dropzone-placeholder .dropzone-icon {
-            font-size: 18px;
-            color: #94a3b8;
-            display: block;
+            min-height: 16px;
         }
 
         /* Select2 Overrides matches previous ones */
         .select2-container--default .select2-selection--single {
             background-color: #fff !important;
             border: 1px solid #e2e8f0 !important;
-            height: 32px !important;
+            height: var(--mc-control-height, 34px) !important;
+            min-height: var(--mc-control-height, 34px) !important;
             display: flex !important;
             align-items: center !important;
         }
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: #334155 !important;
-            font-size: 12px !important;
+            font-size: var(--mc-control-font-size, 13px) !important;
             padding-left: 10px !important;
             background-color: #fff !important;
         }
 
 
         /* CRR Form Specific Styles from Create-CRR */
+        .stock-grid-card {
+            background: #fff;
+            border: 1px solid rgba(214, 227, 238, 0.95);
+            border-radius: 14px;
+            box-shadow:
+                0 1px 2px rgba(14, 29, 74, 0.04),
+                0 10px 28px rgba(14, 29, 74, 0.05);
+            margin: 18px 0 20px;
+            overflow: hidden;
+        }
+
         .crr-table-header {
-            font-size: 11px;
-            font-weight: 600;
-            color: #374151;
-            margin: 30px 0 10px 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0e1d4a;
+            margin: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 14px 16px;
+            background:
+                linear-gradient(135deg, rgba(240, 250, 251, 0.95) 0%, #ffffff 55%, #f8fafc 100%);
+            border-bottom: 1px solid #e8edf2;
+        }
+
+        .crr-table-header__title {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+
+        .crr-table-header__icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            background: linear-gradient(145deg, #00aeef 0%, #008080 100%);
+            color: #fff;
+            font-size: 15px;
+            flex-shrink: 0;
+            box-shadow: 0 3px 8px rgba(0, 128, 128, 0.25);
+        }
+
+        .crr-table-header__icon i {
+            color: #fff !important;
+            line-height: 1;
+        }
+
+        .crr-table-header__label {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0e1d4a;
+            letter-spacing: 0.01em;
+        }
+
+        #package-summary-text,
+        .package-summary-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: #008080 !important;
+            background: rgba(0, 174, 239, 0.08);
+            border: 1px solid rgba(0, 136, 199, 0.18);
+            border-radius: 999px;
+            padding: 4px 12px;
+            line-height: 1.3;
         }
 
         .crr-data-table {
             width: 100%;
-            margin-top: 10px;
+            margin-top: 0;
             background: #fff;
-            border: 1px solid #f3f4f6;
+            border: none;
             border-collapse: collapse;
         }
 
         .crr-data-table th {
-            background-color: #fdfdfd;
-            padding: 10px;
+            background: linear-gradient(180deg, #e8f6fc 0%, #f0fafd 100%);
+            padding: 11px 10px;
             font-size: 11px;
-            font-weight: 600;
-            color: #6b7280;
-            border-bottom: 1px solid #e5e7eb;
+            font-weight: 700;
+            color: #0e1d4a;
+            border-bottom: 1px solid #d6e3ee;
             text-align: left;
+            white-space: nowrap;
+            vertical-align: middle;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         .crr-data-table td {
-            padding: 8px 10px;
-            font-size: 11px;
-            border-bottom: 1px solid #f3f4f6;
+            padding: 10px;
+            font-size: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            background: #fff;
+        }
+
+        .crr-data-table tbody tr:hover > td {
+            background: #f8fcfd;
+        }
+
+        .crr-data-table tbody tr.empty-row td {
+            padding: 28px 16px;
+            color: #94a3b8;
+            font-size: 13px;
+            background: #fafbfc;
+        }
+
+        .stock-grid-card .table-responsive {
+            margin: 0 !important;
+            padding: 0 4px 8px;
+        }
+
+        .stock-grid-card .costs-table-wrap {
+            margin-bottom: 0 !important;
+        }
+
+        /* Costs grid: keep columns aligned; hub/currency Select2 need room */
+        #costsTable {
+            min-width: 1180px;
+            table-layout: fixed;
+        }
+
+        #costsTable th:nth-child(1),
+        #costsTable td:nth-child(1) {
+            width: 36px;
+        }
+
+        #costsTable th:nth-child(4),
+        #costsTable td:nth-child(4),
+        #costsTable th:nth-child(6),
+        #costsTable td:nth-child(6) {
+            width: 88px;
+        }
+
+        #costsTable th:nth-child(5),
+        #costsTable td:nth-child(5) {
+            width: 110px;
+        }
+
+        #costsTable th:nth-child(9),
+        #costsTable td:nth-child(9) {
+            width: 170px;
+            min-width: 150px;
+        }
+
+        #costsTable th:nth-child(10),
+        #costsTable td:nth-child(10) {
+            width: 90px;
+        }
+
+        #costsTable th:nth-child(11),
+        #costsTable td:nth-child(11),
+        #costsTable th:nth-child(12),
+        #costsTable td:nth-child(12) {
+            width: 48px;
+            text-align: center;
+        }
+
+        #costsTable .select2.select2-container {
+            width: 100% !important;
+            max-width: 100%;
+        }
+
+        .select2-dropdown.cost-hub-select2-dropdown {
+            min-width: 280px !important;
+        }
+
+        .select2-dropdown.cost-currency-select2-dropdown {
+            min-width: 120px !important;
         }
 
         .crr-input {
             width: 100%;
-            height: 28px;
-            padding: 2px 8px;
-            font-size: 11px;
+            height: var(--mc-control-height, 34px);
+            min-height: var(--mc-control-height, 34px);
+            padding: 0 10px;
+            font-size: var(--mc-control-font-size, 13px);
             border: 1px solid #d1d5db;
-            border-radius: 2px;
+            border-radius: var(--mc-control-radius, 8px);
             outline: none;
+            background: #fff;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            line-height: 1.25;
+            box-sizing: border-box;
         }
 
         .crr-input:focus {
-            border-color: #008080;
+            border-color: #00aeef;
+            box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.12);
         }
 
         .crr-input[readonly] {
-            background-color: #f9fafb;
+            background-color: #f8fafc;
             cursor: not-allowed;
+            color: #64748b;
+            font-weight: 600;
         }
 
         .btn-outline-teal {
-            font-size: 11px;
-            padding: 5px 15px;
-            border-radius: 2px;
+            border: 1px solid #0088c7;
             background: #fff;
-            color: #1b5e6f;
-            border: 1px solid #1b5e6f;
-            font-weight: 600;
-            transition: all 0.2s;
+            color: #0088c7;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04);
+            transition: all 0.15s ease;
         }
 
         .btn-outline-teal:hover {
-            background: #1b5e6f;
-            color: #fff;
+            background: #e8f6fc;
+            color: #0e1d4a;
+            border-color: #00aeef;
+        }
+
+        .dgr-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            background: linear-gradient(180deg, #fff8f8, #fff5f5);
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            padding: 12px 14px;
+            margin: 4px 0 8px;
+        }
+
+        .irregularity-sub-row .dgr-container,
+        .dgr-container--irregularity {
+            background: linear-gradient(180deg, #fffbeb, #fff8e8);
+            border-color: #fde68a;
         }
 
         /* Selected value (input box) */
@@ -1136,7 +1812,12 @@
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            display: block;
+            display: flex !important;
+            align-items: center !important;
+            line-height: 1.25 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            height: 100% !important;
         }
 
         /* Dropdown options */
@@ -1266,50 +1947,28 @@
                 #f5f7fb !important;
             margin: 0 !important;
             width: 100%;
+            height: calc(100vh - 4rem) !important;
+            max-height: calc(100vh - 4rem) !important;
+            overflow: hidden !important;
+            align-items: stretch !important;
         }
 
         .summary-header {
-            background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%) !important;
-            border-bottom: 1px solid #d6e3ee !important;
-            box-shadow: 0 8px 24px rgba(14, 29, 74, 0.05);
-            /* Align under app header (h-16); keep fixed height so tabs/form offsets stay stable */
-            top: 4rem !important;
-            height: 72px !important;
-            min-height: 72px;
+            /* in-flow card — pinned via flex, flush with tabs */
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            height: auto !important;
+            min-height: 0;
             gap: 12px;
-            flex-wrap: nowrap;
-            overflow: hidden;
-            padding-left: 12px !important;
-            padding-right: 12px !important;
-        }
-
-        .summary-header::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #ff5a5f 0%, #e87722 35%, #00aeef 100%);
-            pointer-events: none;
-        }
-
-        .summary-label {
-            color: #64748b !important;
-            font-size: 11px !important;
-            font-weight: 600 !important;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .summary-value,
-        .summary-value-bold {
-            color: #0e1d4a !important;
-        }
-
-        .summary-value-bold {
-            font-weight: 700 !important;
-            letter-spacing: -0.01em;
+            padding: 12px 14px !important;
+            position: relative !important;
+            flex-shrink: 0 !important;
+            z-index: 6 !important;
+            margin: 8px 8px 0 !important;
+            border-radius: 12px 12px 0 0 !important;
+            border-bottom: none !important;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04) !important;
         }
 
         .summary-flag,
@@ -1318,21 +1977,13 @@
             font-weight: 600 !important;
         }
 
-        .btn-header-outline {
-            border: 1px solid #0088c7 !important;
-            color: #0088c7 !important;
-            background: #fff !important;
+        .btn-header-outline,
+        .btn-outline-custom {
             border-radius: 8px !important;
-            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04);
         }
 
-        .btn-header-outline:hover:not(:disabled) {
-            background: #e8f6fc !important;
-            color: #0e1d4a !important;
-            border-color: #00aeef !important;
-        }
-
-        .btn-header-outline:disabled {
+        .btn-header-outline:disabled,
+        .btn-outline-custom:disabled {
             opacity: 0.55;
             cursor: default;
         }
@@ -1343,18 +1994,27 @@
 
         .stock-tabs-container {
             background: #ffffff !important;
-            border-bottom: 1px solid #d6e3ee !important;
-            box-shadow: 0 4px 14px rgba(14, 29, 74, 0.03);
-            /* navbar 4rem + summary 72px */
-            top: calc(4rem + 72px) !important;
-            padding-left: 12px !important;
-            padding-right: 12px !important;
+            border: 1px solid rgba(0, 136, 199, 0.14) !important;
+            border-top: 1px solid #e8edf2 !important;
+            border-bottom: 1px solid #e8edf2 !important;
+            border-left: 4px solid #008080 !important;
+            box-shadow: none !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            position: relative !important;
+            flex-shrink: 0 !important;
+            z-index: 5 !important;
+            margin: 0 8px !important;
+            padding: 0 14px !important;
+            border-radius: 0 !important;
         }
 
         .stock-tab {
             font-weight: 600 !important;
             color: #64748b !important;
             transition: color 0.15s ease;
+            padding: 10px 4px !important;
         }
 
         .stock-tab:hover {
@@ -1369,31 +2029,89 @@
             background: #00aeef !important;
             height: 3px !important;
             border-radius: 3px 3px 0 0;
+            bottom: 0 !important;
         }
 
         .stock-form-scroll {
             background: transparent !important;
-            padding-left: 8px !important;
-            padding-right: 8px !important;
-            padding-bottom: 16px !important;
-            /*
-              Main already has pt-16; only clear fixed summary (72) + tabs (~46) + small gap.
-              Previous 160px stacked on pt-16 and left a large empty band under the tabs.
-            */
-            padding-top: 126px !important;
-            margin-top: 0;
+            padding: 8px 4px 12px !important;
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
         }
 
         .edit-form-row {
-            background: #fff;
-            border: 1px solid rgba(214, 227, 238, 0.9);
-            border-radius: 12px;
-            padding: 14px 12px !important;
-            box-shadow: 0 10px 28px rgba(14, 29, 74, 0.05);
-            gap: 16px !important;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0 !important;
+            box-shadow: none;
+            gap: 0 !important;
             width: 100% !important;
             max-width: none !important;
             box-sizing: border-box;
+            margin: 0 -8px !important;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+        }
+
+        .edit-form-row.crr-pillars > .edit-form-col {
+            display: flex;
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            overflow: visible !important;
+            padding: 0 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        .stock-edit-wrapper .crr-pillar {
+            width: 100%;
+            background: linear-gradient(180deg, #fbfdff 0%, #ffffff 48%);
+            border: 1px solid #d6e3ee;
+            border-radius: 14px;
+            padding: 14px 14px 12px;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 8px 22px rgba(14, 29, 74, 0.04);
+            overflow: visible !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stock-edit-wrapper .crr-pillar__title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 14px;
+            padding: 0 0 10px 10px;
+            border-bottom: 1px solid #e8eef4;
+            border-left: 3px solid #00aeef;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: #0e1d4a;
+            line-height: 1.2;
+        }
+
+        .stock-edit-wrapper .crr-section-shell,
+        .stock-edit-wrapper .stock-grid-card {
+            margin-top: 8px;
+            margin-bottom: 18px;
+            padding: 14px 14px 16px;
+            background: linear-gradient(180deg, #fbfdff 0%, #ffffff 40%);
+            border: 1px solid #d6e3ee;
+            border-radius: 14px;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 8px 22px rgba(14, 29, 74, 0.04);
+        }
+
+        .stock-edit-wrapper .crr-section-shell .crr-table-header,
+        .stock-edit-wrapper .stock-grid-card .crr-table-header {
+            margin: 0 0 12px !important;
+            padding: 0 0 10px 10px !important;
+            border-bottom: 1px solid #e8eef4;
+            border-left: 3px solid #00aeef;
+            background: transparent;
         }
 
         .edit-form-col {
@@ -1414,15 +2132,18 @@
         }
 
         .stock-main-content {
-            overflow-x: visible !important;
+            overflow-x: hidden !important;
             overflow-y: hidden !important;
             max-width: 100%;
+            min-height: 0 !important;
         }
 
         .stock-form-scroll {
-            overflow-x: visible !important;
+            overflow-x: hidden !important;
             overflow-y: auto !important;
             max-width: 100%;
+            min-height: 0 !important;
+            flex: 1 1 auto !important;
         }
 
         .stock-main-content .row > [class*='col-'] {
@@ -1467,20 +2188,21 @@
 
         /* Country Select2 — match stock field height */
         .stock-main-content [data-country-select] + .select2-container .select2-selection--single {
-            min-height: 32px !important;
-            height: 32px !important;
+            min-height: var(--mc-control-height, 34px) !important;
+            height: var(--mc-control-height, 34px) !important;
             display: flex !important;
             align-items: center !important;
         }
 
         .stock-main-content [data-country-select] + .select2-container .select2-selection__rendered {
-            line-height: 30px !important;
+            line-height: 1.25 !important;
             padding-left: 10px !important;
-            font-size: 12px !important;
+            font-size: var(--mc-control-font-size, 13px) !important;
         }
 
         .stock-main-content [data-country-select] + .select2-container .select2-selection__arrow {
-            height: 30px !important;
+            height: 100% !important;
+            top: 0 !important;
         }
 
         .form-group-title {
@@ -1499,7 +2221,7 @@
         .field-label {
             color: #475569 !important;
             font-weight: 600 !important;
-            font-size: 12px !important;
+            font-size: var(--mc-label-font-size, 13px) !important;
         }
 
         .field-input,
@@ -1556,54 +2278,120 @@
         }
 
         .edit-footer {
-            background: #ffffff !important;
-            border-top: 1px solid #d6e3ee !important;
-            box-shadow: 0 -4px 16px rgba(14, 29, 74, 0.06) !important;
-            backdrop-filter: none;
-            gap: 14px !important;
-            padding: 12px 24px !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            border-top: 1px solid rgba(226, 232, 240, 0.95) !important;
+            box-shadow: 0 -8px 24px rgba(14, 29, 74, 0.06) !important;
+            backdrop-filter: blur(8px);
+            gap: 20px !important;
+            padding: 12px 28px !important;
+            position: relative !important;
+            left: auto !important;
+            right: auto !important;
+            bottom: auto !important;
+            width: 100% !important;
+            flex-shrink: 0 !important;
         }
 
+        .edit-footer .btn-save-custom,
         .btn-save-custom {
-            background-image: none !important;
-            background: #ff5a5f !important;
-            background-color: #ff5a5f !important;
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%) !important;
+            background-color: transparent !important;
+            background-image: linear-gradient(135deg, #00aeef 0%, #008080 100%) !important;
             color: #fff !important;
             border: none !important;
             border-radius: 8px !important;
             padding: 10px 28px !important;
             font-weight: 700 !important;
-            box-shadow: 0 4px 12px rgba(255, 90, 95, 0.28);
-            transition: background-color 0.15s ease, filter 0.15s ease;
+            font-size: 13px !important;
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.28) !important;
+            transition: transform 0.15s ease, box-shadow 0.15s ease !important;
         }
 
-        .btn-save-custom:hover {
-            background: #e84d52 !important;
-            background-image: none !important;
+        .edit-footer .btn-save-custom:hover:not(:disabled),
+        .btn-save-custom:hover:not(:disabled) {
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%) !important;
+            background-image: linear-gradient(135deg, #00aeef 0%, #008080 100%) !important;
             filter: none;
-            transform: none;
+            transform: translateY(-1px);
             color: #fff !important;
+            box-shadow: 0 6px 16px rgba(0, 128, 128, 0.34) !important;
         }
 
+        .edit-footer .btn-cancel-custom,
         .btn-cancel-custom {
-            color: #0088c7 !important;
-            font-weight: 600 !important;
+            color: #008080 !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
         }
 
+        .edit-footer .btn-cancel-custom:hover,
         .btn-cancel-custom:hover {
-            color: #00aeef !important;
+            color: #0e1d4a !important;
             text-decoration: underline;
         }
 
         .stock-right-panel {
-            background: transparent !important;
+            background:
+                linear-gradient(180deg, rgba(248, 250, 252, 0.4) 0%, transparent 40%),
+                transparent !important;
             border-left: none !important;
             gap: 12px !important;
             width: 340px !important;
             flex: 0 0 340px !important;
-            padding: 0 8px 16px 4px !important;
-            /* Match form clearance under fixed summary + tabs */
-            margin-top: 126px !important;
+            padding: 8px 8px 8px 4px !important;
+            margin-top: 0 !important;
+            align-self: stretch !important;
+            height: 100% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .stock-right-panel > .panel-card {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .stock-right-panel > #crr-documents-panel {
+            flex: 1 1 46% !important;
+            min-height: 240px !important;
+            max-height: none !important;
+        }
+
+        .stock-right-panel > #crr-activity-panel {
+            flex: 1 1 54% !important;
+            min-height: 0 !important;
+        }
+
+        #crr-doc-list {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow-y: auto !important;
+        }
+
+        #crr-documents-panel #crr-dropzone,
+        #crr-documents-panel .dropzone-placeholder {
+            flex: 0 0 auto !important;
+            flex-shrink: 0 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            margin-top: 10px !important;
+        }
+
+        #crr-activity-panel #panel-contents {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        #crr-activity-panel .panel-tab-content.active,
+        #crr-activity-panel .panel-tab-content {
+            max-height: none !important;
+            overflow-y: auto !important;
+            min-height: 0 !important;
         }
 
         .panel-card {
@@ -1617,7 +2405,8 @@
 
         /* Activity card keeps flush tabs (inline padding: 0) */
         .stock-right-panel .panel-card[style*="padding: 0"],
-        .stock-right-panel .panel-card[style*="padding:0"] {
+        .stock-right-panel .panel-card[style*="padding:0"],
+        #crr-activity-panel {
             padding: 0 !important;
         }
 
@@ -1627,16 +2416,24 @@
         }
 
         .panel-title {
+            margin-bottom: 10px !important;
+        }
+
+        .panel-title__label {
             color: #0e1d4a !important;
-            font-weight: 700 !important;
-            margin-bottom: 8px !important;
+            font-weight: 800 !important;
+        }
+
+        .panel-title__count {
+            background: #e8f6fc !important;
+            color: #0088c7 !important;
         }
 
         .dropzone-placeholder {
             border: 1.5px dashed #94c9e3 !important;
             border-radius: 10px !important;
-            background: #f5fbfe !important;
-            transition: border-color 0.15s ease, background 0.15s ease;
+            background: linear-gradient(180deg, #f5fbfe, #eef8fc) !important;
+            transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
         }
 
         .dropzone-placeholder:hover {
@@ -1646,7 +2443,7 @@
 
         .dropzone-text {
             color: #0088c7 !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
         }
 
         .dropzone-placeholder .dropzone-icon {
@@ -1655,23 +2452,15 @@
 
         .doc-item {
             border-bottom: none !important;
-            padding: 8px 0 !important;
         }
 
         .doc-name {
-            color: #0088c7 !important;
-            font-weight: 600 !important;
-        }
-
-        /* Activity panel tabs — no hard borders */
-        .stock-right-panel .panel-card > div[style*="border-bottom"] {
-            border-bottom: none !important;
-            background: #f8fafc;
-            border-radius: 10px 10px 0 0;
+            color: #008080 !important;
+            font-weight: 700 !important;
         }
 
         .stock-right-panel .panel-tab.active {
-            color: #0088c7 !important;
+            color: #0e1d4a !important;
             border-bottom-color: #00aeef !important;
         }
 
@@ -1684,7 +2473,7 @@
             box-shadow: 0 6px 16px rgba(185, 28, 28, 0.08);
         }
 
-        @media (max-width: 991.98px) {
+            @media (max-width: 991.98px) {
             .summary-header {
                 position: relative !important;
                 top: auto !important;
@@ -1694,22 +2483,27 @@
                 min-height: 0 !important;
                 flex-wrap: wrap !important;
                 overflow: visible !important;
-                padding: 14px 14px 12px !important;
-                border-radius: 0 0 14px 14px;
+                padding: 12px !important;
+                border-radius: 12px 12px 0 0 !important;
+                margin: 8px 8px 0 !important;
+                border-bottom: none !important;
+                z-index: 1 !important;
             }
 
             .stock-tabs-container {
-                position: relative !important;
-                top: auto !important;
+                position: sticky !important;
+                top: 0 !important;
                 left: auto !important;
                 right: auto !important;
                 padding: 0 12px !important;
+                margin: 0 8px !important;
+                z-index: 20 !important;
+                border-radius: 0 !important;
             }
 
             .stock-form-scroll {
-                padding: 12px !important;
-                padding-top: 12px !important;
-                margin-top: 0 !important;
+                padding: 8px !important;
+                margin: 0 8px !important;
             }
 
             .edit-form-row {
@@ -1719,16 +2513,35 @@
             }
 
             .edit-footer {
-                left: 0 !important;
+                position: relative !important;
+                left: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                width: 100% !important;
                 padding: 12px 14px !important;
+                z-index: 5 !important;
             }
 
             .stock-right-panel {
                 width: 100% !important;
                 flex: 1 1 auto !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
                 margin-top: 0 !important;
                 border-left: none !important;
                 padding: 8px 12px 16px !important;
+            }
+
+            .stock-right-panel > #crr-documents-panel,
+            .stock-right-panel > #crr-activity-panel {
+                flex: none !important;
+                max-height: none !important;
+            }
+
+            #crr-doc-list,
+            #crr-activity-panel .panel-tab-content {
+                max-height: 320px !important;
             }
 
             .table-responsive {
@@ -1805,92 +2618,94 @@
 
                                     <!-- Summary Header -->
                                     <div class="summary-header">
-                                        <div class="summary-info-group">
-                                            <div class="summary-item">
-                                                <span class="summary-label">Stock number</span>
-                                                <span
-                                                    class="summary-value summary-value-bold">{{ $crr->stock_number }}</span>
-                                            </div>
-                                            <div class="summary-item">
-                                                <span class="summary-label">Registration date</span>
-                                                <span class="summary-value">{{ $crr->created_at->format('d.m.Y') }}</span>
-                                            </div>
-                                            <div class="summary-item">
-                                                <span class="summary-label">Registered by</span>
-                                                <span class="summary-value">{{ $crr->registeredBy?->name ?? '—' }}</span>
-                                            </div>
-                                            <div class="summary-item">
-                                                <span class="summary-label">Account manager</span>
-                                                <span class="summary-value" id="summary-account-manager">
-                                                    {{ $crr->customerVessel?->customer?->responsible?->accountManager?->name ?? '—' }}
-                                                </span>
-                                            </div>
-                                            <div class="summary-item">
-                                                <span class="summary-label">Flags</span>
-                                                <div class="header-inline-edit" id="flags-edit-container">
-                                                    <div class="header-inline-display flags-display" style="display: flex; gap: 5px; align-items: center;">
-                                                        <div class="flags-pills" style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap;">
-                                                            <div class="summary-flag-landed" id="header-landed-flag" {!! $crr->is_landed_goods ? '' : 'style="display: none;"' !!}>Landed</div>
-                                                            @php
-                                                                $stockFlags = $crr->flags ?? \App\Models\Crr::defaultFlags();
-                                                            @endphp
-                                                            @forelse ($stockFlags as $flag)
-                                                                <span class="summary-flag">{{ $flag }}</span>
-                                                            @empty
-                                                                <span class="text-muted" style="font-size: 11px;">—</span>
-                                                            @endforelse
+                                        <div class="summary-header-main">
+                                            <span class="summary-header-icon" aria-hidden="true">
+                                                <i class="icofont icofont-box"></i>
+                                            </span>
+                                            <div class="header-meta-group">
+                                                <div class="meta-item">
+                                                    <span class="meta-label">Stock number</span>
+                                                    <span class="meta-value meta-value-primary">{{ $crr->stock_number }}</span>
+                                                </div>
+                                                <div class="meta-item">
+                                                    <span class="meta-label">Registration date</span>
+                                                    <span class="meta-value meta-value-with-icon">
+                                                        <i class="ti-calendar meta-cal-icon" aria-hidden="true"></i>
+                                                        <span>{{ $crr->created_at->format('d.m.Y') }}</span>
+                                                    </span>
+                                                </div>
+                                                <div class="meta-item">
+                                                    <span class="meta-label">Registered by</span>
+                                                    <span class="meta-value text-primary">{{ $crr->registeredBy?->name ?? '—' }}</span>
+                                                </div>
+                                                <div class="meta-item">
+                                                    <span class="meta-label">Account manager</span>
+                                                    <span class="meta-value text-primary" id="summary-account-manager">
+                                                        {{ $crr->customerVessel?->customer?->responsible?->accountManager?->name ?? '—' }}
+                                                    </span>
+                                                </div>
+                                                <div class="meta-item">
+                                                    <span class="meta-label">Flags</span>
+                                                    <div class="header-inline-edit" id="flags-edit-container">
+                                                        <div class="header-inline-display flags-display">
+                                                            <div class="flags-pills" style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap;">
+                                                                <div class="summary-flag-landed" id="header-landed-flag" {!! $crr->is_landed_goods ? '' : 'style="display: none;"' !!}>Landed</div>
+                                                                @php
+                                                                    $stockFlags = $crr->flags ?? \App\Models\Crr::defaultFlags();
+                                                                @endphp
+                                                                @forelse ($stockFlags as $flag)
+                                                                    <span class="summary-flag">{{ $flag }}</span>
+                                                                @empty
+                                                                    <span class="text-muted" style="font-size: 11px; font-weight: 500;">—</span>
+                                                                @endforelse
+                                                            </div>
+                                                            <i class="ti-pencil-alt" style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
                                                         </div>
-                                                        <i class="ti-pencil-alt" style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
-                                                    </div>
-                                                    <div class="header-inline-select flags-select-wrapper" style="display: none; min-width: 180px;">
-                                                        <select class="select2-flags-inline" name="header_flags[]">
-                                                            @foreach (\App\Models\Crr::availableFlags() as $flagOption)
-                                                                <option value="{{ $flagOption }}" {{ in_array($flagOption, $stockFlags, true) ? 'selected' : '' }}>{{ $flagOption }}</option>
-                                                            @endforeach
-                                                        </select>
+                                                        <div class="header-inline-select flags-select-wrapper" style="display: none; min-width: 180px;">
+                                                            <select class="select2-flags-inline" name="header_flags[]">
+                                                                @foreach (\App\Models\Crr::availableFlags() as $flagOption)
+                                                                    <option value="{{ $flagOption }}" {{ in_array($flagOption, $stockFlags, true) ? 'selected' : '' }}>{{ $flagOption }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="summary-item">
-                                                <span class="summary-label">Status</span>
-                                                <div style="display: flex; align-items: center; gap: 8px;"
-                                                    id="status-edit-container">
-                                                    <div class="status-display"
-                                                        style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                                        <span class="status-badge stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ \App\Models\Crr::getStatusLabels()[$crr->status] ?? 'Unknown' }}</span>
-                                                        <i class="ti-pencil-alt"
-                                                            style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
-                                                    </div>
-                                                    <div class="status-select-wrapper"
-                                                        style="display: none; min-width: 150px;">
-                                                        <select class="select2-status-inline" name="status">
-                                                            @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
-                                                                <option value="{{ $value }}" {{ $crr->status == $value ? 'selected' : '' }}>{{ $label }}</option>
-                                                            @endforeach
-                                                        </select>
+                                                <div class="meta-item">
+                                                    <span class="meta-label">Status</span>
+                                                    <div class="header-inline-edit" id="status-edit-container">
+                                                        <div class="header-inline-display status-display">
+                                                            <span class="status-badge stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ \App\Models\Crr::getStatusLabels()[$crr->status] ?? 'Unknown' }}</span>
+                                                            <i class="ti-pencil-alt" style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
+                                                        </div>
+                                                        <div class="header-inline-select status-select-wrapper" style="display: none; min-width: 150px;">
+                                                            <select class="select2-status-inline" name="status">
+                                                                @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
+                                                                    <option value="{{ $value }}" {{ $crr->status == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="summary-actions">
+                                        <div class="header-actions summary-actions">
                                             <button type="button"
                                                 id="accept-crr-btn"
-                                                class="btn btn-header-outline"
+                                                class="btn btn-premium btn-outline-custom btn-header-outline"
                                                 data-stock-number="{{ $crr->stock_number }}"
                                                 data-accept-url="{{ route('stocks.crr.update-accept', $crr->id) }}"
                                                 {{ $crr->accept ? 'disabled' : '' }}>
                                                 {{ $crr->accept ? 'Accepted' : 'Accept CRR' }}
                                             </button>
                                             <a href="{{ route('stocks.print-labels', $crr->id) }}" target="_blank"
-                                                class="btn btn-header-outline js-print-with-location"
+                                                class="btn btn-premium btn-outline-custom btn-header-outline js-print-with-location"
                                                 style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Print
                                                 labels</a>
-                                            
                                         </div>
                                     </div>
 
                                     <!-- Tabs -->
-                                    <div class="stock-tabs-container mt-2">
+                                    <div class="stock-tabs-container">
                                         <div class="stock-tabs">
                                             <div class="stock-tab active" data-tab="stock-details">Stock details</div>
                                             <div class="stock-tab" data-tab="line-items">Line items</div>
@@ -1901,12 +2716,11 @@
                                     <!-- Main Form Content -->
                                     <div id="stock-details" class="stock-tab-content active">
                                         <div class="stock-form-scroll">
-                                            <div class="edit-form-row">
+                                            <div class="edit-form-row crr-pillars">
                                                 <!-- Column 1 -->
                                                 <div class="edit-form-col">
-                                                    <div class="form-group-title">
-                                                        <i class="fa fa-ship"></i> Vessel
-                                                    </div>
+                                                    <div class="crr-pillar">
+                                                    <div class="crr-pillar__title">Vessel &amp; PO</div>
                                                     <div class="field-group">
                                                         <select class="field-input select2-vessel" name="vessel_name">
                                                             <option value=""></option>
@@ -2005,13 +2819,13 @@
                                                         <input type="text" class="field-input" name="first_mile_comment"
                                                             value="{{ $crr->first_mile_comment }}">
                                                     </div>
+                                                    </div>{{-- .crr-pillar --}}
                                                 </div>
 
                                                 <!-- Column 2 -->
                                                 <div class="edit-form-col">
-                                                    <div class="form-group-title">
-                                                        <i class="fa fa-briefcase"></i> Supplier
-                                                    </div>
+                                                    <div class="crr-pillar">
+                                                    <div class="crr-pillar__title">Supplier &amp; delivery</div>
                                                     <div class="field-group">
                                                         <div id="supplier-select-wrapper" {!! $crr->is_landed_goods ? 'style="display: none;"' : '' !!}>
                                                             <select class="field-input select2-supplier" name="supplier"
@@ -2151,13 +2965,13 @@
                                                             @endforeach
                                                         </select>
                                                     </div>
+                                                    </div>{{-- .crr-pillar --}}
                                                 </div>
 
                                                 <!-- Column 3 -->
                                                 <div class="edit-form-col">
-                                                    <div class="form-group-title">
-                                                        <i class="fa fa-map-marker"></i> Hub / Agent
-                                                    </div>
+                                                    <div class="crr-pillar">
+                                                    <div class="crr-pillar__title">Hub &amp; customs</div>
                                                     <div class="field-group">
                                                         <select class="field-input select2-hub" name="hub_agent">
                                                             <option></option>
@@ -2345,23 +3159,25 @@
                                                         <textarea class="field-input" name="internal_comments"
                                                             style="height: 60px; resize: none;">{{ $crr->internal_comments }}</textarea>
                                                     </div>
+                                                    </div>{{-- .crr-pillar --}}
                                                 </div>
                                             </div>
 
                                             <!-- Packages Section -->
+                                            <div class="stock-grid-card crr-section-shell" id="packages-section-card">
                                             <div class="crr-table-header">
-                                                <span>Packages &nbsp; &nbsp; <span id="package-summary-text"
-                                                        style="font-weight: normal; color: #000000; font-weight: 600;">(Total
-                                                        : 0.00 kg, 0
-                                                        Packages, 0.0000 CBM)</span></span>
-                                                <button type="button" class="btn btn-outline-teal btn-add-package">Add
-                                                    item</button>
+                                                <div class="crr-table-header__title">
+                                                    <span class="crr-table-header__icon" aria-hidden="true"><i class="icofont icofont-box"></i></span>
+                                                    <span class="crr-table-header__label">Packages</span>
+                                                    <span id="package-summary-text" class="package-summary-badge">(Total : 0.00 kg, 0 Packages, 0.0000 CBM)</span>
+                                                </div>
+                                                <button type="button" class="btn btn-outline-teal btn-add-package">Add item</button>
                                             </div>
-                                            <div id="packages-validation-error" style="display:none; margin-bottom: 10px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 12px; position: relative; padding-right: 32px;">
+                                            <div id="packages-validation-error" style="display:none; margin: 10px 16px 0; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 8px; font-size: 12px; position: relative; padding-right: 32px;">
                                                 <span id="packages-validation-error-text"></span>
                                                 <button type="button" id="packages-validation-error-close" title="Close" aria-label="Close" style="position: absolute; top: 6px; right: 8px; border: none; background: transparent; color: #b91c1c; font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 4px;">&times;</button>
                                             </div>
-                                            <div class="table-responsive" style="margin-top: -10px !important;">
+                                            <div class="table-responsive">
                                                 <table class="crr-data-table" id="packagesTable">
                                                     <thead>
                                                          <tr>
@@ -2437,7 +3253,7 @@
                                                                   style="{{ $pkg->is_delivery_irregularity ? '' : 'display: none;' }}">
                                                                   <td colspan="2"></td>
                                                                   <td colspan="12">
-                                                                      <div class="dgr-container" style="background: #fff9e6; border: 1px solid #ffeeba;">
+                                                                      <div class="dgr-container dgr-container--irregularity">
                                                                           <i class="icofont icofont-warning dgr-warning-icon" style="color: #f0ad4e;"></i>
                                                                           <div class="dgr-field" style="flex: 1;">
                                                                               <label class="field-label">Delivery irregularities</label>
@@ -2481,13 +3297,13 @@
                                                                                  value="{{ $pkg->dgr_description }}"
                                                                                  placeholder="">
                                                                          </div>
-                                                                         <div class="dgr-field small" style="max-width: 50px;">
+                                                                         <div class="dgr-field small">
                                                                              <label class="field-label">UN number</label>
                                                                              <input type="text" class="field-input"
                                                                                  name="packages[{{ $index }}][un_number]"
                                                                                  value="{{ $pkg->un_number }}" placeholder="">
                                                                          </div>
-                                                                         <div class="dgr-field small" style="max-width: 50px;">
+                                                                         <div class="dgr-field small">
                                                                              <label class="field-label">Class</label>
                                                                              <input type="text" class="field-input"
                                                                                  name="packages[{{ $index }}][dgr_class]"
@@ -2505,15 +3321,18 @@
                                                     </tbody>
                                                 </table>
                                             </div>
+                                            </div><!-- /packages-section-card -->
 
                                             <!-- Costs Section -->
+                                            <div class="stock-grid-card crr-section-shell" id="costs-section-card">
                                             <div class="crr-table-header">
-                                                <span>Costs</span>
-                                                <button type="button" class="btn btn-outline-teal btn-add-cost">Add
-                                                    cost</button>
+                                                <div class="crr-table-header__title">
+                                                    <span class="crr-table-header__icon" aria-hidden="true"><i class="icofont icofont-money"></i></span>
+                                                    <span class="crr-table-header__label">Costs</span>
+                                                </div>
+                                                <button type="button" class="btn btn-outline-teal btn-add-cost">Add cost</button>
                                             </div>
-                                            <div class="table-responsive"
-                                                style="margin-top: -10px !important; margin-bottom: 30px !important;">
+                                            <div class="table-responsive costs-table-wrap">
                                                 <table class="crr-data-table" id="costsTable">
                                                     <thead>
                                                         <tr>
@@ -2527,7 +3346,7 @@
                                                             <th>Remarks</th>
                                                             <th>Hub/Agent</th>
                                                             <th>Tag</th>
-                                                            <th>Copy</th>
+                                                            <th class="text-center">Copy</th>
                                                             <th class="text-center">Del</th>
                                                         </tr>
                                                     </thead>
@@ -2570,14 +3389,26 @@
                                                                     <select class="crr-input select2-cost-hub"
                                                                         name="costs[{{ $index }}][hub_agent]">
                                                                         <option value=""></option>
-                                                                        @foreach($hubs as $h)
-                                                                            <option value="{{ $h->code }}"
-                                                                                data-city="{{ $h->city }}"
-                                                                                data-country="{{ $h->country }}"
-                                                                                data-code="{{ $h->code }}" {{ ($cost->hub_agent == $h->code || $cost->hub_agent == $h->hub_name) ? 'selected' : '' }}>
-                                                                                {{ $h->code }} - {{ $h->hub_name }}
-                                                                            </option>
-                                                                        @endforeach
+                                                                        <optgroup label="Hubs">
+                                                                            @foreach($hubs as $h)
+                                                                                <option value="{{ $h->code }}"
+                                                                                    data-city="{{ $h->city }}"
+                                                                                    data-country="{{ $h->country }}"
+                                                                                    data-code="{{ $h->code }}" {{ ($cost->hub_agent == $h->code || $cost->hub_agent == $h->hub_name) ? 'selected' : '' }}>
+                                                                                    {{ $h->code }} - {{ $h->hub_name }}
+                                                                                </option>
+                                                                            @endforeach
+                                                                        </optgroup>
+                                                                        <optgroup label="Agents">
+                                                                            @foreach($agents as $agent)
+                                                                                <option value="{{ $agent->code }}"
+                                                                                    data-city="{{ $agent->city }}"
+                                                                                    data-country="{{ optional($agent->country)->name }}"
+                                                                                    data-code="{{ $agent->code }}" {{ ($cost->hub_agent == $agent->code || $cost->hub_agent == $agent->agent_name) ? 'selected' : '' }}>
+                                                                                    {{ $agent->code }} - {{ $agent->agent_name }}
+                                                                                </option>
+                                                                            @endforeach
+                                                                        </optgroup>
                                                                     </select>
                                                                 </td>
                                                                 <td><input type="text" class="crr-input"
@@ -2594,13 +3425,14 @@
                                                             </tr>
                                                         @empty
                                                             <tr class="empty-row">
-                                                                <td colspan="11" class="text-center py-4 text-muted">No costs
+                                                                <td colspan="12" class="text-center py-4 text-muted">No costs
                                                                     added yet. Click "Add cost" to start.</td>
                                                             </tr>
                                                         @endforelse
                                                     </tbody>
                                                 </table>
                                             </div>
+                                            </div><!-- /costs-section-card -->
                                         </div> <!-- stock-form-scroll -->
                                     </div> <!-- stock-details -->
 
@@ -2957,7 +3789,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Footer (Fixed) -->
+                                    <!-- Footer (in-flow, shipment style) -->
                                     <div class="edit-footer">
                                         <button type="submit" class="btn-save-custom">Save changes</button>
                                         <a href="{{ route('stocks') }}" class="btn-cancel-custom">Cancel</a>
@@ -2972,7 +3804,10 @@
                                     @php
                                         $crrDocTypeOptions = \App\Models\CrrDocument::fileTypeOptionsWithCustom();
                                     @endphp
-                                    <div class="panel-title">Documents (<span class="doc-count">{{ $crr->documents->count() }}</span>)</div>
+                                    <div class="panel-title">
+                                        <span class="panel-title__label">Documents</span>
+                                        <span class="panel-title__count"><span class="doc-count">{{ $crr->documents->count() }}</span></span>
+                                    </div>
                                     <div class="crr-docs-header">
                                         <span>Filename</span>
                                         <span class="crr-docs-internal-label">Internal</span>
@@ -3013,69 +3848,58 @@
                                                 </div>
                                             </div>
                                         @empty
-                                            <div class="no-docs-msg"
-                                                style="text-align: center; padding: 20px; color: #94a3b8; font-size: 11px;">No
-                                                documents uploaded yet.</div>
+                                            <div class="no-docs-msg">No documents uploaded yet.</div>
                                         @endforelse
                                     </div>
 
                                     <div class="dropzone-placeholder" id="crr-dropzone">
-                                        <div class="dropzone-text">Drag files here or click to browse</div>
                                         <i class="ti-upload dropzone-icon"></i>
+                                        <div class="dropzone-text">Drag files here or click to browse</div>
                                     </div>
                                     <input type="file" id="crr-file-input" style="display: none;" multiple>
                                 </div>
 
                                 <!-- Activity Panel -->
-                                <div class="panel-card" style="padding: 0;">
-                                    <div style="display: flex; border-bottom: 1px solid #f1f5f9;">
-                                        <div class="panel-tab active" data-panel="change-log"
-                                            style="flex: 1; padding: 10px; text-align: center; font-size: 10px; font-weight: 600; color: #008080; border-bottom: 2px solid #008080; cursor: pointer;">
-                                            Change log</div>
-                                        <div class="panel-tab" data-panel="location-history"
-                                            style="flex: 1; padding: 10px; text-align: center; font-size: 10px; color: #94a3b8; cursor: pointer;">
-                                            Location history</div>
-                                        <div class="panel-tab" data-panel="comments"
-                                            style="flex: 1; padding: 10px; text-align: center; font-size: 10px; color: #94a3b8; cursor: pointer;">
-                                            Comments</div>
+                                <div class="panel-card" id="crr-activity-panel">
+                                    <div class="panel-tabs">
+                                        <div class="panel-tab active" data-panel="change-log">Change log</div>
+                                        <div class="panel-tab" data-panel="location-history">Location history</div>
+                                        <div class="panel-tab" data-panel="comments">Comments</div>
                                     </div>
                                     <div id="panel-contents">
-                                        <div id="change-log" class="panel-tab-content active"
-                                            style="padding: 15px; max-height: 400px; overflow-y: auto;">
+                                        <div id="change-log" class="panel-tab-content active">
                                             @forelse ($crr->changeLogs as $changeLog)
-                                                <div style="border-bottom: 1px solid #f8fafc; padding-bottom: 5px;">
-                                                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                                                        <div style="flex: 1;">
-                                                            <span style="font-size: 10px; font-weight: 600; color: #008080;">{{ $changeLog->title }}</span>
+                                                <div class="change-log-item">
+                                                    <div class="change-log-row">
+                                                        <div class="change-log-body">
+                                                            <div class="change-log-title">{{ $changeLog->title }}</div>
                                                             @if ($changeLog->description)
-                                                                <div style="font-size: 9px; color: #64748b; margin-top: 2px;">
+                                                                <div class="change-log-desc">
                                                                     {{ $changeLog->description }}
                                                                 </div>
                                                             @endif
                                                         </div>
-                                                        <div style="text-align: right; min-width: 80px;">
-                                                            <div style="font-size: 10px; color: #334155; font-weight: 500;">
+                                                        <div class="change-log-meta">
+                                                            <div class="change-log-user">
                                                                 {{ $changeLog->user?->name ?? 'System' }}
                                                             </div>
-                                                            <div style="font-size: 9px; color: #94a3b8;">
+                                                            <div class="change-log-time">
                                                                 {{ $changeLog->created_at->format('d.m.Y H:i') }}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             @empty
-                                                <div style="font-size: 11px; color: #64748b; text-align: center; padding: 20px 0;">
+                                                <div class="panel-empty-msg">
                                                     No changes recorded yet.
                                                 </div>
                                             @endforelse
                                         </div>
-                                        <div id="location-history" class="panel-tab-content"
-                                            style="display: none; padding: 15px;">
-                                            <div style="font-size: 11px; color: #64748b;">No location history available
-                                            </div>
+                                        <div id="location-history" class="panel-tab-content" style="display: none;">
+                                            <div class="panel-empty-msg">No location history available</div>
                                         </div>
-                                        <div id="comments" class="panel-tab-content" style="display: none; padding: 15px;">
-                                            <div style="font-size: 11px; color: #64748b;">No comments available</div>
+                                        <div id="comments" class="panel-tab-content" style="display: none;">
+                                            <div class="panel-empty-msg">No comments available</div>
                                         </div>
                                     </div>
                                 </div>
@@ -3277,23 +4101,8 @@
                 dataType: 'json'
             });
 
-            // ─── Fixed header/tabs left-offset ────────────────────────────
-            function fixedHeaderOffset() {
-                var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
-                var $navbar = $('.pcoded-navbar');
-                var navType = $('#pcoded').attr('vertical-nav-type') || '';
-                var sidebarWidth = 0;
-
-                // On phone/tablet the nav is offcanvas — never reserve its desktop width.
-                if (!isMobile && $navbar.length && navType !== 'offcanvas' && $navbar.is(':visible')) {
-                    sidebarWidth = $navbar.outerWidth() || 0;
-                }
-
-                $('.summary-header, .stock-tabs-container, .edit-footer').css('left', sidebarWidth + 'px');
-            }
-            fixedHeaderOffset();
-            $(window).on('resize', fixedHeaderOffset);
-            // ──────────────────────────────────────────────────────────────
+            // Footer is in-flow (shipment style) — no fixed left-offset needed
+            $('.edit-footer').css({ left: '', right: '', width: '', position: '' });
 
             // Pass current Physical Location into print PDFs (even before save).
             $(document).on('click', '.js-print-with-location', function (e) {
@@ -3488,7 +4297,7 @@
             var packageIndex = {{ count($crr->packages) }};
             $('.btn-add-package').on('click', function () {
                 $('#packagesTable tbody .empty-row').remove();
-                let row = `<tr data-index="${packageIndex}"><td>${packageIndex + 1}</td><td><input name="packages[${packageIndex}][length]"class="crr-input pkg-dim pkg-l"step="0.01"></td><td><input name="packages[${packageIndex}][width]"class="crr-input pkg-dim pkg-w"step="0.01"></td><td><input name="packages[${packageIndex}][height]"class="crr-input pkg-dim pkg-h"step="0.01"></td><td><input name="packages[${packageIndex}][weight]"class="crr-input pkg-weight"step="0.01"></td><td><input name="packages[${packageIndex}][cbm]"class="crr-input pkg-cbm"readonly value="0"></td><td><input name="packages[${packageIndex}][warehouse_location]"class="crr-input"></td><td><input name="packages[${packageIndex}][remarks]" class="crr-input"></td><td class="text-center"><input type="checkbox" class="pkg-is-irregular" name="packages[${packageIndex}][is_delivery_irregularity]"></td><td class="text-center"><input name="packages[${packageIndex}][is_dgr]" class="pkg-is-dgr" type="checkbox"></td><td class="text-center"><input name="packages[${packageIndex}][is_not_stackable]"type="checkbox"></td><td class="text-center"><input name="packages[${packageIndex}][is_medicine]"type="checkbox"></td><td class="text-center"><input name="packages[${packageIndex}][is_xray]"type="checkbox"></td><td class="text-center"><button class="btn btn-link p-0 btn-copy-row text-primary"type="button"><i class="icofont icofont-copy-alt"></i></button></td><td class="text-center"><button class="btn btn-link p-0 btn-remove-row text-danger"type="button"><i class="icofont icofont-trash"></i></button></td></tr><tr class="irregularity-sub-row" data-index="${packageIndex}" style="display: none;"><td colspan="2"></td><td colspan="13"><div class="dgr-container" style="background: #fff9e6; border: 1px solid #ffeeba;"><i class="icofont icofont-warning dgr-warning-icon" style="color: #f0ad4e;"></i><div class="dgr-field" style="flex: 1;"><label class="crr-label">Delivery irregularities</label><select class="form-control select2 select2-irregularities" name="packages[${packageIndex}][delivery_irregularities][]" multiple="multiple"><option value="Damaged packaging - no repacking required">Damaged packaging - no repacking required</option><option value="Damaged packaging - repacking required">Damaged packaging - repacking required</option><option value="Missing DG label / marking on package">Missing DG label / marking on package</option><option value="Missing documentation - Commercial invoice / Packing list">Missing documentation - Commercial invoice / Packing list</option><option value="Missing documentation - DG">Missing documentation - DG</option><option value="Missing documentation - Other">Missing documentation - Other</option><option value="Missing label on packaging">Missing label on packaging</option><option value="Packaging not fit for airfreight">Packaging not fit for airfreight</option><option value="Packaging not fumigated">Packaging not fumigated</option><option value="Packaging not heat treated">Packaging not heat treated</option><option value="Vessel Name / PO Number not mentioned on packaging (label)">Vessel Name / PO Number not mentioned on packaging (label)</option><option value="Vessel Name / PO Number not mentioned on supplier documentation">Vessel Name / PO Number not mentioned on supplier documentation</option></select></div></div></td></tr><tr data-index="${packageIndex}"class="dgr-sub-row"style="display:none"><td colspan="2"></td><td colspan="7"><div class="dgr-container"><i class="icofont dgr-warning-icon icofont-warning"></i><div class="dgr-field"><label class="field-label">Dangerous goods description</label> <input name="packages[${packageIndex}][dgr_description]"class="field-input"placeholder=""></div><div class="dgr-field small"style="max-width:50px"><label class="field-label">UN number</label> <input name="packages[${packageIndex}][un_number]"class="field-input"placeholder=""></div><div class="dgr-field small"style="max-width:50px"><label class="field-label">Class</label> <input name="packages[${packageIndex}][dgr_class]"class="field-input"placeholder=""></div></div></td></tr>`;
+                let row = `<tr data-index="${packageIndex}"><td>${packageIndex + 1}</td><td><input name="packages[${packageIndex}][length]"class="crr-input pkg-dim pkg-l"step="0.01"></td><td><input name="packages[${packageIndex}][width]"class="crr-input pkg-dim pkg-w"step="0.01"></td><td><input name="packages[${packageIndex}][height]"class="crr-input pkg-dim pkg-h"step="0.01"></td><td><input name="packages[${packageIndex}][weight]"class="crr-input pkg-weight"step="0.01"></td><td><input name="packages[${packageIndex}][cbm]"class="crr-input pkg-cbm"readonly value="0"></td><td><input name="packages[${packageIndex}][warehouse_location]"class="crr-input"></td><td><input name="packages[${packageIndex}][remarks]" class="crr-input"></td><td class="text-center"><input type="checkbox" class="pkg-is-irregular" name="packages[${packageIndex}][is_delivery_irregularity]"></td><td class="text-center"><input name="packages[${packageIndex}][is_dgr]" class="pkg-is-dgr" type="checkbox"></td><td class="text-center"><input name="packages[${packageIndex}][is_not_stackable]"type="checkbox"></td><td class="text-center"><input name="packages[${packageIndex}][is_medicine]"type="checkbox"></td><td class="text-center"><input name="packages[${packageIndex}][is_xray]"type="checkbox"></td><td class="text-center"><button class="btn btn-link p-0 btn-copy-row text-primary"type="button"><i class="icofont icofont-copy-alt"></i></button></td><td class="text-center"><button class="btn btn-link p-0 btn-remove-row text-danger"type="button"><i class="icofont icofont-trash"></i></button></td></tr><tr class="irregularity-sub-row" data-index="${packageIndex}" style="display: none;"><td colspan="2"></td><td colspan="13"><div class="dgr-container" style="background: #fff9e6; border: 1px solid #ffeeba;"><i class="icofont icofont-warning dgr-warning-icon" style="color: #f0ad4e;"></i><div class="dgr-field" style="flex: 1;"><label class="crr-label">Delivery irregularities</label><select class="form-control select2 select2-irregularities" name="packages[${packageIndex}][delivery_irregularities][]" multiple="multiple"><option value="Damaged packaging - no repacking required">Damaged packaging - no repacking required</option><option value="Damaged packaging - repacking required">Damaged packaging - repacking required</option><option value="Missing DG label / marking on package">Missing DG label / marking on package</option><option value="Missing documentation - Commercial invoice / Packing list">Missing documentation - Commercial invoice / Packing list</option><option value="Missing documentation - DG">Missing documentation - DG</option><option value="Missing documentation - Other">Missing documentation - Other</option><option value="Missing label on packaging">Missing label on packaging</option><option value="Packaging not fit for airfreight">Packaging not fit for airfreight</option><option value="Packaging not fumigated">Packaging not fumigated</option><option value="Packaging not heat treated">Packaging not heat treated</option><option value="Vessel Name / PO Number not mentioned on packaging (label)">Vessel Name / PO Number not mentioned on packaging (label)</option><option value="Vessel Name / PO Number not mentioned on supplier documentation">Vessel Name / PO Number not mentioned on supplier documentation</option></select></div></div></td></tr><tr data-index="${packageIndex}"class="dgr-sub-row"style="display:none"><td colspan="2"></td><td colspan="7"><div class="dgr-container"><i class="icofont dgr-warning-icon icofont-warning"></i><div class="dgr-field"><label class="field-label">Dangerous goods description</label> <input name="packages[${packageIndex}][dgr_description]"class="field-input"placeholder=""></div><div class="dgr-field small"><label class="field-label">UN number</label> <input name="packages[${packageIndex}][un_number]"class="field-input"placeholder=""></div><div class="dgr-field small"><label class="field-label">Class</label> <input name="packages[${packageIndex}][dgr_class]"class="field-input"placeholder=""></div></div></td></tr>`;
                 let $row = $(row); $('#packagesTable tbody').append($row); $row.filter('.irregularity-sub-row').find('.select2-irregularities').select2({placeholder: 'Select irregularities', allowClear: false, width: '100%'}).next('.select2-container').addClass('select2-irreg-container');
                 packageIndex++;
                 updatePackageSummary();
@@ -3496,16 +4305,79 @@
 
             // --- Cost Logic ---
             var costIndex = {{ count($crr->costs) }};
-            var costHubs = @json($hubs->values());
-            var costCurrencies = @json($currencies->values());
+            @php
+                $costHubsForJs = $hubs->values();
+                $costAgentsForJs = $agents->map(static function ($agent) {
+                    return [
+                        'code' => $agent->code,
+                        'agent_name' => $agent->agent_name,
+                        'city' => $agent->city,
+                        'country' => optional($agent->country)->name,
+                    ];
+                })->values();
+                $costCurrenciesForJs = $currencies->values();
+            @endphp
+            var costHubs = @json($costHubsForJs);
+            var costAgents = @json($costAgentsForJs);
+            var costCurrencies = @json($costCurrenciesForJs);
+
+            function buildCostHubAgentOptions() {
+                var hubOptions = '<option></option><optgroup label="Hubs">';
+                costHubs.forEach(function (hub) {
+                    hubOptions += '<option value="' + (hub.code || '') + '" data-city="' + (hub.city || '') + '" data-country="' + (hub.country || '') + '" data-code="' + (hub.code || '') + '">' +
+                        (hub.code ? hub.code + ' - ' : '') + (hub.hub_name || '') +
+                        '</option>';
+                });
+                hubOptions += '</optgroup><optgroup label="Agents">';
+                costAgents.forEach(function (agent) {
+                    hubOptions += '<option value="' + (agent.code || '') + '" data-city="' + (agent.city || '') + '" data-country="' + (agent.country || '') + '" data-code="' + (agent.code || '') + '">' +
+                        (agent.code ? agent.code + ' - ' : '') + (agent.agent_name || '') +
+                        '</option>';
+                });
+                hubOptions += '</optgroup>';
+                return hubOptions;
+            }
+
+            function initCostHubSelect($el) {
+                if (!$el || !$el.length) {
+                    return;
+                }
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                $el.select2({
+                    placeholder: 'Select hub/agent',
+                    allowClear: false,
+                    width: '100%',
+                    dropdownParent: $(document.body),
+                    dropdownCssClass: 'cost-hub-select2-dropdown',
+                    templateResult: formatHub,
+                    templateSelection: function (hub) {
+                        return hub.text;
+                    }
+                });
+            }
+
+            function initCostCurrencySelect($el) {
+                if (!$el || !$el.length) {
+                    return;
+                }
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                $el.select2({
+                    placeholder: 'Select currency',
+                    allowClear: false,
+                    width: '100%',
+                    dropdownParent: $(document.body),
+                    dropdownCssClass: 'cost-currency-select2-dropdown'
+                });
+            }
 
             $('.btn-add-cost').on('click', function () {
                 $('#costsTable tbody .empty-row').remove();
 
-                let hubOptions = '<option></option>';
-                costHubs.forEach(function (hub) {
-                    hubOptions += `<option value="${hub.code}" data-city="${hub.city || ''}" data-country="${hub.country || ''}" data-code="${hub.code || ''}">${hub.code ? hub.code + ' - ' : ''}${hub.hub_name}</option>`;
-                });
+                let hubOptions = buildCostHubAgentOptions();
 
                 let currencyOptions = '<option></option>';
                 costCurrencies.forEach(function (cur) {
@@ -3516,44 +4388,19 @@
                 let $row = $(row);
                 $('#costsTable tbody').append($row);
 
-                $row.find('.select2-cost-hub').select2({
-                    placeholder: "Select hub",
-                    allowClear: false,
-                    width: '100%',
-                    templateResult: formatHub,
-                    templateSelection: function (hub) {
-                        return hub.text;
-                    }
-                });
-
-                $row.find('.select2-cost-currency').select2({
-                    placeholder: "Select currency",
-                    allowClear: false,
-                    width: '100%'
-                });
+                initCostHubSelect($row.find('.select2-cost-hub'));
+                initCostCurrencySelect($row.find('.select2-cost-currency'));
 
                 costIndex++;
             });
 
             // Initialize Select2 for existing cost rows
             $('.select2-cost-hub').each(function () {
-                $(this).select2({
-                    placeholder: "Select hub",
-                    allowClear: false,
-                    width: '100%',
-                    templateResult: formatHub,
-                    templateSelection: function (hub) {
-                        return hub.text;
-                    }
-                });
+                initCostHubSelect($(this));
             });
 
             $('.select2-cost-currency').each(function () {
-                $(this).select2({
-                    placeholder: "Select currency",
-                    allowClear: false,
-                    width: '100%'
-                });
+                initCostCurrencySelect($(this));
             });
 
             // Copy Row Logic
@@ -3600,20 +4447,12 @@
                         }
                     });
 
-                    newRow.find('.select2-cost-hub').select2({
-                        placeholder: "Select hub",
-                        allowClear: false,
-                        width: '100%',
-                        templateResult: formatHub,
-                        templateSelection: function (hub) {
-                            return hub.text;
-                        }
+                    newRow.find('.select2-cost-hub').each(function () {
+                        initCostHubSelect($(this));
                     });
 
-                    newRow.find('.select2-cost-currency').select2({
-                        placeholder: "Select currency",
-                        allowClear: false,
-                        width: '100%'
+                    newRow.find('.select2-cost-currency').each(function () {
+                        initCostCurrencySelect($(this));
                     });
 
                     costIndex++;
@@ -3688,7 +4527,7 @@
                     $('#packagesTable tbody').append('<tr class="empty-row"><td colspan="13" class="text-center py-4 text-muted">No items added yet. Click "Add item" to start.</td></tr>');
                 }
                 if ($('#costsTable tbody tr').length === 0) {
-                    $('#costsTable tbody').append('<tr class="empty-row"><td colspan="11" class="text-center py-4 text-muted">No costs added yet. Click "Add cost" to start.</td></tr>');
+                    $('#costsTable tbody').append('<tr class="empty-row"><td colspan="12" class="text-center py-4 text-muted">No costs added yet. Click "Add cost" to start.</td></tr>');
                 }
                 updatePackageSummary();
             });
@@ -3769,22 +4608,40 @@ function updatePackageSummary() {
             // Initial calculation on load
             calculateEditCustomsUSD();
 
-            // Main Tab Switching
-            $('.stock-tab').on('click', function () {
-                var tabId = $(this).data('tab');
+            // Main Tab Switching — keep active panel as flex so header/tabs stay pinned
+            function activateStockTab(tabId) {
                 $('.stock-tab').removeClass('active');
-                $(this).addClass('active');
-                $('.stock-tab-content').hide().removeClass('active');
-                $('#' + tabId).show().addClass('active');
+                $('.stock-tab[data-tab="' + tabId + '"]').addClass('active');
+                $('.stock-tab-content').removeClass('active').hide().css('display', 'none');
+
+                var $panel = $('#' + tabId);
+                var hasInnerScroll = $panel.find('.stock-form-scroll').length > 0;
+                $panel
+                    .addClass('active')
+                    .css({
+                        display: 'flex',
+                        flexDirection: 'column',
+                        flex: '1 1 auto',
+                        minHeight: 0,
+                        overflow: hasInnerScroll ? 'hidden' : 'auto'
+                    });
+            }
+
+            $('.stock-tab').on('click', function () {
+                activateStockTab($(this).data('tab'));
             });
+            activateStockTab($('.stock-tab.active').data('tab') || 'stock-details');
 
             // Right Panel Tab Switching
             $('.panel-tab').on('click', function () {
                 var panelId = $(this).data('panel');
-                $('.panel-tab').removeClass('active').css({ 'color': '#94a3b8', 'border-bottom': 'none', 'font-weight': '400' });
-                $(this).addClass('active').css({ 'color': '#008080', 'border-bottom': '2px solid #008080', 'font-weight': '600' });
-                $('.panel-tab-content').hide().removeClass('active');
-                $('#' + panelId).show().addClass('active');
+                $('.panel-tab').removeClass('active');
+                $(this).addClass('active');
+                $('.panel-tab-content').removeClass('active').hide();
+                $('#' + panelId)
+                    .addClass('active')
+                    .css({ display: 'block', flex: '1 1 auto', minHeight: 0, overflowY: 'auto', maxHeight: 'none' })
+                    .show();
             });
 
             // More Actions Dropdown
@@ -4080,12 +4937,9 @@ function updatePackageSummary() {
             });
 
             // Delete document
-            $(document).on('click', '.delete-doc', function () {
-                const btn = $(this);
-                const docId = btn.data('id');
-                const docItem = btn.closest('.doc-item');
-
-                if (!confirm('Are you sure you want to delete this document?')) return;
+            function deleteStockDocument(btn) {
+                var docId = btn.data('id');
+                var docItem = btn.closest('.doc-item');
 
                 $.ajax({
                     url: "{{ url('/stocks/documents') }}/" + docId,
@@ -4094,6 +4948,9 @@ function updatePackageSummary() {
                         _token: '{{ csrf_token() }}'
                     },
                     success: function (response) {
+                        if (typeof swal === 'function') {
+                            swal.close();
+                        }
                         if (response.success) {
                             var $select = docItem.find('.doc-type-select');
                             if ($select.hasClass('select2-hidden-accessible')) {
@@ -4103,7 +4960,7 @@ function updatePackageSummary() {
                                 $(this).remove();
                                 updateDocCount(-1);
                                 if (docList.children('.doc-item').length === 0) {
-                                    docList.append('<div class="no-docs-msg" style="text-align: center; padding: 20px; color: #94a3b8; font-size: 11px;">No documents uploaded yet.</div>');
+                                    docList.append('<div class="no-docs-msg" style="text-align: center; padding: 20px; color: #94a3b8; font-size: 13px;">No documents uploaded yet.</div>');
                                 }
                             });
                             toastr.success('Document deleted');
@@ -4112,7 +4969,41 @@ function updatePackageSummary() {
                         }
                     },
                     error: function () {
+                        if (typeof swal === 'function') {
+                            swal.close();
+                        }
                         toastr.error('An error occurred');
+                    }
+                });
+            }
+
+            $(document).on('click', '.delete-doc', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                var $btn = $(this);
+                var message = 'Are you sure you want to delete this document?';
+
+                if (typeof swal !== 'function') {
+                    if (confirm(message)) {
+                        deleteStockDocument($btn);
+                    }
+                    return;
+                }
+
+                swal({
+                    title: 'Delete document?',
+                    text: message,
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete',
+                    cancelButtonText: 'Cancel',
+                    closeOnConfirm: false,
+                    closeOnCancel: true,
+                    showLoaderOnConfirm: true
+                }, function (isConfirm) {
+                    if (isConfirm) {
+                        deleteStockDocument($btn);
                     }
                 });
             });
@@ -4124,7 +5015,17 @@ function updatePackageSummary() {
 
             // Datepicker Initialization
             $('.datepicker').datepicker({
-                dateFormat: 'yy-mm-dd'
+                dateFormat: 'yy-mm-dd',
+                beforeShow: function (input, inst) {
+                    $('.crr-pillar').css('z-index', '');
+                    $(input).closest('.crr-pillar').css('z-index', 40);
+                    setTimeout(function () {
+                        $('#ui-datepicker-div').css('z-index', 10060);
+                    }, 0);
+                },
+                onClose: function () {
+                    $(this).closest('.crr-pillar').css('z-index', '');
+                }
             });
 
             // Inline Status Edit Toggle

@@ -53,6 +53,10 @@
 | Backend | Laravel 12, PHP 8.2+ |
 | Frontend | Blade, jQuery, **Tailwind CSS 4 (Vite)** — branch `feature/tailwind-v2` |
 | Brand palette | Marine navy `#0e1d4a`, Caddie sky `#00aeef`, coral CTA `#ff5a5f` / orange `#e87722` (`resources/css/app.css` `@theme`) |
+| Shared motion | Global page animations in `resources/css/mc-motion.css` (imported by `app.css`) — do not copy keyframes into page Blade |
+| Select2 clear (×) | Globally hidden via `app.css` (`.select2-selection__clear`); country-select always `allowClear: false` — do not re-enable per page |
+| Control height | **34px** project-wide for text inputs + Select2 single via `--mc-control-height` (`app.css` + `common-assets-styles`); do not invent per-page heights |
+| Control / label font | **14px** inputs + Select2 (`--mc-control-font-size`), **13px** labels (`--mc-label-font-size`) — enforced last by `partials/form-control-typography` after page styles |
 | Shared vendor assets | `partials/common-assets-styles` + `partials/common-assets-scripts` (loaded once from `layouts/app`) |
 | Database | MySQL |
 | DataTables | **1.10.20** (legacy — strict rules apply) |
@@ -289,6 +293,7 @@ Shared UI lives under `resources/views/components/lists/`. **Full prop reference
 |-----------|----------|
 | `<x-lists.base-styles />` | Filter bar + mobile toolbar CSS (`bodyClass` / `toolbarClass`; set `:mobileOnlyToolbar="false"` when desktop toolbar must stay visible e.g. Create button top-right) |
 | `<x-lists.filter-toolbar />` | Mobile “Show filters” toggle + optional `actions` slot (Create button) |
+| `<x-lists.page-header />` | Attractive list title strip (icon, title, subtitle, count, actions) |
 | `<x-lists.filter-bar />` | Horizontal filter row wrapper |
 | `<x-lists.filter-field />` | Label + input group (`label`, `width` props) |
 | `<x-lists.hide-inactive />` | Standard hide-inactive checkbox |
@@ -304,10 +309,10 @@ Shared UI lives under `resources/views/components/lists/`. **Full prop reference
 | `Agents/index` | Full stack: `base-styles`, `multiselect-assets`, `filter-toolbar`, `filter-bar`, `ajax-table` |
 | `Suppliers/index` | `base-styles`, `inline-toolbar`, `ajax-table`, `multiselect-assets` |
 | `Vessels/index`, `Other Companies/index` | Full filter-bar stack |
-| `Stock/stock-follow-up`, `Stock/pickup-work-list` | Full filter-bar stack |
-| `Shipment/pre-alert-reminders` | Full filter-bar stack |
-| `Shipment/shipment-follow-up`, `Shipment/cost-follow-up` | Partial (`multiselect-assets` + some list pieces) |
-| `Shipment/shipments`, `Stock/stocks` | **`multiselect-assets` only** — custom multi-row filter grid (no `base-styles`) |
+| `Stock/stock-follow-up`, `Stock/pickup-work-list` | Full filter-bar stack + `page-header` |
+| `Shipment/pre-alert-reminders`, `Shipment/shipment-follow-up`, `Shipment/cost-follow-up` | `multiselect-assets` + `page-header` + shared pagination footer (+ filter-toolbar where used) |
+| `Shipment/shipments`, `Stock/stocks` | **`multiselect-assets` + `page-header` + shared pagination footer** — custom multi-row filter grid (no `base-styles`) |
+| `Users/users` | **`page-header` + shared pagination footer** (server-side paginator; Add user modal) |
 
 **Not yet migrated:** `customers/index`, `hub/index`, `contacts/index`, `offices/index`, Billing lists.
 
@@ -321,13 +326,14 @@ Page-specific JS that calls `bindAjaxListFilters()` should live in `@push('scrip
 
 > **Rule:** Naya filter row, port field, ya country dropdown likhne se pehle yahan dekho. Duplicate Select2 init / filter CSS copy mat karo.
 
-#### Master index (11 components)
+#### Master index (12 components)
 
 | Blade tag | File | Purpose |
 |-----------|------|---------|
 | `<x-forms.port-select />` | `components/forms/port-select.blade.php` | AJAX port code Select2 |
 | `<x-forms.country-select />` | `components/forms/country-select.blade.php` | Country Select2 with flag |
 | `<x-lists.base-styles />` | `components/lists/base-styles.blade.php` | Shared list filter + toolbar CSS |
+| `<x-lists.page-header />` | `components/lists/page-header.blade.php` | List page title strip (icon, title, count, actions) |
 | `<x-lists.filter-toolbar />` | `components/lists/filter-toolbar.blade.php` | Mobile show/hide filters toggle |
 | `<x-lists.filter-bar />` | `components/lists/filter-bar.blade.php` | `.filter-row` wrapper |
 | `<x-lists.filter-field />` | `components/lists/filter-field.blade.php` | Label + `.filter-group` slot |
@@ -395,7 +401,7 @@ All form/list components load assets via `@once` + `@push('styles'|'scripts')` �
 | `required` | `false` | |
 | `emptyOption` | `true` | |
 | `emptyOptionText` | `null` | |
-| `dropdownParent` | `null` | CSS selector for modals, e.g. `#add-supplier-modal` |
+| `dropdownParent` | `null` | CSS selector / `body` for overflow hosts. Emitted as `data-mc-dropdown-parent` (never `data-dropdown-parent` — Select2 auto-maps that and breaks on `"body"`) |
 
 **Example (ID-based):**
 
@@ -434,6 +440,7 @@ All form/list components load assets via `@once` + `@push('styles'|'scripts')` �
 |-----------|-------------------|
 | `base-styles` | `bodyClass`, `toolbarClass`, `mobileOnlyToolbar` (default `true`; set `false` if desktop toolbar visible) |
 | `filter-toolbar` | `toggleId` (required), `bodyClass`, `toolbarClass`; slot `actions` for Create button |
+| `page-header` | `title` (required), `subtitle`, `icon`, `count`, `countLabel`; slot `actions` |
 | `filter-bar` | Default slot = filter fields row |
 | `filter-field` | `label`, `width` (e.g. `180px`); slot = input/select |
 | `hide-inactive` | `id`, `label`, `checked` |
@@ -1143,4 +1150,4 @@ Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | ta
 
 ---
 
-*Last updated: Blade components catalog (§6g), country-select + list components, regression tests.*
+*Last updated: Global page motion (`mc-motion.css`), Blade components catalog (§6g), country-select + list components, regression tests.*

@@ -7,6 +7,394 @@
     <!-- Date-range picker css  -->
 
     <style>
+        /*
+         * Create shipment: global .card is overflow:hidden + this page used h-100,
+         * which clipped Stock items / Save and left a blank white void.
+         * Keep controls at --mc-control-height (34px); ignore legacy inline 30px.
+         */
+        .page-body .create-shipment-card.card {
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+        .page-body .create-shipment-card > .card-block {
+            overflow: visible !important;
+        }
+        #shipment-form .input-group,
+        #shipment-form .input-group[style*="height"] {
+            height: var(--mc-control-height, 34px) !important;
+            min-height: var(--mc-control-height, 34px) !important;
+            max-height: var(--mc-control-height, 34px) !important;
+            flex-wrap: nowrap !important;
+            align-items: stretch !important;
+        }
+        #shipment-form .input-group > .form-control {
+            height: 100% !important;
+            min-height: 0 !important;
+            max-height: none !important;
+        }
+        #shipment-form .input-group > .select2-container {
+            height: 100% !important;
+            width: 100% !important;
+        }
+        #shipment-form .input-group .select2-container--default .select2-selection--single {
+            height: 100% !important;
+            min-height: 100% !important;
+            max-height: 100% !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+        #shipment-form .input-group-addon {
+            height: var(--mc-control-height, 34px) !important;
+            min-height: var(--mc-control-height, 34px) !important;
+            max-height: var(--mc-control-height, 34px) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 10px !important;
+            box-sizing: border-box !important;
+        }
+        #shipment-form .select2-container--default .select2-selection--single {
+            height: var(--mc-control-height, 34px) !important;
+            min-height: var(--mc-control-height, 34px) !important;
+            max-height: var(--mc-control-height, 34px) !important;
+        }
+        #shipment-form .form-group {
+            overflow: visible;
+        }
+        #shipment-form textarea.form-control {
+            height: auto !important;
+            min-height: 72px;
+            max-height: none !important;
+        }
+
+        /* —— Create shipment visual layout (no behavior change) —— */
+        .page-body .create-shipment-card > .card-block {
+            padding: 18px 20px 20px !important;
+        }
+
+        #shipment-form > .row.cs-pillars {
+            margin-left: -10px;
+            margin-right: -10px;
+            align-items: stretch;
+        }
+
+        #shipment-form > .row.cs-pillars > .custom-col {
+            padding-left: 10px;
+            padding-right: 10px;
+            margin-bottom: 16px;
+            display: flex;
+        }
+
+        .cs-pillar {
+            width: 100%;
+            background: linear-gradient(180deg, #fbfdff 0%, #ffffff 48%);
+            border: 1px solid #d6e3ee;
+            border-radius: 14px;
+            padding: 14px 14px 12px;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 8px 22px rgba(14, 29, 74, 0.04);
+        }
+
+        .cs-pillar__title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 14px;
+            padding: 0 0 10px 10px;
+            border-bottom: 1px solid #e8eef4;
+            border-left: 3px solid #00aeef;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: #0e1d4a;
+            line-height: 1.2;
+        }
+
+        #shipment-form .cs-pillar label,
+        #shipment-form .cs-pillar .form-group > label,
+        #shipment-form .cs-pillar .form-check-label {
+            font-size: 11px !important;
+            font-weight: 600;
+            color: #475569 !important;
+            margin-bottom: 4px;
+            display: inline-block;
+            letter-spacing: 0.01em;
+        }
+
+        #shipment-form .cs-pillar .form-group {
+            margin-bottom: 12px !important;
+        }
+
+        #shipment-form .cs-pillar .form-control,
+        #shipment-form .cs-pillar .filter-input {
+            height: var(--mc-control-height, 34px) !important;
+            min-height: var(--mc-control-height, 34px) !important;
+            font-size: 12px !important;
+            border-radius: 8px !important;
+            border-color: #d6e3ee !important;
+            background: #fff !important;
+            color: #0e1d4a;
+        }
+
+        #shipment-form .cs-pillar textarea.form-control,
+        #shipment-form .cs-pillar textarea.filter-input {
+            height: auto !important;
+            min-height: 72px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            line-height: 1.4;
+            resize: vertical;
+        }
+
+        #shipment-form .cs-pillar .input-group .form-control {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+
+        #shipment-form .cs-pillar .input-group-addon {
+            background: #f0f9fc !important;
+            border: 1px solid #d6e3ee !important;
+            border-left: none !important;
+            color: #0088c7 !important;
+            border-radius: 0 8px 8px 0 !important;
+        }
+
+        #shipment-form .cs-pillar .select2-container--default .select2-selection--single {
+            border-radius: 8px !important;
+            border-color: #d6e3ee !important;
+        }
+
+        #shipment-form .cs-pillar .input-group .select2-container--default .select2-selection--single {
+            border-radius: 8px 0 0 8px !important;
+        }
+
+        #shipment-form .cs-pillar .form-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 0 0 12px;
+            padding: 8px 10px !important;
+            background: #f5f9fc;
+            border: 1px solid #e4edf4;
+            border-radius: 8px;
+        }
+
+        #shipment-form .cs-pillar .form-check input[type="checkbox"] {
+            margin-top: 1px;
+            flex: 0 0 auto;
+            accent-color: #0088c7;
+        }
+
+        #shipment-form .cs-pillar .form-check-label {
+            margin: 0 !important;
+            line-height: 1.35;
+            color: #334155 !important;
+        }
+
+        .cs-tabs-shell {
+            margin-top: 8px;
+            border: 1px solid #d6e3ee;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 10px 28px rgba(14, 29, 74, 0.05);
+        }
+
+        .cs-tabs-shell > .nav-tabs.md-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 0 !important;
+            padding: 8px 10px 0;
+            border-bottom: 1px solid #e8edf2 !important;
+            background: linear-gradient(135deg, rgba(240, 250, 251, 0.95) 0%, #ffffff 55%, #f8fafc 100%) !important;
+        }
+
+        .cs-tabs-shell > .nav-tabs .nav-item {
+            margin: 0;
+        }
+
+        .cs-tabs-shell > .nav-tabs .nav-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 16px 12px !important;
+            margin: 0;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            color: #64748b !important;
+            background: transparent !important;
+            border: 1px solid transparent !important;
+            border-bottom: none !important;
+            border-radius: 10px 10px 0 0 !important;
+            line-height: 1.2;
+        }
+
+        .cs-tabs-shell > .nav-tabs .nav-link.active {
+            color: #0e1d4a !important;
+            background: #fff !important;
+            border-color: #e8edf2 !important;
+            border-bottom-color: #fff !important;
+            box-shadow: 0 -1px 0 #fff;
+        }
+
+        .cs-tabs-shell > .nav-tabs .nav-item .slide {
+            display: none !important;
+        }
+
+        .cs-tabs-shell > .tab-content {
+            border: none !important;
+            background: #fff;
+        }
+
+        #shipment-form .stock-totals {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 14px;
+            padding: 12px 14px;
+            margin: 0;
+            border-top: 1px solid #eef2f7;
+            background: #f8fafc;
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        #shipment-form .stock-totals > span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            font-size: 11px;
+            color: #475569;
+        }
+
+        #shipment-form .stock-totals > span > span {
+            color: #0e1d4a;
+            font-weight: 700;
+        }
+
+        #shipment-form .stock-totals .ml-auto {
+            margin-left: auto;
+        }
+
+        #shipment-form #add-stock-items-btn {
+            height: 34px !important;
+            padding: 0 14px !important;
+            border-radius: 8px !important;
+            font-weight: 700;
+            border-color: #0088c7 !important;
+            color: #0088c7 !important;
+        }
+
+        #shipment-form #add-stock-items-btn:hover {
+            background: #0088c7 !important;
+            color: #fff !important;
+        }
+
+        #shipment-form #stock-items-table thead th {
+            background: #f8fafc !important;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 10px 12px;
+        }
+
+        /* Footer — fixed full-width under content (appended to body in JS) */
+        body.create-shipment-page {
+            padding-bottom: 72px;
+        }
+
+        body.create-shipment-page .create-shipment-footer.edit-footer {
+            position: fixed !important;
+            left: var(--spacing-sidebar, 13.25rem) !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            top: auto !important;
+            margin: 0 !important;
+            width: calc(100vw - var(--spacing-sidebar, 13.25rem)) !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            padding: 12px 28px !important;
+            box-sizing: border-box !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(8px);
+            display: flex !important;
+            align-items: center !important;
+            gap: 20px;
+            border-top: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 0 !important;
+            z-index: 1040 !important;
+            box-shadow: 0 -8px 24px rgba(14, 29, 74, 0.06);
+        }
+
+        body.create-shipment-page .create-shipment-footer .btn-save-custom {
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.28);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+        }
+
+        body.create-shipment-page .create-shipment-footer .btn-save-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 128, 128, 0.34);
+            color: #fff;
+        }
+
+        body.create-shipment-page .create-shipment-footer .btn-cancel-custom {
+            color: #008080;
+            font-size: 13px;
+            text-decoration: none;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            padding: 0;
+            box-shadow: none;
+        }
+
+        body.create-shipment-page .create-shipment-footer .btn-cancel-custom:hover {
+            text-decoration: underline;
+            color: #0e1d4a;
+        }
+
+        @media (max-width: 991.98px) {
+            body.create-shipment-page .create-shipment-footer.edit-footer {
+                left: 0 !important;
+                width: 100vw !important;
+                padding: 12px 16px !important;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            #shipment-form .stock-totals .ml-auto {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            #shipment-form #add-stock-items-btn {
+                width: 100%;
+            }
+
+            body.create-shipment-page .create-shipment-footer.edit-footer {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+        }
+
         /* High Density Table Styles */
         #offices-table {
             width: 100% !important;
@@ -78,27 +466,29 @@
 
         .filter-group {
             display: flex;
-            align-items: center;
-            border: 1px solid #ced4da;
-            padding: 0 10px;
-            border-radius: 4px;
+            align-items: stretch;
+            border: 1px solid #9ec9d6;
+            padding: 0 !important;
+            border-radius: 8px;
             height: 32px;
             background: #fff;
             overflow: hidden;
+            box-sizing: border-box;
         }
 
         .filter-group .filter-label {
             font-size: 11px;
-            color: #64748b;
-            margin-bottom: 0;
-            padding-right: 10px;
-            margin-right: 10px;
+            color: #ffffff;
+            margin: 0 !important;
+            padding: 0 10px !important;
             white-space: nowrap;
-            font-weight: 500;
-            border-right: 1px solid #ced4da;
-            height: 100%;
-            display: flex;
+            font-weight: 700;
+            border-right: 1px solid #5a7fa0;
+            height: auto;
+            display: inline-flex;
             align-items: center;
+            background: #6992b5;
+            flex: 0 0 auto;
         }
 
         .filter-group .filter-input {
@@ -106,23 +496,33 @@
             box-shadow: none !important;
             height: 100% !important;
             font-size: 12px;
-            padding: 0 !important;
+            padding: 0 8px !important;
             background: transparent !important;
             width: 100%;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .filter-group .select2-container {
+            flex: 1 1 auto;
+            min-width: 0;
+            width: 100% !important;
         }
 
         .filter-group .select2-container--default .select2-selection--single,
         .filter-group .select2-container--default .select2-selection--multiple {
             border: none !important;
             background: transparent !important;
+            height: 30px !important;
+            min-height: 30px !important;
         }
 
         .filter-group .select2-container--default .select2-selection--single .select2-selection__rendered {
-            padding-left: 0 !important;
+            padding-left: 8px !important;
         }
 
         .filter-group i {
-            color: #008080;
+            color: #0088c7;
             font-size: 14px;
         }
 
@@ -178,9 +578,14 @@
             }
 
             .page-body > .row > .col-md-12.pr-2,
-            .card.h-100 > .card-block {
+            .page-body .create-shipment-card > .card-block {
                 padding-left: 12px !important;
                 padding-right: 12px !important;
+            }
+
+            #shipment-form > .row.cs-pillars > .custom-col {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
             }
 
             #shipment-form label {
@@ -225,16 +630,17 @@
         }
 
         @media (max-width: 767.98px) {
-            .mt-4.pt-3.border-top.d-flex {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
             .modal-body .filter-group[style*="width"] {
                 width: 100% !important;
                 min-width: 0 !important;
                 max-width: 100%;
             }
+        }
+
+        #shipment-form .filter-input:not(textarea) {
+            height: var(--mc-control-height, 34px);
+            font-size: 12px;
+            border-radius: 8px;
         }
 
         .filter-input {
@@ -411,7 +817,8 @@
         .select2-container--default .select2-selection--single {
             background-color: #fff !important;
             border: 1px solid #ced4da !important;
-            height: 30px !important;
+            height: var(--mc-control-height, 34px) !important;
+            min-height: var(--mc-control-height, 34px) !important;
             display: flex !important;
             align-items: center !important;
             outline: none !important;
@@ -420,39 +827,53 @@
         .select2-container--default .select2-selection--multiple {
             background-color: #fff !important;
             border: 1px solid #ced4da !important;
-            min-height: 30px !important;
+            min-height: var(--mc-control-height, 34px) !important;
         }
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             background-color: transparent !important;
             color: #4b5563 !important;
-            line-height: normal !important;
+            line-height: 1.25 !important;
             padding-left: 10px !important;
             padding-right: 25px !important;
             width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
         }
 
+        #shipment-form .select2-container--default .select2-selection--single {
+            position: relative !important;
+        }
+
+        #shipment-form .select2-container--default .select2-selection--single .select2-selection__arrow,
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 28px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            right: 8px !important;
+            position: absolute !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            right: 6px !important;
+            height: auto !important;
             width: 20px !important;
+            margin: 0 !important;
+            transform: none !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
         }
 
+        #shipment-form .select2-container--default .select2-selection--single .select2-selection__arrow b,
         .select2-container--default .select2-selection--single .select2-selection__arrow b {
+            position: static !important;
+            top: auto !important;
+            left: auto !important;
+            margin: 0 !important;
+            transform: none !important;
             border-color: #666 transparent transparent transparent !important;
             border-style: solid !important;
             border-width: 5px 4px 0 4px !important;
             height: 0 !important;
-            left: 50% !important;
-            margin-left: -4px !important;
-            margin-top: -2px !important;
-            position: absolute !important;
-            top: 50% !important;
             width: 0 !important;
         }
 
@@ -714,6 +1135,7 @@
 @endsection
 
 @section('content')
+    <script>document.body.classList.add('create-shipment-page');</script>
     <!-- Pre-loader start -->
     <div class="theme-loader">
         <div class="ball-scale">
@@ -737,7 +1159,7 @@
                                 <div class="row">
                                     <!-- Left Card: Pillars + Tabs + Actions -->
                                     <div class="col-md-12 pr-2">
-                                        <div class="card h-100 mb-0">
+                                        <div class="card create-shipment-card mb-0">
                                             <div class="card-block">
                                                 <form id="shipment-form" method="POST" action="{{ route('shipments.store') }}">
                                                     @csrf
@@ -750,9 +1172,11 @@
                                                             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                                         </div>
                                                     @endif
-                                                <div class="row">
+                                                <div class="row cs-pillars">
                                                     <!-- Pillar 1: Departure -->
                                                     <div class="col-md-4 custom-col">
+                                                        <div class="cs-pillar">
+                                                        <div class="cs-pillar__title">Departure</div>
                                                         <div class="row">
                                                         <div class="form-group col-md-12 mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Departure</label>
@@ -914,10 +1338,13 @@
                                                                 style="font-size: 11px; vertical-align: middle;">Not
                                                                 applicable for consolidation</label>
                                                         </div>
+                                                        </div>
                                                     </div>
 
                                                     <!-- Pillar 2: Consignee -->
                                                     <div class="col-md-4 custom-col">
+                                                        <div class="cs-pillar">
+                                                        <div class="cs-pillar__title">Consignee</div>
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Consignee</label>
                                                             <div class="input-group mb-0" style="height: 30px;">
@@ -994,10 +1421,13 @@
                                                             <input type="email" id="consignee-email" name="consignee_email" class="form-control filter-input"
                                                                 placeholder="" value="{{ old('consignee_email') }}">
                                                         </div>
+                                                        </div>
                                                     </div>
 
                                                     <!-- Pillar 3: Account Manager -->
                                                     <div class="col-md-4 custom-col">
+                                                        <div class="cs-pillar">
+                                                        <div class="cs-pillar__title">Account &amp; comments</div>
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Account
                                                                 manager</label>
@@ -1070,36 +1500,34 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        </div>
                                                     </div>
                                                 </div>
 
                                                 <!-- Tabbed Section -->
-                                                <div class="row mt-4">
+                                                <div class="row mt-3">
                                                     <div class="col-md-12">
-                                                        <ul class="nav nav-tabs md-tabs" role="tablist"
-                                                            style="border-bottom: 2px solid #e5e7eb; background: #f3f4f6; margin-bottom: 0;">
+                                                        <div class="cs-tabs-shell">
+                                                        <ul class="nav nav-tabs md-tabs" role="tablist">
                                                             <li class="nav-item">
                                                                 <a class="nav-link active" data-toggle="tab"
-                                                                    href="#stock-items" role="tab"
-                                                                    style="padding: 10px 25px; font-size: 12px; font-weight: 600; border-right: 1px solid #e5e7eb; border-bottom: none !important;">Stock
+                                                                    href="#stock-items" role="tab">Stock
                                                                     items (0)</a>
                                                                 <div class="slide" style="background: #008080;"></div>
                                                             </li>
                                                             <li class="nav-item">
                                                                 <a class="nav-link" data-toggle="tab"
-                                                                    href="#service-details" role="tab"
-                                                                    style="padding: 10px 25px; font-size: 12px; font-weight: 600; border-right: 1px solid #e5e7eb;">Service
+                                                                    href="#service-details" role="tab">Service
                                                                     details</a>
                                                                 <div class="slide" style="background: #008080;"></div>
                                                             </li>
                                                             <li class="nav-item">
                                                                 <a class="nav-link" data-toggle="tab" href="#irregularities"
-                                                                    role="tab"
-                                                                    style="padding: 10px 25px; font-size: 12px; font-weight: 600;">Irregularities</a>
+                                                                    role="tab">Irregularities</a>
                                                                 <div class="slide" style="background: #008080;"></div>
                                                             </li>
                                                         </ul>
-                                                        <div class="tab-content border p-0">
+                                                        <div class="tab-content p-0">
                                                             <div class="tab-pane active" id="stock-items" role="tabpanel">
                                                                 <div class="table-responsive">
                                                                     <table class="table table-hover mb-0"
@@ -1158,35 +1586,6 @@
                                                                     <div class="ml-auto">
                                                                         <button type="button" id="add-stock-items-btn" class="btn btn-outline-teal px-3 py-1 ml-2"
                                                                             style="font-size: 11px; height: 30px;">Add stock items</button>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="stock-repacked-section">
-                                                                    <div class="stock-repacked-heading">Repacked as:</div>
-                                                                    <div class="stock-repacked-fields">
-                                                                        <div class="stock-repacked-field">
-                                                                            <label for="repacked_items" class="stock-repacked-field-label">Repacked item(s)</label>
-                                                                            <input
-                                                                                type="text"
-                                                                                name="repacked_items"
-                                                                                id="repacked_items"
-                                                                                class="form-control stock-repacked-input"
-                                                                                inputmode="numeric"
-                                                                                autocomplete="off"
-                                                                                value="{{ old('repacked_items') }}"
-                                                                            >
-                                                                        </div>
-                                                                        <div class="stock-repacked-field">
-                                                                            <label for="repacked_weight" class="stock-repacked-field-label">Repacked weight (kg)</label>
-                                                                            <input
-                                                                                type="text"
-                                                                                name="repacked_weight"
-                                                                                id="repacked_weight"
-                                                                                class="form-control stock-repacked-input"
-                                                                                inputmode="decimal"
-                                                                                autocomplete="off"
-                                                                                value="{{ old('repacked_weight') }}"
-                                                                            >
-                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1316,7 +1715,7 @@
                                                                 @endphp
                                                                 <div class="p-3" id="irregularities-container">
                                                                     <!-- Irregularity Item 1 -->
-                                                                    <div class="irregularity-item border-bottom pb-4 mb-4">
+                                                                    <div class="irregularity-item border-bottom pb-4 mb-4" data-irregularity-index="0">
                                                                         <div class="row">
                                                                             <div class="col-md-2 pr-1">
                                                                                 <div class="form-group mb-2">
@@ -1324,7 +1723,7 @@
                                                                                         style="font-size: 11px;">Date</label>
                                                                                     <div class="input-group mb-0"
                                                                                         style="height: 30px;">
-                                                                                        <input type="text" name="irregularities[][irregularity_date]"
+                                                                                        <input type="text" name="irregularities[0][irregularity_date]"
                                                                                             class="form-control filter-input datepicker"
                                                                                             placeholder="DD.MM.YYYY">
                                                                                         <span class="input-group-addon"
@@ -1339,7 +1738,7 @@
                                                                                 <div class="form-group mb-2">
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Irregularity</label>
-                                                                                    <select name="irregularities[][irregularity_type]" class="form-control select2">
+                                                                                    <select name="irregularities[0][irregularity_type]" class="form-control select2">
                                                                                         <option></option>
                                                                                         @foreach ($irregularityTypeOptions as $option)
                                                                                             <option>{{ $option }}</option>
@@ -1352,7 +1751,7 @@
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Party
                                                                                         responsible</label>
-                                                                                    <select name="irregularities[][party_responsible]" class="form-control select2">
+                                                                                    <select name="irregularities[0][party_responsible]" class="form-control select2">
                                                                                         <option></option>
                                                                                         @foreach ($partyResponsibleOptions as $option)
                                                                                             <option>{{ $option }}</option>
@@ -1364,7 +1763,7 @@
                                                                                 <div class="form-group mb-2">
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Consequence</label>
-                                                                                    <select name="irregularities[][consequence]" class="form-control select2">
+                                                                                    <select name="irregularities[0][consequence]" class="form-control select2">
                                                                                         <option></option>
                                                                                         @foreach ($consequenceOptions as $option)
                                                                                             <option>{{ $option }}</option>
@@ -1377,7 +1776,7 @@
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Extra cost
                                                                                         for MT (USD)</label>
-                                                                                    <input type="text" name="irregularities[][extra_cost_mt_usd]"
+                                                                                    <input type="text" name="irregularities[0][extra_cost_mt_usd]"
                                                                                         class="form-control filter-input"
                                                                                         placeholder="">
                                                                                 </div>
@@ -1388,7 +1787,7 @@
                                                                                     class="form-group mb-2 flex-grow-1 mr-2">
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Status</label>
-                                                                                    <select name="irregularities[][status]" class="form-control select2">
+                                                                                    <select name="irregularities[0][status]" class="form-control select2">
                                                                                         <option></option>
                                                                                         @foreach ($statusOptions as $option)
                                                                                             <option>{{ $option }}</option>
@@ -1409,7 +1808,7 @@
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Cause of
                                                                                         irregularity</label>
-                                                                                    <textarea name="irregularities[][cause_of_irregularity]"
+                                                                                    <textarea name="irregularities[0][cause_of_irregularity]"
                                                                                         class="form-control filter-input"
                                                                                         rows="3"
                                                                                         style="height: auto !important; min-height: 80px;"></textarea>
@@ -1420,7 +1819,7 @@
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Action
                                                                                         taken</label>
-                                                                                    <textarea name="irregularities[][action_taken]"
+                                                                                    <textarea name="irregularities[0][action_taken]"
                                                                                         class="form-control filter-input"
                                                                                         rows="3"
                                                                                         style="height: auto !important; min-height: 80px;"></textarea>
@@ -1431,7 +1830,7 @@
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Customer
                                                                                         response</label>
-                                                                                    <textarea name="irregularities[][customer_response]"
+                                                                                    <textarea name="irregularities[0][customer_response]"
                                                                                         class="form-control filter-input"
                                                                                         rows="3"
                                                                                         style="height: auto !important; min-height: 80px;"></textarea>
@@ -1444,7 +1843,7 @@
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Hub/agent
                                                                                         comments</label>
-                                                                                    <textarea name="irregularities[][hub_agent_comments]"
+                                                                                    <textarea name="irregularities[0][hub_agent_comments]"
                                                                                         class="form-control filter-input"
                                                                                         rows="3"
                                                                                         style="height: auto !important; min-height: 80px;"></textarea>
@@ -1455,7 +1854,7 @@
                                                                                     <label class="mb-0 text-muted"
                                                                                         style="font-size: 11px;">Handled
                                                                                         by</label>
-                                                                                    <input type="text" name="irregularities[][handled_by]"
+                                                                                    <input type="text" name="irregularities[0][handled_by]"
                                                                                         class="form-control filter-input"
                                                                                         placeholder="">
                                                                                 </div>
@@ -1472,21 +1871,20 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <!-- Action Buttons -->
-                                                <div class="mt-4 pt-3 border-top d-flex align-items-center">
-                                                    <button type="submit" class="btn btn-teal px-4"
-                                                        style="height: 36px; border-radius: 4px; font-weight: 500;">Save</button>
-                                                    <a href="{{ route('shipments') }}" class="ml-4"
-                                                        style="color: #008080; font-size: 13px; font-weight: 500;">Cancel</a>
-                                                </div>
                                                 </form>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+        <div class="edit-footer create-shipment-footer">
+            <button type="submit" form="shipment-form" class="btn-save-custom">Save</button>
+            <a href="{{ route('shipments') }}" class="btn-cancel-custom">Cancel</a>
+        </div>
 
                                         <!-- Base Style - Compact end -->
     @include('layouts.partials.pcoded-shell-end')
@@ -1552,6 +1950,13 @@
 
     <script>
         $(document).ready(function () {
+            $('body').addClass('create-shipment-page');
+
+            var $footer = $('.create-shipment-footer');
+            if ($footer.length) {
+                $footer.appendTo('body');
+            }
+
             function showStockModalError(message) {
                 $('#stock-items-modal-error').text(message).show();
             }
@@ -1892,15 +2297,27 @@
                 return '<option>' + option + '</option>';
             }).join('');
 
+            function nextIrregularityIndex() {
+                var max = -1;
+                $('#irregularities-container .irregularity-item').each(function() {
+                    var idx = parseInt($(this).attr('data-irregularity-index'), 10);
+                    if (!isNaN(idx) && idx > max) {
+                        max = idx;
+                    }
+                });
+                return max + 1;
+            }
+
             $('#add-irregularity-btn').on('click', function () {
+                const idx = nextIrregularityIndex();
                 const newItem = `
-                        <div class="irregularity-item border-bottom pb-4 mb-4">
+                        <div class="irregularity-item border-bottom pb-4 mb-4" data-irregularity-index="${idx}">
                             <div class="row">
                                 <div class="col-md-2 pr-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Date</label>
                                         <div class="input-group mb-0" style="height: 30px;">
-                                            <input type="text" name="irregularities[][irregularity_date]" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY">
+                                            <input type="text" name="irregularities[${idx}][irregularity_date]" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY">
                                             <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
                                                 <i class="ti-calendar" style="font-size: 12px;"></i>
                                             </span>
@@ -1910,7 +2327,7 @@
                                 <div class="col-md-2 px-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Irregularity</label>
-                                        <select name="irregularities[][irregularity_type]" class="form-control select2">
+                                        <select name="irregularities[${idx}][irregularity_type]" class="form-control select2">
                                             ${irregularityTypeOptionsHtml}
                                         </select>
                                     </div>
@@ -1918,7 +2335,7 @@
                                 <div class="col-md-2 px-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Party responsible</label>
-                                        <select name="irregularities[][party_responsible]" class="form-control select2">
+                                        <select name="irregularities[${idx}][party_responsible]" class="form-control select2">
                                             ${partyResponsibleOptionsHtml}
                                         </select>
                                     </div>
@@ -1926,7 +2343,7 @@
                                 <div class="col-md-2 px-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Consequence</label>
-                                        <select name="irregularities[][consequence]" class="form-control select2">
+                                        <select name="irregularities[${idx}][consequence]" class="form-control select2">
                                             ${consequenceOptionsHtml}
                                         </select>
                                     </div>
@@ -1934,13 +2351,13 @@
                                 <div class="col-md-2 px-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Extra cost for MT (USD)</label>
-                                        <input type="text" name="irregularities[][extra_cost_mt_usd]" class="form-control filter-input" placeholder="">
+                                        <input type="text" name="irregularities[${idx}][extra_cost_mt_usd]" class="form-control filter-input" placeholder="">
                                     </div>
                                 </div>
                                 <div class="col-md-2 pl-1 d-flex align-items-end">
                                     <div class="form-group mb-2 flex-grow-1 mr-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Status</label>
-                                        <select name="irregularities[][status]" class="form-control select2">
+                                        <select name="irregularities[${idx}][status]" class="form-control select2">
                                             ${statusOptionsHtml}
                                         </select>
                                     </div>
@@ -1953,19 +2370,19 @@
                                 <div class="col-md-4 pr-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Cause of irregularity</label>
-                                        <textarea name="irregularities[][cause_of_irregularity]" class="form-control filter-input" rows="3" style="height: auto !important; min-height: 80px;"></textarea>
+                                        <textarea name="irregularities[${idx}][cause_of_irregularity]" class="form-control filter-input" rows="3" style="height: auto !important; min-height: 80px;"></textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-4 px-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Action taken</label>
-                                        <textarea name="irregularities[][action_taken]" class="form-control filter-input" rows="3" style="height: auto !important; min-height: 80px;"></textarea>
+                                        <textarea name="irregularities[${idx}][action_taken]" class="form-control filter-input" rows="3" style="height: auto !important; min-height: 80px;"></textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-4 pl-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Customer response</label>
-                                        <textarea name="irregularities[][customer_response]" class="form-control filter-input" rows="3" style="height: auto !important; min-height: 80px;"></textarea>
+                                        <textarea name="irregularities[${idx}][customer_response]" class="form-control filter-input" rows="3" style="height: auto !important; min-height: 80px;"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1973,13 +2390,13 @@
                                 <div class="col-md-4 pr-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Hub/agent comments</label>
-                                        <textarea name="irregularities[][hub_agent_comments]" class="form-control filter-input" rows="3" style="height: auto !important; min-height: 80px;"></textarea>
+                                        <textarea name="irregularities[${idx}][hub_agent_comments]" class="form-control filter-input" rows="3" style="height: auto !important; min-height: 80px;"></textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-4 px-1">
                                     <div class="form-group mb-2">
                                         <label class="mb-0 text-muted" style="font-size: 11px;">Handled by</label>
-                                        <input type="text" name="irregularities[][handled_by]" class="form-control filter-input" placeholder="">
+                                        <input type="text" name="irregularities[${idx}][handled_by]" class="form-control filter-input" placeholder="">
                                     </div>
                                 </div>
                             </div>
@@ -2707,34 +3124,6 @@
             // Stock Items Modal
             $('#add-stock-items-btn').on('click', function() {
                 $('#stock-items-modal').modal('show');
-            });
-
-            $('#repacked_items').on('input', function() {
-                var sanitized = $(this).val().replace(/\D/g, '');
-                if ($(this).val() !== sanitized) {
-                    $(this).val(sanitized);
-                }
-            });
-
-            $('#repacked_weight').on('input', function() {
-                var val = $(this).val().replace(/[^\d.]/g, '');
-                var parts = val.split('.');
-                if (parts.length > 2) {
-                    val = parts[0] + '.' + parts.slice(1).join('');
-                }
-                if ($(this).val() !== val) {
-                    $(this).val(val);
-                }
-            }).on('blur', function() {
-                var raw = $.trim($(this).val());
-                if (raw === '' || raw === '.') {
-                    $(this).val('');
-                    return;
-                }
-                var num = parseFloat(raw);
-                if (!isNaN(num)) {
-                    $(this).val(num.toFixed(2));
-                }
             });
 
             refreshStockTotals();

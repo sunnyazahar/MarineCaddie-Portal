@@ -110,6 +110,8 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'col-Customer',
             'offices-table',
             'Create CRR',
+            'data-list-page-header="1"',
+            'Stock list',
         ]);
     }
 
@@ -122,10 +124,16 @@ class MigratedBladeViewsTest extends RegressionTestCase
         ]);
 
         $this->assertHtmlContainsAll($html, [
+            'btn-stock-followup-filters-toggle',
+            'list-filters-toolbar',
             'filter-account-manager',
             'filter-customer',
             'clear-stock-followup-filters',
             'stock-followup-pagination',
+            'pagination-sticky-footer',
+            'list-pagination-meta',
+            'data-list-page-header="1"',
+            'Stock follow-up',
         ]);
     }
 
@@ -144,6 +152,10 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'clear-pickup-filters',
             'pickup-filters-toolbar',
             'pickup-pagination',
+            'pagination-sticky-footer',
+            'list-pagination-meta',
+            'data-list-page-header="1"',
+            'Pick up work list',
         ]);
     }
 
@@ -170,6 +182,10 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'col-Customer',
             'col-Departure-hub',
             'shipments-filters-toolbar',
+            'data-list-page-header="1"',
+            'shipments-pagination',
+            'pagination-sticky-footer',
+            'list-pagination-meta',
         ]);
         $this->assertGreaterThanOrEqual(2, substr_count($html, 'filter-row'));
     }
@@ -181,6 +197,8 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringNotContainsString('x-lists.base-styles', $contents);
         $this->assertStringContainsString('shipments-filters-toolbar', $contents);
         $this->assertStringContainsString('Create shipment', $contents);
+        $this->assertStringContainsString('x-lists.page-header', $contents);
+        $this->assertStringContainsString('list-pagination-footer-styles', $contents);
     }
 
     public function test_shipment_follow_up_blade_renders_list_shell(): void
@@ -200,6 +218,10 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'clear-followup-filters',
             'col-Customer',
             'filter-shipment-no',
+            'data-list-page-header="1"',
+            'Shipment follow-up',
+            'pagination-sticky-footer',
+            'list-pagination-meta',
         ]);
     }
 
@@ -217,6 +239,10 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'btn-cost-filters-toggle',
             'clear-cost-filters',
             'col-Customer',
+            'data-list-page-header="1"',
+            'Cost follow-up',
+            'pagination-sticky-footer',
+            'list-pagination-meta',
         ]);
     }
 
@@ -235,6 +261,10 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertHtmlContainsAll($html, [
             'btn-prealert-filters-toggle',
             'clear-prealert-filters',
+            'data-list-page-header="1"',
+            'Pre-alert reminders',
+            'pagination-sticky-footer',
+            'list-pagination-meta',
         ]);
     }
 
@@ -354,6 +384,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'hub/show.blade.php',
             'Shipment/partials/edit-shipment-details-form.blade.php',
             'offices/edit.blade.php',
+            'Stock/Create-CRR.blade.php',
         ];
 
         foreach ($files as $file) {
@@ -376,5 +407,78 @@ class MigratedBladeViewsTest extends RegressionTestCase
                 "Inline country flag Select2 JS should be removed from {$file}"
             );
         }
+    }
+
+    public function test_create_crr_blade_uses_pillar_shell_and_motion_hooks(): void
+    {
+        $contents = file_get_contents(resource_path('views/Stock/Create-CRR.blade.php'));
+
+        $this->assertStringContainsString('create-crr-page', $contents);
+        $this->assertStringContainsString('crr-pillar', $contents);
+        $this->assertStringContainsString('crr-section-shell', $contents);
+        $this->assertStringContainsString('create-crr-footer', $contents);
+        $this->assertStringContainsString('create-crr-hero-icon', $contents);
+    }
+
+    public function test_shipment_edit_details_form_uses_pillar_shell(): void
+    {
+        $contents = file_get_contents(resource_path('views/Shipment/partials/edit-shipment-details-form.blade.php'));
+
+        $this->assertStringContainsString('cs-pillars', $contents);
+        $this->assertStringContainsString('cs-pillar__title">Departure', $contents);
+        $this->assertStringContainsString('cs-pillar__title">Consignee', $contents);
+        $this->assertStringContainsString('Account &amp; comments', $contents);
+        $this->assertStringContainsString('cs-section-shell', $contents);
+    }
+
+    public function test_shipment_irregularity_fields_use_indexed_array_names(): void
+    {
+        $files = [
+            'Shipment/partials/edit-shipment-details-form.blade.php',
+            'Shipment/edit.blade.php',
+            'Shipment/create.blade.php',
+        ];
+
+        foreach ($files as $file) {
+            $contents = file_get_contents(resource_path('views/' . $file));
+            $this->assertStringNotContainsString(
+                'irregularities[][',
+                $contents,
+                "PHP treats irregularities[][field] as one row per field in {$file}"
+            );
+            $this->assertMatchesRegularExpression(
+                '/irregularities\[(\{\{\s*\$irIndex\s*\}\}|0|\$\{idx\})\]\[/',
+                $contents,
+                "Expected indexed irregularities[n][field] names in {$file}"
+            );
+        }
+
+        // Document why indexed names matter: [][a]&[][b] becomes two rows.
+        parse_str('irregularities[][a]=1&irregularities[][b]=2', $broken);
+        parse_str('irregularities[0][a]=1&irregularities[0][b]=2', $fixed);
+        $this->assertCount(2, $broken['irregularities']);
+        $this->assertCount(1, $fixed['irregularities']);
+        $this->assertSame(['a' => '1', 'b' => '2'], $fixed['irregularities'][0]);
+    }
+
+    public function test_mc_compat_handles_alert_dismiss(): void
+    {
+        $contents = file_get_contents(resource_path('js/mc-compat.js'));
+
+        $this->assertStringContainsString('data-dismiss="alert"', $contents);
+        $this->assertStringContainsString('data-bs-dismiss="alert"', $contents);
+        $this->assertStringContainsString('closest(\'.alert\')', $contents);
+    }
+
+    public function test_users_blade_uses_list_header_and_pagination_footer(): void
+    {
+        $contents = file_get_contents(resource_path('views/Users/users.blade.php'));
+
+        $this->assertStringContainsString('x-lists.page-header', $contents);
+        $this->assertStringContainsString('list-pagination-footer-styles', $contents);
+        $this->assertStringContainsString('pagination-sticky-footer', $contents);
+        $this->assertStringContainsString('list-pagination-footer-inner', $contents);
+        $this->assertStringContainsString('addUserModal', $contents);
+        $this->assertStringContainsString('btn-add-user', $contents);
     }
 }

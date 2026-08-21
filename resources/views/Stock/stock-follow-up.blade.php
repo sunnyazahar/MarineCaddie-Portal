@@ -4,7 +4,74 @@
 
     <x-lists.base-styles />
     <x-lists.multiselect-assets />
+    @include('partials.list-pagination-footer-styles')
     <style>
+        /* Match stocks list shell — card fills under header; footer fixed to viewport */
+        body.stock-followup-list-page {
+            overflow: hidden !important;
+            height: 100vh;
+        }
+        body.stock-followup-list-page .pcoded-content {
+            overflow: hidden !important;
+        }
+        body.stock-followup-list-page .pcoded-inner-content,
+        body.stock-followup-list-page .main-body,
+        body.stock-followup-list-page .page-wrapper,
+        body.stock-followup-list-page .page-body {
+            height: 100%;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .followup-list-card {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background: #fff !important;
+            overflow: hidden;
+        }
+        .followup-list-card > .card-block {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            padding: 8px 12px 8px !important;
+        }
+        .followup-filters-fixed {
+            flex-shrink: 0;
+            background: #fff;
+            border-bottom: 1px solid #eef2f7;
+            padding: 0;
+            margin: 0;
+        }
+        .followup-filters-fixed .filter-row {
+            margin: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            border-bottom: none !important;
+        }
+        .stock-followup-table-area {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+        .stock-followup-table-area .dataTables_wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
         .office-table {
             width: 1900px !important;
             min-width: 1900px !important;
@@ -289,26 +356,23 @@
             border-color: #008080 !important;
         }
         
-        /* Reduce gap/margin between sidebar and content */
-        .pcoded-inner-content {
-            padding: 5px !important;
-        }
-        .main-body .page-wrapper {
-            padding: 5px !important;
+        /* List shell stays flush — beat page-local 5px gutters */
+        body.stock-followup-list-page .pcoded-inner-content,
+        body.stock-followup-list-page .main-body .page-wrapper {
+            padding: 0 !important;
         }
         /* Table visibility fixes */
         .dt-responsive {
             width: 100%;
         }
-        .stock-followup-table-area {
-            min-height: 0;
-        }
         .table-scroll-wrapper {
             width: 100%;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow: auto !important;
-            max-height: calc(100vh - 280px);
+            max-height: none !important;
             -webkit-overflow-scrolling: touch;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: none;
             position: relative;
         }
         .office-table {
@@ -381,23 +445,8 @@
         }
 
         @media (max-width: 991.98px) {
-            .table-scroll-wrapper {
-                max-height: none;
-                max-height: calc(100vh - 220px);
-            }
-            .pagination-sticky-footer {
-                left: 0 !important;
-                right: 0 !important;
-                width: 100% !important;
-                padding: 8px 12px !important;
-                height: auto !important;
-                min-height: 48px;
-                justify-content: center !important;
-                overflow-x: auto;
-            }
-            .card-block {
-                padding-left: 8px !important;
-                padding-right: 8px !important;
+            .followup-list-card {
+                height: calc(100vh - 64px) !important;
             }
         }
         .office-table thead {
@@ -427,34 +476,17 @@
             padding-right: 10px !important; /* Reset padding usually reserved for arrows */
         }
 
-        /* Pagination Styling */
-        .pagination-sticky-footer {
-            position: sticky;
-            bottom: 0;
-            background-color: #ffffff;
-            padding: 10px 0;
-            border-top: 1px solid #e9ecef;
-            z-index: 10;
-            margin-top: 0 !important;
-        }
+        /* Pagination look: partials/list-pagination-footer-styles */
         .dataTables_wrapper .dataTables_paginate {
             margin-top: 0 !important;
             padding: 0;
             display: flex;
             justify-content: flex-end;
+            float: none !important;
+            width: 100%;
         }
-        .pagination .page-item.active .page-link {
-            background-color: #008080 !important;
-            border-color: #008080 !important;
-            color: #fff !important;
-        }
-        .pagination .page-link {
-            color: #008080 !important;
-            font-size: 12px;
-            padding: 5px 10px;
-        }
-        .pagination .page-item.disabled .page-link {
-            color: #6c757d !important;
+        .dataTables_wrapper {
+            padding-bottom: 0 !important;
         }
     </style>
 @endsection
@@ -498,12 +530,21 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    @include('layouts.partials.pcoded-shell-start')
-                                        <!-- Base Style - Compact start -->
-                                        <div class="card" style="border: none; box-shadow: none; background: transparent;">
-                                            <div class="card-block" style="padding: 10px 0;">
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+                                        <div class="card followup-list-card">
+                                            <div class="card-block">
+                                                <x-lists.page-header
+                                                    title="Stock follow-up"
+                                                    subtitle="Track open stocks that still need action"
+                                                    icon="ti-flag-alt"
+                                                    :count="$crrs->total()"
+                                                    countLabel="items"
+                                                />
+                                                <div class="followup-filters-fixed">
+                                                <x-lists.filter-toolbar toggleId="btn-stock-followup-filters-toggle" />
+
                                                 <!-- Filter Row -->
-                                                <x-lists.filter-bar style="margin-bottom: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                                <x-lists.filter-bar>
                                                     <x-lists.filter-field label="Account manager" width="240px">
                                                         <select id="filter-account-manager" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
                                                             @foreach ($accountManagers as $manager)
@@ -520,9 +561,10 @@
                                                     </x-lists.filter-field>
                                                     <x-lists.clear-filters id="clear-stock-followup-filters" />
                                                 </x-lists.filter-bar>
+                                                </div>
 
                                                 <!-- Data Table -->
-                                                <div class="stock-followup-table-area" style="background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                                <div class="stock-followup-table-area">
                                                     <table id="offices-table" class="office-table">
                                                         <colgroup>
                                                             <col style="width: 90px">
@@ -563,21 +605,19 @@
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                                <div id="stock-followup-pagination" class="mt-3 px-3 pb-2">
-                                                    {{ $crrs->links() }}
-                                                </div>
+                                                <div id="stock-followup-pagination" class="pagination-sticky-footer">
+                                                    @include('partials.list-pagination-footer-inner', ['paginator' => $crrs])
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Base Style - Compact end -->
     @include('layouts.partials.pcoded-shell-end')
-
 
 @endsection
 
 @push('scripts')
     <script>
         $(document).ready(function() {
+            $('body').addClass('stock-followup-list-page');
             var csrfToken = $('meta[name="csrf-token"]').attr('content');
 
             initializeSearchableFilterMultiselect('#filter-account-manager, #filter-customer', {
@@ -616,12 +656,28 @@
             });
 
             function getFollowupTableScrollHeight() {
-                var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
-                var $wrapper = $('.table-scroll-wrapper');
-                var topOffset = $wrapper.length && $wrapper.offset()
-                    ? $wrapper.offset().top
-                    : 220;
-                return Math.max(180, window.innerHeight - topOffset - paginationHeight - 8);
+                var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
+                var $tableArea = $('.stock-followup-table-area');
+                var areaHeight = $tableArea.length ? $tableArea.innerHeight() : 0;
+                // Pagination is in-flow sibling under table-area — use full area height.
+                var available = areaHeight - 2;
+
+                if (isMobile) {
+                    var paginationHeight = $('#stock-followup-pagination').outerHeight() || 52;
+                    var topOffset = $tableArea.length && $tableArea.offset()
+                        ? $tableArea.offset().top
+                        : 160;
+                    available = window.innerHeight - topOffset - paginationHeight;
+                    return Math.max(260, available);
+                }
+
+                if (available < 180) {
+                    var topOffsetFallback = $tableArea.length ? $tableArea.offset().top : 220;
+                    var paginationHeightFallback = $('#stock-followup-pagination').outerHeight() || 52;
+                    available = window.innerHeight - topOffsetFallback - paginationHeightFallback;
+                }
+
+                return Math.max(180, available);
             }
 
             function adjustFollowupTableLayout() {
@@ -630,12 +686,16 @@
                     height: height + 'px',
                     maxHeight: height + 'px'
                 });
+                if (table && table.columns) {
+                    table.columns.adjust();
+                }
             }
 
             $(window).on('resize', adjustFollowupTableLayout);
             table.on('draw', adjustFollowupTableLayout);
-            setTimeout(adjustFollowupTableLayout, 100);
-            setTimeout(adjustFollowupTableLayout, 400);
+            setTimeout(adjustFollowupTableLayout, 50);
+            setTimeout(adjustFollowupTableLayout, 250);
+            setTimeout(adjustFollowupTableLayout, 600);
 
             window.stockFollowupFilters = bindAjaxListFilters({
                 tableSelector: '#offices-table',

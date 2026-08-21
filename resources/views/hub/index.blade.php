@@ -194,7 +194,7 @@
             align-items: center !important;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 28px !important;
+            line-height: 1.25 !important;
             padding-left: 8px !important;
             padding-right: 20px !important;
             color: #495057 !important;

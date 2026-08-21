@@ -137,4 +137,124 @@
             display: none !important;
         }
     }
+
+    /* ========== Unified control height (text + Select2 single) ==========
+       Use --mc-control-height (34px). Keep filter multi + doc-type selects compact. */
+    html body input[type="text"]:not([hidden]):not(.select2-search__field),
+    html body input[type="email"],
+    html body input[type="number"],
+    html body input[type="tel"],
+    html body input[type="url"],
+    html body input[type="search"],
+    html body input[type="password"],
+    html body input[type="date"],
+    html body input[type="time"],
+    html body input[type="datetime-local"],
+    html body select.form-control:not([multiple]):not(.select2-hidden-accessible),
+    html body .form-control:not(textarea):not([multiple]):not(.select2-hidden-accessible),
+    html body .form-control-sm:not(textarea):not([multiple]):not(.select2-hidden-accessible),
+    html body .form-control-sm-custom:not(textarea):not([multiple]):not(.select2-hidden-accessible),
+    html body .field-input:not(textarea),
+    html body .crr-input:not(textarea),
+    html body .mc-input:not(textarea) {
+        height: var(--mc-control-height, 34px) !important;
+        min-height: var(--mc-control-height, 34px) !important;
+        max-height: var(--mc-control-height, 34px) !important;
+        font-size: var(--mc-control-font-size, 14px) !important;
+        line-height: 1.25 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Textareas — restore multi-line look; never lock to single-line control height */
+    html body textarea,
+    html body textarea.form-control,
+    html body textarea.form-control-sm,
+    html body textarea.form-control-sm-custom,
+    html body textarea.field-input,
+    html body textarea.crr-input,
+    html body textarea.mc-input,
+    html body textarea.form-control-notes,
+    html body .comment-textarea {
+        max-height: none !important;
+        box-sizing: border-box !important;
+    }
+
+    html body .select2-container--default .select2-selection--single,
+    html body .filter-group .select2-container--default .select2-selection--single {
+        height: var(--mc-control-height, 34px) !important;
+        min-height: var(--mc-control-height, 34px) !important;
+        max-height: var(--mc-control-height, 34px) !important;
+        display: flex !important;
+        align-items: center !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Select2 — vertically center selected text on every page
+       (html body = beat most page-local line-height: NNpx overrides) */
+    html body .select2-container--default .select2-selection--single .select2-selection__rendered,
+    html body .filter-group .select2-container--default .select2-selection--single .select2-selection__rendered {
+        display: flex !important;
+        align-items: center !important;
+        line-height: 1.25 !important;
+        font-size: var(--mc-control-font-size, 14px) !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        height: 100% !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    html body .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        line-height: 1.25 !important;
+    }
+    html body .select2-container--default .select2-selection--single .select2-selection__arrow,
+    html body .filter-group .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 100% !important;
+        top: 0 !important;
+        margin-top: 0 !important;
+    }
+    html body .select2-container--default .select2-selection--multiple .select2-selection__rendered,
+    html body .filter-group .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+    }
+
+    /* Compact exceptions: document type Select2 under docs lists */
+    html body #doc-panel-docs .select2-container--default .select2-selection--single,
+    html body #crr-documents-panel .select2-container--default .select2-selection--single {
+        height: 22px !important;
+        min-height: 22px !important;
+        max-height: 22px !important;
+    }
+    html body #doc-panel-docs .select2-container--default .select2-selection--single .select2-selection__rendered,
+    html body #crr-documents-panel .select2-container--default .select2-selection--single .select2-selection__rendered {
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Visual 1px teal hairline scrollbar (browser clamps native width) */
+    * {
+        scrollbar-width: thin !important;
+        scrollbar-color: #008080 transparent !important;
+    }
+    *::-webkit-scrollbar {
+        -webkit-appearance: none !important;
+        width: 5px !important;
+        height: 5px !important;
+        background: transparent !important;
+    }
+    *::-webkit-scrollbar-track {
+        background: transparent !important;
+    }
+    *::-webkit-scrollbar-thumb {
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: inset -1px 0 0 #008080, inset 0 -1px 0 #008080 !important;
+    }
+    *::-webkit-scrollbar-thumb:hover {
+        box-shadow: inset -1px 0 0 #006666, inset 0 -1px 0 #006666 !important;
+    }
 </style>

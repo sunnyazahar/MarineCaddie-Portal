@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('styles')
+    @include('partials.list-pagination-footer-styles')
 
     <style>
         /* High Density Table Styles */
@@ -244,16 +245,17 @@
         }
         .filter-group .filter-label {
             font-size: 11px;
-            color: #64748b;
+            color: #ffffff;
             margin-bottom: 0;
             padding: 0 10px;
             white-space: nowrap;
-            font-weight: 500;
-            border-right: 1px solid #e2e8f0;
+            font-weight: 700;
+            border-right: 1px solid #5a7fa0;
             height: 100%;
             display: flex;
             align-items: center;
-            background: #f8fafc;
+            background: #6992b5;
+            background-color: #6992b5;
             min-width: fit-content;
         }
         .filter-group .filter-input {
@@ -265,6 +267,24 @@
             background: transparent !important;
             width: 100%;
             color: #1e293b;
+        }
+        .filter-group .filter-date-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 28px;
+            color: #64748b;
+            font-size: 13px;
+            cursor: pointer;
+            opacity: 0.85;
+        }
+        .filter-group .filter-date-icon:hover {
+            color: #008080;
+            opacity: 1;
+        }
+        #col-Creation-date .filter-group {
+            padding-right: 2px;
         }
         .filter-group .select2-container--default .select2-selection--single,
         .filter-group .select2-container--default .select2-selection--multiple {
@@ -291,7 +311,7 @@
             padding-left: 10px !important;
             font-size: 11px !important;
             color: #1e293b !important;
-            line-height: 30px !important;
+            line-height: 1.25 !important;
         }
         .filter-group .select2-container--default .select2-selection--multiple .select2-selection__rendered,
         .filter-group .select2-container--default .select2-search--inline .select2-search__field {
@@ -368,7 +388,7 @@
             font-size: 11px;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 28px !important;
+            line-height: 1.25 !important;
         }
         .select2-container--default .select2-selection--multiple .select2-selection__choice {
             background-color: #008080;
@@ -423,8 +443,11 @@
         .shipments-list-card {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 104px);
-            margin-bottom: 0 !important;
+            height: calc(100vh - 64px);
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
             overflow: hidden;
         }
         .shipments-list-card > .card-block {
@@ -433,7 +456,7 @@
             flex: 1;
             min-height: 0;
             overflow: hidden;
-            padding-bottom: 8px !important;
+            padding: 8px 12px 8px !important;
         }
         .shipments-filters-fixed {
             flex-shrink: 0;
@@ -480,7 +503,7 @@
             }
             .shipments-list-card {
                 height: calc(100vh - 64px) !important;
-                margin-top: 8px !important;
+                margin: 0 !important;
             }
             .shipments-filters-toolbar {
                 display: flex;
@@ -553,12 +576,6 @@
                 overflow-x: auto !important;
                 -webkit-overflow-scrolling: touch;
             }
-            .pagination-sticky-footer {
-                padding: 8px 12px !important;
-                height: auto !important;
-                min-height: 48px;
-                justify-content: center !important;
-            }
         }
 
         @media (min-width: 992px) {
@@ -602,22 +619,7 @@
             position: relative;
         }
 
-        .pagination-sticky-footer {
-            position: fixed !important;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            padding: 10px 20px;
-            background: #ffffff;
-            border-top: 1px solid #e9ecef;
-            z-index: 1040;
-            margin: 0 !important;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-        }
+        /* Pagination look: partials/list-pagination-footer-styles (in-flow under table) */
         .dataTables_wrapper .dataTables_paginate {
             margin-top: 0 !important;
             padding: 0;
@@ -626,15 +628,15 @@
             float: none !important;
             width: 100%;
         }
-        body.shipments-list-page {
-            padding-bottom: 48px;
+        .dataTables_wrapper {
+            padding-bottom: 0 !important;
         }
         /* Reduce gap/margin between sidebar and content */
         .pcoded-inner-content {
-            padding: 5px !important;
+            padding: 0 !important;
         }
         .main-body .page-wrapper {
-            padding: 5px !important;
+            padding: 0 !important;
         }
 
 </style>
@@ -661,10 +663,21 @@
         </div>
     </div>
     <!-- Pre-loader end -->
-    @include('layouts.partials.pcoded-shell-start')
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
                                         <!-- Base Style - Compact start -->
-                                        <div class="card shipments-list-card mt-4">
+                                        <div class="card shipments-list-card">
                                             <div class="card-block">
+                                                <x-lists.page-header
+                                                    title="Shipments"
+                                                    subtitle="Search, filter, and manage active shipments"
+                                                    icon="icofont icofont-ship"
+                                                    :count="$shipments->total()"
+                                                    countLabel="shipments"
+                                                >
+                                                    <x-slot:actions>
+                                                        <a href="{{ route('create-shipment') }}" class="btn btn-teal btn-sm d-none d-lg-inline-flex">Create shipment</a>
+                                                    </x-slot:actions>
+                                                </x-lists.page-header>
                                                 <div class="shipments-filters-fixed">
                                                 <div class="shipments-filters-toolbar">
                                                     <button type="button" id="btn-shipments-filters-toggle" class="btn btn-outline-teal btn-sm">
@@ -793,9 +806,8 @@
                                                             <div id="col-Creation-date" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Creation date</span>
-                                                                    <div class="input-group p-0 m-0" style="border: none;">
-                                                                        <input type="date" class="form-control filter-input datepicker" placeholder="dd/mm/yyyy" style="border: none; background: transparent;">
-                                                                    </div>
+                                                                    <input type="text" id="filter-creation-date" class="form-control filter-input datepicker" placeholder="dd.mm.yyyy" autocomplete="off">
+                                                                    <i class="ti-calendar filter-date-icon" title="Pick date" aria-hidden="true"></i>
                                                                 </div>
                                                             </div>
                                                             <div id="col-Service" class="custom-col" style="flex: 0 0 200px;">
@@ -851,8 +863,8 @@
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                                <div id="shipments-pagination" class="mt-3">
-                                                    {{ $shipments->links() }}
+                                                <div id="shipments-pagination" class="pagination-sticky-footer">
+                                                    @include('partials.list-pagination-footer-inner', ['paginator' => $shipments])
                                                 </div>
                                             </div>
                                         </div>
@@ -1004,7 +1016,7 @@
                 }
 
                 return $('#offices-table').DataTable({
-                    "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
+                    "dom": '<"table-scroll-wrapper"rt>',
                     "lengthChange": false,
                     "paging": false,
                     "info": false,
@@ -1025,10 +1037,11 @@
                 var isMobile = isShipmentsMobile();
                 var $tableArea = $('.shipments-table-area');
                 var areaHeight = $tableArea.length ? $tableArea.innerHeight() : 0;
+                // Pagination is in-flow sibling under table-area — use full area height.
                 var available = areaHeight - 2;
 
                 if (isMobile) {
-                    var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
+                    var paginationHeight = $('#shipments-pagination').outerHeight() || 52;
                     var topOffset = $tableArea.length && $tableArea.offset()
                         ? $tableArea.offset().top
                         : 160;
@@ -1038,7 +1051,7 @@
 
                 if (available < 180) {
                     var topOffset = $tableArea.length ? $tableArea.offset().top : 220;
-                    var paginationHeight = $('.pagination-sticky-footer').outerHeight() || 48;
+                    var paginationHeight = $('#shipments-pagination').outerHeight() || 52;
                     available = window.innerHeight - topOffset - paginationHeight - 4;
                 }
 
@@ -1078,6 +1091,18 @@
                 adjustShipmentsTableLayout();
             });
 
+            function creationDateForQuery() {
+                var value = $.trim($('#filter-creation-date').val() || '');
+                if (!value) {
+                    return '';
+                }
+                var match = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+                if (match) {
+                    return match[3] + '-' + match[2] + '-' + match[1];
+                }
+                return value;
+            }
+
             function currentFilterParams(page) {
                 return {
                     customer: $('#col-Customer select').val() || [],
@@ -1091,14 +1116,14 @@
                     account_manager: $('#col-Account-manager select').val() || [],
                     created_by: $('#col-Created-by select').val() || [],
                     office: $('#col-Office select').val() || [],
-                    creation_date: $('#col-Creation-date input').val() || '',
+                    creation_date: creationDateForQuery(),
                     service: $('#col-Service select').val() || [],
                     status: $('#col-Status select').val() || [],
                     page: page || 1
                 };
             }
 
-            function replaceShipmentRows(html, paginationHtml) {
+            function replaceShipmentRows(html, paginationHtml, total) {
                 table = initShipmentsTable();
                 table.clear();
 
@@ -1112,6 +1137,12 @@
 
                 table.draw(false);
                 $('#shipments-pagination').html(paginationHtml || '');
+                if (typeof total === 'number') {
+                    var $count = $('.list-page-header-count strong');
+                    if ($count.length) {
+                        $count.text(total.toLocaleString());
+                    }
+                }
                 adjustShipmentsTableLayout();
             }
 
@@ -1129,12 +1160,15 @@
                         return;
                     }
 
-                    replaceShipmentRows(response.html, response.pagination);
+                    replaceShipmentRows(response.html, response.pagination, response.total);
                 });
             }
 
             function resetShipmentFilterFields() {
-                $('#col-Shipment-no input, #col-Service-reference-number input, #col-PO-number input, #col-Consignee input, #col-Port-of-destination input, #col-Creation-date input').val('');
+                $('#col-Shipment-no input, #col-Service-reference-number input, #col-PO-number input, #col-Consignee input, #col-Port-of-destination input, #filter-creation-date').val('');
+                if ($('#filter-creation-date').hasClass('hasDatepicker')) {
+                    $('#filter-creation-date').datepicker('setDate', null);
+                }
                 $('.searchable-filter-multiselect').each(function () {
                     var $select = $(this);
                     $select.find('option').prop('selected', false);
@@ -1146,6 +1180,22 @@
                         .show();
                 });
             }
+
+            $('#filter-creation-date').datepicker({
+                dateFormat: 'dd.mm.yy',
+                showOtherMonths: true,
+                selectOtherMonths: true,
+                changeMonth: true,
+                changeYear: true,
+                yearRange: 'c-10:c+2',
+                onSelect: function () {
+                    loadShipments(1);
+                }
+            });
+
+            $(document).on('click', '#col-Creation-date .filter-date-icon', function () {
+                $('#filter-creation-date').datepicker('show');
+            });
 
             $('#col-Shipment-no input, #col-Service-reference-number input, #col-PO-number input, #col-Consignee input, #col-Port-of-destination input').on('input keyup', function (e) {
                 if (e.type === 'keyup' && e.key === 'Enter') {
@@ -1161,7 +1211,7 @@
                 }, 200);
             });
 
-            $('#col-Creation-date input').on('change', function () {
+            $('#filter-creation-date').on('change', function () {
                 loadShipments(1);
             });
 
