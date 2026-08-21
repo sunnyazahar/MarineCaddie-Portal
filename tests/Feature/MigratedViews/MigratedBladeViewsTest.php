@@ -11,6 +11,27 @@ class MigratedBladeViewsTest extends RegressionTestCase
 {
     use RendersMigratedBladeViews;
 
+    public function test_app_layout_uses_vite_tailwind_v2(): void
+    {
+        $contents = file_get_contents(resource_path('views/layouts/app.blade.php'));
+        $this->assertStringContainsString("@vite(['resources/css/app.css', 'resources/js/app.js'])", $contents);
+        $this->assertStringNotContainsString('bootstrap.min.css', $contents);
+        $this->assertStringNotContainsString('assets/css/style.css', $contents);
+    }
+
+    public function test_guest_layout_for_auth(): void
+    {
+        $this->assertFileExists(resource_path('views/layouts/guest.blade.php'));
+        $this->assertStringContainsString('layouts.guest', file_get_contents(resource_path('views/auth/login.blade.php')));
+    }
+
+    public function test_filters_use_select2(): void
+    {
+        $script = file_get_contents(resource_path('views/partials/searchable-filter-multiselect-script.blade.php'));
+        $this->assertStringContainsString('select2(', $script);
+        $this->assertStringNotContainsString('.multiselect(', $script);
+    }
+
     public function test_agents_index_blade_renders_list_shell(): void
     {
         $html = $this->renderMigratedView('Agents.index', [

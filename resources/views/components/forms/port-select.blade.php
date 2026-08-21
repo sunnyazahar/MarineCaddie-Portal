@@ -30,7 +30,7 @@
     data-placeholder="{{ $placeholder }}"
     data-allow-clear="{{ $allowClear ? '1' : '0' }}"
     @if ($required) required @endif
-    {{ $attributes->class(['form-control', 'select2-port-code']) }}
+    {{ $attributes->class(['mc-input', 'form-control', 'select2-port-code']) }}
     style="width: 100%;"
 >
     <option value=""></option>

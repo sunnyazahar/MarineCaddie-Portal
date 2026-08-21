@@ -1,17 +1,9 @@
 @extends('layouts.app')
 
 @section('styles')
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('files/bower_components/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/pages/data-table/css/buttons.dataTables.min.css') }}">
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('files/bower_components/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css') }}">
-    <!-- Bootstrap Multiselect css -->
-    <link rel="stylesheet" href="{{ asset('files/bower_components/bootstrap-multiselect/dist/css/bootstrap-multiselect.css') }}" />
-    <!-- Select 2 css -->
-    <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
+
     <!-- Date-range picker css  -->
-    <link rel="stylesheet" type="text/css" href="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}" />
+
     <style>
         /* High Density Table Styles */
         #offices-table {
@@ -393,99 +385,7 @@
         }
           .status-paid { background-color: #dbeafe; color: #1e40af; }
         
-        /* Custom Datepicker Styles */
-        .ui-datepicker {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            padding: 0;
-            font-family: inherit;
-            font-size: 11px;
-            z-index: 9999 !important;
-            width: 250px;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .ui-datepicker-header {
-            background: #008080;
-            color: #fff;
-            padding: 10px;
-            border: none;
-            border-radius: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .ui-datepicker-title {
-            font-weight: 700;
-            text-align: center;
-            width: 100%;
-        }
-        .ui-datepicker-prev, .ui-datepicker-next {
-            cursor: pointer;
-            color: #fff;
-            background: rgba(255,255,255,0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-align: center;
-        }
-        .ui-datepicker-prev:hover, .ui-datepicker-next:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        .ui-datepicker-title select {
-            background: transparent;
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 3px;
-            padding: 2px 4px;
-            margin: 0 2px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            outline: none;
-        }
-        .ui-datepicker-title select option {
-            background: #fff;
-            color: #374151;
-            font-weight: normal;
-        }
-        .ui-datepicker-calendar {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 5px 0;
-        }
-        .ui-datepicker-calendar th {
-            color: #6b7280;
-            font-weight: 600;
-            padding: 8px 0;
-            text-align: center;
-        }
-        .ui-datepicker-calendar td {
-            padding: 2px;
-            text-align: center;
-        }
-        .ui-datepicker-calendar td a {
-            display: block;
-            padding: 6px;
-            text-decoration: none;
-            color: #374151;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-        .ui-datepicker-calendar td a:hover {
-            background: #f0fdfa;
-            color: #008080;
-        }
-        .ui-datepicker-calendar .ui-state-active {
-            background: #008080 !important;
-            color: #fff !important;
-            font-weight: 700;
-        }
-        .ui-datepicker-calendar .ui-datepicker-today a {
-            border: 1px solid #008080;
-            color: #008080;
-        }
-    </style>
+</style>
 @endsection
 
 @section('content')
@@ -836,48 +736,9 @@
             </div>
         </div>
     </div>
-     <!-- Required Jquery -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/popper.js/dist/umd/popper.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-    <!-- jquery slimscroll js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery-slimscroll/jquery.slimscroll.js') }}"></script>
-    <!-- modernizr js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/modernizr/modernizr.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/modernizr/feature-detects/css-scrollbars.js') }}"></script>
 
-    <!-- data-table js -->
-    <script src="{{ asset('files/bower_components/datatables.net/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('files/bower_components/datatables.net-buttons/js/dataTables.buttons.min.js') }}"></script>
-    <script src="{{ asset('files/assets/pages/data-table/js/jszip.min.js') }}"></script>
-    <script src="{{ asset('files/assets/pages/data-table/js/pdfmake.min.js') }}"></script>
-    <script src="{{ asset('files/assets/pages/data-table/js/vfs_fonts.js') }}"></script>
-    <script src="{{ asset('files/bower_components/datatables.net-buttons/js/buttons.print.min.js') }}"></script>
-    <script src="{{ asset('files/bower_components/datatables.net-buttons/js/buttons.html5.min.js') }}"></script>
-    <script src="{{ asset('files/assets/pages/data-table/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('files/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('files/bower_components/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js') }}"></script>
-    <!-- Bootstrap Multiselect js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap-multiselect/dist/js/bootstrap-multiselect.js') }}"></script>
-    <!-- i18next.min.js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/i18next/i18next.min.js') }}"></script>
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/i18next-xhr-backend/i18nextXHRBackend.min.js') }}"></script>
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/i18next-browser-languagedetector/i18nextBrowserLanguageDetector.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery-i18next/jquery-i18next.min.js') }}"></script>
-    <!-- Custom js -->
-    {{-- <script src="{{ asset('files/assets/pages/data-table/js/data-table-custom.js') }}"></script> --}}
-    <script src="{{ asset('files/assets/js/pcoded.min.js') }}"></script>
-    <script src="{{ asset('files/assets/js/vartical-layout.min.js') }}"></script>
-    <script src="{{ asset('files/assets/js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
-    <!-- Select 2 js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
+
     <!-- date-range-picker js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/moment/moment.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
 
     <script>
         $(document).ready(function() {

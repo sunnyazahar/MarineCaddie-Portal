@@ -78,27 +78,26 @@
                 color: #1e293b;
             }
 
-            .filter-group .multiselect-native-select {
+            .filter-group .searchable-filter-wrapper,
+            .filter-group .select2-container {
                 flex: 1;
                 min-width: 0;
             }
 
-            .filter-group .multiselect-native-select .btn-group {
-                width: 100%;
+            .filter-group .select2-container {
+                width: 100% !important;
             }
 
-            .filter-group .multiselect-native-select .multiselect {
+            .filter-group .select2-container .select2-selection--multiple {
+                min-height: 30px;
                 height: 30px;
-                padding: 4px 26px 4px 10px;
+                padding: 0 26px 0 4px;
                 overflow: hidden;
                 border: 0;
                 border-radius: 0;
                 background: #fff;
                 color: #1e293b;
                 font-size: 11px;
-                text-align: left;
-                text-overflow: ellipsis;
-                white-space: nowrap;
             }
 
             .filter-checkbox-group {

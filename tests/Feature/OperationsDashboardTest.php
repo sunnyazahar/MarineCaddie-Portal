@@ -129,7 +129,8 @@ class OperationsDashboardTest extends RegressionTestCase
         $dashboard = app(OperationsDashboardService::class)->build($admin, 7);
         $html = view('home', compact('dashboard'))->render();
 
-        $this->assertStringContainsString('Shipment Dashboard', $html);
+        $this->assertStringContainsString('Operations overview', $html);
+        $this->assertStringContainsString('dash-hero', $html);
         $this->assertStringContainsString('SHIP-RENDER', $html);
         $this->assertStringContainsString('STK-RENDER', $html);
         $this->assertStringContainsString(route('shipments.edit', $shipment->id), $html);

@@ -8,8 +8,6 @@
             @include('layouts.top-menu')
             @include('layouts.left-menu')
 
-            <!-- Select 2 css -->
-            <link rel="stylesheet" type="text/css" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}">
             <!-- jQuery UI CSS -->
             <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
             <!-- jQuery UI CSS -->
@@ -466,98 +464,6 @@
                     border-color: #d9534f !important;
                 }
 
-                /* Custom Datepicker Styling */
-                .ui-datepicker {
-                    border: none !important;
-                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-                    padding: 0 !important;
-                    border-radius: 12px !important;
-                    overflow: hidden;
-                    font-family: inherit;
-                    width: 280px !important;
-                    z-index: 9999 !important;
-                }
-                .ui-datepicker-header {
-                    background: #1b5e6f !important;
-                    border: none !important;
-                    color: white !important;
-                    border-radius: 0 !important;
-                    padding: 12px 0 !important;
-                }
-                .ui-datepicker-title {
-                    font-weight: 600 !important;
-                    font-size: 14px;
-                }
-                .ui-datepicker-calendar thead th {
-                    color: #1b5e6f !important;
-                    font-weight: 600 !important;
-                    font-size: 11px !important;
-                    padding: 10px 0 !important;
-                    text-transform: uppercase;
-                }
-                .ui-datepicker-calendar td {
-                    padding: 2px !important;
-                }
-                .ui-state-default, .ui-widget-content .ui-state-default {
-                    border: none !important;
-                    background: transparent !important;
-                    text-align: center !important;
-                    padding: 8px !important;
-                    font-size: 13px !important;
-                    color: #4b5563 !important;
-                    border-radius: 6px !important;
-                    transition: all 0.2s;
-                }
-                .ui-state-default:hover {
-                    background: #f3f4f6 !important;
-                    color: #1b5e6f !important;
-                }
-                .ui-state-highlight, .ui-widget-content .ui-state-highlight {
-                    color: #1b5e6f !important;
-                    font-weight: bold !important;
-                    background: rgba(27, 94, 111, 0.1) !important;
-                }
-                .ui-state-active, .ui-widget-content .ui-state-active {
-                    background: #1b5e6f !important;
-                    color: white !important;
-                    border-radius: 6px !important;
-                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-                }
-                /* Hide default icon spans */
-                .ui-datepicker .ui-datepicker-prev span, 
-                .ui-datepicker .ui-datepicker-next span {
-                    display: none !important;
-                }
-                /* Add Themify arrows */
-                .ui-datepicker .ui-datepicker-prev::after {
-                    content: '\e64a';
-                    font-family: 'themify';
-                    position: absolute;
-                    left: 12px;
-                    top: 10px;
-                    color: white;
-                    font-size: 12px;
-                }
-                .ui-datepicker .ui-datepicker-next::after {
-                    content: '\e649';
-                    font-family: 'themify';
-                    position: absolute;
-                    right: 12px;
-                    top: 10px;
-                    color: white;
-                    font-size: 12px;
-                }
-                .ui-datepicker .ui-datepicker-prev, 
-                .ui-datepicker .ui-datepicker-next {
-                    top: 2px !important;
-                    cursor: pointer;
-                    border: none !important;
-                    background: transparent !important;
-                }
-                .ui-datepicker .ui-datepicker-prev:hover, 
-                .ui-datepicker .ui-datepicker-next:hover {
-                    background: rgba(255,255,255,0.1) !important;
-                }
 
                 @media (max-width: 1199.98px) {
                     .form-pillar-container {
@@ -1378,23 +1284,8 @@
             </div>
         </div>
     </div>
-    
-    <!-- Required Jquery -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/popper.js/dist/umd/popper.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-    <!-- jquery slimscroll js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery-slimscroll/jquery.slimscroll.js') }}"></script>
-    <!-- modernizr js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/modernizr/modernizr.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/modernizr/feature-detects/css-scrollbars.js') }}"></script>
-    <script src="{{ asset('files/assets/js/pcoded.min.js') }}"></script>
-    <script src="{{ asset('files/assets/js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
-    <script src="{{ asset('files/assets/js/vartical-layout.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
 
     <script>
         $(document).ready(function() {

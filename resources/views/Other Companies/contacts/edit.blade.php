@@ -208,15 +208,6 @@
         </div>
     </div>
 
-    <!-- Required Jquery -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/popper.js/dist/umd/popper.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/pcoded.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/vartical-layout.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
 @include('partials.unsaved-changes-guard', [
     'formSelector' => '#otherCompanyContactForm',
     'fallbackUrl' => route('other-companies.edit', $otherCompany->id) . '#contacts',

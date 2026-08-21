@@ -51,12 +51,15 @@
 | Layer | Technology |
 |---|---|
 | Backend | Laravel 12, PHP 8.2+ |
-| Frontend | Blade, jQuery, Bootstrap |
+| Frontend | Blade, jQuery, **Tailwind CSS 4 (Vite)** — branch `feature/tailwind-v2` |
+| Brand palette | Marine navy `#0e1d4a`, Caddie sky `#00aeef`, coral CTA `#ff5a5f` / orange `#e87722` (`resources/css/app.css` `@theme`) |
+| Shared vendor assets | `partials/common-assets-styles` + `partials/common-assets-scripts` (loaded once from `layouts/app`) |
 | Database | MySQL |
 | DataTables | **1.10.20** (legacy — strict rules apply) |
 | Alerts | SweetAlert v1 (`swal`) |
-| Multiselect filters | Bootstrap Multiselect |
+| Multiselect filters | **Select2 multiple** (`bindAjaxListFilters`) |
 | Dropdowns | Select2 |
+| Modals | Tailwind-compatible markup + jQuery `$.fn.modal` polyfill |
 | PDF | DomPDF, FPDF/FPDI |
 | Mail | SMTP (Office365) |
 

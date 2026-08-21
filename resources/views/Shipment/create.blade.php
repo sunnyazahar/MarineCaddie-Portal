@@ -1,20 +1,11 @@
 @extends('layouts.app')
 
 @section('styles')
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('files/bower_components/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('files/assets/pages/data-table/css/buttons.dataTables.min.css') }}">
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('files/bower_components/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css') }}">
-    <!-- Bootstrap Multiselect css -->
-    <link rel="stylesheet"
-        href="{{ asset('files/bower_components/bootstrap-multiselect/dist/css/bootstrap-multiselect.css') }}" />
+
     <!-- Select 2 css -->
-    <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
+
     <!-- Date-range picker css  -->
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}" />
+
     <style>
         /* High Density Table Styles */
         #offices-table {
@@ -719,303 +710,7 @@
             text-decoration: underline !important;
         }
 
-        /* Premium Datepicker Styling */
-        .ui-datepicker {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            padding: 0;
-            font-family: inherit;
-            font-size: 11px;
-            z-index: 9999 !important;
-            width: 250px;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .ui-datepicker-header {
-            background: #008080;
-            color: #fff;
-            padding: 10px;
-            border: none;
-            border-radius: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .ui-datepicker-title {
-            font-weight: 700;
-            text-align: center;
-            width: 100%;
-        }
-
-        .ui-datepicker-prev,
-        .ui-datepicker-next {
-            cursor: pointer;
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .ui-datepicker-prev:hover,
-        .ui-datepicker-next:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .ui-datepicker-title select {
-            background: transparent;
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-            padding: 2px 4px;
-            margin: 0 2px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            outline: none;
-        }
-
-        .ui-datepicker-title select option {
-            background: #fff;
-            color: #374151;
-            font-weight: normal;
-        }
-
-        .ui-datepicker-calendar {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 5px 0;
-        }
-
-        .ui-datepicker-calendar th {
-            color: #6b7280;
-            font-weight: 600;
-            padding: 8px 0;
-            text-align: center;
-        }
-
-        .ui-datepicker-calendar td {
-            padding: 2px;
-            text-align: center;
-        }
-
-        .ui-datepicker-calendar td a {
-            display: block;
-            padding: 6px;
-            text-decoration: none;
-            color: #374151;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .ui-datepicker-calendar td a:hover {
-            background: #f0fdfa;
-            color: #008080;
-        }
-
-        .ui-datepicker-calendar .ui-state-active {
-            background: #008080 !important;
-            color: #fff !important;
-            font-weight: 700;
-        }
-
-        .ui-datepicker-calendar .ui-datepicker-today a {
-            border: 1px solid #008080;
-            color: #008080;
-        }
-        .supplier-add-link {
-            display: block;
-            color: #FFFFFF;
-            font-weight: 600;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .stock-totals {
-            padding: 15px;
-            display: flex;
-            gap: 30px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #4b5563;
-            background: #fff;
-            border-top: 1px solid #f3f4f6;
-        }
-
-        .stock-repacked-section {
-            padding: 12px 15px 15px;
-            background: #fff;
-            border-top: 1px solid #f3f4f6;
-        }
-
-        .stock-repacked-heading {
-            font-size: 11px;
-            font-weight: 600;
-            color: #4b5563;
-            margin-bottom: 10px;
-        }
-
-        .stock-repacked-fields {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-        }
-
-        .stock-repacked-field {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .stock-repacked-field-label {
-            margin: 0;
-            font-size: 11px;
-            font-weight: 600;
-            color: #4b5563;
-            white-space: nowrap;
-        }
-
-        .stock-repacked-input {
-            width: 110px;
-            max-width: 100%;
-            height: 30px;
-            padding: 4px 8px;
-            font-size: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-        }
-
-        @media (max-width: 991.98px) {
-            #styleSelector {
-                display: none !important;
-            }
-
-            #service-details-airfreight,
-            #service-details-sea-freight,
-            #service-details-truck,
-            #service-details-courier,
-            #service-details-release,
-            #service-details-hand-carry,
-            #service-details-on-board {
-                overflow-x: hidden;
-                padding-left: 8px !important;
-                padding-right: 8px !important;
-            }
-
-            .airfreight-flight-row,
-            .sea-freight-leg-row,
-            .truck-leg-row,
-            .courier-leg-row,
-            .release-leg-row,
-            .on-board-leg-row,
-            .hand-carry-leg-row {
-                display: flex !important;
-                flex-wrap: wrap !important;
-                align-items: flex-start !important;
-                gap: 12px 10px !important;
-                padding: 8px 28px 14px 0 !important;
-                margin-bottom: 16px !important;
-                border-bottom: 1px solid #f1f5f9;
-                position: relative;
-            }
-
-            .airfreight-flight-row > .flight-field,
-            .airfreight-flight-row > .flight-field-time,
-            .sea-freight-leg-row > .sea-leg-field,
-            .sea-freight-leg-row > .sea-leg-field-time,
-            .truck-leg-row > .truck-leg-field,
-            .truck-leg-row > .truck-leg-field-time,
-            .courier-leg-row > .courier-leg-field,
-            .courier-leg-row > .courier-leg-field-time,
-            .release-leg-row > .release-leg-field,
-            .release-leg-row > .release-leg-field-time,
-            .on-board-leg-row > .on-board-leg-field,
-            .on-board-leg-row > .on-board-leg-field-time,
-            .hand-carry-leg-row > .hand-carry-leg-field,
-            .hand-carry-leg-row > .hand-carry-leg-field-time {
-                flex: 1 1 calc(50% - 5px) !important;
-                min-width: calc(50% - 5px) !important;
-                max-width: calc(50% - 5px) !important;
-                width: auto !important;
-            }
-
-            .hand-carry-leg-row > .hand-carry-leg-checkbox {
-                flex: 1 1 100% !important;
-                min-width: 0 !important;
-                max-width: 100% !important;
-            }
-
-            .airfreight-flight-row label,
-            .sea-freight-leg-row label,
-            .truck-leg-row label,
-            .courier-leg-row label,
-            .release-leg-row label,
-            .on-board-leg-row label,
-            .hand-carry-leg-row label {
-                white-space: normal !important;
-                overflow: visible !important;
-                line-height: 1.25 !important;
-                overflow-wrap: anywhere;
-            }
-
-            .airfreight-flight-row .flight-remove-btn,
-            .sea-freight-leg-row .sea-leg-remove-btn,
-            .truck-leg-row .truck-leg-remove-btn,
-            .courier-leg-row .courier-leg-remove-btn,
-            .release-leg-row .release-leg-remove-btn,
-            .on-board-leg-row .on-board-leg-remove-btn,
-            .hand-carry-leg-row .hand-carry-leg-remove-btn {
-                position: absolute !important;
-                top: 4px !important;
-                right: 0 !important;
-                margin: 0 !important;
-                flex: none !important;
-            }
-
-            .airfreight-flight-row .form-control-sm-custom,
-            .sea-freight-leg-row .form-control-sm-custom,
-            .truck-leg-row .form-control-sm-custom,
-            .courier-leg-row .form-control-sm-custom,
-            .release-leg-row .form-control-sm-custom,
-            .on-board-leg-row .form-control-sm-custom,
-            .hand-carry-leg-row .form-control-sm-custom,
-            .airfreight-flight-row .input-with-icon,
-            .sea-freight-leg-row .input-with-icon,
-            .truck-leg-row .input-with-icon,
-            .courier-leg-row .input-with-icon,
-            .release-leg-row .input-with-icon,
-            .on-board-leg-row .input-with-icon,
-            .hand-carry-leg-row .input-with-icon {
-                width: 100% !important;
-                max-width: 100% !important;
-            }
-        }
-
-        @media (max-width: 767.98px) {
-            .airfreight-flight-row > .flight-field,
-            .airfreight-flight-row > .flight-field-time,
-            .sea-freight-leg-row > .sea-leg-field,
-            .sea-freight-leg-row > .sea-leg-field-time,
-            .truck-leg-row > .truck-leg-field,
-            .truck-leg-row > .truck-leg-field-time,
-            .courier-leg-row > .courier-leg-field,
-            .courier-leg-row > .courier-leg-field-time,
-            .release-leg-row > .release-leg-field,
-            .release-leg-row > .release-leg-field-time,
-            .on-board-leg-row > .on-board-leg-field,
-            .on-board-leg-row > .on-board-leg-field-time,
-            .hand-carry-leg-row > .hand-carry-leg-field,
-            .hand-carry-leg-row > .hand-carry-leg-field-time,
-            .hand-carry-leg-row > .hand-carry-leg-checkbox {
-                flex: 1 1 100% !important;
-                min-width: 100% !important;
-                max-width: 100% !important;
-            }
-        }
-    </style>
+</style>
 @endsection
 
 @section('content')
@@ -1114,7 +809,6 @@
                                                             </select>
                                                         </div>
                                                     </div>
-
 
                                                         <div class="row">
                                                             <div class="col-md-6 pr-1">
@@ -1796,56 +1490,12 @@
 
                                         <!-- Base Style - Compact end -->
     @include('layouts.partials.pcoded-shell-end')
-    <!-- Required Jquery -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/popper.js/dist/umd/popper.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-    <!-- jquery slimscroll js -->
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/jquery-slimscroll/jquery.slimscroll.js') }}"></script>
-    <!-- modernizr js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/modernizr/modernizr.js') }}"></script>
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/modernizr/feature-detects/css-scrollbars.js') }}"></script>
 
-    <!-- data-table js -->
-    <script src="{{ asset('files/bower_components/datatables.net/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('files/bower_components/datatables.net-buttons/js/dataTables.buttons.min.js') }}"></script>
-    <script src="{{ asset('files/assets/pages/data-table/js/jszip.min.js') }}"></script>
-    <script src="{{ asset('files/assets/pages/data-table/js/pdfmake.min.js') }}"></script>
-    <script src="{{ asset('files/assets/pages/data-table/js/vfs_fonts.js') }}"></script>
-    <script src="{{ asset('files/bower_components/datatables.net-buttons/js/buttons.print.min.js') }}"></script>
-    <script src="{{ asset('files/bower_components/datatables.net-buttons/js/buttons.html5.min.js') }}"></script>
-    <script src="{{ asset('files/assets/pages/data-table/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('files/bower_components/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script
-        src="{{ asset('files/bower_components/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js') }}"></script>
-    <!-- Bootstrap Multiselect js -->
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/bootstrap-multiselect/dist/js/bootstrap-multiselect.js') }}"></script>
-    <!-- i18next.min.js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/i18next/i18next.min.js') }}"></script>
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/i18next-xhr-backend/i18nextXHRBackend.min.js') }}"></script>
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/i18next-browser-languagedetector/i18nextBrowserLanguageDetector.min.js') }}"></script>
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/jquery-i18next/jquery-i18next.min.js') }}"></script>
-    <!-- Custom js -->
-    {{--
-    <script src="{{ asset('files/assets/pages/data-table/js/data-table-custom.js') }}"></script> --}}
-    <script src="{{ asset('files/assets/js/pcoded.min.js') }}"></script>
-    <script src="{{ asset('files/assets/js/vartical-layout.min.js') }}"></script>
-    <script src="{{ asset('files/assets/js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
-    <!-- Select 2 js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
+    <!-- jquery slimscroll js -->
+
+    <!-- modernizr js -->
+
     <!-- date-range-picker js -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/moment/moment.js') }}"></script>
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
 
     <script>
         (function () {

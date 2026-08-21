@@ -806,3 +806,4 @@ Route::get('/Agents/company-agent/{id}', function ($id) {
         Route::get('/update-currency-rates', [App\Http\Controllers\CurrencyController::class, 'updateRates'])->name('currency.update');
     });
 });
+

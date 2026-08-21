@@ -1,37 +1,203 @@
 <script>
     window.initializeSearchableFilterMultiselect = function(selector, options) {
-        var settings = $.extend({
+        var legacyKeys = {
             enableCaseInsensitiveFiltering: true,
             includeResetOption: true,
-            resetText: 'Clear',
-            filterPlaceholder: 'Type here',
-            maxHeight: 420,
-            buttonWidth: '100%',
-            nonSelectedText: 'Click here',
-            numberDisplayed: 1,
-            nSelectedText: 'selected',
-            buttonText: function(selectedOptions) {
-                if (selectedOptions.length === 0) {
-                    return 'Click here';
-                }
+            resetText: true,
+            filterPlaceholder: true,
+            maxHeight: true,
+            buttonWidth: true,
+            nonSelectedText: true,
+            numberDisplayed: true,
+            nSelectedText: true,
+            buttonText: true,
+            buttonTitle: true,
+            onChange: true,
+            onSelectAll: true,
+            onDeselectAll: true,
+            includeSelectAllOption: true,
+            enableFiltering: true,
+            buttonClass: true,
+            templates: true,
+            allSelectedText: true
+        };
 
-                var firstSelection = $(selectedOptions[0]).text();
-                return selectedOptions.length === 1 ? firstSelection : firstSelection + ', ...';
-            },
-            buttonTitle: function(selectedOptions) {
-                var labels = [];
+        var incoming = options || {};
+        var onChange = incoming.onChange;
+        var onSelectAll = incoming.onSelectAll;
+        var onDeselectAll = incoming.onDeselectAll;
+        var placeholderText = incoming.nonSelectedText || 'Click here';
+        var numberDisplayed = typeof incoming.numberDisplayed === 'number' ? incoming.numberDisplayed : 1;
 
-                selectedOptions.each(function() {
-                    labels.push($(this).text());
-                });
+        function escapeHtml(text) {
+            return $('<div>').text(text == null ? '' : String(text)).html();
+        }
 
-                return labels.join(', ');
+        function summaryLabel($select) {
+            var $selected = $select.find('option:selected').filter(function () {
+                return $(this).val() !== '';
+            });
+
+            if (!$selected.length) {
+                return { text: placeholderText, placeholder: true };
             }
-        }, options || {});
+
+            var first = $.trim($selected.first().text());
+            if ($selected.length === 1 || numberDisplayed <= 1) {
+                return {
+                    text: $selected.length === 1 ? first : (first + ', ...'),
+                    placeholder: false
+                };
+            }
+
+            var labels = [];
+            $selected.slice(0, numberDisplayed).each(function () {
+                labels.push($.trim($(this).text()));
+            });
+            if ($selected.length > numberDisplayed) {
+                labels.push('...');
+            }
+            return { text: labels.join(', '), placeholder: false };
+        }
+
+        function refreshSummary($select) {
+            var $rendered = $select.next('.select2-container').find('.select2-selection__rendered');
+            if (!$rendered.length) {
+                return;
+            }
+
+            var summary = summaryLabel($select);
+            var $label = $rendered.find('.mc-filter-summary');
+            if (!$label.length) {
+                $label = $('<span class="mc-filter-summary"></span>');
+                $rendered.prepend($label);
+            }
+            $label.text(summary.text);
+            $label.toggleClass('is-placeholder', !!summary.placeholder);
+        }
+
+        var settings = $.extend({
+            placeholder: placeholderText,
+            allowClear: false,
+            width: incoming.buttonWidth || '100%',
+            closeOnSelect: false,
+            minimumResultsForSearch: 0,
+            dropdownCssClass: 'mc-filter-select2-dropdown',
+            escapeMarkup: function (markup) { return markup; },
+            templateResult: function (state) {
+                if (!state.id) {
+                    return state.text;
+                }
+                return (
+                    '<span class="mc-filter-option">' +
+                        '<span class="mc-filter-option__check" aria-hidden="true"></span>' +
+                        '<span class="mc-filter-option__label">' + escapeHtml(state.text) + '</span>' +
+                    '</span>'
+                );
+            },
+            templateSelection: function () {
+                return '';
+            }
+        }, incoming);
+
+        Object.keys(legacyKeys).forEach(function(key) {
+            delete settings[key];
+        });
 
         $(selector).each(function() {
-            $(this).multiselect(settings);
-            $(this).closest('.multiselect-native-select').addClass('searchable-filter-wrapper');
+            var $select = $(this);
+
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.off('.searchableFilter');
+                $select.select2('destroy');
+            }
+
+            if (!$select.parent().hasClass('searchable-filter-wrapper')) {
+                $select.wrap('<div class="searchable-filter-wrapper"></div>');
+            } else {
+                $select.parent().addClass('searchable-filter-wrapper');
+            }
+
+            $select.select2(settings);
+            refreshSummary($select);
+
+            $select.off('change.searchableFilter select2:open.searchableFilter select2:close.searchableFilter');
+
+            $select.on('select2:open.searchableFilter', function () {
+                window.setTimeout(function () {
+                    var $dropdown = $('.select2-container--open .select2-dropdown').last();
+                    if (!$dropdown.length) {
+                        return;
+                    }
+
+                    $dropdown.addClass('mc-filter-select2-dropdown');
+
+                    var $tools = $dropdown.find('.mc-filter-dropdown-tools');
+                    if (!$tools.length) {
+                        $tools = $(
+                            '<div class="mc-filter-dropdown-tools">' +
+                                '<input type="search" class="mc-filter-dropdown-search" placeholder="Type here" autocomplete="off" />' +
+                                '<button type="button" class="mc-filter-clear">Clear</button>' +
+                            '</div>'
+                        );
+                        $dropdown.prepend($tools);
+
+                        $tools.on('mousedown', function (e) {
+                            // Keep dropdown open while interacting with tools
+                            e.stopPropagation();
+                        });
+
+                        $tools.find('.mc-filter-dropdown-search').on('keyup input', function () {
+                            var term = $(this).val();
+                            var $inline = $select.next('.select2-container').find('.select2-search__field');
+                            if ($inline.length) {
+                                $inline.val(term).trigger('input');
+                            }
+                        });
+
+                        $tools.find('.mc-filter-clear').on('click mousedown', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            window.clearSearchableFilterMultiselect($select, true);
+                            refreshSummary($select);
+
+                            $tools.find('.mc-filter-dropdown-search').val('');
+                            var $inline = $select.next('.select2-container').find('.select2-search__field');
+                            if ($inline.length) {
+                                $inline.val('').trigger('input');
+                            }
+                        });
+                    }
+
+                    $tools.find('.mc-filter-dropdown-search').val('').trigger('focus');
+                }, 0);
+            });
+
+            $select.on('change.searchableFilter', function() {
+                refreshSummary($select);
+
+                if ($select.data('suppress-searchable-change')) {
+                    return;
+                }
+
+                if (typeof onChange === 'function') {
+                    onChange();
+                    return;
+                }
+
+                var values = $select.val() || [];
+                var optionCount = $select.find('option').not('[value=""]').length;
+
+                if (values.length === 0 && typeof onDeselectAll === 'function') {
+                    onDeselectAll();
+                    return;
+                }
+
+                if (values.length === optionCount && optionCount > 0 && typeof onSelectAll === 'function') {
+                    onSelectAll();
+                }
+            });
         });
     };
 
@@ -39,18 +205,20 @@
         $(selector).each(function() {
             var $select = $(this);
             $select.find('option').prop('selected', false);
-            $select.val([]);
-            $select.multiselect('clearSelection');
-            $select.closest('.multiselect-native-select').find('.multiselect-search').val('');
-            $select.closest('.multiselect-native-select').find('li.multiselect-filter-hidden')
-                .removeClass('multiselect-filter-hidden')
-                .show();
+            $select.val(null);
+
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.data('suppress-searchable-change', true);
+                $select.trigger('change');
+                $select.removeData('suppress-searchable-change');
+            }
 
             if (triggerChange !== false) {
                 $select.trigger('change');
             }
         });
     };
+
 
     window.bindAjaxListFilters = function(config) {
         var tableSelector = config.tableSelector;
@@ -192,16 +360,6 @@
             suppressFilterLoad = false;
             load(1);
             return false;
-        });
-
-        $(document).on('click', (config.resetClickScope || '') + ' .multiselect-reset a', function () {
-            if (!shouldLoad()) {
-                return;
-            }
-
-            setTimeout(function () {
-                load(1);
-            }, 0);
         });
 
         setTimeout(function () {

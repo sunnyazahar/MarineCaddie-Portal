@@ -2,18 +2,9 @@
 
 @section('styles')
     <!-- Data Table Css -->
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('files/bower_components/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('files/assets/pages/data-table/css/buttons.dataTables.min.css') }}">
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('files/bower_components/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css') }}">
-    <!-- Bootstrap Multiselect css -->
-    <link rel="stylesheet"
-        href="{{ asset('files/bower_components/bootstrap-multiselect/dist/css/bootstrap-multiselect.css') }}" />
+
     <!-- Select 2 css -->
-    <link rel="stylesheet" href="{{ asset('files/bower_components/select2/dist/css/select2.min.css') }}" />
-    <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/css/sweetalert.css') }}" />
+
     <style>
         .select2-container--default .select2-results__option--highlighted[aria-selected] {
             background-color: #349dda;
@@ -1069,105 +1060,6 @@
             background-color: #fff !important;
         }
 
-        /* Premium Datepicker Styling */
-        .ui-datepicker {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 0;
-            font-family: inherit;
-            font-size: 11px;
-            z-index: 9999 !important;
-            width: 250px;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-top: 5px;
-        }
-
-        .ui-datepicker-header {
-            background: #008080;
-            color: #fff;
-            padding: 10px;
-            border: none;
-            border-radius: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .ui-datepicker-title {
-            font-weight: 700;
-            text-align: center;
-            width: 100%;
-        }
-
-        .ui-datepicker-prev,
-        .ui-datepicker-next {
-            cursor: pointer;
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-align: center;
-            position: absolute !important;
-            top: 8px !important;
-        }
-
-        .ui-datepicker-prev {
-            left: 10px;
-        }
-
-        .ui-datepicker-next {
-            right: 10px;
-        }
-
-        .ui-datepicker-prev:hover,
-        .ui-datepicker-next:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .ui-datepicker-calendar {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 5px 0;
-        }
-
-        .ui-datepicker-calendar th {
-            color: #64748b;
-            font-weight: 600;
-            padding: 8px 0;
-            text-align: center;
-        }
-
-        .ui-datepicker-calendar td {
-            padding: 2px;
-            text-align: center;
-        }
-
-        .ui-datepicker-calendar td a {
-            display: block;
-            padding: 6px;
-            text-decoration: none;
-            color: #334155;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .ui-datepicker-calendar td a:hover {
-            background: #f0fdfa;
-            color: #008080;
-        }
-
-        .ui-datepicker-calendar .ui-state-active {
-            background: #008080 !important;
-            color: #fff !important;
-            font-weight: 700;
-        }
-
-        .ui-datepicker-calendar .ui-datepicker-today a {
-            border: 1px solid #008080;
-            color: #008080;
-        }
 
         /* CRR Form Specific Styles from Create-CRR */
         .crr-table-header {
@@ -1359,6 +1251,489 @@
         .select2-container--default .select2-results__option--highlighted .select2-result-hub__title,
         .select2-container--default .select2-results__option--highlighted .select2-result-hub__location {
             color: #fff !important;
+        }
+
+        /* ========== MarineCaddie v2 visual polish (keep structure/IDs/classes intact) ========== */
+        /* Shell page-body uses p-4/md:p-6/lg:p-7 — cancel so stock edit is full-bleed */
+        .page-body:has(.stock-edit-wrapper) {
+            padding: 0 !important;
+        }
+
+        .stock-edit-wrapper {
+            background:
+                radial-gradient(ellipse 70% 40% at 100% 0%, rgba(0, 174, 239, 0.07), transparent 50%),
+                radial-gradient(ellipse 50% 30% at 0% 0%, rgba(14, 29, 74, 0.04), transparent 45%),
+                #f5f7fb !important;
+            margin: 0 !important;
+            width: 100%;
+        }
+
+        .summary-header {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%) !important;
+            border-bottom: 1px solid #d6e3ee !important;
+            box-shadow: 0 8px 24px rgba(14, 29, 74, 0.05);
+            /* Align under app header (h-16); keep fixed height so tabs/form offsets stay stable */
+            top: 4rem !important;
+            height: 72px !important;
+            min-height: 72px;
+            gap: 12px;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+
+        .summary-header::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff5a5f 0%, #e87722 35%, #00aeef 100%);
+            pointer-events: none;
+        }
+
+        .summary-label {
+            color: #64748b !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .summary-value,
+        .summary-value-bold {
+            color: #0e1d4a !important;
+        }
+
+        .summary-value-bold {
+            font-weight: 700 !important;
+            letter-spacing: -0.01em;
+        }
+
+        .summary-flag,
+        .summary-flag-landed {
+            border-radius: 999px !important;
+            font-weight: 600 !important;
+        }
+
+        .btn-header-outline {
+            border: 1px solid #0088c7 !important;
+            color: #0088c7 !important;
+            background: #fff !important;
+            border-radius: 8px !important;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04);
+        }
+
+        .btn-header-outline:hover:not(:disabled) {
+            background: #e8f6fc !important;
+            color: #0e1d4a !important;
+            border-color: #00aeef !important;
+        }
+
+        .btn-header-outline:disabled {
+            opacity: 0.55;
+            cursor: default;
+        }
+
+        .btn-more-circle {
+            background: #0088c7 !important;
+        }
+
+        .stock-tabs-container {
+            background: #ffffff !important;
+            border-bottom: 1px solid #d6e3ee !important;
+            box-shadow: 0 4px 14px rgba(14, 29, 74, 0.03);
+            /* navbar 4rem + summary 72px */
+            top: calc(4rem + 72px) !important;
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+
+        .stock-tab {
+            font-weight: 600 !important;
+            color: #64748b !important;
+            transition: color 0.15s ease;
+        }
+
+        .stock-tab:hover {
+            color: #0e1d4a !important;
+        }
+
+        .stock-tab.active {
+            color: #0088c7 !important;
+        }
+
+        .stock-tab.active::after {
+            background: #00aeef !important;
+            height: 3px !important;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .stock-form-scroll {
+            background: transparent !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            padding-bottom: 16px !important;
+            /*
+              Main already has pt-16; only clear fixed summary (72) + tabs (~46) + small gap.
+              Previous 160px stacked on pt-16 and left a large empty band under the tabs.
+            */
+            padding-top: 126px !important;
+            margin-top: 0;
+        }
+
+        .edit-form-row {
+            background: #fff;
+            border: 1px solid rgba(214, 227, 238, 0.9);
+            border-radius: 12px;
+            padding: 14px 12px !important;
+            box-shadow: 0 10px 28px rgba(14, 29, 74, 0.05);
+            gap: 16px !important;
+            width: 100% !important;
+            max-width: none !important;
+            box-sizing: border-box;
+        }
+
+        .edit-form-col {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            overflow: visible !important;
+        }
+
+        /* Keep Select2 full-width inside Bootstrap-shim columns (e.g. currency row) */
+        .stock-main-content .select2.select2-container {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* Prevent residual overflow; keep Y scroll on form area only */
+        .stock-edit-wrapper {
+            max-width: 100%;
+        }
+
+        .stock-main-content {
+            overflow-x: visible !important;
+            overflow-y: hidden !important;
+            max-width: 100%;
+        }
+
+        .stock-form-scroll {
+            overflow-x: visible !important;
+            overflow-y: auto !important;
+            max-width: 100%;
+        }
+
+        .stock-main-content .row > [class*='col-'] {
+            min-width: 0;
+            overflow: visible !important;
+        }
+
+        #country-of-origin-host {
+            position: relative !important;
+            overflow: visible !important;
+            z-index: 5;
+        }
+
+        #country-of-origin-host .select2-container--open,
+        #country-of-origin-host .select2-dropdown {
+            z-index: 10060 !important;
+        }
+
+        /* Flag + country name on one row (Tailwind preflight makes img block) */
+        .mc-country-option {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+
+        .mc-country-option .country-select-flag,
+        .country-select-flag {
+            display: inline-block !important;
+            width: 20px !important;
+            height: 15px !important;
+            margin: 0 !important;
+            flex-shrink: 0;
+            vertical-align: middle;
+            border: 1px solid #eee;
+        }
+
+        .mc-country-option__label {
+            display: inline !important;
+        }
+
+        /* Country Select2 — match stock field height */
+        .stock-main-content [data-country-select] + .select2-container .select2-selection--single {
+            min-height: 32px !important;
+            height: 32px !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .stock-main-content [data-country-select] + .select2-container .select2-selection__rendered {
+            line-height: 30px !important;
+            padding-left: 10px !important;
+            font-size: 12px !important;
+        }
+
+        .stock-main-content [data-country-select] + .select2-container .select2-selection__arrow {
+            height: 30px !important;
+        }
+
+        .form-group-title {
+            color: #0088c7 !important;
+            font-weight: 700 !important;
+            font-size: 12px !important;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 14px !important;
+        }
+
+        .form-group-title i {
+            color: #00aeef !important;
+        }
+
+        .field-label {
+            color: #475569 !important;
+            font-weight: 600 !important;
+            font-size: 12px !important;
+        }
+
+        .field-input,
+        .stock-main-content .select2-container--default .select2-selection--single,
+        .stock-main-content .select2-container--default .select2-selection--multiple {
+            border: 1px solid #d6e3ee !important;
+            border-radius: 8px !important;
+            background: #fff !important;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .field-input:focus,
+        .stock-main-content .select2-container--default.select2-container--focus .select2-selection--single,
+        .stock-main-content .select2-container--default.select2-container--open .select2-selection--single,
+        .stock-main-content .select2-container--default.select2-container--focus .select2-selection--multiple,
+        .stock-main-content .select2-container--default.select2-container--open .select2-selection--multiple {
+            border-color: #00aeef !important;
+            box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.15) !important;
+            outline: none !important;
+        }
+
+        .field-input-static {
+            color: #0088c7 !important;
+            font-weight: 600 !important;
+        }
+
+        .icon-input-wrapper i {
+            color: #0088c7 !important;
+        }
+
+        .edit-table-container {
+            background: #fff;
+            border: 1px solid rgba(214, 227, 238, 0.9);
+            border-radius: 12px;
+            padding: 14px 12px 8px;
+            box-shadow: 0 10px 28px rgba(14, 29, 74, 0.05);
+            margin-top: 14px !important;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .edit-table-title {
+            color: #0e1d4a !important;
+            font-weight: 700 !important;
+        }
+
+        .edit-table th {
+            background: #e8f6fc !important;
+            color: #0e1d4a !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 10px !important;
+        }
+
+        .edit-footer {
+            background: #ffffff !important;
+            border-top: 1px solid #d6e3ee !important;
+            box-shadow: 0 -4px 16px rgba(14, 29, 74, 0.06) !important;
+            backdrop-filter: none;
+            gap: 14px !important;
+            padding: 12px 24px !important;
+        }
+
+        .btn-save-custom {
+            background-image: none !important;
+            background: #ff5a5f !important;
+            background-color: #ff5a5f !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 10px 28px !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 12px rgba(255, 90, 95, 0.28);
+            transition: background-color 0.15s ease, filter 0.15s ease;
+        }
+
+        .btn-save-custom:hover {
+            background: #e84d52 !important;
+            background-image: none !important;
+            filter: none;
+            transform: none;
+            color: #fff !important;
+        }
+
+        .btn-cancel-custom {
+            color: #0088c7 !important;
+            font-weight: 600 !important;
+        }
+
+        .btn-cancel-custom:hover {
+            color: #00aeef !important;
+            text-decoration: underline;
+        }
+
+        .stock-right-panel {
+            background: transparent !important;
+            border-left: none !important;
+            gap: 12px !important;
+            width: 340px !important;
+            flex: 0 0 340px !important;
+            padding: 0 8px 16px 4px !important;
+            /* Match form clearance under fixed summary + tabs */
+            margin-top: 126px !important;
+        }
+
+        .panel-card {
+            border-radius: 12px !important;
+            border: none !important;
+            box-shadow: 0 8px 22px rgba(14, 29, 74, 0.05) !important;
+            overflow: hidden;
+            background: #fff !important;
+            padding: 14px 12px !important;
+        }
+
+        /* Activity card keeps flush tabs (inline padding: 0) */
+        .stock-right-panel .panel-card[style*="padding: 0"],
+        .stock-right-panel .panel-card[style*="padding:0"] {
+            padding: 0 !important;
+        }
+
+        .panel-card::before {
+            display: none !important;
+            content: none !important;
+        }
+
+        .panel-title {
+            color: #0e1d4a !important;
+            font-weight: 700 !important;
+            margin-bottom: 8px !important;
+        }
+
+        .dropzone-placeholder {
+            border: 1.5px dashed #94c9e3 !important;
+            border-radius: 10px !important;
+            background: #f5fbfe !important;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .dropzone-placeholder:hover {
+            border-color: #00aeef !important;
+            background: #e8f6fc !important;
+        }
+
+        .dropzone-text {
+            color: #0088c7 !important;
+            font-weight: 600 !important;
+        }
+
+        .dropzone-placeholder .dropzone-icon {
+            color: #00aeef !important;
+        }
+
+        .doc-item {
+            border-bottom: none !important;
+            padding: 8px 0 !important;
+        }
+
+        .doc-name {
+            color: #0088c7 !important;
+            font-weight: 600 !important;
+        }
+
+        /* Activity panel tabs — no hard borders */
+        .stock-right-panel .panel-card > div[style*="border-bottom"] {
+            border-bottom: none !important;
+            background: #f8fafc;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .stock-right-panel .panel-tab.active {
+            color: #0088c7 !important;
+            border-bottom-color: #00aeef !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #0088c7 !important;
+        }
+
+        #crr-form-errors {
+            border-radius: 10px !important;
+            box-shadow: 0 6px 16px rgba(185, 28, 28, 0.08);
+        }
+
+        @media (max-width: 991.98px) {
+            .summary-header {
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
+                height: auto !important;
+                min-height: 0 !important;
+                flex-wrap: wrap !important;
+                overflow: visible !important;
+                padding: 14px 14px 12px !important;
+                border-radius: 0 0 14px 14px;
+            }
+
+            .stock-tabs-container {
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
+                padding: 0 12px !important;
+            }
+
+            .stock-form-scroll {
+                padding: 12px !important;
+                padding-top: 12px !important;
+                margin-top: 0 !important;
+            }
+
+            .edit-form-row {
+                flex-direction: column;
+                padding: 12px !important;
+                gap: 8px !important;
+            }
+
+            .edit-footer {
+                left: 0 !important;
+                padding: 12px 14px !important;
+            }
+
+            .stock-right-panel {
+                width: 100% !important;
+                flex: 1 1 auto !important;
+                margin-top: 0 !important;
+                border-left: none !important;
+                padding: 8px 12px 16px !important;
+            }
+
+            .table-responsive {
+                margin-top: 12px !important;
+            }
         }
     </style>
 @endsection
@@ -1781,10 +2156,9 @@
                                                 <!-- Column 3 -->
                                                 <div class="edit-form-col">
                                                     <div class="form-group-title">
-                                                        <i class="fa fa-map-marker"></i> Hub & Transit
+                                                        <i class="fa fa-map-marker"></i> Hub / Agent
                                                     </div>
                                                     <div class="field-group">
-                                                        <label class="field-label">Hub / agent</label>
                                                         <select class="field-input select2-hub" name="hub_agent">
                                                             <option></option>
                                                             <optgroup label="Hubs">
@@ -1890,7 +2264,7 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-sm-6">
-                                                            <div class="field-group">
+                                                            <div class="field-group" id="country-of-origin-host">
                                                                 <label class="field-label">Country of origin</label>
                                                                 <x-forms.country-select
                                                                     name="country_of_origin"
@@ -1901,7 +2275,6 @@
                                                                     class="field-input"
                                                                     placeholder="Select country"
                                                                     :allowClear="true"
-                                                                    dropdownParent=".stock-main-content"
                                                                 />
                                                             </div>
                                                         </div>
@@ -1966,8 +2339,6 @@
                                                         </div>
 
                                                     </div>
-
-
 
                                                     <div class="field-group">
                                                         <label class="field-label">Internal comments</label>
@@ -2897,21 +3268,6 @@
         </div>
     </div>
 
-    <!-- Required Jquery -->
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery/dist/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/popper.js/dist/umd/popper.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-    <script type="text/javascript"
-        src="{{ asset('files/bower_components/jquery-slimscroll/jquery.slimscroll.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/modernizr/modernizr.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/pcoded.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/vartical-layout.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/script.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
-
     <script>
         $(document).ready(function () {
             // Refresh exchange rates in the background when Stock edit opens.
@@ -2974,13 +3330,15 @@
             $('.select2, .select2-irregularities').select2({
                 placeholder: "Select an option",
                 allowClear: false,
-                width: '100%'
+                width: '100%',
+                dropdownParent: $(document.body)
             });
 
             $('.select2-incoterm').select2({
                 placeholder: 'Select incoterm',
                 allowClear: true,
-                width: '100%'
+                width: '100%',
+                dropdownParent: $(document.body)
             });
 
             // Special handling for Delivery Irregularities to keep fixed height
@@ -3005,6 +3363,7 @@
                 placeholder: "Select hub",
                 allowClear: false,
                 width: '100%',
+                dropdownParent: $(document.body),
                 templateResult: formatHub,
                 templateSelection: function (hub) {
                     return hub.text;
@@ -3030,6 +3389,7 @@
                 placeholder: "Select or type vessel",
                 tags: true,
                 width: '100%',
+                dropdownParent: $(document.body),
                 templateResult: formatVessel,
                 templateSelection: function (state) {
                     return state.text;
@@ -3058,8 +3418,69 @@
                 placeholder: "Type PO and press Enter",
                 tags: true,
                 tokenSeparators: [',', ' '],
-                width: '100%'
+                width: '100%',
+                dropdownParent: $(document.body)
             });
+
+            // Country of origin — host parent only (verified: body/body-pin misalign on this page)
+            (function initStockCountrySelect() {
+                var $country = $('#country_of_origin');
+                var $host = $('#country-of-origin-host');
+                if (!$country.length || !$host.length) {
+                    return;
+                }
+
+                function resolveFlag($option) {
+                    if (!$option || !$option.length) return null;
+                    var flagUrl = $option.attr('data-flag-url') || $option.data('flagUrl');
+                    if (flagUrl && String(flagUrl).indexOf('http') === 0) return flagUrl;
+                    var iso = $option.attr('data-iso') || $option.data('iso');
+                    if (iso && String(iso).length <= 3) {
+                        return 'https://flagcdn.com/w20/' + String(iso).toLowerCase() + '.png';
+                    }
+                    return null;
+                }
+
+                function formatCountry(state) {
+                    if (!state.id) return state.text;
+                    var flagUrl = resolveFlag($(state.element));
+                    if (!flagUrl) return state.text;
+                    var $row = $('<span class="mc-country-option"></span>');
+                    $row.append($('<img>', {
+                        src: flagUrl,
+                        class: 'country-select-flag',
+                        alt: '',
+                        css: {
+                            display: 'inline-block',
+                            width: '20px',
+                            height: '15px',
+                            marginRight: '8px',
+                            verticalAlign: 'middle',
+                            border: '1px solid #eee',
+                            flexShrink: '0'
+                        }
+                    }));
+                    $row.append($('<span class="mc-country-option__label"></span>').text(state.text));
+                    return $row;
+                }
+
+                if ($country.hasClass('select2-hidden-accessible')) {
+                    try { $country.select2('destroy'); } catch (e) {}
+                }
+
+                $host.css({ position: 'relative', overflow: 'visible' });
+
+                $country.select2({
+                    placeholder: 'Select country',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $host,
+                    templateResult: formatCountry,
+                    templateSelection: formatCountry
+                });
+
+                $country.next('.select2.select2-container').css('width', '100%');
+            })();
 
             // Supplier Select2 is initialized in the quick-add script below.
 
@@ -4258,6 +4679,7 @@ function updatePackageSummary() {
             tags: true,
             allowClear: false,
             width: '100%',
+            dropdownParent: $(document.body),
             createTag: function (params) {
                 var term = $.trim(params.term || '');
                 if (term === '') {

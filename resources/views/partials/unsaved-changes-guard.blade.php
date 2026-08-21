@@ -14,12 +14,8 @@
     $includeSweetAlert = $includeSweetAlert ?? true;
 @endphp
 
-@if($includeSweetAlert)
-    @once
-        <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/css/sweetalert.css') }}" />
-        <script type="text/javascript" src="{{ asset('files/assets/js/sweetalert.js') }}"></script>
-    @endonce
-@endif
+{{-- SweetAlert loaded via layouts/app common assets --}}
+
 
 @if($formSelector)
 <script>
