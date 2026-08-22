@@ -82,4 +82,28 @@
             max-height: none;
         }
     }
+    @media (max-width: 575.98px) {
+        .pagination-sticky-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            min-height: 0;
+            padding: 10px 12px max(10px, env(safe-area-inset-bottom)) !important;
+        }
+        .list-pagination-meta {
+            white-space: normal;
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+        .list-pagination-links {
+            margin-left: 0;
+            justify-content: center;
+            width: 100%;
+        }
+        .list-pagination-links .pagination {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
 </style>

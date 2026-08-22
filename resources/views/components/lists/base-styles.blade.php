@@ -5,6 +5,8 @@
 ])
 
 @once('lists.base-styles')
+    @include('partials.list-mobile-filters-default-hidden')
+
     @push('styles')
         <style>
             .list-filters-toolbar {

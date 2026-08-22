@@ -39,8 +39,10 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: 48px 32px 88px;
+        justify-content: flex-start;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 48px 32px 24px;
         background:
             radial-gradient(circle at 10% 0%, rgba(0, 128, 128, 0.06), transparent 42%),
             radial-gradient(circle at 90% 100%, rgba(0, 174, 239, 0.05), transparent 40%),
@@ -50,6 +52,10 @@
     .login-panel-inner {
         width: 100%;
         max-width: 420px;
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .login-brand {
@@ -243,14 +249,16 @@
     }
 
     .login-footer {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 24px;
-        padding: 0 24px;
+        position: static;
+        flex-shrink: 0;
+        width: 100%;
+        max-width: 420px;
+        margin-top: auto;
+        padding: 24px 16px 8px;
         text-align: center;
         font-size: 12px;
         font-weight: 500;
+        line-height: 1.55;
         color: #94a3b8;
     }
 
@@ -376,8 +384,22 @@
     }
 
     @media (max-width: 991.98px) {
+        html,
+        body.guest-layout {
+            height: auto;
+            min-height: 100%;
+            min-height: 100dvh;
+        }
+
+        body.guest-layout #app,
+        body.guest-layout main {
+            height: auto;
+            min-height: 100dvh;
+        }
+
         .login-page {
             grid-template-columns: 1fr;
+            min-height: 100dvh;
         }
 
         .login-hero {
@@ -385,8 +407,13 @@
         }
 
         .login-panel {
-            min-height: 100vh;
-            padding: 32px 20px 80px;
+            min-height: 100dvh;
+            padding: max(24px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+        }
+
+        .login-panel-inner {
+            justify-content: flex-start;
+            padding-top: 4px;
         }
 
         .login-card {
@@ -395,6 +422,11 @@
 
         .login-card-title {
             font-size: 22px;
+        }
+
+        .login-footer {
+            margin-top: 28px;
+            padding: 0 4px max(12px, env(safe-area-inset-bottom));
         }
     }
 

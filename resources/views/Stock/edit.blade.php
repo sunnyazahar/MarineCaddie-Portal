@@ -405,7 +405,26 @@
                 flex: 1 1 auto !important;
                 overflow: visible !important;
                 height: auto !important;
-                padding-bottom: 0px;
+                padding-bottom: 0;
+            }
+
+            .page-body:has(.stock-edit-wrapper) {
+                padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+            }
+
+            .edit-footer {
+                position: fixed !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+                margin: 0 !important;
+                padding: 12px 16px max(12px, env(safe-area-inset-bottom)) !important;
+                flex-wrap: wrap;
+                gap: 10px;
+                z-index: 1040 !important;
+                box-sizing: border-box !important;
             }
 
             .summary-header {
@@ -482,17 +501,6 @@
                 border-left: none;
                 border-top: 1px solid #e2e8f0;
                 overflow: visible !important;
-            }
-
-            .edit-footer {
-                position: relative !important;
-                left: auto !important;
-                right: auto !important;
-                bottom: auto !important;
-                width: 100% !important;
-                padding: 12px 16px !important;
-                flex-wrap: wrap;
-                gap: 10px;
             }
 
             .edit-table-container {
@@ -2474,6 +2482,75 @@
         }
 
             @media (max-width: 991.98px) {
+            html,
+            body.stock-edit-page {
+                overflow-x: hidden;
+                overflow-y: auto;
+                height: auto;
+            }
+
+            body.stock-edit-page .pcoded-content,
+            body.stock-edit-page .pcoded-inner-content,
+            body.stock-edit-page .page-wrapper,
+            body.stock-edit-page .page-body {
+                overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
+                min-height: 0 !important;
+            }
+
+            body.stock-edit-page .page-body:has(.stock-edit-wrapper) {
+                padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+            }
+
+            .stock-edit-wrapper {
+                display: flex !important;
+                flex-direction: column !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
+            .stock-main-content {
+                order: 1 !important;
+                flex: none !important;
+                width: 100% !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
+            .stock-main-content > form {
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            .stock-tab-content,
+            .stock-tab-content.active {
+                display: block !important;
+                flex: none !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+                overflow-y: visible !important;
+            }
+
+            #line-items.stock-tab-content,
+            #irregularities.stock-tab-content {
+                padding: 12px !important;
+            }
+
+            .stock-form-scroll {
+                flex: none !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
             .summary-header {
                 position: relative !important;
                 top: auto !important;
@@ -2483,16 +2560,109 @@
                 min-height: 0 !important;
                 flex-wrap: wrap !important;
                 overflow: visible !important;
-                padding: 12px !important;
-                border-radius: 12px 12px 0 0 !important;
-                margin: 8px 8px 0 !important;
+                padding: 8px 10px !important;
+                gap: 8px !important;
+                border-radius: 10px 10px 0 0 !important;
+                margin: 4px 4px 0 !important;
                 border-bottom: none !important;
                 z-index: 1 !important;
             }
 
+            .summary-header::before {
+                display: none !important;
+            }
+
+            .summary-header-main {
+                align-items: center !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+
+            .summary-header-icon {
+                width: 32px !important;
+                height: 32px !important;
+                border-radius: 8px !important;
+                font-size: 15px !important;
+                box-shadow: 0 2px 8px rgba(0, 128, 128, 0.24) !important;
+            }
+
+            .summary-header .header-meta-group {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 6px !important;
+                width: auto !important;
+                flex: 1 1 auto !important;
+                align-items: stretch !important;
+            }
+
+            .summary-header .meta-item {
+                padding: 5px 7px !important;
+                border-radius: 8px !important;
+                gap: 1px !important;
+                min-width: 0 !important;
+            }
+
+            .summary-header .meta-label {
+                font-size: 8px !important;
+                letter-spacing: 0.04em !important;
+                line-height: 1.2 !important;
+            }
+
+            .summary-header .meta-value {
+                font-size: 11px !important;
+                line-height: 1.25 !important;
+            }
+
+            .summary-header .meta-value-primary {
+                font-size: 12px !important;
+                line-height: 1.2 !important;
+            }
+
+            .summary-header .meta-value-with-icon {
+                gap: 4px !important;
+            }
+
+            .summary-header .meta-value-with-icon .meta-cal-icon {
+                font-size: 10px !important;
+            }
+
+            .summary-header .summary-flag,
+            .summary-header .summary-flag-landed {
+                padding: 2px 7px !important;
+                font-size: 10px !important;
+            }
+
+            .summary-header .header-inline-edit .ti-pencil-alt {
+                font-size: 12px !important;
+            }
+
+            .summary-header .flags-pills {
+                gap: 4px !important;
+            }
+
+            .summary-header .header-actions,
+            .summary-header .summary-actions {
+                width: 100% !important;
+                margin-left: 0 !important;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 6px !important;
+            }
+
+            .summary-header .btn-header-outline,
+            .summary-header .btn-outline-custom,
+            .summary-header .btn-premium {
+                width: 100% !important;
+                padding: 6px 8px !important;
+                font-size: 10px !important;
+                line-height: 1.2 !important;
+                justify-content: center !important;
+                text-align: center !important;
+            }
+
             .stock-tabs-container {
                 position: sticky !important;
-                top: 0 !important;
+                top: 4rem !important;
                 left: auto !important;
                 right: auto !important;
                 padding: 0 12px !important;
@@ -2513,18 +2683,22 @@
             }
 
             .edit-footer {
-                position: relative !important;
-                left: auto !important;
-                right: auto !important;
-                bottom: auto !important;
+                position: fixed !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
                 width: 100% !important;
-                padding: 12px 14px !important;
-                z-index: 5 !important;
+                max-width: 100vw !important;
+                margin: 0 !important;
+                padding: 12px 16px max(12px, env(safe-area-inset-bottom)) !important;
+                z-index: 1040 !important;
+                box-sizing: border-box !important;
             }
 
             .stock-right-panel {
+                order: 2 !important;
                 width: 100% !important;
-                flex: 1 1 auto !important;
+                flex: none !important;
                 height: auto !important;
                 max-height: none !important;
                 overflow: visible !important;
@@ -2533,25 +2707,55 @@
                 padding: 8px 12px 16px !important;
             }
 
+            .stock-right-panel > .panel-card,
             .stock-right-panel > #crr-documents-panel,
             .stock-right-panel > #crr-activity-panel {
                 flex: none !important;
+                height: auto !important;
+                min-height: 0 !important;
                 max-height: none !important;
+                overflow: visible !important;
+            }
+
+            .stock-right-panel > #crr-documents-panel {
+                min-height: 0 !important;
             }
 
             #crr-doc-list,
             #crr-activity-panel .panel-tab-content {
-                max-height: 320px !important;
+                max-height: min(42vh, 320px) !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
             }
 
             .table-responsive {
                 margin-top: 12px !important;
             }
         }
+
+        @media (max-width: 575.98px) {
+            .summary-header {
+                padding: 6px 8px !important;
+            }
+
+            .summary-header .header-meta-group {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 5px !important;
+            }
+
+            .summary-header .meta-item {
+                padding: 4px 6px !important;
+            }
+
+            .summary-header .meta-value-primary {
+                font-size: 11px !important;
+            }
+        }
     </style>
 @endsection
 
 @section('content')
+    <script>document.body.classList.add('stock-edit-page');</script>
     <!-- Pre-loader start -->
     <div class="theme-loader">
         <!-- ... existing loader ... -->
@@ -4101,8 +4305,33 @@
                 dataType: 'json'
             });
 
-            // Footer is in-flow (shipment style) — no fixed left-offset needed
-            $('.edit-footer').css({ left: '', right: '', width: '', position: '' });
+            // Mobile: pin save bar to viewport bottom (documents panel follows form in DOM)
+            $('body').addClass('stock-edit-page');
+
+            var $stockEditFooter = $('.stock-edit-wrapper .edit-footer');
+            var $stockEditForm = $('#crrEditForm');
+
+            function syncStockEditFooterPlacement() {
+                if (!$stockEditFooter.length || !$stockEditForm.length) {
+                    return;
+                }
+
+                var isMobile = window.matchMedia && window.matchMedia('(max-width: 991.98px)').matches;
+
+                if (isMobile) {
+                    if (!$stockEditFooter.parent().is('body')) {
+                        $stockEditFooter.appendTo('body');
+                    }
+                    return;
+                }
+
+                if (!$stockEditFooter.parent().is($stockEditForm)) {
+                    $stockEditForm.append($stockEditFooter);
+                }
+            }
+
+            syncStockEditFooterPlacement();
+            $(window).on('resize.stockEditFooter', syncStockEditFooterPlacement);
 
             // Pass current Physical Location into print PDFs (even before save).
             $(document).on('click', '.js-print-with-location', function (e) {
@@ -4608,14 +4837,32 @@ function updatePackageSummary() {
             // Initial calculation on load
             calculateEditCustomsUSD();
 
-            // Main Tab Switching — keep active panel as flex so header/tabs stay pinned
+            // Main Tab Switching — desktop: inner scroll; mobile: page scroll
+            function isStockEditMobileLayout() {
+                return !!(window.matchMedia && window.matchMedia('(max-width: 991.98px)').matches);
+            }
+
             function activateStockTab(tabId) {
                 $('.stock-tab').removeClass('active');
                 $('.stock-tab[data-tab="' + tabId + '"]').addClass('active');
                 $('.stock-tab-content').removeClass('active').hide().css('display', 'none');
 
                 var $panel = $('#' + tabId);
+                var isMobile = isStockEditMobileLayout();
                 var hasInnerScroll = $panel.find('.stock-form-scroll').length > 0;
+
+                if (isMobile) {
+                    $panel.addClass('active').css({
+                        display: 'block',
+                        flex: 'none',
+                        minHeight: '',
+                        maxHeight: 'none',
+                        overflow: 'visible',
+                        overflowY: 'visible'
+                    }).show();
+                    return;
+                }
+
                 $panel
                     .addClass('active')
                     .css({
@@ -4624,13 +4871,18 @@ function updatePackageSummary() {
                         flex: '1 1 auto',
                         minHeight: 0,
                         overflow: hasInnerScroll ? 'hidden' : 'auto'
-                    });
+                    })
+                    .show();
             }
 
             $('.stock-tab').on('click', function () {
                 activateStockTab($(this).data('tab'));
             });
             activateStockTab($('.stock-tab.active').data('tab') || 'stock-details');
+            $(window).on('resize.stockEditTabs', function () {
+                var activeTab = $('.stock-tab.active').data('tab') || 'stock-details';
+                activateStockTab(activeTab);
+            });
 
             // Right Panel Tab Switching
             $('.panel-tab').on('click', function () {

@@ -489,9 +489,8 @@
                 padding: 4px 0 8px;
             }
 
-            /* Always show filter fields on mobile; toggle only collapses */
+            /* Hidden by default on mobile — Show filters toggles body.pickup-filters-open */
             .pickup-filters-fields {
-                display: flex !important;
                 flex-direction: column;
                 width: 100%;
                 max-height: 38vh;
@@ -503,14 +502,13 @@
                 border-bottom: 1px solid #eef2f7;
             }
 
-            body.pickup-filters-collapsed .pickup-filters-fields,
-            .pickup-filters-fields.is-collapsed {
-                display: none !important;
+            body.pickup-filters-open .pickup-filters-fields {
+                display: flex !important;
             }
 
-            #btn-pickup-filters-toggle.is-collapsed {
-                background: transparent !important;
-                color: #008080 !important;
+            #btn-pickup-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
             }
 
             /* Hide column picker on mobile — toolbar toggle controls filter visibility */
@@ -612,9 +610,6 @@
                 display: flex !important;
                 max-height: none !important;
                 overflow: visible !important;
-            }
-            body.pickup-filters-collapsed .pickup-filters-fields {
-                display: flex !important;
             }
             .pickup-filters-fields .list-dense-filter-shell {
                 align-items: flex-start;
@@ -734,7 +729,7 @@
                                                 <div class="pickup-filters-fixed">
                                                 <div class="pickup-filters-toolbar">
                                                     <button type="button" id="btn-pickup-filters-toggle" class="btn btn-outline-teal btn-sm">
-                                                        <i class="ti-filter"></i> <span class="pickup-filters-toggle-label">Hide filters</span>
+                                                        <i class="ti-filter"></i> <span class="pickup-filters-toggle-label">Show filters</span>
                                                     </button>
                                                 </div>
                                                 <div class="d-flex pt-2 pickup-filters-fields list-dense-filter-bar">
@@ -1006,13 +1001,11 @@
             $('#btn-pickup-filters-toggle').on('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                var $fields = $('.pickup-filters-fields');
-                var collapsed = !$('body').hasClass('pickup-filters-collapsed');
-                $('body').toggleClass('pickup-filters-collapsed', collapsed);
-                $fields.toggleClass('is-collapsed', collapsed);
-                $(this).toggleClass('is-collapsed', collapsed);
-                $(this).find('.pickup-filters-toggle-label').text(collapsed ? 'Show filters' : 'Hide filters');
-                if (!collapsed) {
+                $('body').toggleClass('pickup-filters-open');
+                var isOpen = $('body').hasClass('pickup-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.pickup-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                if (isOpen) {
                     ensureMobileFiltersVisible();
                 }
                 setTimeout(adjustPickupTableLayout, 50);

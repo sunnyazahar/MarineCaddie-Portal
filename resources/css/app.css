@@ -1372,6 +1372,31 @@ body.mc-sidebar-open .pcoded-overlay-box {
         @apply ml-0;
     }
 
+    /* Sidebar is off-canvas on mobile — fixed save/action footers must span full width */
+    body .edit-footer,
+    body .form-footer-custom,
+    body [class$="-edit-footer"],
+    body [class*="create-"][class$="-footer"],
+    body .hub-user-footer,
+    body .office-user-footer,
+    body .agent-user-footer,
+    body .hub-contact-footer,
+    body .agent-contact-footer,
+    body .oc-contact-footer,
+    body .supplier-contact-footer,
+    body .customer-contact-footer,
+    body .stock-bulk-footer {
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        margin-left: 0 !important;
+        padding-left: max(12px, env(safe-area-inset-left)) !important;
+        padding-right: max(12px, env(safe-area-inset-right)) !important;
+        padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+        box-sizing: border-box !important;
+    }
+
     .pcoded-navbar .pcoded-item > li > a {
         color: #ffffff !important;
     }

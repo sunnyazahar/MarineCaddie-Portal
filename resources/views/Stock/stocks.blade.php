@@ -360,9 +360,8 @@
                 gap: 8px;
                 flex-wrap: wrap;
             }
-            /* Always show filters stacked on mobile; toolbar toggles collapse only */
+            /* Hidden by default on mobile — Show filters toggles body.stocks-filters-open */
             .stocks-filters-fields {
-                display: flex !important;
                 flex-direction: column;
                 max-height: 38vh;
                 overflow-x: hidden;
@@ -372,8 +371,8 @@
                 margin-bottom: 4px;
                 border-bottom: 1px solid #eef2f7;
             }
-            body.stocks-filters-collapsed .stocks-filters-fields {
-                display: none !important;
+            body.stocks-filters-open .stocks-filters-fields {
+                display: flex !important;
             }
             .stocks-filters-fields .custom-col[style*="margin-left: auto"],
             .stocks-filters-fields .custom-col.d-flex.justify-content-end {
@@ -410,9 +409,9 @@
                 padding: 0 !important;
                 overflow: hidden !important;
             }
-            #btn-stocks-filters-toggle.is-collapsed {
-                background: transparent !important;
-                color: #008080 !important;
+            #btn-stocks-filters-toggle.is-open {
+                background: #008080 !important;
+                color: #fff !important;
             }
             .stocks-table-area {
                 flex: 1 1 auto;
@@ -433,9 +432,6 @@
                 display: flex !important;
                 max-height: none !important;
                 overflow: visible !important;
-            }
-            body.stocks-filters-collapsed .stocks-filters-fields {
-                display: flex !important;
             }
         }
         .stocks-table-area .dataTables_wrapper {
@@ -726,7 +722,7 @@
                                                 <div class="stocks-filters-fixed">
                                                 <div class="stocks-filters-toolbar">
                                                     <button type="button" id="btn-stocks-filters-toggle" class="btn btn-outline-teal btn-sm">
-                                                        <i class="ti-filter"></i> <span class="stocks-filters-toggle-label">Hide filters</span>
+                                                        <i class="ti-filter"></i> <span class="stocks-filters-toggle-label">Show filters</span>
                                                     </button>
                                                     <div class="stocks-filters-toolbar-actions">
                                                         <button type="button" id="btn-export-pdf-mobile" class="btn btn-outline-teal btn-sm"><i class="ti-download"></i> Export</button>
@@ -1124,11 +1120,11 @@
             }
 
             $('#btn-stocks-filters-toggle').on('click', function () {
-                $('body').toggleClass('stocks-filters-collapsed');
-                var collapsed = $('body').hasClass('stocks-filters-collapsed');
-                $(this).toggleClass('is-collapsed', collapsed);
-                $(this).find('.stocks-filters-toggle-label').text(collapsed ? 'Show filters' : 'Hide filters');
-                if (!collapsed) {
+                $('body').toggleClass('stocks-filters-open');
+                var isOpen = $('body').hasClass('stocks-filters-open');
+                $(this).toggleClass('is-open', isOpen);
+                $(this).find('.stocks-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
+                if (isOpen) {
                     ensureStocksMobileFiltersVisible();
                 }
                 setTimeout(adjustStockTableLayout, 50);
