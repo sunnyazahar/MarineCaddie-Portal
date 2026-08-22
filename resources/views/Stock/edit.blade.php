@@ -3995,7 +3995,7 @@
 
                                     <!-- Footer (in-flow, shipment style) -->
                                     <div class="edit-footer">
-                                        <button type="submit" class="btn-save-custom">Save changes</button>
+                                        <button type="submit" class="btn-save-custom" form="crrEditForm">Save changes</button>
                                         <a href="{{ route('stocks') }}" class="btn-cancel-custom">Cancel</a>
                                     </div>
                                 </form>
@@ -4322,11 +4322,18 @@
                     if (!$stockEditFooter.parent().is('body')) {
                         $stockEditFooter.appendTo('body');
                     }
-                    return;
+                } else if (!$stockEditFooter.parent().is($stockEditForm)) {
+                    $stockEditForm.append($stockEditFooter);
                 }
 
-                if (!$stockEditFooter.parent().is($stockEditForm)) {
-                    $stockEditForm.append($stockEditFooter);
+                if (window.McFormSaveState) {
+                    var saveState = window.McFormSaveState.get('#crrEditForm');
+                    if (!saveState) {
+                        saveState = window.McFormSaveState.bind({ formSelector: '#crrEditForm' });
+                    }
+                    if (saveState) {
+                        saveState.syncSaveButtonState();
+                    }
                 }
             }
 

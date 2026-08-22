@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Laravel') }} — v2</title>
@@ -34,6 +34,8 @@
     @include('partials.filter-chrome-styles')
     {{-- After page styles so form control/label font sizes stay readable + consistent --}}
     @include('partials.form-control-typography')
+    {{-- After page styles so 100vh list shells cannot clip mobile header/footer --}}
+    @include('partials.mobile-chrome-safe')
 </head>
 
 <body class="{{ auth()->user()?->isOperations() && request()->routeIs('offices.*', 'hub.*', 'agents.*', 'customers.*', 'contacts.*') ? 'ops-admin-readonly' : '' }}" data-mc-user-id="{{ auth()->id() ?? 'guest' }}">

@@ -196,11 +196,34 @@
         }
 
         @media (max-width: 991.98px) {
+            html,
+            body.shipment-edit-page {
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+                height: auto !important;
+            }
+
+            body.shipment-edit-page .pcoded-content {
+                overflow: visible !important;
+                height: auto !important;
+                min-height: 0 !important;
+            }
+
+            body.shipment-edit-page #app,
+            body.shipment-edit-page #app > main,
+            body.shipment-edit-page .main-body,
+            body.shipment-edit-page .page-wrapper {
+                overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
+            }
+
             .master-container {
-                height: auto;
-                min-height: calc(100vh - 100px);
+                height: auto !important;
+                max-height: none !important;
+                min-height: 0 !important;
                 margin: 0;
-                overflow: visible;
+                overflow: visible !important;
                 flex-direction: column;
             }
 
@@ -209,22 +232,48 @@
             }
 
             .main-content-area {
-                overflow: visible;
+                overflow: visible !important;
                 padding: 0 4px 5px;
                 width: 100%;
                 max-width: 100%;
+                flex: none !important;
+                height: auto !important;
+                max-height: none !important;
             }
 
             .shipment-right-panel {
                 width: 100% !important;
                 min-width: 0 !important;
                 max-width: 100% !important;
-                flex: 1 1 auto !important;
+                flex: none !important;
                 height: auto !important;
+                max-height: none !important;
                 margin-top: 0 !important;
                 border-left: none;
                 border-top: 1px solid #e2e8f0;
                 box-shadow: none;
+                overflow: visible !important;
+            }
+
+            .shipment-right-panel > .sidebar-section.p-0 {
+                flex: none !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            .shipment-right-panel > .sidebar-section.p-0 > .p-3 {
+                flex: none !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            #shipment-docs-scroll,
+            #shipment-log-scroll,
+            #shipment-comments-scroll {
+                max-height: none !important;
+                overflow: visible !important;
             }
 
             .shipment-right-panel > .sidebar-section,
@@ -233,12 +282,48 @@
             }
 
             .edit-footer {
+                position: fixed !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
                 width: 100% !important;
-                padding: 12px !important;
+                max-width: 100vw !important;
+                margin: 0 !important;
+                padding: 12px 16px max(12px, env(safe-area-inset-bottom)) !important;
                 flex-wrap: wrap;
-                position: relative !important;
-                left: auto !important;
-                right: auto !important;
+                gap: 10px;
+                z-index: 1040 !important;
+                box-sizing: border-box !important;
+            }
+
+            body.shipment-edit-page .page-body:has(.master-container) {
+                padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+            }
+
+            body.shipment-edit-page .pcoded-inner-content,
+            body.shipment-edit-page .page-body {
+                overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
+                min-height: 0 !important;
+            }
+
+            .form-scroller {
+                flex: none !important;
+                overflow: visible !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                padding: 12px !important;
+            }
+
+            .tab-panel,
+            .tab-panel.active,
+            .doc-panel,
+            .doc-panel.active {
+                overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
             }
 
             .summary-header {
@@ -356,11 +441,6 @@
                 overflow: visible;
                 line-height: 1.3;
                 padding-top: 1px;
-            }
-
-            .form-scroller {
-                padding: 12px !important;
-                overflow-x: hidden;
             }
 
             .address-grid {
@@ -2006,11 +2086,18 @@
         }
         .pcoded-content {
             background: #f4f7f6;
-            overflow: hidden !important;
         }
-        body.shipment-edit-page {
-            overflow: hidden !important;
+
+        @media (min-width: 992px) {
+            .pcoded-content {
+                overflow: hidden !important;
+            }
+
+            body.shipment-edit-page {
+                overflow: hidden !important;
+            }
         }
+
         .main-body .page-wrapper {
             padding: 0 !important;
         }
@@ -4215,12 +4302,31 @@
     $(document).ready(function() {
         $('body').addClass('shipment-edit-page');
 
-        function fixedFooterOffset() {
-            // Footer is in-flow under the form; no fixed left/right offsets needed.
-            $('.edit-footer').css({ left: '', right: '', width: '', position: '' });
+        var $shipmentEditFooter = $('.master-container .edit-footer');
+        var $shipmentEditMain = $('.master-container .main-content-area');
+
+        function syncShipmentEditFooterPlacement() {
+            if (!$shipmentEditFooter.length || !$shipmentEditMain.length) {
+                return;
+            }
+
+            var isMobile = window.matchMedia && window.matchMedia('(max-width: 991.98px)').matches;
+
+            if (isMobile) {
+                if (!$shipmentEditFooter.parent().is('body')) {
+                    $shipmentEditFooter.appendTo('body');
+                }
+            } else if (!$shipmentEditFooter.parent().is($shipmentEditMain)) {
+                $shipmentEditMain.append($shipmentEditFooter);
+            }
+
+            if (typeof window.syncShipmentSaveButtonState === 'function') {
+                window.syncShipmentSaveButtonState();
+            }
         }
-        fixedFooterOffset();
-        $(window).on('resize', fixedFooterOffset);
+
+        syncShipmentEditFooterPlacement();
+        $(window).on('resize.shipmentEditFooter', syncShipmentEditFooterPlacement);
 
         var serverErrors = @json($errors->all());
         var serverErrorMessage = @json(session('error'));
@@ -7672,7 +7778,13 @@
                 if (!$saveBtn.length) {
                     return;
                 }
-                $saveBtn.prop('disabled', formSnapshot() === initialSnapshot);
+
+                var dirty = !allowLeave && formSnapshot() !== initialSnapshot;
+
+                $saveBtn.prop('disabled', !dirty);
+                $saveBtn.addClass('mc-save-btn');
+                $saveBtn.toggleClass('mc-save-btn--dirty', dirty);
+                $saveBtn.toggleClass('mc-save-btn--idle', !dirty);
             }
 
             window.syncShipmentSaveButtonState = syncSaveButtonState;

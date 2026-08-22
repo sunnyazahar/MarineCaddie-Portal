@@ -273,7 +273,7 @@
         /* Stocks list: lock page scroll; only table body scrolls; full-bleed width */
         body.stocks-list-page {
             overflow: hidden !important;
-            height: 100vh;
+            height: var(--mc-app-vh, 100vh);
         }
         body.stocks-list-page .pcoded-content {
             overflow: hidden !important;
@@ -290,7 +290,7 @@
         .stocks-list-card {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 64px);
+            height: calc(var(--mc-app-vh, 100vh) - var(--mc-header-h, 64px));
             margin: 0 !important;
             border-radius: 0 !important;
             border-left: none !important;
@@ -298,7 +298,7 @@
             overflow: hidden;
         }
         body.stock-bulk-footer-visible .stocks-list-card {
-            height: calc(100vh - 120px);
+            height: calc(var(--mc-app-vh, 100vh) - var(--mc-header-h, 64px) - 56px);
         }
         .stocks-list-card > .card-block {
             display: flex;
@@ -330,7 +330,8 @@
         @media (max-width: 991.98px) {
             body.stocks-list-page {
                 overflow: hidden !important;
-                height: 100vh;
+                height: var(--mc-app-vh, 100svh) !important;
+                max-height: var(--mc-app-vh, 100svh) !important;
             }
             body.stocks-list-page .pcoded-inner-content,
             body.stocks-list-page .main-body,
@@ -340,11 +341,13 @@
                 overflow: hidden !important;
             }
             .stocks-list-card {
-                height: calc(100vh - 64px) !important;
+                height: calc(var(--mc-app-vh, 100svh) - var(--mc-header-h, 4rem) - env(safe-area-inset-top, 0px)) !important;
+                max-height: calc(var(--mc-app-vh, 100svh) - var(--mc-header-h, 4rem) - env(safe-area-inset-top, 0px)) !important;
                 margin: 0 !important;
             }
             body.stock-bulk-footer-visible .stocks-list-card {
-                height: calc(100vh - 120px) !important;
+                height: calc(var(--mc-app-vh, 100svh) - var(--mc-header-h, 4rem) - env(safe-area-inset-top, 0px) - 56px) !important;
+                max-height: calc(var(--mc-app-vh, 100svh) - var(--mc-header-h, 4rem) - env(safe-area-inset-top, 0px) - 56px) !important;
             }
             .stocks-filters-toolbar {
                 display: flex;

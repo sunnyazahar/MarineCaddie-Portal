@@ -76,10 +76,12 @@
     }
     @media (max-width: 991.98px) {
         .pagination-sticky-footer {
-            padding: 8px 12px !important;
+            padding: 8px 12px max(10px, env(safe-area-inset-bottom, 0px)) !important;
             height: auto !important;
             min-height: 52px;
-            max-height: none;
+            max-height: none !important;
+            overflow: visible !important;
+            flex-shrink: 0 !important;
         }
     }
     @media (max-width: 575.98px) {
@@ -88,7 +90,7 @@
             align-items: stretch;
             gap: 8px;
             min-height: 0;
-            padding: 10px 12px max(10px, env(safe-area-inset-bottom)) !important;
+            padding: 10px 12px max(12px, env(safe-area-inset-bottom, 0px)) !important;
         }
         .list-pagination-meta {
             white-space: normal;

@@ -35,10 +35,14 @@ function resolveSaveButton($, $form, saveButtonSelector) {
     }
 
     const formId = $form.attr('id');
-    let $btn = $form.find('button[type="submit"].btn-save-custom').first();
+    let $btn = $();
 
-    if (!$btn.length && formId) {
+    if (formId) {
         $btn = $(`button[type="submit"].btn-save-custom[form="${formId}"]`).first();
+    }
+
+    if (!$btn.length) {
+        $btn = $form.find('button[type="submit"].btn-save-custom').first();
     }
 
     if (!$btn.length) {
@@ -218,6 +222,10 @@ whenJqueryReady(($) => {
     };
 
     $(function () {
+        window.McFormSaveState.autoBind();
+    });
+
+    $(window).on('load.mcSaveStateAutoBind', () => {
         window.McFormSaveState.autoBind();
     });
 });
