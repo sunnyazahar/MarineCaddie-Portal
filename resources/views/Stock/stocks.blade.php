@@ -419,10 +419,16 @@
             .stocks-table-area {
                 flex: 1 1 auto;
                 min-height: 45vh;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
             }
             .stocks-table-area .table-scroll-wrapper,
             .stocks-table-area .dataTables_scrollBody {
+                flex: 1 1 auto;
+                min-height: 0 !important;
                 overflow-x: auto !important;
+                overflow-y: auto !important;
                 -webkit-overflow-scrolling: touch;
             }
         }
