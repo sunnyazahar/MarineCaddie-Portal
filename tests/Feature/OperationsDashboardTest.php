@@ -130,6 +130,7 @@ class OperationsDashboardTest extends RegressionTestCase
         $html = view('home', compact('dashboard'))->render();
 
         $this->assertStringContainsString('Operations overview', $html);
+        $this->assertStringContainsString('dash-page', $html);
         $this->assertStringContainsString('dash-hero', $html);
         $this->assertStringContainsString('SHIP-RENDER', $html);
         $this->assertStringContainsString('STK-RENDER', $html);

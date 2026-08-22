@@ -44,29 +44,26 @@
             .filter-group {
                 display: flex;
                 align-items: center;
-                border: 1px solid #9ec9d6;
-                border-radius: 8px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
                 height: 32px;
                 background: #fff;
                 overflow: visible;
                 width: 100%;
-                box-shadow: 0 1px 2px rgba(14, 29, 74, 0.05);
             }
 
             .filter-group .filter-label {
                 font-size: 11px;
-                color: #ffffff;
+                color: #64748b;
                 margin-bottom: 0;
                 padding: 0 10px;
                 white-space: nowrap;
-                font-weight: 700;
-                letter-spacing: 0.02em;
-                border-right: 1px solid #5a7fa0;
+                font-weight: 500;
+                border-right: 1px solid #e2e8f0;
                 height: 100%;
                 display: flex;
                 align-items: center;
-                background: #6992b5;
-                background-color: #6992b5;
+                background: #f8fafc;
                 min-width: fit-content;
             }
 
@@ -74,12 +71,11 @@
                 border: none !important;
                 box-shadow: none !important;
                 height: 100% !important;
-                font-size: 12px;
-                font-weight: 600;
+                font-size: 11px;
                 padding: 0 10px !important;
                 background: transparent !important;
                 width: 100%;
-                color: #0e1d4a;
+                color: #1e293b;
             }
 
             .filter-checkbox-group label {
@@ -120,6 +116,40 @@
                 background: #fff;
                 color: #1e293b;
                 font-size: 11px;
+            }
+
+            html body .filter-group .select2-container--default .select2-selection--single {
+                border: none !important;
+                background: transparent !important;
+                height: 30px !important;
+                min-height: 30px !important;
+                max-height: 30px !important;
+                border-radius: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                box-sizing: border-box !important;
+            }
+
+            html body .filter-group .select2-container--default .select2-selection--single .select2-selection__rendered {
+                padding-left: 10px !important;
+                padding-right: 24px !important;
+                font-size: 11px !important;
+                color: #1e293b !important;
+                line-height: 1.25 !important;
+                display: flex !important;
+                align-items: center !important;
+                height: 100% !important;
+            }
+
+            html body .filter-group .select2-container--default .select2-selection--single .select2-selection__placeholder {
+                color: #94a3b8 !important;
+                font-style: italic;
+            }
+
+            html body .filter-group .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 100% !important;
+                top: 0 !important;
+                right: 4px !important;
             }
 
             .filter-checkbox-group {

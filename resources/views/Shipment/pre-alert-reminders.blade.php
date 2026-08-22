@@ -106,7 +106,7 @@
             border-radius: 4px;
             height: 32px;
             background: #fff;
-            overflow: hidden;
+            overflow: visible;
         }
         .filter-group .filter-label {
             font-size: 11px;
@@ -181,55 +181,6 @@
             border-radius: 4px;
             font-size: 100%;
         }
-        /* Bootstrap Multiselect Custom Styling */
-        .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .multiselect-native-select .multiselect {
-            width: 100%;
-            text-align: left;
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 11px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .multiselect-native-select .multiselect-container {
-            width: 235px;
-            font-size: 11px;
-        }
-        .multiselect-native-select .multiselect-container li a label {
-            padding: 5px 10px 5px 0;
-            display: block;
-            margin: 0;
-            cursor: pointer;
-        }
-        .multiselect-native-select .multiselect-selected .form-check-label {
-            color: #008080;
-            font-weight: bold;
-        }
-        .multiselect-item.multiselect-all label {
-            font-weight: bold;
-            color: #333;
-        }
-        input.form-control.multiselect-search {
-            font-size: 11px;
-        }
-        .multiselect-container .input-group {
-            margin: 2px;
-        }
-        .input-group-addon {
-            background-color: #01a9ac;
-            color: #fff;
-            max-height: 31px;
-        }
-        .multiselect-container>li {
-            padding: 0px 5px;
-        }
-        .multiselect-item .input-group {
-            width: 114%;
-        }
         /* Select2 Custom Styling */
         .select2-container--default .select2-selection--single {
             background-color: #fff !important;
@@ -282,21 +233,6 @@
             margin-top: 4px !important;
             padding: 1px 5px !important;
         }
-        /* Filter Toggle Button Styling */
-        .btn-filter-toggle {
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 14px;
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-filter-toggle:hover, .btn-filter-toggle:focus, .btn-filter-toggle:active {
-            background-color: #008080 !important;
-            color: white !important;
-            border-color: #008080 !important;
-        }
-        
         .table-scroll-wrapper {
             overflow-x: auto;
             overflow-y: auto;
@@ -319,6 +255,89 @@
         }
         .prealert-filters-fields {
             width: 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .prealert-filters-fields .custom-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -5px;
+            margin-left: -5px;
+        }
+
+        .prealert-filters-fields .custom-col {
+            padding-right: 5px;
+            padding-left: 5px;
+            margin-bottom: 0 !important;
+            flex-shrink: 0;
+        }
+
+        .prealert-filters-fields .filter-row {
+            margin-bottom: 0;
+        }
+
+        .prealert-filters-fields .list-dense-filter-row {
+            gap: 8px;
+            border-bottom: none !important;
+            padding: 0 !important;
+            background: transparent !important;
+            align-items: center;
+            flex-wrap: wrap !important;
+            align-content: flex-start;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .prealert-filters-fields .list-dense-filter-row .btn-clear-filters {
+            display: inline-flex;
+            align-items: center;
+            height: 32px;
+            white-space: nowrap;
+            margin-left: 0;
+            padding: 0 4px;
+        }
+
+        @media (min-width: 992px) {
+            .prealert-filters-fixed {
+                overflow: visible;
+                z-index: 120;
+            }
+            .prealert-filters-fields .list-dense-filter-shell {
+                align-items: flex-start;
+            }
+            .prealert-filters-fields .list-dense-filter-controls {
+                align-self: flex-start;
+            }
+            .prealert-filters-fields .list-dense-filter-fields {
+                position: relative;
+                z-index: 1;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                overflow: visible !important;
+            }
+            .prealert-filters-fields .list-dense-filter-controls {
+                position: relative;
+                z-index: 51;
+            }
+            .prealert-filters-fields .list-dense-filter-controls .mc-column-picker {
+                position: relative;
+                z-index: 52;
+            }
+            .prealert-filters-fields .list-dense-filter-controls .mc-column-picker__panel {
+                z-index: 1300;
+                isolation: isolate;
+            }
+            .prealert-filters-fields {
+                display: flex !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            body.prealert-filters-open .prealert-filters-fields {
+                display: flex !important;
+            }
         }
 
         @media (max-width: 991.98px) {
@@ -336,11 +355,11 @@
             body.prealert-filters-open .prealert-filters-fields {
                 display: flex !important;
             }
-            .prealert-filters-fields .mr-2,
-            .prealert-filters-fields .btn-filter-toggle {
+            .prealert-filters-fields .list-dense-filter-controls,
+            .prealert-filters-fields .prealert-filter-controls {
                 display: none !important;
             }
-            .prealert-filters-fields .row.no-gutters {
+            .prealert-filters-fields .list-dense-filter-row {
                 display: flex !important;
                 flex-direction: column !important;
                 flex-wrap: nowrap !important;
@@ -382,16 +401,6 @@
             }
         }
 
-        @media (min-width: 992px) {
-            .prealert-filters-fields {
-                display: flex !important;
-                max-height: none !important;
-                overflow: visible !important;
-            }
-            body.prealert-filters-open .prealert-filters-fields {
-                display: flex !important;
-            }
-        }
         /* Reduce gap/margin between sidebar and content — full-height list shell */
         body.prealert-list-page {
             overflow: hidden !important;
@@ -434,7 +443,7 @@
         .prealert-filters-fixed {
             background: #fff;
             position: relative;
-            z-index: 40;
+            z-index: 120;
             padding-bottom: 6px;
         }
         .prealert-table-area {
@@ -444,6 +453,11 @@
             display: flex;
             flex-direction: column;
             -webkit-overflow-scrolling: touch;
+            position: relative;
+            z-index: 1;
+        }
+        .prealert-table-area #offices-table thead th {
+            z-index: 10 !important;
         }
         #prealert-pagination.pagination-sticky-footer {
             flex-shrink: 0;
@@ -544,23 +558,23 @@
                                                     body-class="prealert-filters-open"
                                                     toolbar-class="prealert-filters-toolbar"
                                                 />
-                                                <div class="d-flex justify-content-between align-items-start pt-2 prealert-filters-fields">
-                                                    <div style="width: 100%;">
-                                                        <div class="row no-gutters">
-                                                            <div class="mr-2" style="margin-top: 2px;">
-                                                                <select id="filter-multiselect" multiple="multiple">
-                                                                    <option value="Account manager" selected>Account manager</option>
-                                                                    <option value="Show ETL shipments" selected>Show ETL shipments</option>
-                                                                    <option value="Shipment no" selected>Shipment no</option>
-                                                                    <option value="Customer" selected>Customer</option>
-                                                                    <option value="Vessel" selected>Vessel</option>
-                                                                    <option value="Port of destination" selected>Port of destination</option>
-                                                                    <option value="Status" selected>Status</option>
-                                                                    <option value="Created by" selected>Created by</option>
-                                                                </select>
-                                                            </div>
-
-                                                            <div id="col-Account-manager" class="custom-col" style="flex: 0 0 220px;">
+                                                <div class="d-flex pt-2 prealert-filters-fields list-dense-filter-bar">
+                                                    <div class="list-dense-filter-shell" style="width: 100%;">
+                                                        <div class="list-dense-filter-controls prealert-filter-controls">
+                                                            <select id="filter-multiselect" multiple="multiple" data-storage-key="prealert-list-filters-v2">
+                                                                <option value="Account manager" selected>Account manager</option>
+                                                                <option value="Show ETL shipments" selected>Show ETL shipments</option>
+                                                                <option value="Shipment no" selected>Shipment no</option>
+                                                                <option value="Customer" selected>Customer</option>
+                                                                <option value="Vessel" selected>Vessel</option>
+                                                                <option value="Port of destination" selected>Port of destination</option>
+                                                                <option value="Status" selected>Status</option>
+                                                                <option value="Created by" selected>Created by</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="list-dense-filter-fields">
+                                                        <div class="row custom-row filter-row list-dense-filter-row">
+                                                            <div id="col-Account-manager" class="custom-col" style="flex: 0 0 185px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Account manager</span>
                                                                     <select id="filter-account-manager" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -581,14 +595,14 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 200px;">
+                                                            <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 170px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Shipment no</span>
                                                                     <input type="text" id="filter-shipment-no" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Customer" class="custom-col" style="flex: 0 0 250px;">
+                                                            <div id="col-Customer" class="custom-col" style="flex: 0 0 195px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Customer</span>
                                                                     <select id="filter-customer" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -599,7 +613,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Vessel" class="custom-col" style="flex: 0 0 200px;">
+                                                            <div id="col-Vessel" class="custom-col" style="flex: 0 0 165px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Vessel</span>
                                                                     <select id="filter-vessel" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -610,14 +624,14 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Port-of-destination" class="custom-col" style="flex: 0 0 220px;">
+                                                            <div id="col-Port-of-destination" class="custom-col" style="flex: 0 0 185px;">
                                                                 <div class="filter-group">
-                                                                    <span class="filter-label">Port of destination</span>
+                                                                    <span class="filter-label">Port dest.</span>
                                                                     <input type="text" id="filter-port-destination" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Status" class="custom-col" style="flex: 0 0 180px;">
+                                                            <div id="col-Status" class="custom-col" style="flex: 0 0 165px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Status</span>
                                                                     <select id="filter-status" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -628,7 +642,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Created-by" class="custom-col" style="flex: 0 0 220px;">
+                                                            <div id="col-Created-by" class="custom-col" style="flex: 0 0 185px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Created by</span>
                                                                     <select id="filter-created-by" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -639,7 +653,10 @@
                                                                 </div>
                                                             </div>
 
-                                                            <x-lists.clear-filters id="clear-prealert-filters" />
+                                                            <div class="custom-col" style="flex: 0 0 auto;">
+                                                                <x-lists.clear-filters id="clear-prealert-filters" />
+                                                            </div>
+                                                        </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -698,33 +715,21 @@
                 }
             );
 
-            // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: false,
-                buttonWidth: '100%',
-                maxHeight: 200,
-                nonSelectedText: '',
-                allSelectedText: '',
-                nSelectedText: '',
-                numberDisplayed: 0,
-                buttonClass: 'btn btn-outline-teal btn-filter-toggle',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><i class="ti-filter"></i></button>'
-                },
-                onChange: function(option, checked) {
+                includeResetOption: true,
+                resetText: 'Clear all',
+                storageKey: 'prealert-list-filters-v2',
+                onChange: function () {
                     toggleFilterVisibility();
                 },
-                onSelectAll: function() {
+                onSelectAll: function () {
                     toggleFilterVisibility();
                 },
-                onDeselectAll: function() {
+                onDeselectAll: function () {
                     toggleFilterVisibility();
                 }
             });
-
-            $('#filter-multiselect').multiselect('selectAll', false);
-            $('#filter-multiselect').multiselect('updateButtonText');
 
             var prealertFilterIds = [
                 'col-Account-manager',
@@ -748,8 +753,11 @@
                 prealertFilterIds.forEach(function (id) {
                     $('#' + id).show().css('display', '');
                 });
-                $('.prealert-filters-fields .mr-2').hide();
-                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+                $('.prealert-filter-controls').hide();
+                var $panel = $('#filter-multiselect').data('mcColumnPickerPanel');
+                if ($panel && $panel.length) {
+                    $panel.removeClass('is-open');
+                }
             }
 
             function toggleFilterVisibility() {
@@ -775,15 +783,27 @@
                     {val: 'Created by', id: 'col-Created-by'}
                 ];
 
+                if (selectedValues.length === 0) {
+                    allFilters.forEach(function(filter) {
+                        $('#' + filter.id).hide();
+                    });
+                    return;
+                }
+
                 allFilters.forEach(function(filter) {
-                    if (selectedValues.indexOf(filter.val) !== -1) {
-                        $('#' + filter.id).show();
+                    if (selectedValues.length === 0 || selectedValues.indexOf(filter.val) !== -1) {
+                        $('#' + filter.id).css('display', '');
                     } else {
                         $('#' + filter.id).hide();
                     }
                 });
             }
 
+            $('#filter-multiselect').multiselect('selectAll', false);
+            if ($('#filter-multiselect option:selected').length === 0) {
+                $('#filter-multiselect option').prop('selected', true);
+                $('#filter-multiselect').multiselect('updateButtonText');
+            }
             toggleFilterVisibility();
             ensurePrealertMobileFiltersVisible();
 

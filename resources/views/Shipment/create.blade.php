@@ -309,7 +309,7 @@
 
         /* Footer — fixed full-width under content (appended to body in JS) */
         body.create-shipment-page {
-            padding-bottom: 72px;
+            padding-bottom: 84px;
         }
 
         body.create-shipment-page .create-shipment-footer.edit-footer {
@@ -467,9 +467,9 @@
         .filter-group {
             display: flex;
             align-items: stretch;
-            border: 1px solid #9ec9d6;
+            border: 1px solid #ced4da;
             padding: 0 !important;
-            border-radius: 8px;
+            border-radius: 4px;
             height: 32px;
             background: #fff;
             overflow: hidden;
@@ -478,16 +478,16 @@
 
         .filter-group .filter-label {
             font-size: 11px;
-            color: #ffffff;
+            color: #64748b;
             margin: 0 !important;
             padding: 0 10px !important;
             white-space: nowrap;
-            font-weight: 700;
-            border-right: 1px solid #5a7fa0;
+            font-weight: 500;
+            border-right: 1px solid #e2e8f0;
             height: auto;
             display: inline-flex;
             align-items: center;
-            background: #6992b5;
+            background: #f8fafc;
             flex: 0 0 auto;
         }
 

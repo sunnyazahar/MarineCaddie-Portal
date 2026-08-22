@@ -256,6 +256,10 @@
         }
 
         function replaceRows(html, paginationHtml) {
+            if (typeof window.mcSetListLoading === 'function') {
+                window.mcSetListLoading(tableSelector, true);
+            }
+
             table = initTable();
             table.clear();
 
@@ -273,6 +277,13 @@
             }
             if (typeof config.afterDraw === 'function') {
                 config.afterDraw(table);
+            }
+
+            if (typeof window.mcSetListLoading === 'function') {
+                window.mcSetListLoading(tableSelector, false);
+            }
+            if (typeof window.mcPulseListRows === 'function') {
+                window.mcPulseListRows(tableSelector);
             }
         }
 
@@ -296,6 +307,9 @@
                     var $count = $('.list-page-header-count strong');
                     if ($count.length) {
                         $count.text(Number(response.total).toLocaleString());
+                    }
+                    if (typeof window.mcPulseListCount === 'function') {
+                        window.mcPulseListCount();
                     }
                 }
             });

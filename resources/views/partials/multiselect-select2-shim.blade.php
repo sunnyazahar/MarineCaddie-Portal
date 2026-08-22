@@ -120,6 +120,126 @@
         });
     }
 
+    function getMcColumnPickerUserId() {
+        var fromBody = document.body && document.body.getAttribute('data-mc-user-id');
+        if (fromBody) {
+            return String(fromBody);
+        }
+
+        var meta = document.querySelector('meta[name="mc-user-id"]');
+        if (meta && meta.content) {
+            return String(meta.content);
+        }
+
+        return 'guest';
+    }
+
+    function getMcColumnPickerOptions($select) {
+        return $select.data('mcColumnPickerOptions') || {};
+    }
+
+    function getMcColumnPickerStorageKey($select, options) {
+        options = options || getMcColumnPickerOptions($select);
+        var pageKey = options.storageKey
+            || $select.attr('data-storage-key')
+            || (window.location.pathname + '::' + ($select.attr('id') || $select.attr('name') || 'column-picker'));
+
+        return 'mc.colPicker.' + getMcColumnPickerUserId() + '.' + pageKey;
+    }
+
+    function shouldPersistMcColumnPicker($select, options) {
+        options = options || getMcColumnPickerOptions($select);
+        return options.persistColumnPicker !== false;
+    }
+
+    function normalizeMcColumnPickerSavedValues($select, saved) {
+        if (!Array.isArray(saved)) {
+            return null;
+        }
+
+        var available = {};
+        $select.find('option').each(function () {
+            available[String(this.value)] = true;
+        });
+
+        var normalized = saved.filter(function (value) {
+            return !!available[String(value)];
+        });
+
+        if (saved.length > 0 && normalized.length === 0) {
+            return null;
+        }
+
+        if (normalized.length === 0) {
+            return null;
+        }
+
+        return normalized;
+    }
+
+    function loadMcColumnPickerSelection($select, options) {
+        if (!shouldPersistMcColumnPicker($select, options)) {
+            return null;
+        }
+
+        try {
+            var raw = window.localStorage.getItem(getMcColumnPickerStorageKey($select, options));
+            if (raw === null || raw === '') {
+                return null;
+            }
+
+            return normalizeMcColumnPickerSavedValues($select, JSON.parse(raw));
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function saveMcColumnPickerSelection($select, options) {
+        if (!shouldPersistMcColumnPicker($select, options)) {
+            return;
+        }
+
+        if ($select.data('mcColumnPickerSuppressSave')) {
+            return;
+        }
+
+        options = options || getMcColumnPickerOptions($select);
+        var values = $select.find('option:selected').map(function () {
+            return String(this.value);
+        }).get();
+
+        try {
+            window.localStorage.setItem(getMcColumnPickerStorageKey($select, options), JSON.stringify(values));
+        } catch (e) {
+            // ignore quota / private browsing
+        }
+    }
+
+    function setMcColumnPickerSelection($select, values) {
+        var valueMap = {};
+        (values || []).forEach(function (value) {
+            valueMap[String(value)] = true;
+        });
+
+        $select.find('option').each(function () {
+            $(this).prop('selected', !!valueMap[String(this.value)]);
+        });
+        $select.val(values || []);
+        syncColumnPickerPanel($select);
+    }
+
+    function tryApplyMcColumnPickerSavedSelection($select, options) {
+        var saved = loadMcColumnPickerSelection($select, options);
+        if (saved === null) {
+            return false;
+        }
+
+        $select.data('mcColumnPickerSuppressSave', true);
+        setMcColumnPickerSelection($select, saved);
+        $select.removeData('mcColumnPickerSuppressSave');
+        return true;
+    }
+
     function initColumnPicker($select, options) {
         options = options || {};
 
@@ -144,6 +264,21 @@
         var $btn = $('<button type="button" class="mc-column-picker__btn" title="Show / hide filters" aria-label="Show / hide filters"><i class="ti-filter"></i></button>');
         var $panel = $('<div class="mc-column-picker__panel" role="menu"></div>');
 
+        var showSelectAll = options.includeSelectAllOption !== false;
+        var showClearAll = options.includeResetOption !== false;
+        if (showSelectAll || showClearAll) {
+            var $tools = $('<div class="mc-column-picker__tools"></div>');
+            if (showSelectAll) {
+                $tools.append('<button type="button" class="mc-column-picker__select-all">Select all</button>');
+            }
+            if (showClearAll) {
+                var clearLabel = options.resetText || 'Clear all';
+                $tools.append('<button type="button" class="mc-column-picker__clear-all">' + clearLabel + '</button>');
+            }
+            $panel.append($tools);
+        }
+
+        var $list = $('<div class="mc-column-picker__list"></div>');
         $select.find('option').each(function () {
             var value = String(this.value);
             var label = $(this).text();
@@ -155,9 +290,10 @@
                 '</label>'
             );
             $row.find('input').prop('checked', $(this).prop('selected'));
-            $panel.append($row);
+            $list.append($row);
         });
 
+        $panel.append($list);
         $wrap.append($btn).append($panel);
         $select.after($wrap);
 
@@ -172,11 +308,39 @@
             }
         }
 
+        function selectAllColumns() {
+            $list.find('input[data-mc-col-value]').prop('checked', true);
+            $select.find('option').prop('selected', true);
+            $select.val($select.find('option').map(function () {
+                return this.value;
+            }).get());
+            $select.trigger('change');
+            saveMcColumnPickerSelection($select, options);
+            if (typeof options.onSelectAll === 'function') {
+                options.onSelectAll();
+            }
+        }
+
+        function clearAllColumns() {
+            $list.find('input[data-mc-col-value]').prop('checked', false);
+            $select.find('option').prop('selected', false);
+            $select.val([]);
+            $select.trigger('change');
+            try {
+                window.localStorage.removeItem(getMcColumnPickerStorageKey($select, options));
+            } catch (e) {
+                // ignore quota / private browsing
+            }
+            if (typeof options.onDeselectAll === 'function') {
+                options.onDeselectAll();
+            }
+        }
+
         $btn.on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            $('.mc-column-picker__panel').not($panel).hide();
-            $panel.toggle();
+            $('.mc-column-picker__panel').not($panel).removeClass('is-open');
+            $panel.toggleClass('is-open');
         });
 
         $panel.on('click', function (e) {
@@ -191,12 +355,27 @@
             });
             $option.prop('selected', checked);
             $select.trigger('change');
+            saveMcColumnPickerSelection($select, options);
             notifyChange($option, checked);
         });
 
-        $(document).on('click.mcColumnPicker', function () {
-            $panel.hide();
+        $panel.on('click', '.mc-column-picker__select-all', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            selectAllColumns();
         });
+
+        $panel.on('click', '.mc-column-picker__clear-all', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            clearAllColumns();
+        });
+
+        $(document).on('click.mcColumnPicker', function () {
+            $panel.removeClass('is-open');
+        });
+
+        tryApplyMcColumnPickerSavedSelection($select, options);
     }
 
     if ($.fn.multiselect && $.fn.multiselect.__mcSelect2Shim) {
@@ -213,17 +392,21 @@
                 var $select = $(this);
 
                 if (method === 'selectAll') {
+                    if ($select.data('mcColumnPickerReady')) {
+                        var pickerOptions = getMcColumnPickerOptions($select);
+                        if (tryApplyMcColumnPickerSavedSelection($select, pickerOptions)) {
+                            $select.trigger('change');
+                            return;
+                        }
+                    }
+
                     $select.find('option').prop('selected', true);
                     var values = $select.find('option').map(function () {
                         return this.value;
                     }).get();
                     $select.val(values);
                     syncColumnPickerPanel($select);
-                    if ($select.hasClass('select2-hidden-accessible')) {
-                        $select.trigger('change');
-                    } else {
-                        $select.trigger('change');
-                    }
+                    $select.trigger('change');
                     return;
                 }
 
@@ -232,6 +415,7 @@
                         $select.find('option').prop('selected', false);
                         $select.val([]);
                         syncColumnPickerPanel($select);
+                        saveMcColumnPickerSelection($select, getMcColumnPickerOptions($select));
                         $select.trigger('change');
                         return;
                     }

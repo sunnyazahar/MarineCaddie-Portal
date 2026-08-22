@@ -32,7 +32,7 @@ class HubController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html'       => view('hub.partials.rows', compact('hubs', 'countryFlags'))->render(),
-                'pagination' => (string) $hubs->links(),
+                'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $hubs])->render(),
                 'total'      => $hubs->total(),
             ]);
         }
@@ -92,7 +92,14 @@ class HubController extends Controller
 
     public function show($id)
     {
-        $hub       = $this->hubs->findWithRelations((int) $id, ['documents', 'pricingDocuments', 'creator', 'updater']);
+        $hub       = $this->hubs->findWithRelations((int) $id, [
+            'documents',
+            'pricingDocuments',
+            'hubUsers',
+            'contacts',
+            'creator',
+            'updater',
+        ]);
         $countries = CountryCache::activeRaw();
         return view('hub.show', compact('hub', 'countries'));
     }

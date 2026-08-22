@@ -1,71 +1,4 @@
 <style>
-    /* —— Global filter chrome (all list pages) —— */
-    .filter-group {
-        border: 1px solid #9ec9d6 !important;
-        border-radius: 8px !important;
-        background: #fff !important;
-        box-shadow: 0 1px 2px rgba(14, 29, 74, 0.05);
-        overflow: visible !important;
-    }
-
-    .filter-group:focus-within {
-        border-color: #0088c7 !important;
-        box-shadow: 0 0 0 3px rgba(0, 136, 199, 0.16);
-    }
-
-    .filter-group .filter-label {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        font-size: 11px !important;
-        letter-spacing: 0.02em;
-        background: #6992b5 !important;
-        background-color: #6992b5 !important;
-        background-image: none !important;
-        border-right: 1px solid #5a7fa0 !important;
-    }
-
-    .filter-group .filter-input {
-        color: #0e1d4a !important;
-        font-weight: 600 !important;
-        font-size: 12px !important;
-    }
-
-    .filter-group .filter-input::placeholder {
-        color: #64748b !important;
-        font-weight: 500 !important;
-        opacity: 1;
-    }
-
-    .filter-group .filter-date-icon {
-        color: #0088c7 !important;
-        opacity: 1 !important;
-    }
-
-    .filter-group .filter-date-icon:hover {
-        color: #006f9e !important;
-    }
-
-    .filter-checkbox-group label,
-    .hide-inactive-label,
-    label[for="hide-inactive"] {
-        color: #334155 !important;
-        font-weight: 600 !important;
-    }
-
-    .btn-clear-filters,
-    a.clear-filters,
-    .clear-filters {
-        color: #0088c7 !important;
-        font-weight: 700 !important;
-    }
-
-    .btn-clear-filters:hover,
-    a.clear-filters:hover,
-    .clear-filters:hover {
-        color: #0e1d4a !important;
-        text-decoration: underline;
-    }
-
     .filter-group,
     .filter-item {
         overflow: visible !important;
@@ -88,11 +21,11 @@
         max-height: 30px !important;
         padding: 0 22px 0 8px !important;
         overflow: hidden !important;
-        border: 1px solid #9ec9d6;
-        border-radius: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
         background: #fff;
-        color: #0e1d4a;
-        font-size: 12px;
+        color: #1e293b;
+        font-size: 11px;
         cursor: pointer;
     }
 

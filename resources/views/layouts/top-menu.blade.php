@@ -5,8 +5,8 @@
             <a class="mobile-menu" id="mobile-collapse" href="#!">
                 <i class="feather icon-menu"></i>
             </a>
-            <a href="{{ url('/') }}" class="navbar-logo-link" style="display:inline-flex; align-items:center;">
-                {!! \App\Support\LogoHelper::headerImgTag('150px', 'height:36px; object-fit:contain; display:block;') !!}
+            <a href="{{ url('/') }}" class="navbar-logo-link">
+                {!! \App\Support\LogoHelper::headerImgTag('100%', 'width:100%; height:100%; max-height:100%; object-fit:contain; display:block;') !!}
             </a>
             <a class="mobile-options">
                 <i class="feather icon-more-horizontal"></i>

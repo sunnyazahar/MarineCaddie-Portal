@@ -41,7 +41,7 @@ class AgentController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html'       => view('Agents.partials.rows', compact('agents'))->render(),
-                'pagination' => (string) $agents->links(),
+                'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $agents])->render(),
                 'total'      => $agents->total(),
             ]);
         }
@@ -96,7 +96,14 @@ class AgentController extends Controller
 
     public function edit($id)
     {
-        $agent     = $this->agents->findWithRelations((int) $id, ['creator', 'updater']);
+        $agent     = $this->agents->findWithRelations((int) $id, [
+            'country',
+            'documents',
+            'agentUsers',
+            'contacts',
+            'creator',
+            'updater',
+        ]);
         $countries = CountryCache::active();
         return view('Agents.edit', compact('agent', 'countries'));
     }
@@ -314,6 +321,13 @@ class AgentController extends Controller
         return PrivateDisk::downloadResponse((string) $document->file_path, (string) $filename);
     }
 
+    public function createContact($agent_id)
+    {
+        $agent = $this->agents->findWithRelations((int) $agent_id, ['country']);
+
+        return view('Agents.contacts.create', compact('agent'));
+    }
+
     public function storeContact(Request $request, $agent_id)
     {
         $request->validate([
@@ -339,7 +353,9 @@ class AgentController extends Controller
     public function editContact($id)
     {
         $contact = $this->contacts->findOrFail((int) $id, ['creator', 'updater']);
-        return view('Agents.contacts.edit', compact('contact'));
+        $agent   = $this->agents->findWithRelations((int) $contact->agent_id, ['country']);
+
+        return view('Agents.contacts.edit', compact('contact', 'agent'));
     }
 
     public function updateContact(Request $request, $id)
@@ -377,6 +393,13 @@ class AgentController extends Controller
             ->withFragment('contacts');
     }
 
+    public function createUser($agent_id)
+    {
+        $agent = $this->agents->findWithRelations((int) $agent_id, ['country']);
+
+        return view('Agents.Users.create', compact('agent'));
+    }
+
     public function storeUser(Request $request, $agent_id)
     {
         $request->validate([
@@ -400,8 +423,10 @@ class AgentController extends Controller
 
     public function editUser($id)
     {
-        $user = $this->agentUsers->findOrFail((int) $id, ['creator', 'updater']);
-        return view('Agents.Users.edit', compact('user'));
+        $user  = $this->agentUsers->findOrFail((int) $id, ['creator', 'updater']);
+        $agent = $this->agents->findWithRelations((int) $user->agent_id, ['country']);
+
+        return view('Agents.Users.edit', compact('user', 'agent'));
     }
 
     public function updateUser(Request $request, $id)

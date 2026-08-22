@@ -19,6 +19,7 @@
     ];
 @endphp
 
+                                    <div class="dash-page">
                                     <section class="dash-hero">
                                         <div class="dash-hero__copy">
                                             <p class="dash-hero__eyebrow">Operations overview</p>
@@ -204,6 +205,7 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
                                     </div>
 @include('layouts.partials.pcoded-shell-end')
 @endsection

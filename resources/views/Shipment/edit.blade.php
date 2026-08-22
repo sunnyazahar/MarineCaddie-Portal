@@ -3287,7 +3287,7 @@
                                             <div class="form-scroller">
                                                 <!-- Shipment Details Tab -->
                                                 <div id="tab-shipment-details" class="tab-panel active">
-                                                <form id="shipment-edit-form" method="POST" action="{{ route('shipments.update', $shipment->id) }}">
+                                                <form id="shipment-edit-form" method="POST" action="{{ route('shipments.update', $shipment->id) }}" data-mc-skip-save-state>
                                                     @csrf
                                                     @method('PUT')
                                                     <input type="hidden" name="account_manager" value="{{ $shipment->account_manager_id }}">

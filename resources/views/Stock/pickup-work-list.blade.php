@@ -120,7 +120,8 @@
             padding: 8px 0 0;
             margin: 0;
             background: #fff;
-            border-bottom: 1px solid #eef2f7;
+            position: relative;
+            z-index: 120;
         }
         .pickup-table-area {
             flex: 1 1 auto !important;
@@ -187,27 +188,27 @@
         .filter-group {
             display: flex;
             align-items: stretch;
-            border: 1px solid #9ec9d6;
+            border: 1px solid #ced4da;
             padding: 0 !important;
-            border-radius: 8px;
+            border-radius: 4px;
             height: 32px;
             background: #fff;
-            overflow: hidden;
+            overflow: visible;
             width: 100%;
             box-sizing: border-box;
         }
         .filter-group .filter-label {
             font-size: 11px;
-            color: #ffffff;
+            color: #64748b;
             margin: 0 !important;
             padding: 0 10px !important;
             white-space: nowrap;
-            font-weight: 700;
-            border-right: 1px solid #5a7fa0;
+            font-weight: 500;
+            border-right: 1px solid #e2e8f0;
             height: auto !important;
             display: inline-flex;
             align-items: center;
-            background: #6992b5;
+            background: #f8fafc;
             flex: 0 0 auto;
             min-width: fit-content;
         }
@@ -251,23 +252,54 @@
             margin: 0 !important;
             padding: 0 !important;
         }
-        .pickup-filters-fields .row.no-gutters {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            align-items: center !important;
-            gap: 8px !important;
-            margin: 0 !important;
-        }
-        .pickup-filters-fields .custom-col {
-            padding: 0 !important;
-            margin: 0 !important;
+        .pickup-filters-fields {
+            width: 100%;
+            max-width: 100%;
             min-width: 0;
         }
-        .pickup-filters-fields .clear-filters,
-        .pickup-filters-fields .btn-clear-filters {
-            margin: 0 !important;
-            align-self: center;
+
+        .pickup-filters-fields .custom-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -5px;
+            margin-left: -5px;
+        }
+
+        .pickup-filters-fields .custom-col {
+            padding-right: 5px;
+            padding-left: 5px;
+            margin-bottom: 0 !important;
+            flex-shrink: 0;
+        }
+
+        .pickup-filters-fields .filter-row {
+            margin-bottom: 0;
+        }
+
+        .pickup-filters-fields .list-dense-filter-row {
+            gap: 8px;
+            border-bottom: none !important;
+            padding: 0 !important;
+            background: transparent !important;
+            align-items: center;
+            flex-wrap: wrap !important;
+            align-content: flex-start;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .pickup-filters-fields .list-dense-filter-row .btn-clear-filters {
+            display: inline-flex;
+            align-items: center;
+            height: 32px;
             white-space: nowrap;
+            margin-left: 0;
+            padding: 0 4px;
+        }
+
+        .pickup-table-area #offices-table thead th {
+            z-index: 10 !important;
         }
         .label {
             border-radius: 2px;
@@ -347,56 +379,6 @@
             color: #ff5252;
             margin-right: 5px;
         }
-        /* Bootstrap Multiselect Custom Styling */
-        .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .multiselect-native-select .multiselect {
-            width: 100%;
-            text-align: left;
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 11px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .multiselect-native-select .multiselect-container {
-            width: 235px;
-            font-size: 11px;
-        }
-        .multiselect-native-select .multiselect-container li a label {
-            padding: 6px 10px 6px 6px;
-            display: block;
-            margin: 0;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .multiselect-native-select .multiselect-selected .form-check-label {
-            color: #008080;
-            font-weight: bold;
-        }
-        .multiselect-item.multiselect-all label {
-            font-weight: bold;
-            color: #333;
-        }
-        input.form-control.multiselect-search {
-            font-size: 11px;
-        }
-        .multiselect-container .input-group {
-            margin: 2px;
-        }
-        .input-group-addon {
-            background-color: #01a9ac;
-            color: #fff;
-            max-height: 31px;
-        }
-        .multiselect-container>li {
-            padding: 0px 5px;
-        }
-        .multiselect-item .input-group {
-            width: 114%;
-        }
         /* Select2 Custom Styling */
         .select2-container--default .select2-selection--single {
             background-color: #fff !important;
@@ -444,20 +426,6 @@
         }
         .select2-container--default .select2-selection--multiple .select2-selection__choice span {
             color: #495057 !important;
-        }
-        /* Filter Toggle Button Styling */
-        .btn-filter-toggle {
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 14px;
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-filter-toggle:hover, .btn-filter-toggle:focus, .btn-filter-toggle:active {
-            background-color: #008080 !important;
-            color: white !important;
-            border-color: #008080 !important;
         }
         
         /* Reduce gap/margin between sidebar and content */
@@ -545,11 +513,9 @@
                 color: #008080 !important;
             }
 
-            /* Hide column-picker — its Search box was the only thing showing */
-            .pickup-filters-fields .mr-2,
-            .pickup-filters-fields .btn-filter-toggle,
-            .pickup-filters-fields #filter-multiselect + .btn-group,
-            .pickup-filters-fields .multiselect-native-select .btn-group:has(.btn-filter-toggle) {
+            /* Hide column picker on mobile — toolbar toggle controls filter visibility */
+            .pickup-filters-fields .list-dense-filter-controls,
+            .pickup-filters-fields .pickup-filter-controls {
                 display: none !important;
             }
 
@@ -558,7 +524,7 @@
                 max-width: 100% !important;
             }
 
-            .pickup-filters-fields .row.no-gutters {
+            .pickup-filters-fields .list-dense-filter-row {
                 margin-left: 0 !important;
                 margin-right: 0 !important;
                 display: flex !important;
@@ -638,6 +604,10 @@
             .pickup-filters-toolbar {
                 display: none !important;
             }
+            .pickup-filters-fixed {
+                overflow: visible;
+                z-index: 120;
+            }
             .pickup-filters-fields {
                 display: flex !important;
                 max-height: none !important;
@@ -645,6 +615,30 @@
             }
             body.pickup-filters-collapsed .pickup-filters-fields {
                 display: flex !important;
+            }
+            .pickup-filters-fields .list-dense-filter-shell {
+                align-items: flex-start;
+            }
+            .pickup-filters-fields .list-dense-filter-controls {
+                align-self: flex-start;
+                position: relative;
+                z-index: 51;
+            }
+            .pickup-filters-fields .list-dense-filter-fields {
+                position: relative;
+                z-index: 1;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                overflow: visible !important;
+            }
+            .pickup-filters-fields .list-dense-filter-controls .mc-column-picker {
+                position: relative;
+                z-index: 52;
+            }
+            .pickup-filters-fields .list-dense-filter-controls .mc-column-picker__panel {
+                z-index: 1300;
+                isolation: isolate;
             }
         }
         .office-table thead th {
@@ -743,22 +737,23 @@
                                                         <i class="ti-filter"></i> <span class="pickup-filters-toggle-label">Hide filters</span>
                                                     </button>
                                                 </div>
-                                                <div class="justify-content-between align-items-start pt-2 pickup-filters-fields">
-                                                    <div style="width: 100%;">
-                                                        <div class="row no-gutters">
-                                                            <div class="mr-2" style="margin-top: 2px;">
-                                                                <select id="filter-multiselect" multiple="multiple">
-                                                                    <option value="Account manager" selected>Account manager</option>
-                                                                    <option value="Stock number" selected>Stock number</option>
-                                                                    <option value="Expected del. date" selected>Expected del. date</option>
-                                                                    <option value="Pick up date" selected>Pick up date</option>
-                                                                    <option value="Deadline warehouse" selected>Deadline warehouse</option>
-                                                                    <option value="Handled by" selected>Handled by</option>
-                                                                    <option value="Vessel" selected>Vessel</option>
-                                                                    <option value="Supplier ref" selected>Supplier ref</option>
-                                                                    <option value="Hub/Agent" selected>Hub/Agent</option>
-                                                                </select>
-                                                            </div>
+                                                <div class="d-flex pt-2 pickup-filters-fields list-dense-filter-bar">
+                                                    <div class="list-dense-filter-shell" style="width: 100%;">
+                                                        <div class="list-dense-filter-controls pickup-filter-controls">
+                                                            <select id="filter-multiselect" multiple="multiple" data-storage-key="pickup-list-filters-v2">
+                                                                <option value="Account manager" selected>Account manager</option>
+                                                                <option value="Stock number" selected>Stock number</option>
+                                                                <option value="Expected del. date" selected>Expected del. date</option>
+                                                                <option value="Pick up date" selected>Pick up date</option>
+                                                                <option value="Deadline warehouse" selected>Deadline warehouse</option>
+                                                                <option value="Handled by" selected>Handled by</option>
+                                                                <option value="Vessel" selected>Vessel</option>
+                                                                <option value="Supplier ref" selected>Supplier ref</option>
+                                                                <option value="Hub/Agent" selected>Hub/Agent</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="list-dense-filter-fields">
+                                                        <div class="row custom-row filter-row list-dense-filter-row">
                                                             <div id="col-Account-manager" class="custom-col" style="flex: 0 0 220px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Account manager</span>
@@ -832,7 +827,10 @@
                                                                     </select>
                                                                 </div>
                                                             </div>
-                                                            <x-lists.clear-filters id="clear-pickup-filters" />
+                                                            <div class="custom-col" style="flex: 0 0 auto;">
+                                                                <x-lists.clear-filters id="clear-pickup-filters" />
+                                                            </div>
+                                                        </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -902,32 +900,27 @@
                 }
             );
 
-            // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: false,
-                buttonWidth: '100%',
-                nonSelectedText: '',
-                allSelectedText: '',
-                nSelectedText: '',
-                numberDisplayed: 0,
-                buttonClass: 'btn btn-outline-teal btn-filter-toggle',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><i class="ti-filter"></i></button>'
-                },
-                onChange: function(option, checked) {
+                includeResetOption: true,
+                resetText: 'Clear all',
+                storageKey: 'pickup-list-filters-v2',
+                onChange: function () {
                     toggleFilterVisibility();
                 },
-                onSelectAll: function() {
+                onSelectAll: function () {
                     toggleFilterVisibility();
                 },
-                onDeselectAll: function() {
+                onDeselectAll: function () {
                     toggleFilterVisibility();
                 }
             });
 
             $('#filter-multiselect').multiselect('selectAll', false);
-            $('#filter-multiselect').multiselect('updateButtonText');
+            if ($('#filter-multiselect option:selected').length === 0) {
+                $('#filter-multiselect option').prop('selected', true);
+                $('#filter-multiselect').multiselect('updateButtonText');
+            }
 
             var pickupFilterIds = [
                 'col-Account-manager',
@@ -952,9 +945,11 @@
                 pickupFilterIds.forEach(function (id) {
                     $('#' + id).show().css('display', '');
                 });
-                // Column picker + its "Search" filter must stay hidden on mobile
-                $('.pickup-filters-fields .mr-2').hide();
-                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+                $('.pickup-filter-controls').hide();
+                var $panel = $('#filter-multiselect').data('mcColumnPickerPanel');
+                if ($panel && $panel.length) {
+                    $panel.removeClass('is-open');
+                }
             }
 
             function toggleFilterVisibility() {
@@ -982,9 +977,16 @@
                     {val: 'Hub/Agent', id: 'col-Hub-Agent'}
                 ];
 
+                if (selectedValues.length === 0) {
+                    allFilters.forEach(function(filter) {
+                        $('#' + filter.id).hide();
+                    });
+                    return;
+                }
+
                 allFilters.forEach(function(filter) {
                     if (selectedValues.indexOf(filter.val) !== -1) {
-                        $('#' + filter.id).show();
+                        $('#' + filter.id).css('display', '');
                     } else {
                         $('#' + filter.id).hide();
                     }

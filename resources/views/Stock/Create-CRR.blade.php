@@ -619,7 +619,7 @@
 
         /* ========== MarineCaddie v2 — Create CRR polish ========== */
         body.create-crr-page {
-            padding-bottom: 72px;
+            padding-bottom: 84px;
         }
 
         .page-body:has(.create-crr-page) {

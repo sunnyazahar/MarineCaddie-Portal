@@ -1,569 +1,263 @@
 @extends('layouts.app')
 
 @section('styles')
-    <!-- Data Table Css -->
-
-    <style>
-        /* Form Layout Styling */
-        .form-pillar-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 40px;
-            padding: 20px;
-            background: #fff;
-        }
-        .form-pillar {
-            display: flex;
-            flex-direction: column;
-            /* gap: 20px; */
-        }
-        .form-section-header {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1b5e6f;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 10px;
-        }
-        .form-group-custom {
-            margin-bottom: 15px;
-        }
-        .form-label-custom {
-            font-size: 13px;
-            color: #3c485a;
-            margin-bottom: 4px;
-            display: block;
-        }
-        .form-input-custom {
-            height: 32px;
-            border: 1px solid #d1d5db;
-            border-radius: 3px;
-            width: 100%;
-            padding: 5px 10px;
-            font-size: 12px;
-            color: #333;
-        }
-        .form-textarea-custom {
-            border: 1px solid #d1d5db;
-            border-radius: 3px;
-            width: 100%;
-            padding: 8px 10px;
-            font-size: 12px;
-            color: #333;
-            resize: none;
-        }
-        .input-row {
-            display: flex;
-            gap: 15px;
-        }
-        .input-row > div {
-            flex: 1;
-        }
-        .input-group-custom {
-            display: flex;
-        }
-        .btn-input-append {
-            height: 32px;
-            background: #e9ecef;
-            border: 1px solid #d1d5db;
-            border-left: none;
-            padding: 0 10px;
-            border-radius: 0 3px 3px 0;
-            cursor: pointer;
-            color: #666;
-            display: flex;
-            align-items: center;
-        }
-        .form-input-custom.has-append {
-            border-radius: 3px 0 0 3px;
-        }
-
-        /* Footer Styling */
-        .form-footer {
-            padding: 20px;
-            background: #fff;
-            border-top: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .btn-save-custom {
-            background: #1b5e6f;
-            color: #fff;
-            border: none;
-            padding: 8px 25px;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .btn-cancel-custom {
-            color: #01a9ac;
-            text-decoration: none;
-            font-size: 13px;
-        }
-        .btn-save-custom:hover {
-            background: #144653;
-        }
-
-        /* Layout Adjustments */
-        .pcoded-inner-content {
-            padding: 10px !important;
-        }
-        .main-body .page-wrapper {
-            padding: 10px !important;
-        }
-
-        /* Select2 Background Removal - High Specificity */
-        body .select2-container--default .select2-selection--single {
-            background-color: #fff !important;
-            background: #fff !important;
-            border: 1px solid #d1d5db !important;
-            height: 32px !important;
-            border-radius: 3px !important;
-            box-sizing: border-box !important;
-        }
-        body .select2-container--default.select2-container--focus .select2-selection--single,
-        body .select2-container--default.select2-container--open .select2-selection--single {
-            border-color: #1b5e6f !important;
-        }
-
-        body .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 1.25 !important;
-            color: #333 !important;
-            font-size: 12px !important;
-            padding-left: 10px !important;
-            background-color: transparent !important;
-            background: transparent !important;
-        }
-
-        body .select2-container--default .select2-selection--single .select2-selection__placeholder {
-            color: #999 !important;
-        }
-
-        body .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 30px !important;
-            top: 1px !important;
-            right: 6px !important;
-        }
-        body .select2-container--default .select2-selection--single .select2-selection__arrow b {
-            border-color: #6b7280 transparent transparent transparent !important;
-        }
-        body .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
-            border-color: transparent transparent #6b7280 transparent !important;
-        }
-        .select2-dropdown {
-            background-color: #fff !important;
-            border: 1px solid #d1d5db !important;
-        }
-        .img-flag {
-            width: 20px;
-            height: 15px;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @media (max-width: 1199.98px) {
-            .form-pillar-container {
-                grid-template-columns: 1fr 1fr !important;
-                gap: 24px;
-                padding: 20px;
-            }
-        }
-
-        @media (max-width: 991.98px) {
-            .form-pillar-container {
-                grid-template-columns: 1fr !important;
-                gap: 24px !important;
-                padding: 12px !important;
-                max-width: 100%;
-                overflow-x: hidden;
-            }
-
-            .form-pillar {
-                width: 100%;
-                max-width: 100%;
-                min-width: 0;
-            }
-
-            .input-row {
-                flex-direction: column;
-                gap: 12px;
-            }
-
-            .input-row .form-group-custom {
-                flex: 0 0 auto !important;
-                width: 100% !important;
-            }
-
-            .form-group-custom input[style*="width: 50%"],
-            .form-input-custom[style*="width: 50%"] {
-                width: 100% !important;
-            }
-
-            .form-footer {
-                left: 0 !important;
-                right: 0 !important;
-                padding: 12px 16px;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
-            .btn-save-custom,
-            .btn-cancel-custom {
-                width: 100%;
-                text-align: center;
-            }
-
-            .footer-metadata {
-                margin-left: 0 !important;
-                width: 100%;
-                text-align: left !important;
-            }
-
-            .form-label-custom {
-                white-space: normal;
-                line-height: 1.3;
-            }
-
-            .select2-container {
-                width: 100% !important;
-                max-width: 100%;
-            }
-
-            .card {
-                margin-bottom: 24px;
-            }
-        }
-    </style>
+    @include('Other Companies.partials.create-page-styles')
 @endsection
 
 @section('content')
-<!-- Pre-loader start -->
-    <div class="theme-loader">
-        <div class="ball-scale">
-            <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
+    <script>document.body.classList.add('create-other-company-page');</script>
+
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+
+    <div class="create-other-company-page">
+        <div class="create-other-company-hero">
+            <div class="create-other-company-hero-main">
+                <span class="create-other-company-hero-icon" aria-hidden="true">
+                    <i class="ti-layout-grid2"></i>
+                </span>
+                <div>
+                    <p class="create-other-company-kicker">Administration</p>
+                    <h1 class="create-other-company-title">Create other company</h1>
+                    <p class="create-other-company-sub">Add a third-party company with address, port, billing details, and contact person.</p>
                 </div>
             </div>
+            <a href="{{ route('other-companies.index') }}" class="create-other-company-back">
+                <i class="ti-arrow-left"></i> Back to other companies
+            </a>
+        </div>
+
+        <div class="create-other-company-card">
+            <div class="oc-form-container">
+                @if ($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show oc-form-alert" role="alert">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                @endif
+
+                <form id="companyCreateForm" action="{{ route('other-companies.store') }}" method="POST">
+                    @csrf
+
+                    <div class="oc-pillars">
+                        <div class="oc-pillar-col">
+                            <div class="oc-pillar">
+                                <div class="oc-pillar__title">Company information</div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="company_name">Company name <span class="text-danger">*</span></label>
+                                    <input type="text" id="company_name" name="company_name" class="form-control-custom"
+                                        value="{{ old('company_name') }}" required autocomplete="organization">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="company_type">Company type</label>
+                                    <select id="company_type" name="company_type" class="form-control-custom select2-company-type">
+                                        <option value=""></option>
+                                        @foreach ($companyTypes as $type)
+                                            <option value="{{ $type }}" {{ old('company_type') == $type ? 'selected' : '' }}>{{ $type }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="address-sub-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="code">Code</label>
+                                        <input type="text" id="code" name="code" class="form-control-custom" value="{{ old('code') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="code_description">Code description</label>
+                                        <input type="text" id="code_description" name="code_description" class="form-control-custom"
+                                            value="{{ old('code_description') }}">
+                                    </div>
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="phone_number">Phone number (with country code)</label>
+                                    <input type="text" id="phone_number" name="phone_number" class="form-control-custom"
+                                        value="{{ old('phone_number') }}" autocomplete="tel">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="email">Email</label>
+                                    <input type="email" id="email" name="email" class="form-control-custom" value="{{ old('email') }}">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="contact_person">Contact person <span class="text-danger">*</span></label>
+                                    <input type="text" id="contact_person" name="contact_person" class="form-control-custom"
+                                        value="{{ old('contact_person') }}" required autocomplete="name">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="remarks">Remarks</label>
+                                    <textarea id="remarks" name="remarks" class="form-textarea-custom" rows="3">{{ old('remarks') }}</textarea>
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
+                                    <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="oc-pillar-col">
+                            <div class="oc-pillar">
+                                <div class="oc-pillar__title">Company address</div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="street_address">Street address</label>
+                                    <textarea id="street_address" name="street_address" class="form-textarea-custom" rows="3">{{ old('street_address') }}</textarea>
+                                </div>
+
+                                <div class="address-sub-grid">
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="city">City</label>
+                                        <input type="text" id="city" name="city" class="form-control-custom" value="{{ old('city') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="district_state">District/state</label>
+                                        <input type="text" id="district_state" name="district_state" class="form-control-custom"
+                                            value="{{ old('district_state') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="zip_code">Zip code</label>
+                                        <input type="text" id="zip_code" name="zip_code" class="form-control-custom" value="{{ old('zip_code') }}">
+                                    </div>
+                                </div>
+
+                                <x-forms.country-select
+                                    name="country_id"
+                                    label="Country"
+                                    :countries="$countries"
+                                    class="form-control-custom"
+                                />
+
+                                <x-forms.port-select
+                                    name="port_code"
+                                    label="Port code"
+                                />
+
+                                <div class="oc-pillar__title" style="margin-top: 8px;">Office address (optional)</div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="office_street_address">Street address / post box</label>
+                                    <textarea id="office_street_address" name="office_street_address" class="form-textarea-custom" rows="3">{{ old('office_street_address') }}</textarea>
+                                </div>
+
+                                <div class="address-sub-grid">
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="office_city">City</label>
+                                        <input type="text" id="office_city" name="office_city" class="form-control-custom" value="{{ old('office_city') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="office_district_state">District/state</label>
+                                        <input type="text" id="office_district_state" name="office_district_state" class="form-control-custom"
+                                            value="{{ old('office_district_state') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="office_zip_code">Zip code</label>
+                                        <input type="text" id="office_zip_code" name="office_zip_code" class="form-control-custom"
+                                            value="{{ old('office_zip_code') }}">
+                                    </div>
+                                </div>
+
+                                <x-forms.country-select
+                                    name="office_country_id"
+                                    label="Country"
+                                    :countries="$countries"
+                                    class="form-control-custom"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="oc-pillar-col">
+                            <div class="oc-pillar">
+                                <div class="oc-pillar__title">Company details</div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="vat_number">VAT number</label>
+                                    <input type="text" id="vat_number" name="vat_number" class="form-control-custom" value="{{ old('vat_number') }}">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="eori_number">EORI number</label>
+                                    <input type="text" id="eori_number" name="eori_number" class="form-control-custom" value="{{ old('eori_number') }}">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="currency">Currency</label>
+                                    <select id="currency" name="currency" class="form-control-custom select2-currency">
+                                        <option value=""></option>
+                                        @foreach ($currencies as $curr)
+                                            <option value="{{ $curr }}" {{ old('currency') == $curr ? 'selected' : '' }}>{{ $curr }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="un_locode">UN/LOCODE</label>
+                                    <input type="text" id="un_locode" name="un_locode" class="form-control-custom" value="{{ old('un_locode') }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="create-other-company-footer">
+            <button type="submit" class="btn-save-custom" form="companyCreateForm">Save company</button>
+            <a href="{{ route('other-companies.index') }}" class="btn-cancel-custom">Cancel</a>
         </div>
     </div>
-    <!-- Pre-loader end -->
-    @include('layouts.partials.pcoded-shell-start')
-                                        <div class="card">
-                                            <form action="{{ route('other-companies.store') }}" method="POST" id="companyCreateForm">
-                                                @csrf
-                                                <div class="form-pillar-container">
-                                                    <!-- Column 1: Company information -->
-                                                    <div class="form-pillar">
-                                                        <div class="form-section-header">Company information</div>
-                                                        
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Company name</label>
-                                                            <input type="text" name="company_name" class="form-input-custom" value="{{ old('company_name') }}" required>
-                                                        </div>
 
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Company type</label>
-                                                            <select name="company_type" class="form-input-custom select2-company-type">
-                                                                <option value=""></option>
-                                                                @foreach($companyTypes as $type)
-                                                                    <option value="{{ $type }}" {{ old('company_type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-
-                                                        <div class="input-row">
-                                                            <div class="form-group-custom">
-                                                                <label class="form-label-custom">Code</label>
-                                                                <input type="text" name="code" class="form-input-custom" value="{{ old('code') }}">
-                                                            </div>
-                                                            <div class="form-group-custom">
-                                                                <label class="form-label-custom">Code description</label>
-                                                                <input type="text" name="code_description" class="form-input-custom" value="{{ old('code_description') }}">
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Phone number (with country code)</label>
-                                                            <input type="text" name="phone_number" class="form-input-custom" value="{{ old('phone_number') }}">
-                                                        </div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Email</label>
-                                                            <input type="email" name="email" class="form-input-custom" value="{{ old('email') }}">
-                                                        </div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Remarks</label>
-                                                            <textarea name="remarks" class="form-textarea-custom" rows="3">{{ old('remarks') }}</textarea>
-                                                        </div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Special considerations for destination</label>
-                                                            <textarea name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
-                                                        </div>
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Contact Person <span class="text-danger">*</span></label>
-                                                            <input type="text" name="contact_person" class="form-input-custom" value="{{ old('contact_person') }}" required>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Column 2: Company address -->
-                                                    <div class="form-pillar">
-                                                        <div class="form-section-header">Company address</div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Street address</label>
-                                                            <textarea name="street_address" class="form-textarea-custom" rows="3">{{ old('street_address') }}</textarea>
-                                                        </div>
-
-                                                        <div class="input-row">
-                                                            <div class="form-group-custom">
-                                                                <label class="form-label-custom">City</label>
-                                                                <input type="text" name="city" class="form-input-custom" value="{{ old('city') }}">
-                                                            </div>
-                                                            <div class="form-group-custom">
-                                                                <label class="form-label-custom">District/state</label>
-                                                                <input type="text" name="district_state" class="form-input-custom" value="{{ old('district_state') }}">
-                                                            </div>
-                                                            <div class="form-group-custom">
-                                                                <label class="form-label-custom">Zip code</label>
-                                                                <input type="text" name="zip_code" class="form-input-custom" value="{{ old('zip_code') }}">
-                                                            </div>
-                                                        </div>
-
-                                                        <x-forms.country-select
-                                                            name="country_id"
-                                                            label="Country"
-                                                            :countries="$countries"
-                                                            class="form-input-custom"
-                                                        />
-
-                                                        <x-forms.port-select
-                                                            name="port_code"
-                                                            label="Port code"
-                                                        />
-
-                                                        <div class="form-section-header" style="margin-top: 20px;">Office address (Optional)</div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Street address / post box</label>
-                                                            <textarea name="office_street_address" class="form-textarea-custom" rows="3">{{ old('office_street_address') }}</textarea>
-                                                        </div>
-
-                                                        <div class="input-row">
-                                                            <div class="form-group-custom">
-                                                                <label class="form-label-custom">City</label>
-                                                                <input type="text" name="office_city" class="form-input-custom" value="{{ old('office_city') }}">
-                                                            </div>
-                                                            <div class="form-group-custom">
-                                                                <label class="form-label-custom">District/state</label>
-                                                                <input type="text" name="office_district_state" class="form-input-custom" value="{{ old('office_district_state') }}">
-                                                            </div>
-                                                            <div class="form-group-custom">
-                                                                <label class="form-label-custom">Zip code</label>
-                                                                <input type="text" name="office_zip_code" class="form-input-custom" value="{{ old('office_zip_code') }}">
-                                                            </div>
-                                                        </div>
-
-                                                        <x-forms.country-select
-                                                            name="office_country_id"
-                                                            label="Country"
-                                                            :countries="$countries"
-                                                            class="form-input-custom"
-                                                        />
-                                                    </div>
-
-                                                    <!-- Column 3: Company details -->
-                                                    <div class="form-pillar">
-                                                        <div class="form-section-header">Company details</div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">VAT number</label>
-                                                            <input type="text" name="vat_number" class="form-input-custom" value="{{ old('vat_number') }}">
-                                                        </div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">EORI number</label>
-                                                            <input type="text" name="eori_number" class="form-input-custom" value="{{ old('eori_number') }}">
-                                                        </div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">Currency</label>
-                                                            <select name="currency" class="form-input-custom select2-currency">
-                                                                <option value=""></option>
-                                                                @foreach($currencies as $curr)
-                                                                    <option value="{{ $curr }}" {{ old('currency') == $curr ? 'selected' : '' }}>{{ $curr }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-
-                                                        <div class="form-group-custom">
-                                                            <label class="form-label-custom">UN/LOCODE</label>
-                                                            <input type="text" name="un_locode" class="form-input-custom" style="width: 50%;" value="{{ old('un_locode') }}">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Footer Buttons -->
-                                                <div class="form-footer">
-                                                    <button type="submit" class="btn-save-custom">Save</button>
-                                                    <a href="{{ route('other-companies.index') }}" class="btn-cancel-custom">Cancel</a>
-                                                    <div class="footer-metadata" style="margin-left: auto; text-align: right; font-size: 11px; color: #999; line-height: 1.4;"></div>
-                                                </div>
-                                            </form>
-                                        </div>
     @include('layouts.partials.pcoded-shell-end')
 
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
+            $('body').addClass('create-other-company-page');
+
             $('#companyCreateForm').validate({
                 rules: {
-                    company_name: {
-                        required: true
-                    },
-                    contact_person: {
-                        required: true
-                    }
+                    company_name: { required: true },
+                    contact_person: { required: true }
                 },
                 messages: {
-                    company_name: {
-                        required: "Please enter the company name"
-                    },
-                    contact_person: {
-                        required: "Please enter the contact person"
-                    }
+                    company_name: { required: 'Please enter the company name' },
+                    contact_person: { required: 'Please enter the contact person' }
                 },
                 errorElement: 'div',
                 errorClass: 'error-message',
                 errorPlacement: function (error, element) {
-                    error.insertAfter(element);
+                    if (element.hasClass('select2-hidden-accessible')) {
+                        error.insertAfter(element.next('.select2'));
+                    } else {
+                        error.insertAfter(element);
+                    }
                 },
                 highlight: function (element) {
-                    $(element).addClass("error");
+                    $(element).addClass('error');
                 },
                 unhighlight: function (element) {
-                    $(element).removeClass("error");
+                    $(element).removeClass('error');
                 }
             });
 
-            $('select.select2-company-type').select2({
+            $('.select2-company-type').select2({
                 placeholder: 'Select company type',
-                allowClear: false,
+                allowClear: true,
                 width: '100%'
             });
 
-            $('select.select2-currency').select2({
-                placeholder: 'Select Currency',
-                allowClear: false,
+            $('.select2-currency').select2({
+                placeholder: 'Select currency',
+                allowClear: true,
                 width: '100%'
-            });
-
-             // Initialize Select2 for standard filters
-            $('select.select2').select2({
-                placeholder: "Click here",
-                allowClear: false
-            });
-
-            // Initialize Bootstrap Multiselect for special filter toggle
-            $('#filter-multiselect').multiselect({
-                includeSelectAllOption: true,
-                enableFiltering: true,
-                buttonWidth: '100%',
-                maxHeight: 200,
-                nonSelectedText: '',
-                allSelectedText: '',
-                nSelectedText: '',
-                numberDisplayed: 0,
-                buttonClass: 'btn btn-outline-teal btn-filter-toggle',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><i class="ti-filter"></i></button>'
-                },
-                onChange: function(option, checked) {
-                    toggleFilterVisibility();
-                },
-                onSelectAll: function() {
-                    toggleFilterVisibility();
-                },
-                onDeselectAll: function() {
-                    toggleFilterVisibility();
-                }
-            });
-
-            function toggleFilterVisibility() {
-                var selectedOptions = $('#filter-multiselect option:selected');
-                var selectedValues = [];
-                selectedOptions.each(function() {
-                    selectedValues.push($(this).val());
-                });
-
-                var allFilters = [
-                    {val: 'Office Name', id: 'col-Office-Name'},
-                    {val: 'Short Name', id: 'col-Short-Name'},
-                    {val: 'City', id: 'col-City'},
-                    {val: 'Country', id: 'col-Country'},
-                    {val: 'Phone', id: 'col-Phone'},
-                    {val: 'Email', id: 'col-Email'}
-                ];
-
-                allFilters.forEach(function(filter) {
-                    if (selectedValues.includes(filter.val)) {
-                        $('#' + filter.id).show();
-                    } else {
-                        $('#' + filter.id).hide();
-                    }
-                });
-            }
-            
-            // Initial call to set visibility state
-            toggleFilterVisibility();
-
-            $('#other-companies-table').DataTable({
-                "lengthChange": false,
-                "pageLength": 25,
-                "responsive": false,
-                "searching": false,
-                "ordering": true,
-                "autoWidth": false,
-                "language": {
-                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                    "paginate": {
-                        "previous": "<",
-                        "next": ">"
-                    }
-                }
             });
         });
     </script>

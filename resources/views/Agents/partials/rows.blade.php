@@ -20,26 +20,28 @@
         data-is-inactive="{{ $isInactive ? '1' : '0' }}"
     >
         <td>
-            <a href="{{ route('agents.edit', ['id' => $agent->id]) }}" class="agent-link">
+            <a href="{{ route('agents.edit', ['id' => $agent->id]) }}" class="agent-name-link">
                 {{ $agent->agent_name }}
             </a>
         </td>
-        <td>{{ $agent->code }}</td>
-        <td>{{ $agent->city }}</td>
+        <td>{{ $agent->code ?: '—' }}</td>
+        <td>{{ $agent->city ?: '—' }}</td>
         <td>
-            @if($countryName)
-                @if(!empty($agent->country->flag_url))
-                    <img src="{{ $agent->country->flag_url }}" class="country-flag" alt="">
-                @endif
-                {{ $countryName }}
+            @if ($countryName)
+                <span class="agent-country-cell">
+                    @if (!empty($agent->country->flag_url))
+                        <img src="{{ $agent->country->flag_url }}" class="agent-country-flag" alt="">
+                    @endif
+                    <span class="agent-country-name">{{ $countryName }}</span>
+                </span>
             @else
                 —
             @endif
         </td>
-        <td>{{ $agent->phone }}</td>
+        <td>{{ $agent->phone ?: '—' }}</td>
         <td>
-            @if($agent->email)
-                <a href="mailto:{{ $agent->email }}" class="company-link">{{ $agent->email }}</a>
+            @if ($agent->email)
+                <a href="mailto:{{ $agent->email }}" class="agent-email-link">{{ $agent->email }}</a>
             @else
                 —
             @endif
@@ -56,23 +58,21 @@
                 {{ $isInactive ? 'Inactive' : 'Active' }}
             </button>
         </td>
-        <td>
-            <div class="action-icons">
-                <a href="{{ route('agents.edit', ['id' => $agent->id]) }}">
+        <td class="text-right">
+            <div class="agent-action-icons">
+                <a href="{{ route('agents.edit', ['id' => $agent->id]) }}" class="agent-action-btn" title="Edit agent">
                     <i class="ti-pencil"></i>
                 </a>
-                @if($canWriteAdministration)
-                <a href="javascript:void(0)" class="delete-agent" data-id="{{ $agent->id }}" data-name="{{ $agent->agent_name }}" title="Delete agent">
-                    <i class="ti-trash"></i>
-                </a>
+                @if ($canWriteAdministration)
+                    <a href="javascript:void(0)" class="agent-action-btn delete-agent" data-id="{{ $agent->id }}" data-name="{{ $agent->agent_name }}" title="Delete agent">
+                        <i class="ti-trash"></i>
+                    </a>
                 @endif
             </div>
         </td>
     </tr>
 @empty
     <tr>
-        <td colspan="9" style="text-align:center; padding:40px; color:#9ca3af;">
-            No agents found.
-        </td>
+        <td colspan="9" class="text-center text-muted py-4">No agents found.</td>
     </tr>
 @endforelse

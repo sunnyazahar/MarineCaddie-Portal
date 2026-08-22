@@ -141,7 +141,7 @@
             border-radius: 4px;
             height: 32px;
             background: #fff;
-            overflow: hidden;
+            overflow: visible;
             width: 100%;
         }
         .filter-group .filter-label {
@@ -229,55 +229,6 @@
             min-width: 70px;
             text-align: center;
         }
-        .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .multiselect-native-select .multiselect {
-            width: 100%;
-            text-align: left;
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 11px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .multiselect-native-select .multiselect-container {
-            width: 235px;
-            font-size: 11px;
-        }
-        .multiselect-native-select .multiselect-container li a label {
-            padding: 6px 10px 6px 6px;
-            display: block;
-            margin: 0;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .multiselect-native-select .multiselect-selected .form-check-label {
-            color: #008080;
-            font-weight: bold;
-        }
-        .multiselect-item.multiselect-all label {
-            font-weight: bold;
-            color: #333;
-        }
-        input.form-control.multiselect-search {
-            font-size: 11px;
-        }
-        .multiselect-container .input-group {
-            margin: 2px;
-        }
-        .input-group-addon {
-            background-color: #01a9ac;
-            color: #fff;
-            max-height: 31px;
-        }
-        .multiselect-container>li {
-            padding: 0px 5px;
-        }
-        .multiselect-item .input-group {
-            width: 114%;
-        }
         .select2-container--default .select2-selection--single {
             background-color: #fff !important;
             border: 1px solid #ced4da !important;
@@ -321,19 +272,6 @@
             font-size: 10px !important;
             margin-top: 4px !important;
             padding: 1px 5px !important;
-        }
-        .btn-filter-toggle {
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 14px;
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-filter-toggle:hover, .btn-filter-toggle:focus, .btn-filter-toggle:active {
-            background-color: #008080 !important;
-            color: white !important;
-            border-color: #008080 !important;
         }
 
         body.cost-follow-up-list-page {
@@ -383,6 +321,9 @@
         }
         .cost-filters-fields {
             width: 100%;
+        }
+        .cost-filters-fields .list-dense-filter-row {
+            gap: 8px;
         }
         .cost-table-area {
             flex: 1;
@@ -435,12 +376,11 @@
             body.cost-filters-open .cost-filters-fields {
                 display: flex !important;
             }
-            .cost-filters-fields .custom-col[style*="flex: 0 0 50px"],
-            .cost-filters-fields .btn-filter-toggle {
+            .cost-filters-fields .list-dense-filter-controls,
+            .cost-filters-fields .cost-filter-controls {
                 display: none !important;
             }
-            .cost-filters-fields .filter-row,
-            .cost-filters-fields .row.custom-row {
+            .cost-filters-fields .list-dense-filter-row {
                 display: flex !important;
                 flex-direction: column !important;
                 flex-wrap: nowrap !important;
@@ -575,22 +515,22 @@
                                                     body-class="cost-filters-open"
                                                     toolbar-class="cost-filters-toolbar"
                                                 />
-                                                <div class="d-flex justify-content-between align-items-start pt-2 cost-filters-fields">
-                                                    <div style="width: 100%;">
-                                                        <div class="row custom-row filter-row">
-                                                            <div class="custom-col" style="flex: 0 0 50px;">
-                                                                <select id="filter-multiselect" multiple="multiple">
-                                                                    <option value="Account manager" selected>Account manager</option>
-                                                                    <option value="Shipment no" selected>Shipment no</option>
-                                                                    <option value="Customer" selected>Customer</option>
-                                                                    <option value="Vessel" selected>Vessel</option>
-                                                                    <option value="Port of destination" selected>Port of destination</option>
-                                                                    <option value="Status" selected>Status</option>
-                                                                    <option value="Created by" selected>Created by</option>
-                                                                </select>
-                                                            </div>
-
-                                                            <div id="col-Account-manager" class="custom-col" style="flex: 0 0 220px;">
+                                                <div class="d-flex justify-content-between align-items-start pt-2 cost-filters-fields list-dense-filter-bar">
+                                                    <div class="list-dense-filter-shell" style="width: 100%;">
+                                                        <div class="list-dense-filter-controls cost-filter-controls">
+                                                            <select id="filter-multiselect" multiple="multiple" data-storage-key="cost-list-filters">
+                                                                <option value="Account manager" selected>Account manager</option>
+                                                                <option value="Shipment no" selected>Shipment no</option>
+                                                                <option value="Customer" selected>Customer</option>
+                                                                <option value="Vessel" selected>Vessel</option>
+                                                                <option value="Port of destination" selected>Port of destination</option>
+                                                                <option value="Status" selected>Status</option>
+                                                                <option value="Created by" selected>Created by</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="list-dense-filter-fields">
+                                                        <div class="row custom-row filter-row list-dense-filter-row">
+                                                            <div id="col-Account-manager" class="custom-col" style="flex: 0 0 185px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Account manager</span>
                                                                     <select id="filter-account-manager" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -601,14 +541,14 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 200px;">
+                                                            <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 170px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Shipment no</span>
                                                                     <input type="text" id="filter-shipment-no" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Customer" class="custom-col" style="flex: 0 0 250px;">
+                                                            <div id="col-Customer" class="custom-col" style="flex: 0 0 195px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Customer</span>
                                                                     <select id="filter-customer" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -619,7 +559,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Vessel" class="custom-col" style="flex: 0 0 200px;">
+                                                            <div id="col-Vessel" class="custom-col" style="flex: 0 0 165px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Vessel</span>
                                                                     <select id="filter-vessel" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -630,14 +570,14 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Port-of-destination" class="custom-col" style="flex: 0 0 220px;">
+                                                            <div id="col-Port-of-destination" class="custom-col" style="flex: 0 0 185px;">
                                                                 <div class="filter-group">
-                                                                    <span class="filter-label">Port of destination</span>
+                                                                    <span class="filter-label">Port dest.</span>
                                                                     <input type="text" id="filter-port-destination" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Status" class="custom-col" style="flex: 0 0 180px;">
+                                                            <div id="col-Status" class="custom-col" style="flex: 0 0 155px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Status</span>
                                                                     <select id="filter-status" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -648,7 +588,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div id="col-Created-by" class="custom-col" style="flex: 0 0 220px;">
+                                                            <div id="col-Created-by" class="custom-col" style="flex: 0 0 175px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Created by</span>
                                                                     <select id="filter-created-by" class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
@@ -659,9 +599,10 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div class="custom-col">
+                                                            <div class="custom-col" style="flex: 0 0 auto;">
                                                                 <x-lists.clear-filters id="clear-cost-filters" />
                                                             </div>
+                                                        </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -711,24 +652,16 @@
 
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: false,
-                buttonWidth: '100%',
-                maxHeight: 200,
-                nonSelectedText: '',
-                allSelectedText: '',
-                nSelectedText: '',
-                numberDisplayed: 0,
-                buttonClass: 'btn btn-outline-teal btn-filter-toggle',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><i class="ti-filter"></i></button>'
-                },
-                onChange: function() {
+                includeResetOption: true,
+                resetText: 'Clear all',
+                storageKey: 'cost-list-filters',
+                onChange: function () {
                     toggleFilterVisibility();
                 },
-                onSelectAll: function() {
+                onSelectAll: function () {
                     toggleFilterVisibility();
                 },
-                onDeselectAll: function() {
+                onDeselectAll: function () {
                     toggleFilterVisibility();
                 }
             });
@@ -757,8 +690,11 @@
                 costFilterIds.forEach(function (id) {
                     $('#' + id).show().css('display', '');
                 });
-                $('.cost-filters-fields .custom-col[style*="flex: 0 0 50px"]').hide();
-                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+                $('.cost-filter-controls').hide();
+                var $panel = $('#filter-multiselect').data('mcColumnPickerPanel');
+                if ($panel && $panel.length) {
+                    $panel.removeClass('is-open');
+                }
             }
 
             function toggleFilterVisibility() {
@@ -1024,10 +960,6 @@
 
             $('#filter-shipment-no, #filter-port-destination').on('keyup input', scheduleFetch);
             $('#filter-customer, #filter-vessel, #filter-account-manager, #filter-status, #filter-created-by').on('change', scheduleFetch);
-
-            $(document).on('click', '.multiselect-reset a', function () {
-                setTimeout(scheduleFetch, 0);
-            });
 
             $('#clear-cost-filters').on('click', function(e) {
                 e.preventDefault();

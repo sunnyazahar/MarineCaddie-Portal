@@ -1,55 +1,57 @@
 {{-- Loaded last in layout so page-local filter CSS cannot wash out label colors --}}
 <style id="mc-filter-chrome">
     html body .filter-group {
-        border: 1px solid #9ec9d6 !important;
-        border-radius: 8px !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 4px !important;
         background: #ffffff !important;
-        box-shadow: 0 1px 2px rgba(14, 29, 74, 0.06) !important;
+        box-shadow: none !important;
+        height: 32px !important;
         padding: 0 !important;
-        overflow: hidden !important;
-        align-items: stretch !important;
+        overflow: visible !important;
+        align-items: center !important;
     }
 
     html body .filter-group:focus-within {
-        border-color: #0088c7 !important;
-        box-shadow: 0 0 0 3px rgba(0, 136, 199, 0.18) !important;
+        border-color: #ced4da !important;
+        box-shadow: none !important;
     }
 
     html body .filter-group > .filter-label,
     html body .filter-group .filter-label {
-        background: #6992b5 !important;
-        background-color: #6992b5 !important;
+        background: #f8fafc !important;
+        background-color: #f8fafc !important;
         background-image: none !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
         font-size: 11px !important;
-        letter-spacing: 0.02em !important;
-        border-right: 1px solid #5a7fa0 !important;
+        letter-spacing: normal !important;
+        border-right: 1px solid #e2e8f0 !important;
         margin: 0 !important;
         padding: 0 10px !important;
         display: inline-flex !important;
         align-items: center !important;
-        height: auto !important;
+        height: 100% !important;
         text-shadow: none !important;
     }
 
     html body .filter-group .filter-input {
-        color: #0e1d4a !important;
-        font-weight: 600 !important;
+        color: #1e293b !important;
+        font-weight: 400 !important;
+        font-size: 11px !important;
         background: transparent !important;
-        padding-left: 8px !important;
-        padding-right: 8px !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
     }
 
     html body .filter-group .filter-input::placeholder {
-        color: #64748b !important;
+        color: #94a3b8 !important;
         opacity: 1 !important;
     }
 
     html body .filter-group .filter-date-icon,
     html body .filter-group > i.ti-calendar {
-        color: #0088c7 !important;
-        opacity: 1 !important;
+        color: #64748b !important;
+        opacity: 0.85 !important;
         margin: 0 !important;
         flex: 0 0 28px !important;
         width: 28px !important;
@@ -58,21 +60,27 @@
         justify-content: center !important;
     }
 
+    html body .filter-group .filter-date-icon:hover,
+    html body .filter-group > i.ti-calendar:hover {
+        color: #008080 !important;
+        opacity: 1 !important;
+    }
+
     html body .searchable-filter-wrapper .mc-filter-summary {
-        color: #0e1d4a !important;
-        font-weight: 600 !important;
-        font-size: 12px !important;
+        color: #1e293b !important;
+        font-weight: 400 !important;
+        font-size: 11px !important;
     }
 
     html body .searchable-filter-wrapper .mc-filter-summary.is-placeholder {
-        color: #64748b !important;
-        font-weight: 500 !important;
+        color: #94a3b8 !important;
+        font-weight: 400 !important;
     }
 
     html body .btn-clear-filters,
     html body a.clear-filters,
     html body .clear-filters {
-        color: #0088c7 !important;
-        font-weight: 700 !important;
+        color: #008080 !important;
+        font-weight: 400 !important;
     }
 </style>

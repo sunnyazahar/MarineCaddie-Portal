@@ -212,13 +212,18 @@
             font-size: 13px;
             border-radius: 2px;
         }
-        .clear-filters {
+        .clear-filters,
+        .btn-clear-filters {
             font-size: 12px;
-            color: #ff5252;
+            color: #008080;
             text-decoration: none;
             cursor: pointer;
-            margin-top: 3px;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            height: 32px;
+            white-space: nowrap;
+            margin: 0;
+            padding: 0 4px;
         }
         .card-header-actions .btn {
             font-size: 12px;
@@ -228,6 +233,12 @@
         .custom-col {
             padding: 2px;
             margin-bottom: 0;
+        }
+        .custom-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -5px;
+            margin-left: -5px;
         }
         .filter-row {
             margin-bottom: 4px !important;
@@ -240,22 +251,21 @@
             border-radius: 4px;
             height: 32px;
             background: #fff;
-            overflow: hidden;
+            overflow: visible;
             width: 100%;
         }
         .filter-group .filter-label {
             font-size: 11px;
-            color: #ffffff;
+            color: #64748b;
             margin-bottom: 0;
             padding: 0 10px;
             white-space: nowrap;
-            font-weight: 700;
-            border-right: 1px solid #5a7fa0;
+            font-weight: 500;
+            border-right: 1px solid #e2e8f0;
             height: 100%;
             display: flex;
             align-items: center;
-            background: #6992b5;
-            background-color: #6992b5;
+            background: #f8fafc;
             min-width: fit-content;
         }
         .filter-group .filter-input {
@@ -332,56 +342,10 @@
             align-items: center;
             padding: 0 10px;
             font-weight: 500;
+            align-self: center;
+            white-space: nowrap;
         }
-        /* Bootstrap Multiselect Custom Styling */
-        .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .multiselect-native-select .multiselect {
-            width: 100%;
-            text-align: left;
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 11px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .multiselect-native-select .multiselect-container {
-            width: 235px;
-            font-size: 11px;
-        }
-        .multiselect-native-select .multiselect-container li a label {
-            padding: 5px 10px 5px 0;
-            display: block;
-            margin: 0;
-            cursor: pointer;
-        }
-        .multiselect-native-select .multiselect-selected .form-check-label {
-            color: #008080;
-            font-weight: bold;
-        }
-        .multiselect-item.multiselect-all label {
-            font-weight: bold;
-            color: #333;
-        }
-        input.form-control.multiselect-search {
-            font-size: 11px;
-        }
-        .multiselect-container .input-group {
-            margin: 2px;
-        }
-        .input-group-addon {
-            background-color: #01a9ac;
-            color: #fff;
-            max-height: 31px;
-        }
-        .multiselect-container>li {
-            padding: 0px 5px;
-        }
-        .multiselect-item .input-group {
-            width: 114%;
-        }
+
         /* Select2 Custom Styling */
         .select2-container .select2-selection--single {
             height: 30px !important;
@@ -402,7 +366,7 @@
             border: 1px solid #ced4da;
             border-radius: 2px;
         }
-        /* Filter Toggle Button Styling */
+        /* Filter column picker uses .mc-column-picker (common-assets-styles) */
         .btn-filter-toggle {
             height: 32px;
             width: 32px;
@@ -462,31 +426,43 @@
             flex-shrink: 0;
             background: #fff;
             position: relative;
-            z-index: 40;
+            z-index: 120;
             padding-bottom: 6px;
         }
         .shipments-filters-toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            position: absolute;
-            top: 6px;
-            right: 0;
-            z-index: 50;
-        }
-        .shipments-filters-toolbar #btn-shipments-filters-toggle {
             display: none;
         }
         .shipments-filters-fields {
             width: 100%;
-            padding-right: 170px;
+            max-width: 100%;
+            min-width: 0;
             box-sizing: border-box;
         }
         .shipments-filters-fields-main {
             width: 100%;
         }
-        .shipments-create-desktop {
-            display: none;
+        .shipments-filters-fields .custom-col {
+            padding-right: 5px;
+            padding-left: 5px;
+            flex-shrink: 0;
+        }
+        .shipments-filters-fields .filter-row {
+            margin-bottom: 0;
+        }
+        .shipments-filters-fields .list-dense-filter-row {
+            gap: 8px;
+            border-bottom: none !important;
+            padding: 0 !important;
+            background: transparent !important;
+            align-items: center;
+            flex-wrap: wrap !important;
+            align-content: flex-start;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+        }
+        .shipments-table-area #offices-table > thead {
+            z-index: 6 !important;
         }
 
         @media (max-width: 991.98px) {
@@ -509,21 +485,22 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                position: static;
                 gap: 8px;
                 flex-wrap: wrap;
                 padding: 4px 0 8px;
             }
-            .shipments-filters-fields {
-                padding-right: 0;
-            }
-            .shipments-filters-toolbar #btn-shipments-filters-toggle {
-                display: inline-flex;
-            }
-            .shipments-filters-toolbar-actions {
+            .shipments-filters-toolbar .shipments-filters-toolbar-actions {
                 display: flex;
                 align-items: center;
                 gap: 8px;
+                flex-wrap: wrap;
+            }
+            .shipments-filters-fields {
+                padding-right: 0;
+            }
+            .shipments-filters-fields .list-dense-filter-controls,
+            .shipments-filters-fields .shipments-filter-controls {
+                display: none !important;
             }
             /* Start collapsed on mobile so the table is visible */
             .shipments-filters-fields {
@@ -544,10 +521,6 @@
                 background: #008080 !important;
                 color: #fff !important;
             }
-            .shipments-filters-fields .mr-2,
-            .shipments-filters-fields .btn-filter-toggle {
-                display: none !important;
-            }
             .shipments-filters-fields .filter-row {
                 display: flex !important;
                 flex-direction: column !important;
@@ -565,8 +538,8 @@
                 display: block !important;
                 visibility: visible !important;
             }
-            .shipments-create-desktop {
-                display: none !important;
+            .shipments-filters-fields .btn-clear-filters {
+                margin: 4px 0 8px;
             }
             .shipments-table-area {
                 flex: 1 1 auto;
@@ -581,17 +554,54 @@
         @media (min-width: 992px) {
             .shipments-filters-toolbar {
                 display: flex !important;
+                align-items: center;
+                justify-content: flex-end;
+                position: absolute;
+                top: 8px;
+                right: 0;
+                z-index: 55;
+                gap: 8px;
+                padding: 0;
             }
             .shipments-filters-toolbar #btn-shipments-filters-toggle {
                 display: none !important;
             }
+            .shipments-filters-fixed {
+                overflow: visible;
+                z-index: 120;
+            }
             .shipments-filters-fields {
-                display: block !important;
+                display: flex !important;
                 max-height: none !important;
                 overflow: visible !important;
+                padding-right: 168px;
             }
             body.shipments-filters-open .shipments-filters-fields {
-                display: block !important;
+                display: flex !important;
+            }
+            .shipments-filters-fields .list-dense-filter-shell {
+                align-items: flex-start;
+            }
+            .shipments-filters-fields .list-dense-filter-controls {
+                align-self: flex-start;
+                position: relative;
+                z-index: 51;
+            }
+            .shipments-filters-fields .list-dense-filter-fields {
+                position: relative;
+                z-index: 1;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                overflow: visible !important;
+            }
+            .shipments-filters-fields .list-dense-filter-controls .mc-column-picker {
+                position: relative;
+                z-index: 52;
+            }
+            .shipments-filters-fields .list-dense-filter-controls .mc-column-picker__panel {
+                z-index: 1300;
+                isolation: isolate;
             }
         }
 
@@ -673,11 +683,7 @@
                                                     icon="icofont icofont-ship"
                                                     :count="$shipments->total()"
                                                     countLabel="shipments"
-                                                >
-                                                    <x-slot:actions>
-                                                        <a href="{{ route('create-shipment') }}" class="btn btn-teal btn-sm d-none d-lg-inline-flex">Create shipment</a>
-                                                    </x-slot:actions>
-                                                </x-lists.page-header>
+                                                />
                                                 <div class="shipments-filters-fixed">
                                                 <div class="shipments-filters-toolbar">
                                                     <button type="button" id="btn-shipments-filters-toggle" class="btn btn-outline-teal btn-sm">
@@ -687,27 +693,28 @@
                                                         <a href="{{ route('create-shipment') }}" class="btn btn-teal btn-sm">Create shipment</a>
                                                     </div>
                                                 </div>
-                                                <div class="d-flex justify-content-between align-items-start pt-2 shipments-filters-fields">
-                                                    <div class="shipments-filters-fields-main">
-                                                        <div class="row no-gutters filter-row">
-                                                            <div class="mr-2" style="margin-top: 2px;">
-                                                                <select id="filter-multiselect" multiple="multiple">
-                                                                    <option value="Customer" selected>Customer</option>
-                                                                    <option value="Vessel" selected>Vessel</option>
-                                                                    <option value="Shipment no" selected>Shipment no</option>
-                                                                    <option value="Service reference number" selected>Service reference number</option>
-                                                                    <option value="PO number" selected>PO number</option>
-                                                                    <option value="Departure hub" selected>Departure hub</option>
-                                                                    <option value="Consignee" selected>Consignee</option>
-                                                                    <option value="Port of destination" selected>Port of destination</option>
-                                                                    <option value="Account manager" selected>Account manager</option>
-                                                                    <option value="Created by" selected>Created by</option>
-                                                                    <option value="Office" selected>Office</option>
-                                                                    <option value="Creation date" selected>Creation date</option>
-                                                                    <option value="Service" selected>Service</option>
-                                                                    <option value="Status" selected>Status</option>
-                                                                </select>
-                                                            </div>
+                                                <div class="d-flex pt-2 shipments-filters-fields list-dense-filter-bar">
+                                                    <div class="shipments-filters-fields-main list-dense-filter-shell" style="width: 100%;">
+                                                        <div class="list-dense-filter-controls shipments-filter-controls">
+                                                            <select id="filter-multiselect" multiple="multiple" data-storage-key="shipments-list-filters-v2">
+                                                                <option value="Customer" selected>Customer</option>
+                                                                <option value="Vessel" selected>Vessel</option>
+                                                                <option value="Shipment no" selected>Shipment no</option>
+                                                                <option value="Service reference number" selected>Service reference number</option>
+                                                                <option value="PO number" selected>PO number</option>
+                                                                <option value="Departure hub" selected>Departure hub</option>
+                                                                <option value="Consignee" selected>Consignee</option>
+                                                                <option value="Port of destination" selected>Port of destination</option>
+                                                                <option value="Account manager" selected>Account manager</option>
+                                                                <option value="Created by" selected>Created by</option>
+                                                                <option value="Office" selected>Office</option>
+                                                                <option value="Creation date" selected>Creation date</option>
+                                                                <option value="Service" selected>Service</option>
+                                                                <option value="Status" selected>Status</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="list-dense-filter-fields">
+                                                        <div class="row custom-row filter-row list-dense-filter-row">
                                                             <div id="col-Customer" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Customer</span>
@@ -759,8 +766,7 @@
                                                         </div>
 
                                                         <!-- Row 2 -->
-                                                        <div class="row no-gutters filter-row">
-                                                            
+                                                        <div class="row custom-row filter-row list-dense-filter-row">
                                                             <div id="col-Consignee" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Consignee</span>
@@ -830,15 +836,14 @@
                                                                     </select>
                                                                 </div>
                                                             </div>
-                                                            <a href="#" id="clear-shipments-filters" class="clear-filters">Clear filters</a>
+                                                            <div class="custom-col" style="flex: 0 0 auto;">
+                                                                <x-lists.clear-filters id="clear-shipments-filters" />
+                                                            </div>
                                                         </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="text-right shipments-create-desktop">
-                                                     <!-- <button class="btn btn-outline-teal"><i class="ti-download"></i> Export</button> -->
-                                                     <a href="{{ route('create-shipment') }}" class="btn btn-teal ml-2">Create shipment</a>
-                                                </div>
-                                            </div>
-                                                </div>
+                                                </div>{{-- .shipments-filters-fixed --}}
 
                                                 <div class="shipments-table-area">
                                                     <table id="offices-table"
@@ -902,33 +907,27 @@
                 onDeselectAll: loadShipmentsOnFilterChange
             });
 
-            // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: false,
-                buttonWidth: '100%',
-                maxHeight: 200,
-                nonSelectedText: '',
-                allSelectedText: '',
-                nSelectedText: '',
-                numberDisplayed: 0,
-                buttonClass: 'btn btn-outline-teal btn-filter-toggle',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><i class="ti-filter"></i></button>'
-                },
-                onChange: function(option, checked) {
+                includeResetOption: true,
+                resetText: 'Clear all',
+                storageKey: 'shipments-list-filters-v2',
+                onChange: function () {
                     toggleFilterVisibility();
                 },
-                onSelectAll: function() {
+                onSelectAll: function () {
                     toggleFilterVisibility();
                 },
-                onDeselectAll: function() {
+                onDeselectAll: function () {
                     toggleFilterVisibility();
                 }
             });
 
             $('#filter-multiselect').multiselect('selectAll', false);
-            $('#filter-multiselect').multiselect('updateButtonText');
+            if ($('#filter-multiselect option:selected').length === 0) {
+                $('#filter-multiselect option').prop('selected', true);
+                $('#filter-multiselect').multiselect('updateButtonText');
+            }
 
             var shipmentFilterIds = [
                 'col-Customer',
@@ -958,8 +957,11 @@
                 shipmentFilterIds.forEach(function (id) {
                     $('#' + id).show().css('display', '');
                 });
-                $('.shipments-filters-fields .mr-2').hide();
-                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+                $('.shipments-filter-controls').hide();
+                var $panel = $('#filter-multiselect').data('mcColumnPickerPanel');
+                if ($panel && $panel.length) {
+                    $panel.removeClass('is-open');
+                }
             }
 
             function toggleFilterVisibility() {
@@ -994,9 +996,19 @@
                     {val: 'Status', id: 'col-Status'}
                 ];
 
+                if (selectedValues.length === 0) {
+                    allFilters.forEach(function(filter) {
+                        $('#' + filter.id).hide();
+                    });
+                    if (table && table.columns) {
+                        setTimeout(adjustShipmentsTableLayout, 50);
+                    }
+                    return;
+                }
+
                 allFilters.forEach(function(filter) {
                     if (selectedValues.indexOf(filter.val) !== -1) {
-                        $('#' + filter.id).show();
+                        $('#' + filter.id).css('display', '');
                     } else {
                         $('#' + filter.id).hide();
                     }
@@ -1169,16 +1181,9 @@
                 if ($('#filter-creation-date').hasClass('hasDatepicker')) {
                     $('#filter-creation-date').datepicker('setDate', null);
                 }
-                $('.searchable-filter-multiselect').each(function () {
-                    var $select = $(this);
-                    $select.find('option').prop('selected', false);
-                    $select.val([]);
-                    $select.multiselect('clearSelection');
-                    $select.closest('.multiselect-native-select').find('.multiselect-search').val('');
-                    $select.closest('.multiselect-native-select').find('li.multiselect-filter-hidden')
-                        .removeClass('multiselect-filter-hidden')
-                        .show();
-                });
+                if (typeof clearSearchableFilterMultiselect === 'function') {
+                    clearSearchableFilterMultiselect('.searchable-filter-multiselect', false);
+                }
             }
 
             $('#filter-creation-date').datepicker({
@@ -1235,16 +1240,6 @@
                 suppressFilterLoad = false;
                 loadShipments(1);
                 return false;
-            });
-
-            $(document).on('click', '.shipments-filters-fields .multiselect-reset a', function () {
-                if (!shouldLoadFilters()) {
-                    return;
-                }
-
-                setTimeout(function () {
-                    loadShipments(1);
-                }, 0);
             });
 
             setTimeout(function () {

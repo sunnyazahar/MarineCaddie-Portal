@@ -46,7 +46,7 @@
         <ul class="pcoded-item pcoded-left-item">
             <li class="pcoded-hasmenu {{ request()->routeIs('shipments', 'shipments.edit', 'pre-alert-reminders', 'shipment-follow-up', 'cost-follow-up', 'create-shipment') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="shipments">
                 <a href="javascript:void(0)">
-                    <span class="pcoded-micon"><i class="icofont icofont-ship" style="font-size: 24px;"></i></span>
+                    <span class="pcoded-micon"><i class="icofont icofont-ship" style="font-size: 20px;"></i></span>
                     <span class="pcoded-mtext">Shipments</span>
                 </a>
                 <ul class="pcoded-submenu">

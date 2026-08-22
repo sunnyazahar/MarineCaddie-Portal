@@ -36,7 +36,7 @@
     @include('partials.form-control-typography')
 </head>
 
-<body class="{{ auth()->user()?->isOperations() && request()->routeIs('offices.*', 'hub.*', 'agents.*', 'customers.*', 'contacts.*') ? 'ops-admin-readonly' : '' }}">
+<body class="{{ auth()->user()?->isOperations() && request()->routeIs('offices.*', 'hub.*', 'agents.*', 'customers.*', 'contacts.*') ? 'ops-admin-readonly' : '' }}" data-mc-user-id="{{ auth()->id() ?? 'guest' }}">
     @include('layouts.partials.administration-readonly')
     <div id="app">
         <main>

@@ -16,21 +16,31 @@
         data-country="{{ $hub->country }}"
         data-is-inactive="{{ $isInactive ? '1' : '0' }}"
     >
-        <td><a href="{{ route('hub.show', $hub->id) }}" style="color: #3b82f6;">{{ $hub->hub_name }}</a></td>
-        <td>{{ $hub->code }}</td>
-        <td>{{ $hub->city }}</td>
         <td>
-            @if($hub->country)
-                @if(!empty($countryFlags[$hub->country]))
-                    <img src="{{ $countryFlags[$hub->country] }}" class="country-flag" alt="">
-                @endif
-                {{ $hub->country }}
+            <a href="{{ route('hub.show', $hub->id) }}" class="hub-name-link">{{ $hub->hub_name }}</a>
+        </td>
+        <td>{{ $hub->code ?: '—' }}</td>
+        <td>{{ $hub->city ?: '—' }}</td>
+        <td>
+            @if ($hub->country)
+                <span class="hub-country-cell">
+                    @if (!empty($countryFlags[$hub->country]))
+                        <img src="{{ $countryFlags[$hub->country] }}" class="hub-country-flag" alt="">
+                    @endif
+                    <span class="hub-country-name">{{ $hub->country }}</span>
+                </span>
             @else
                 —
             @endif
         </td>
-        <td>{{ $hub->phone_number }}</td>
-        <td>{{ $hub->email }}</td>
+        <td>{{ $hub->phone_number ?: '—' }}</td>
+        <td>
+            @if ($hub->email)
+                <a href="mailto:{{ $hub->email }}" class="hub-email-link">{{ $hub->email }}</a>
+            @else
+                —
+            @endif
+        </td>
         <td>
             <button type="button"
                 class="hub-status-toggle {{ $isInactive ? 'is-inactive' : 'is-active' }}"
@@ -43,16 +53,20 @@
             </button>
         </td>
         <td class="text-right">
-            <a href="{{ route('hub.show', $hub->id) }}" style="color: #ccc; margin-right: 8px;"><i class="ti-pencil"></i></a>
-            @if($canWriteAdministration)
-            <a href="javascript:void(0)" class="delete-hub" data-id="{{ $hub->id }}" data-name="{{ $hub->hub_name }}" style="color: #ccc;" title="Delete hub"><i class="ti-trash"></i></a>
-            @endif
+            <div class="hub-action-icons">
+                <a href="{{ route('hub.show', $hub->id) }}" class="hub-action-btn" title="Edit hub">
+                    <i class="ti-pencil"></i>
+                </a>
+                @if ($canWriteAdministration)
+                    <a href="javascript:void(0)" class="hub-action-btn delete-hub" data-id="{{ $hub->id }}" data-name="{{ $hub->hub_name }}" title="Delete hub">
+                        <i class="ti-trash"></i>
+                    </a>
+                @endif
+            </div>
         </td>
     </tr>
 @empty
     <tr>
-        <td colspan="8" style="text-align:center; padding:40px; color:#9ca3af;">
-            No hubs found.
-        </td>
+        <td colspan="8" class="text-center text-muted py-4">No hubs found.</td>
     </tr>
 @endforelse

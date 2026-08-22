@@ -53,7 +53,7 @@
 | Backend | Laravel 12, PHP 8.2+ |
 | Frontend | Blade, jQuery, **Tailwind CSS 4 (Vite)** — branch `feature/tailwind-v2` |
 | Brand palette | Marine navy `#0e1d4a`, Caddie sky `#00aeef`, coral CTA `#ff5a5f` / orange `#e87722` (`resources/css/app.css` `@theme`) |
-| Shared motion | Global page animations in `resources/css/mc-motion.css` (imported by `app.css`) — do not copy keyframes into page Blade |
+| Shared motion | Global page animations in `resources/css/mc-motion.css` + tab/filter hooks in `resources/js/mc-motion.js` (imported by Vite `app.js` / `app.css`) — **do not copy keyframes into page Blade** |
 | Select2 clear (×) | Globally hidden via `app.css` (`.select2-selection__clear`); country-select always `allowClear: false` — do not re-enable per page |
 | Control height | **34px** project-wide for text inputs + Select2 single via `--mc-control-height` (`app.css` + `common-assets-styles`); do not invent per-page heights |
 | Control / label font | **14px** inputs + Select2 (`--mc-control-font-size`), **13px** labels (`--mc-label-font-size`) — enforced last by `partials/form-control-typography` after page styles |
@@ -321,6 +321,22 @@ Page-specific JS that calls `bindAjaxListFilters()` should live in `@push('scrip
 **Do NOT use `<x-lists.base-styles />` on pages with a custom multi-row filter grid** (e.g. `Shipment/shipments`, `Stock/stocks`) unless you override all conflicting CSS — prefer page-local styles + `multiselect-assets` only.
 
 **After any list-page Blade migration:** open the affected route on localhost and verify filters + primary action button (Create/Add) on desktop **and** mobile width before push.
+
+#### Motion (tabs, sub-forms, filters — mandatory on migrated UI)
+
+> **Rule:** Naya hero / tab / list / filter page banate waqt inline `@keyframes` mat likho. Shared motion files use karo.
+
+| Surface | CSS (`mc-motion.css`) | JS (`mc-motion.js` + `bindAjaxListFilters`) |
+|---------|------------------------|-----------------------------------------------|
+| Tab bar + pane swap | `.tabs-container`, `.edit-office-tabs`, `.tab-content-custom.active`, `.tab-pane.active` | Click `.tab-item`, `.edit-office-tab`, Bootstrap tabs → `mc-tab-swap` |
+| Tab inner add/edit forms | `body.*-user-page`, `body.*-contact-page` hero/pillar/footer | Same as form shell (rise / chip-in / footer-up) |
+| List filters toolbar | `.list-filters-toolbar`, `.filter-row`, `[class*="-filters-area"]` | Show/hide filters → `mc-filter-reveal` |
+| Search / Select2 filters | `.filter-group:focus-within`, `.searchable-filter-wrapper` | Input / select2 change → `mc-filter-active`; clear → `mc-filter-reset` |
+| AJAX list refresh | `table.dataTable tbody tr.mc-list-row-in` | `bindAjaxListFilters` calls `mcPulseListRows` + `mcPulseListCount` after each load |
+
+New migrated sub-resource forms (hub/agent user, hub/agent contact, office user) must use the modern shell (`*-hero`, `*-pillar`, fixed `*-footer`) so global motion applies automatically.
+
+**Fixed footer rule:** Never leave a `transform` on an ancestor of a `position: fixed` footer after animation (`animation-fill-mode: both` + `translateY(0)` still counts). Shell cards use `mc-rise-soft` (ends `transform: none`); footer entrance uses opacity-only `mc-footer-up`. Page `body` needs `padding-bottom` ≥ footer height (~84px).
 
 ### 6g. Blade components catalog (reuse before copy-paste)
 
@@ -1150,4 +1166,4 @@ Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | ta
 
 ---
 
-*Last updated: Global page motion (`mc-motion.css`), Blade components catalog (§6g), country-select + list components, regression tests.*
+*Last updated: Global motion for tabs/filters/search (`mc-motion.css` + `mc-motion.js`), agent contact sub-forms, Blade components catalog (§6g), country-select + list components, regression tests.*

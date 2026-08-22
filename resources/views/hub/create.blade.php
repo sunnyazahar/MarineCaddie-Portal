@@ -1,798 +1,567 @@
 @extends('layouts.app')
 
 @section('styles')
-
     <style>
-        .main-body .page-wrapper {
-            padding: 0;
-        }
-        .md-tabs .nav-item {
-            width: calc(100% / 10);
-            text-align: center;
+        body.create-hub-page {
+            padding-bottom: 84px;
         }
 
-        .nav-tabs .slide {
-            background: #01a9ac;
-            width: calc(100% / 10);
-            height: 4px;
-            position: absolute;
-            -webkit-transition: left 0.3s ease-out;
-            transition: left 0.3s ease-out;
-            bottom: 0;
+        .page-body:has(.create-hub-page) {
+            padding: 0 !important;
+            margin: 0 !important;
         }
 
-        label {
-            font-size: 13px;
-            color: #262626;
-            font-weight: 500;
-        }
-
-        h5 {
-            font-size: 14px !important;
-            font-weight: bold !important;
-        }
-
-        .card .card-header .card-title {
-            font-weight: 600;
-            color: #1f4356;
-            border-bottom: 2px solid #c8c8c8;
-            padding: 7px 0px;
-        }
-
-        /* --- New Premium Form Styling --- */
-        .form-pillar-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1.2fr;
-            gap: 40px;
-            padding: 30px;
-            background: #fff;
-        }
-        .form-pillar {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .form-section-header {
-            font-size: 14px;
-            font-weight: 700;
-            color: #1b5e6f;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
-        }
-        .form-group-custom {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .form-label-custom {
-            font-size: 13px;
-            font-weight: 500;
-            color: #3c485a;
-            margin-bottom: 0;
-        }
-        .form-input-custom {
-            height: 32px;
-            padding: 6px 12px;
-            font-size: 13px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
+        .create-hub-page {
             width: 100%;
-            outline: none;
-            color: #374151;
+            max-width: none;
+            margin: 0;
+            padding: 12px 0 28px;
+            background:
+                radial-gradient(ellipse 70% 40% at 100% 0%, rgba(0, 174, 239, 0.08), transparent 50%),
+                radial-gradient(ellipse 50% 30% at 0% 0%, rgba(14, 29, 74, 0.05), transparent 45%),
+                #f5f7fb;
+            box-sizing: border-box;
         }
-        .form-input-custom:focus {
-            border-color: #01a9ac;
-            box-shadow: 0 0 0 2px rgba(1, 169, 172, 0.1);
-        }
-        .form-input-readonly {
-            background-color: #f9fafb;
-            color: #6b7280;
-            border-color: #e5e7eb;
-        }
-        .form-textarea-custom {
-            padding: 10px 12px;
-            font-size: 13px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            width: 100%;
-            resize: vertical;
-            outline: none;
-            color: #374151;
-        }
-        .input-row {
+
+        .create-hub-hero {
             display: flex;
-            gap: 12px;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 0 0 14px;
+            padding: 4px 16px 0;
         }
-        .input-row .form-group-custom {
-            flex: 1;
-        }
-        .input-group-custom {
+
+        .create-hub-hero-main {
             display: flex;
-            position: relative;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
         }
-        .input-group-custom .form-input-custom {
-            padding-right: 35px;
-        }
-        .form-select-custom {
-            height: 32px;
-            padding: 0 12px;
-            font-size: 13px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            width: 100%;
-            outline: none;
-            color: #374151;
-            background-color: #fff;
-        }
-        .form-select-custom:focus {
-            border-color: #01a9ac;
-            box-shadow: 0 0 0 2px rgba(1, 169, 172, 0.1);
-        }
-        .select2-container--default .select2-selection--single {
-            background-color: #fff !important;
-            background: #fff !important;
-            border: 1px solid #d1d5db !important;
-            border-top: 1px solid #d1d5db !important;
-            border-bottom: 1px solid #d1d5db !important;
-            border-left: 1px solid #d1d5db !important;
-            border-right: 1px solid #d1d5db !important;
-            height: 32px !important;
-            border-radius: 4px !important;
-            box-sizing: border-box !important;
-        }
-        .select2-container--default.select2-container--focus .select2-selection--single,
-        .select2-container--default.select2-container--open .select2-selection--single {
-            border-color: #01a9ac !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            background-color: transparent !important;
-            background: transparent !important;
-            line-height: 1.25 !important;
-            padding-left: 12px !important;
-            font-size: 13px !important;
-            color: #374151 !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__placeholder {
-            color: #9ca3af !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 30px !important;
-            top: 1px !important;
-            right: 8px !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow b {
-            border-color: #6b7280 transparent transparent transparent !important;
-        }
-        .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
-            border-color: transparent transparent #6b7280 transparent !important;
-        }
-        .select2-dropdown {
-            background-color: #fff !important;
-            border: 1px solid #d1d5db !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-        }
-        .select2-results__option {
-            font-size: 13px !important;
-            padding: 8px 12px !important;
-            color: #374151 !important;
-        }
-        .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background-color: #f3f4f6 !important;
-            color: #374151 !important;
-        }
-        .select2-container--default.error .select2-selection--single {
-            border-color: #d9534f !important;
-        }
-        .btn-input-append {
-            position: absolute;
-            right: 1px;
-            top: 1px;
-            height: 30px;
-            width: 30px;
-            background: #f3f4f6;
-            border: none;
-            border-left: 1px solid #d1d5db;
-            display: flex;
+
+        .create-hub-hero-icon {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: #6b7280;
-            cursor: pointer;
-            border-radius: 0 4px 4px 0;
-        }
-        .btn-input-append:hover {
-            background: #e5e7eb;
-        }
-        
-        /* Summary Header Bar */
-        .edit-header-summary {
-            background: #fff;
-            padding: 15px 25px;
-            display: flex;
-            gap: 40px;
-            border-bottom: 1px solid #e5e7eb;
-            margin-bottom: 0;
-        }
-        .summary-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .summary-label {
-            font-size: 11px;
-            color: #6b7280;
-            font-weight: 500;
-        }
-        .summary-value {
-            font-size: 15px;
-            font-weight: 700;
-            color: #111827;
-        }
-        
-        /* Summary Header Bar */
-        .edit-header-summary {
-            background: #fff;
-            padding: 10px 20px;
-            display: flex;
-            gap: 30px;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 0;
-        }
-        .summary-item {
-            display: flex;
-            flex-direction: column;
-        }
-        .summary-label {
-            font-size: 10px;
-            color: #888;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-        .summary-value {
-            font-size: 13px;
-            font-weight: 600;
-            color: #333;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+            color: #fff;
+            font-size: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0, 128, 128, 0.28);
         }
 
-        /* Footer Styling */
-        .form-footer {
-            padding: 15px 30px;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
+        .create-hub-kicker {
+            margin: 0 0 4px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #0088c7;
+        }
+
+        .create-hub-title {
+            margin: 0;
+            font-size: 1.65rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #0e1d4a;
+            line-height: 1.2;
+        }
+
+        .create-hub-sub {
+            margin: 6px 0 0;
+            font-size: 13px;
+            color: #64748b;
+            max-width: 36rem;
+        }
+
+        .create-hub-back {
+            display: inline-flex;
             align-items: center;
-            gap: 20px;
-            border-top: 1px solid #dee2e6;
-            position: fixed;
-            bottom: 0;
-            left: 240px; /* Adjust based on sidebar width */
-            right: 0;
-            z-index: 1000;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
-        }
-        .btn-saved-custom {
-            background-color: #1b5e6f;
-            color: white;
-            border: none;
-            padding: 8px 30px;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #d6e3ee;
+            background: #fff;
+            color: #0088c7;
+            font-size: 13px;
             font-weight: 600;
-        }
-        .btn-cancel-custom {
-            color: #01a9ac;
-            font-size: 14px;
             text-decoration: none;
+            box-shadow: 0 2px 8px rgba(14, 29, 74, 0.04);
+            transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+        }
+
+        .create-hub-back:hover {
+            border-color: #00aeef;
+            background: #e8f6fc;
+            color: #0088c7;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .create-hub-card {
+            position: relative;
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            background: #fff;
+            border: none;
+            border-top: 1px solid rgba(214, 227, 238, 0.95);
+            border-bottom: 1px solid rgba(214, 227, 238, 0.95);
+            border-radius: 0;
+            box-shadow: 0 8px 24px rgba(14, 29, 74, 0.04);
+            overflow: visible;
+        }
+
+        .create-hub-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff5a5f 0%, #e87722 35%, #00aeef 100%);
+            pointer-events: none;
+        }
+
+        .hub-form-container {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 20px 16px 24px !important;
+            background: transparent;
+        }
+
+        .hub-pillars {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .hub-pillar-col {
+            display: flex;
+            min-width: 0;
+        }
+
+        .hub-pillar {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: linear-gradient(180deg, #fbfdff 0%, #ffffff 48%);
+            border: 1px solid #d6e3ee;
+            border-radius: 14px;
+            padding: 14px 14px 12px;
+            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 8px 22px rgba(14, 29, 74, 0.04);
+            overflow: visible;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hub-pillar__title {
+            margin: 0 0 4px;
+            padding: 0 0 10px 10px;
+            border-bottom: 1px solid #e8eef4;
+            border-left: 3px solid #00aeef;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: #0e1d4a;
+            line-height: 1.2;
+        }
+
+        .form-group-custom {
+            margin-bottom: 0;
+        }
+
+        .address-sub-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        #hubForm .hub-pillar .form-control-custom,
+        #hubForm .hub-pillar .form-textarea-custom,
+        #hubForm .hub-pillar .select-custom {
+            width: 100%;
+            border: 1px solid #d6e3ee;
+            border-radius: 8px;
+            background: #fff;
+            color: #0e1d4a;
+        }
+
+        #hubForm .hub-pillar .form-control-custom,
+        #hubForm .hub-pillar .select-custom {
+            height: var(--mc-control-height, 34px);
+            padding: 0 10px;
+        }
+
+        #hubForm .hub-pillar .form-control-custom:focus,
+        #hubForm .hub-pillar .form-textarea-custom:focus,
+        #hubForm .hub-pillar .select-custom:focus {
+            outline: none;
+            border-color: #0088c7;
+            box-shadow: 0 0 0 3px rgba(0, 136, 199, 0.12);
+        }
+
+        #hubForm .hub-pillar .form-textarea-custom {
+            padding: 8px 10px;
+            min-height: 72px;
+            resize: vertical;
+            line-height: 1.4;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .checkbox-custom {
+            width: 16px;
+            height: 16px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            accent-color: #008080;
+        }
+
+        .checkbox-label {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        .hub-form-alert {
+            margin-bottom: 16px;
+            padding: 10px 14px;
+            font-size: 13px;
+            border-radius: 10px;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 11px;
+            margin-top: 4px;
             font-weight: 500;
         }
-        .btn-cancel-custom:hover {
-            text-decoration: underline;
+
+        #hubForm .form-control-custom.error,
+        #hubForm .form-textarea-custom.error {
+            border-color: #dc2626 !important;
         }
-        .metadata-footer {
-            padding: 20px 30px 80px 30px; /* Increased bottom padding for fixed footer */
-            background: #fff;
-            text-align: right;
-            font-size: 11px;
-            color: #9ca3af;
+
+        .select2-container--default.error .select2-selection--single {
+            border-color: #dc2626 !important;
+        }
+
+        body.create-hub-page .create-hub-footer {
+            position: fixed !important;
+            left: var(--spacing-sidebar, 13.25rem) !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            margin: 0 !important;
+            width: calc(100vw - var(--spacing-sidebar, 13.25rem)) !important;
+            max-width: none !important;
+            padding: 12px 28px !important;
+            box-sizing: border-box !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(8px);
+            display: flex !important;
+            align-items: center !important;
+            gap: 16px;
+            border-top: 1px solid rgba(226, 232, 240, 0.95);
+            z-index: 1040 !important;
+            box-shadow: 0 -8px 24px rgba(14, 29, 74, 0.06);
+        }
+
+        body.create-hub-page .create-hub-footer .btn-save-custom {
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%) !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 10px 28px !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.28);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        body.create-hub-page .create-hub-footer .btn-save-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 128, 128, 0.32);
+        }
+
+        body.create-hub-page .create-hub-footer .btn-cancel-custom {
+            color: #64748b !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+        }
+
+        body.create-hub-page .create-hub-footer .btn-cancel-custom:hover {
+            color: #008080 !important;
+            text-decoration: none !important;
+        }
+
+        body.create-hub-page .hub-pillar-col,
+        body.create-hub-page .hub-form-container,
+        body.create-hub-page .create-hub-card,
+        body.create-hub-page .hub-pillars {
+            overflow: visible !important;
         }
 
         @media (max-width: 1199.98px) {
-            .form-pillar-container {
-                grid-template-columns: 1fr 1fr !important;
-                gap: 24px;
-                padding: 20px;
+            .hub-pillars {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
         @media (max-width: 991.98px) {
-            .form-pillar-container {
+            .hub-pillars {
+                grid-template-columns: 1fr;
+            }
+
+            .address-sub-grid {
                 grid-template-columns: 1fr !important;
-                gap: 24px !important;
-                padding: 12px !important;
-                max-width: 100%;
-                overflow-x: hidden;
             }
 
-            .form-pillar {
-                width: 100%;
-                max-width: 100%;
-                min-width: 0;
-            }
-
-            .input-row {
-                flex-direction: column;
-                gap: 12px;
-            }
-
-            .input-row .form-group-custom,
-            .input-row .form-group-custom[style*="flex"] {
-                flex: 0 0 auto !important;
-                width: 100% !important;
-            }
-
-            .form-group-custom input[style*="width: 50%"],
-            .form-input-custom[style*="width: 50%"] {
-                width: 100% !important;
-            }
-
-            .form-footer {
+            body.create-hub-page .create-hub-footer {
                 left: 0 !important;
-                right: 0 !important;
-                padding: 12px 16px;
+                width: 100vw !important;
+                padding: 12px 16px !important;
                 flex-wrap: wrap;
-                gap: 10px;
             }
 
-            .btn-saved-custom {
-                width: 100%;
-                text-align: center;
+            body.create-hub-page .create-hub-footer .btn-save-custom {
+                flex: 1 1 auto;
             }
 
-            .btn-cancel-custom {
-                width: 100%;
-                text-align: center;
+            .create-hub-hero {
+                padding: 4px 12px 0;
             }
 
-            .metadata-footer {
-                padding: 16px 12px 96px;
-                text-align: left;
+            .hub-form-container {
+                padding: 16px 12px 20px !important;
             }
-
-            .form-label-custom {
-                white-space: normal;
-                line-height: 1.3;
-            }
-
-            .form-group-custom[style*="flex-direction: row"] {
-                align-items: flex-start !important;
-            }
-
-            .form-group-custom[style*="flex-direction: row"] .form-label-custom {
-                flex: 1;
-            }
-
-            .select2-container {
-                width: 100% !important;
-                max-width: 100%;
-            }
-
-            .card-block {
-                padding-left: 8px !important;
-                padding-right: 8px !important;
-            }
-        }
-
-        /* Validation Styling */
-        .error-message {
-            color: #d9534f;
-            font-size: 11px;
-            margin-top: 5px;
-            font-weight: 500;
-        }
-        .form-input-custom.error {
-            border-color: #d9534f !important;
-        }
-
-        /* Adjustments for hub details specific layout */
-        .tab-content-custom {
-            display: none;
-        }
-        .tab-content-custom.active {
-            display: block;
-        }
-
-        /* SOP Tab Specific Styling */
-        .upload-area {
-            border: 1px dashed #d1d5db;
-            padding: 35px;
-            text-align: center;
-            border-radius: 4px;
-            cursor: pointer;
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            margin-top: 15px;
-        }
-        .upload-area:hover {
-            background: #f9fafb;
-            border-color: #01a9ac;
-        }
-        .upload-icon {
-            font-size: 28px;
-            color: #1b5e6f;
-        }
-        .upload-text {
-            font-size: 13px;
-            color: #4b5563;
-        }
-        .file-list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 15px 0;
-            margin-bottom: 5px;
-        }
-        .file-info {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .file-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1f2937;
-            max-width: 90%;
-            line-height: 1.4;
-        }
-        .file-meta {
-            font-size: 11px;
-            color: #9ca3af;
-        }
-        .btn-delete-file {
-            color: #3b82f6;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        /* Hub Users Tab Styling */
-        .custom-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 5px;
-        }
-        .custom-table th {
-            text-align: left;
-            padding: 12px 15px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #1b5e6f;
-            border-bottom: 1px solid #e5e7eb;
-            background: #fff;
-        }
-        .empty-state-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 100px 0;
-            color: #9ca3af;
-        }
-        .empty-state-icon {
-            font-size: 24px;
-            background: #f3f4f6;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-        .empty-state-text {
-            font-size: 13px;
-        }
-
-        /* Contacts Tab Specific */
-        .custom-table td {
-            padding: 12px 15px;
-            font-size: 13px;
-            color: #4b5563;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: middle;
-        }
-        .table-link {
-            color: #3b82f6;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .table-link:hover {
-            text-decoration: underline;
-        }
-        .btn-action-pencil {
-            color: #9ca3af;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .btn-action-pencil:hover {
-            color: #4b5563;
         }
     </style>
 @endsection
+
 @section('content')
-    <!-- Pre-loader start -->
-    <div class="theme-loader">
-        <div class="ball-scale">
-            <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
+    <script>document.body.classList.add('create-hub-page');</script>
+
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+
+    <div class="create-hub-page">
+        <div class="create-hub-hero">
+            <div class="create-hub-hero-main">
+                <span class="create-hub-hero-icon" aria-hidden="true">
+                    <i class="ti-location-pin"></i>
+                </span>
+                <div>
+                    <p class="create-hub-kicker">Administration</p>
+                    <h1 class="create-hub-title">Create hub</h1>
+                    <p class="create-hub-sub">Add a warehouse hub with address, port, and customer portal settings.</p>
                 </div>
             </div>
+            <a href="{{ route('hub.index') }}" class="create-hub-back">
+                <i class="ti-arrow-left"></i> Back to hubs
+            </a>
         </div>
-    </div>
-    <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
 
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
-            <!-- Page-body start -->
-            <br>
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <!-- Main-body start -->
-                    <div class="main-body">
-                        <div class="page-wrapper">
-                            <!-- Page-header start -->
-                            <!-- Page-header end -->
+        <div class="create-hub-card">
+            <div class="hub-form-container">
+                @if ($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show hub-form-alert" role="alert">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                @endif
 
-                            <!-- Page-body start -->
-                            <div class="page-body">
-                                <!-- Base Style - Compact start -->
-                                <form id="hubForm" action="{{ route('hub.store') }}" method="POST">
-                                    @csrf
-                                    <div class="card mt-2">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <!-- Material tab card start -->
-                                            <div class="card">
-                                                <div class="card-block">
-                                                    <!-- Row start -->
-                                                    <div class="row">
-                                                        <div class="col-lg-12 col-xl-12 col-md-12">
-                                                            <!-- Tab panes -->
-                                                            <!-- Tab panes -->
-                                                            <div class="tab-content-container">
-                                                                 <!-- Hub Details Tab -->
-                                                                 <div id="hub-details" class="tab-content-custom active">
-                                                                    <div class="form-pillar-container">
-                                                                        <!-- Pillar 1: Hub information -->
-                                                                        <div class="form-pillar">
-                                                                            <div class="form-section-header">Hub information</div>
-                                                                            
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Hub name</label>
-                                                                                <div class="input-group-custom">
-                                                                                    <input type="text" name="hub_name" class="form-input-custom" value="" required>
-                                                                                    <button type="button" class="btn-input-append"><i class="ti-more-alt"></i></button>
-                                                                                </div>
-                                                                            </div>
+                <form id="hubForm" action="{{ route('hub.store') }}" method="POST">
+                    @csrf
 
-                                                                            <div class="form-group-custom d-none">
-                                                                                <label class="form-label-custom">Company id</label>
-                                                                                <input type="text" name="company_id" class="form-input-custom form-input-readonly" value="" >
-                                                                            </div>
+                    <div class="hub-pillars">
+                        <div class="hub-pillar-col">
+                            <div class="hub-pillar">
+                                <div class="hub-pillar__title">Hub information</div>
 
-                                                                            <div class="form-group-custom d-none">
-                                                                                <label class="form-label-custom">Customer number from FM</label>
-                                                                                <input type="text" name="customer_number_fm" class="form-input-custom">
-                                                                            </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="hub_name">Hub name</label>
+                                    <input type="text" id="hub_name" name="hub_name" class="form-control-custom"
+                                        value="{{ old('hub_name') }}" required autocomplete="organization">
+                                </div>
 
-                                                                            <div class="input-row">
-                                                                                <div class="form-group-custom">
-                                                                                    <label class="form-label-custom">Code</label>
-                                                                                    <input type="text" name="code" class="form-input-custom" value="">
-                                                                                </div>
-                                                                                <div class="form-group-custom">
-                                                                                    <label class="form-label-custom">Code description</label>
-                                                                                    <input type="text" name="code_description" class="form-input-custom" value="">
-                                                                                </div>
-                                                                            </div>
+                                <input type="hidden" name="company_id" value="{{ old('company_id') }}">
+                                <input type="hidden" name="customer_number_fm" value="{{ old('customer_number_fm') }}">
+                                <input type="hidden" name="is_gts_company" value="0">
 
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Phone number (with country code)</label>
-                                                                                <input type="text" name="phone_number" class="form-input-custom" value="">
-                                                                            </div>
-
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Email</label>
-                                                                                <input type="text" name="email" class="form-input-custom" value=""
-                                                                                    placeholder="email@example.com; email2@example.com">
-                                                                            </div>
-
-                                                                            <div class="form-group-custom d-none" style="flex-direction: row; gap: 8px; align-items: center; margin-top: 5px;">
-                                                                                <input type="checkbox" name="is_gts_company" id="is_gts_company" value="1">
-                                                                                <label class="form-label-custom" for="is_gts_company">This hub is part of GTS company</label>
-                                                                            </div>
-
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Remarks</label>
-                                                                                <textarea name="remarks" class="form-textarea-custom" rows="3"></textarea>
-                                                                            </div>
-
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Special considerations for destination</label>
-                                                                                <textarea name="special_considerations" class="form-textarea-custom" rows="3"></textarea>
-                                                                            </div>
-
-                                                                            <div class="form-group-custom" style="flex-direction: row; gap: 8px; align-items: center; margin-top: 5px;">
-                                                                                <input type="checkbox" name="show_pre_alert" id="show_pre_alert" value="1">
-                                                                                <label class="form-label-custom" for="show_pre_alert">Show pre-alert warning when items in shipment are not scanned</label>
-                                                                            </div>
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Contact Person <span class="text-danger">*</span></label>
-                                                                                <input type="text" name="contact_person" class="form-input-custom" value="{{ old('contact_person') }}" required>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <!-- Pillar 2: Hub address -->
-                                                                        <div class="form-pillar">
-                                                                            <div class="form-section-header">Hub address</div>
-                                                                            
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Hub address</label>
-                                                                                <textarea name="hub_address" class="form-textarea-custom" rows="3"></textarea>
-                                                                            </div>
-
-                                                                            <div class="input-row">
-                                                                                <div class="form-group-custom" style="flex: 2;">
-                                                                                    <label class="form-label-custom">City</label>
-                                                                                    <input type="text" name="city" class="form-input-custom" value="">
-                                                                                </div>
-                                                                                <div class="form-group-custom">
-                                                                                    <label class="form-label-custom">District/state</label>
-                                                                                    <input type="text" name="district_state" class="form-input-custom">
-                                                                                </div>
-                                                                                <div class="form-group-custom">
-                                                                                    <label class="form-label-custom">Zip code</label>
-                                                                                    <input type="text" name="zip_code" class="form-input-custom" value="">
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <x-forms.country-select
-                                                                                name="country"
-                                                                                label="Country"
-                                                                                :countries="$countries"
-                                                                                valueKey="name"
-                                                                                class="form-select-custom select2-flag"
-                                                                                :allowClear="true"
-                                                                            />
-
-                                                                            <x-forms.port-select
-                                                                                name="port_code"
-                                                                                label="Port code"
-                                                                                :value="old('port_code')"
-                                                                            />
-                                                                        </div>
-
-                                                                        <!-- Pillar 3: Hub details & portal -->
-                                                                        <div class="form-pillar">
-                                                                            <div class="form-section-header">Hub details</div>
-                                                                            
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">EORI number</label>
-                                                                                <input type="text" name="eori_number" class="form-input-custom">
-                                                                            </div>
-
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">UN/LOCODE</label>
-                                                                                <input type="text" name="un_locode" class="form-input-custom" style="width: 50%;">
-                                                                            </div>
-
-                                                                            <x-forms.country-select
-                                                                                name="office_country"
-                                                                                label="Office country"
-                                                                                :countries="$countries"
-                                                                                valueKey="name"
-                                                                                class="form-select-custom select2-flag"
-                                                                                :allowClear="true"
-                                                                            />
-
-                                                                            <div class="form-group-custom" style="flex-direction: row; gap: 8px; align-items: center; margin-top: 5px;">
-                                                                                <input type="checkbox" name="hide_in_portal" id="hide_in_portal" value="1">
-                                                                                <label class="form-label-custom" for="hide_in_portal">Do not show this hub in Customer portal</label>
-                                                                            </div>
-
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Remarks for the customer portal</label>
-                                                                                <textarea name="portal_remarks" class="form-textarea-custom" rows="3"></textarea>
-                                                                            </div>
-
-                                                                            <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Email for Customer Portal</label>
-                                                                                <input type="text" name="portal_email" class="form-input-custom"
-                                                                                    placeholder="email@example.com; email2@example.com">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <!-- Footer -->
-                                                            <div class="form-footer">
-                                                                <button type="submit" class="btn-saved-custom">Save Hub</button>
-                                                                <a href="{{ route('hub.index') }}" class="btn-cancel-custom">Cancel</a>
-                                                            </div>
-
-                                                            <div class="metadata-footer"></div>
-                                                        </div>
-                                                    </div>
-                                                    <!-- Row end -->
-                                                </div>
-                                            </div>
-                                            <!-- Material tab card end -->
-                                        </div>
+                                <div class="address-sub-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="code">Code</label>
+                                        <input type="text" id="code" name="code" class="form-control-custom" value="{{ old('code') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="code_description">Code description</label>
+                                        <input type="text" id="code_description" name="code_description" class="form-control-custom"
+                                            value="{{ old('code_description') }}">
                                     </div>
                                 </div>
-                                </form>
-                                <!-- Base Style - Compact end -->
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="phone_number">Phone number (with country code)</label>
+                                    <input type="text" id="phone_number" name="phone_number" class="form-control-custom"
+                                        value="{{ old('phone_number') }}" autocomplete="tel">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="email">Email</label>
+                                    <input type="text" id="email" name="email" class="form-control-custom"
+                                        value="{{ old('email') }}" placeholder="email@example.com; email2@example.com">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="contact_person">Contact person <span class="text-danger">*</span></label>
+                                    <input type="text" id="contact_person" name="contact_person" class="form-control-custom"
+                                        value="{{ old('contact_person') }}" required autocomplete="name">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="remarks">Remarks</label>
+                                    <textarea id="remarks" name="remarks" class="form-textarea-custom" rows="3">{{ old('remarks') }}</textarea>
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
+                                    <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
+                                </div>
+
+                                <div class="checkbox-group">
+                                    <input type="checkbox" class="checkbox-custom" name="show_pre_alert" id="show_pre_alert" value="1"
+                                        {{ old('show_pre_alert') ? 'checked' : '' }}>
+                                    <label class="checkbox-label" for="show_pre_alert">Show pre-alert warning when items in shipment are not scanned</label>
+                                </div>
                             </div>
-                            <!-- Page-body end -->
+                        </div>
+
+                        <div class="hub-pillar-col">
+                            <div class="hub-pillar">
+                                <div class="hub-pillar__title">Hub address</div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="hub_address">Hub address</label>
+                                    <textarea id="hub_address" name="hub_address" class="form-textarea-custom" rows="3">{{ old('hub_address') }}</textarea>
+                                </div>
+
+                                <div class="address-sub-grid">
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="city">City</label>
+                                        <input type="text" id="city" name="city" class="form-control-custom" value="{{ old('city') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="district_state">District/state</label>
+                                        <input type="text" id="district_state" name="district_state" class="form-control-custom"
+                                            value="{{ old('district_state') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="zip_code">Zip code</label>
+                                        <input type="text" id="zip_code" name="zip_code" class="form-control-custom" value="{{ old('zip_code') }}">
+                                    </div>
+                                </div>
+
+                                <x-forms.country-select
+                                    name="country"
+                                    label="Country"
+                                    :countries="$countries"
+                                    valueKey="name"
+                                    :value="old('country')"
+                                    wrapperClass="form-group-custom"
+                                    :allowClear="true"
+                                />
+
+                                <x-forms.port-select
+                                    name="port_code"
+                                    label="Port code"
+                                    :value="old('port_code')"
+                                    wrapperClass="form-group-custom"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="hub-pillar-col">
+                            <div class="hub-pillar">
+                                <div class="hub-pillar__title">Hub details &amp; portal</div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="eori_number">EORI number</label>
+                                    <input type="text" id="eori_number" name="eori_number" class="form-control-custom"
+                                        value="{{ old('eori_number') }}">
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="un_locode">UN/LOCODE</label>
+                                    <input type="text" id="un_locode" name="un_locode" class="form-control-custom"
+                                        value="{{ old('un_locode') }}">
+                                </div>
+
+                                <x-forms.country-select
+                                    name="office_country"
+                                    label="Office country"
+                                    :countries="$countries"
+                                    valueKey="name"
+                                    :value="old('office_country')"
+                                    wrapperClass="form-group-custom"
+                                    :allowClear="true"
+                                />
+
+                                <div class="checkbox-group">
+                                    <input type="checkbox" class="checkbox-custom" name="hide_in_portal" id="hide_in_portal" value="1"
+                                        {{ old('hide_in_portal') ? 'checked' : '' }}>
+                                    <label class="checkbox-label" for="hide_in_portal">Do not show this hub in Customer portal</label>
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="portal_remarks">Remarks for the customer portal</label>
+                                    <textarea id="portal_remarks" name="portal_remarks" class="form-textarea-custom" rows="3">{{ old('portal_remarks') }}</textarea>
+                                </div>
+
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="portal_email">Email for Customer Portal</label>
+                                    <input type="text" id="portal_email" name="portal_email" class="form-control-custom"
+                                        value="{{ old('portal_email') }}" placeholder="email@example.com; email2@example.com">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div id="styleSelector"></div>
-                </div>
+
+                </form>
             </div>
+        </div>
+
+        <div class="create-hub-footer">
+            <button type="submit" class="btn-save-custom" form="hubForm">Save hub</button>
+            <a href="{{ route('hub.index') }}" class="btn-cancel-custom">Cancel</a>
         </div>
     </div>
 
+    @include('layouts.partials.pcoded-shell-end')
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-
     <script>
-        $(document).ready(function() {
-            // Tab switching logic
-            $('.tab-item').on('click', function() {
-                var tabId = $(this).data('tab');
-                
-                // Update active tab link
-                $('.tab-item').removeClass('active');
-                $(this).addClass('active');
-                
-                // Show corresponding content
-                $('.tab-content-custom').removeClass('active');
-                $('#' + tabId).addClass('active');
-            });
+        $(document).ready(function () {
+            $('body').addClass('create-hub-page');
 
-            // jQuery Validation for Hub Form
             $.validator.addMethod('multiEmail', function (value, element) {
                 if (this.optional(element)) {
                     return true;
@@ -829,42 +598,49 @@
                 },
                 messages: {
                     hub_name: {
-                        required: "Please enter the hub name",
-                        minlength: "Hub name must be at least 3 characters"
+                        required: 'Please enter the hub name',
+                        minlength: 'Hub name must be at least 3 characters'
                     },
                     contact_person: {
-                        required: "Please enter the contact person"
+                        required: 'Please enter the contact person'
                     },
                     email: {
-                        multiEmail: "Please enter valid email address(es), separated by comma or semicolon"
+                        multiEmail: 'Please enter valid email address(es), separated by comma or semicolon'
                     },
                     portal_email: {
-                        multiEmail: "Please enter valid email address(es), separated by comma or semicolon"
+                        multiEmail: 'Please enter valid email address(es), separated by comma or semicolon'
                     }
                 },
                 errorElement: 'div',
                 errorClass: 'error-message',
-                errorPlacement: function(error, element) {
-                    if (element.hasClass('select2-flag') || element.is('[data-country-select]')) {
+                errorPlacement: function (error, element) {
+                    if (element.is('[data-country-select]') || element.is('[data-port-select]')) {
                         error.insertAfter(element.next('.select2-container'));
-                    } else if (element.parent('.input-group-custom').length) {
-                        error.insertAfter(element.parent());
                     } else {
                         error.insertAfter(element);
                     }
                 },
-                highlight: function(element, errorClass, validClass) {
-                    $(element).addClass("error");
-                    if ($(element).hasClass('select2-flag') || $(element).is('[data-country-select]')) {
+                highlight: function (element) {
+                    $(element).addClass('error');
+                    if ($(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
                         $(element).next('.select2-container').addClass('error');
                     }
                 },
-                unhighlight: function(element, errorClass, validClass) {
-                    $(element).removeClass("error");
-                    if ($(element).hasClass('select2-flag') || $(element).is('[data-country-select]')) {
+                unhighlight: function (element) {
+                    $(element).removeClass('error');
+                    if ($(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
                         $(element).next('.select2-container').removeClass('error');
                     }
                 }
+            });
+
+            $(document).on('select2:open', '.hub-pillar select', function () {
+                $('.hub-pillar').css('z-index', '');
+                $(this).closest('.hub-pillar').css('z-index', 40);
+            });
+
+            $(document).on('select2:close', '.hub-pillar select', function () {
+                $(this).closest('.hub-pillar').css('z-index', '');
             });
         });
     </script>

@@ -1,851 +1,404 @@
 @extends('layouts.app')
 
 @section('styles')
-    <!-- Data Table Css -->
+    @include('partials.list-pagination-footer-styles')
+
+    <x-lists.base-styles bodyClass="hubs-filters-open" toolbarClass="hubs-filters-toolbar" />
+    <x-lists.multiselect-assets />
 
     <style>
-        /* Table Styling */
-        .table-other-companies {
+        body.hubs-list-page {
+            overflow: hidden !important;
+            height: 100vh;
+        }
+        body.hubs-list-page .pcoded-content {
+            overflow: hidden !important;
+        }
+        body.hubs-list-page .pcoded-inner-content,
+        body.hubs-list-page .main-body,
+        body.hubs-list-page .page-wrapper,
+        body.hubs-list-page .page-body {
+            height: 100%;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .hubs-list-card {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
+            overflow: hidden;
+            background: #fff;
+        }
+        .hubs-list-card > .card-block {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            padding: 8px 12px 8px !important;
+        }
+        .hubs-list-card .list-page-header {
+            flex-shrink: 0;
+            margin-bottom: 8px;
+        }
+
+        .hubs-filters-area {
+            flex-shrink: 0;
+            margin-bottom: 8px;
+        }
+        .hubs-filters-area .filter-row {
+            margin: 0;
+            padding: 8px 10px;
+            border: 1px solid #d6e3ee;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%);
+        }
+
+        .btn-hubs-add {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 7px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            white-space: nowrap;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #00aeef 0%, #008080 100%);
+            box-shadow: 0 2px 8px rgba(0, 128, 128, 0.28);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-hubs-add:hover {
+            color: #fff;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.32);
+        }
+        .hubs-add-desktop {
+            margin-left: auto;
+        }
+
+        .hubs-add-mobile {
+            display: none;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: #fff;
+            color: #008080;
+            border: 1px solid #008080;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .hubs-add-mobile:hover {
+            background: #008080;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .hubs-table-area {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        #hubs-table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 980px;
         }
-        .table-other-companies th {
+        #hubs-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
             text-align: left;
-            padding: 8px 10px;
+            padding: 10px 14px;
             font-size: 11px;
-            font-weight: 600;
-            color: #1b5e6f;
-            border-bottom: 1px solid #eee;
-            border-right: 1px solid #eee;
-            background: #f8fafd;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #0e1d4a;
+            background: linear-gradient(180deg, #f0fafb 0%, #f8fafc 100%);
+            border-bottom: 2px solid #008080;
+            white-space: nowrap;
         }
-        .table-other-companies td {
-            padding: 8px 10px;
+        #hubs-table tbody td {
+            padding: 10px 14px !important;
+            vertical-align: middle !important;
             font-size: 13px;
-            color: #333;
-            border-bottom: 1px solid #f0f0f0;
-            border-right: 1px solid #f0f0f0;
-            vertical-align: middle;
+            color: #334155;
+            border-bottom: 1px solid #f1f5f9;
+            white-space: normal !important;
         }
-        .table-other-companies tr:hover td {
-            background-color: #f9fafb;
+        #hubs-table tbody tr:hover td {
+            background: #f5fbfe !important;
         }
+        #hubs-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .hub-name-link {
+            color: #008080;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .hub-name-link:hover {
+            color: #006666;
+            text-decoration: underline;
+        }
+        .hub-email-link {
+            color: #0088c7;
+            text-decoration: none;
+        }
+        .hub-email-link:hover {
+            text-decoration: underline;
+        }
+
+        .hub-country-cell {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.2;
+            max-width: 100%;
+        }
+        .hub-country-flag {
+            display: block;
+            width: 20px;
+            height: 15px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border: 1px solid #e2e8f0;
+            border-radius: 2px;
+        }
+        .hub-country-name {
+            min-width: 0;
+            line-height: 1.3;
+        }
+
         .hub-status-toggle {
             border: 1px solid transparent;
-            padding: 3px 10px;
-            border-radius: 12px;
-            min-width: 66px;
-            font-size: 10px;
-            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+            min-width: 72px;
+            font-size: 11px;
+            font-weight: 700;
             line-height: 1.2;
             text-align: center;
             cursor: pointer;
         }
         .hub-status-toggle.is-active {
-            color: #166534;
-            background: #dcfce7;
-            border-color: #bbf7d0;
+            color: #065f46;
+            background: #ecfdf5;
+            border-color: #6ee7b7;
         }
         .hub-status-toggle.is-inactive {
-            color: #991b1b;
-            background: #fee2e2;
-            border-color: #fecaca;
+            color: #64748b;
+            background: #f1f5f9;
+            border-color: #cbd5e1;
         }
         .hub-status-toggle:hover {
             filter: brightness(0.97);
         }
-        .btn-teal {
-            background-color: #008080;
-            border-color: #008080;
-            color: white;
-        }
-        .btn-teal:hover {
-            background-color: #006666;
-            border-color: #006666;
-        }
-        .btn-outline-teal {
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-outline-teal:hover {
-            background-color: #008080;
-            color: white;
-        }
-        .filter-label {
-            font-size: 10px;
-            
-            margin-bottom: 2px;
-            display: block;
-            font-weight: 600;
-        }
-        .filter-input {
-            height: 28px;
-            font-size: 11px;
-            border-radius: 2px;
-            border: 1px solid #ced4da;
-            padding: 4px 8px;
-        }
-        .clear-filters {
-            font-size: 11px;
-            color: #3b82f6;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .table thead th {
-            border-top: none;
-            border-bottom: 1px solid #eef2f7 !important;
-            padding: 10px 15px !important;
-        }
-        .table tbody td {
-            padding: 10px 15px !important;
-            border-top: 1px solid #f8fafd !important;
-        }
-        .card-header-actions .btn {
-            font-size: 12px;
-            padding: 6px 15px;
-            border-radius: 2px;
-        }
-        .custom-row {
-            margin-right: -10px;
-            margin-left: -10px;
-        }
-        .custom-col {
-            padding-right: 10px;
-            padding-left: 10px;
-            flex: 0 0 11.5%;
-            max-width: 11.5%;
-        }
-        @media (max-width: 992px) {
-            .custom-col {
-                flex: 0 0 33.33%;
-                max-width: 33.33%;
-            }
-        }
-        @media (max-width: 768px) {
-            .custom-col {
-                flex: 0 0 50%;
-                max-width: 50%;
-            }
-        }
-        .filter-input {
-            height: 30px;
-            font-size: 11px;
-            border-radius: 2px;
-        }
-        
-        /* Bootstrap Multiselect Custom Styling */
-        .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .multiselect-native-select .multiselect {
-            width: 100%;
-            text-align: left;
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 11px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .multiselect-native-select .multiselect-container {
-            width: 235px;
-            font-size: 11px;
-        }
-        .multiselect-native-select .multiselect-container li a label {
-            padding: 5px 10px 5px 0;
-            display: block;
-            margin: 0;
-            cursor: pointer;
-        }
-        .multiselect-native-select .multiselect-selected .form-check-label {
-            color: #008080;
-            font-weight: bold;
-        }
-        .multiselect-item.multiselect-all label {
-            font-weight: bold;
-            color: #333;
-        }
-        input.form-control.multiselect-search {
-            font-size: 11px;
-        }
-        .multiselect-container .input-group {
-            margin: 2px;
-        }
-        .input-group-addon {
-            background-color: #01a9ac;
-            color: #fff;
-            max-height: 31px;
-        }
-        .multiselect-container>li {
-            padding: 0px 5px;
-        }
-        .multiselect-item .input-group {
-            width: 114%;
-        }
-       /* Select2 Custom Styling */
-        .select2-container--default .select2-selection--single {
-            height: 28px !important;
-            font-size: 11px !important;
-            background-color: #fff !important;
-            border: 1px solid #ced4da !important;
-            border-radius: 2px !important;
-            display: flex !important;
-            align-items: center !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 1.25 !important;
-            padding-left: 8px !important;
-            padding-right: 20px !important;
-            color: #495057 !important;
-            background-color: transparent !important;
-            width: 100% !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 26px !important;
-            top: 1px !important;
-        }
-        /* Filter Toggle Button Styling */
-        .btn-filter-toggle {
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 14px;
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-filter-toggle:hover, .btn-filter-toggle:focus, .btn-filter-toggle:active {
-            background-color: #008080 !important;
-            color: white !important;
-            border-color: #008080 !important;
-        }
 
-        /* Reduce gap/margin between sidebar and content */
-        .pcoded-inner-content {
-            padding: 5px !important;
-        }
-        .main-body .page-wrapper {
-            padding: 5px !important;
-        }
-        .country-flag {
-            width: 18px;
-            margin-right: 6px;
-            vertical-align: middle;
-        }
-
-        .hub-filters-toolbar {
-            display: none;
-        }
-        .hub-filters-bar {
-            display: flex;
-            align-items: flex-end;
-            flex-wrap: wrap;
-            gap: 12px;
-            border-bottom: 2px solid #eef2f7;
-            margin-bottom: 10px;
-            padding: 8px 10px 12px;
-        }
-        .hub-filters-bar .hub-filter-field {
-            width: 150px;
-            min-width: 0;
-            flex: 0 0 auto;
-            margin-bottom: 0;
-        }
-        .hub-filters-bar .hub-filter-field-country {
-            width: 200px;
-        }
-        .filter-group {
-            display: flex;
+        .hub-action-icons {
+            display: inline-flex;
             align-items: center;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            height: 32px;
-            background: #fff;
-            overflow: visible;
-            width: 100%;
+            justify-content: flex-end;
+            gap: 4px;
         }
-        .filter-group .filter-label {
-            font-size: 11px;
+        .hub-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
             color: #64748b;
-            margin-bottom: 0;
-            padding: 0 10px;
-            white-space: nowrap;
-            font-weight: 500;
-            border-right: 1px solid #e2e8f0;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            background: #f8fafc;
-            min-width: fit-content;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
         }
-        .filter-group .filter-input {
-            border: none !important;
-            box-shadow: none !important;
-            height: 100% !important;
-            font-size: 11px;
-            padding: 0 10px !important;
-            background: transparent !important;
-            width: 100%;
-            color: #1e293b;
+        .hub-action-btn:hover {
+            color: #008080;
+            background: #e6f5f5;
+            border-color: #b7e0e0;
+            text-decoration: none;
         }
-        .filter-group .multiselect-native-select {
-            flex: 1;
-            min-width: 0;
-        }
-        .filter-group .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .filter-group .multiselect-native-select .multiselect {
-            height: 30px;
-            padding: 4px 26px 4px 10px;
-            overflow: hidden;
-            border: 0;
-            border-radius: 0;
-            background: #fff;
-            color: #1e293b;
-            font-size: 11px;
-            text-align: left;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .filter-group .multiselect-native-select .multiselect-container {
-            width: max(100%, 280px);
-            max-height: 420px;
-            overflow-y: auto;
-            padding: 6px 0;
-            z-index: 1050;
-        }
-        .filter-group .multiselect-native-select .multiselect-container .input-group {
-            width: calc(100% - 12px);
-            margin: 0 6px 6px;
-        }
-        .filter-group .multiselect-native-select .multiselect-container label {
-            padding-top: 7px;
-            padding-bottom: 7px;
-        }
-        .filter-group .multiselect-native-select .multiselect-container input[type="checkbox"] {
-            margin-right: 8px;
-            accent-color: #176b87;
-        }
-        .filter-group .multiselect-native-select .multiselect-container .multiselect-reset a {
-            color: #176b87;
-            font-weight: 600;
-        }
-        .hub-filters-bar .hub-filter-field-sm {
-            width: 120px;
-        }
-        .hub-filters-bar .hub-filter-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: auto;
-            padding-bottom: 1px;
-        }
-        .hub-filters-bar .hub-filter-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding-bottom: 1px;
-            flex-wrap: wrap;
-        }
-        .hub-table-wrap {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .table-other-companies {
-            min-width: 900px;
+
+        #hubs-pagination.pagination-sticky-footer {
+            flex-shrink: 0;
         }
 
         @media (max-width: 991.98px) {
-            .hub-filters-toolbar {
-                display: flex;
+            .hubs-add-mobile {
+                display: inline-flex !important;
                 align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                flex-wrap: wrap;
-                padding: 4px 0 8px;
             }
-            .hub-filters-toolbar-actions {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .hub-filters-bar {
+            .hubs-add-desktop {
                 display: none !important;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-                max-height: 42vh;
-                overflow-x: hidden;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                padding: 8px 0 12px;
-                margin-bottom: 8px;
-            }
-            body.hub-filters-open .hub-filters-bar {
-                display: flex !important;
-            }
-            #btn-hub-filters-toggle.is-open {
-                background: #008080 !important;
-                color: #fff !important;
-            }
-            .hub-filters-bar .hub-filter-field,
-            .hub-filters-bar .hub-filter-field-sm,
-            .hub-filters-bar .hub-filter-field-country {
-                width: 100% !important;
-                max-width: 100% !important;
-                flex: 0 0 auto !important;
-            }
-            .hub-filters-bar .filter-label {
-                white-space: normal;
-                line-height: 1.3;
-            }
-            .hub-filters-bar .hub-filter-meta,
-            .hub-filters-bar .hub-filter-actions {
-                margin-left: 0;
-                width: 100%;
-                justify-content: flex-start;
-            }
-            .hub-filters-bar .hub-add-desktop {
-                display: none !important;
-            }
-            .dataTables_wrapper .dataTables_filter {
-                text-align: left;
-                float: none;
-                margin-bottom: 8px;
-            }
-            .dataTables_wrapper .dataTables_filter input {
-                width: calc(100% - 70px);
-                max-width: 100%;
-                margin-left: 8px !important;
-            }
-            .dataTables_wrapper .dataTables_info,
-            .dataTables_wrapper .dataTables_paginate {
-                float: none;
-                text-align: center;
-                padding-top: 8px;
-            }
-            .dataTables_wrapper .dataTables_paginate {
-                display: flex;
-                justify-content: center;
-            }
-        }
-
-        @media (min-width: 992px) {
-            .hub-filters-toolbar {
-                display: none !important;
-            }
-            .hub-filters-bar {
-                display: flex !important;
             }
         }
     </style>
 @endsection
 
 @section('content')
-<!-- Pre-loader start -->
-    <div class="theme-loader">
-        <div class="ball-scale">
-            <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-            </div>
+    <script>document.body.classList.add('hubs-list-page');</script>
+
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show mb-0 mx-2 mt-2" role="alert" style="font-size: 12px;">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
-    </div>
-    <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
+    @endif
 
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
+    <div class="card hubs-list-card">
+        <div class="card-block">
+            <x-lists.page-header
+                title="Hubs"
+                subtitle="Manage warehouse hubs, contact details, and portal visibility"
+                icon="ti-location-pin"
+                :count="$hubs->total()"
+                countLabel="hubs"
+            />
 
-                                    <!-- Page-body start -->
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
-                                        <!-- Hub Index Design start -->
-                                        <div class="card">
-                                            <div class="card-block">
-                                                <div class="hub-filters-toolbar">
-                                                    <button type="button" id="btn-hub-filters-toggle" class="btn btn-outline-teal btn-sm">
-                                                        <i class="ti-filter"></i> <span class="hub-filters-toggle-label">Show filters</span>
-                                                    </button>
-                                                    @if($canWriteAdministration)
-                                                    <div class="hub-filters-toolbar-actions">
-                                                        <a class="btn btn-sm" href="{{ route('hub.create') }}"
-                                                           style="font-size: 11px; padding: 6px 12px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
-                                                           Add hub
-                                                        </a>
-                                                    </div>
-                                                    @endif
-                                                </div>
-                                                <div class="hub-filters-bar">
-                                                    <div class="form-group mb-0 hub-filter-field">
-                                                        <span class="filter-label">Name</span>
-                                                        <input type="text" id="filter-hub-name" class="form-control filter-input" placeholder="type here">
-                                                    </div>
+            <div class="hubs-filters-area">
+                <x-lists.filter-toolbar
+                    toggle-id="btn-hubs-filters-toggle"
+                    body-class="hubs-filters-open"
+                    toolbar-class="hubs-filters-toolbar"
+                >
+                    <x-slot:actions>
+                        @if ($canWriteAdministration)
+                            <a class="hubs-add-mobile" href="{{ route('hub.create') }}">Add hub</a>
+                        @endif
+                    </x-slot:actions>
+                </x-lists.filter-toolbar>
 
-                                                    <div class="form-group mb-0 hub-filter-field hub-filter-field-sm">
-                                                        <span class="filter-label">Code</span>
-                                                        <input type="text" id="filter-hub-code" class="form-control filter-input" placeholder="type here">
-                                                    </div>
+                <x-lists.filter-bar>
+                    <x-lists.filter-field label="Name" width="180px">
+                        <input type="text" id="filter-hub-name" class="form-control filter-input" placeholder="type here">
+                    </x-lists.filter-field>
+                    <x-lists.filter-field label="Code" width="120px">
+                        <input type="text" id="filter-hub-code" class="form-control filter-input" placeholder="type here">
+                    </x-lists.filter-field>
+                    <x-lists.filter-field label="Address" width="200px">
+                        <input type="text" id="filter-hub-address" class="form-control filter-input" placeholder="type here">
+                    </x-lists.filter-field>
+                    <x-lists.filter-field label="City" width="150px">
+                        <input type="text" id="filter-hub-city" class="form-control filter-input" placeholder="type here">
+                    </x-lists.filter-field>
+                    <x-lists.filter-field label="Country" width="200px">
+                        <select id="filter-hub-country" class="form-control filter-input hub-filter-multiselect" multiple="multiple">
+                            @foreach ($countries as $country)
+                                <option value="{{ $country }}">{{ $country }}</option>
+                            @endforeach
+                        </select>
+                    </x-lists.filter-field>
+                    <x-lists.hide-inactive id="filter-hide-inactive" :checked="true" />
+                    <x-lists.clear-filters id="clear-hub-filters" />
+                    @if ($canWriteAdministration)
+                        <a href="{{ route('hub.create') }}" class="btn-hubs-add hubs-add-desktop">
+                            <i class="ti-plus"></i> Add hub
+                        </a>
+                    @endif
+                </x-lists.filter-bar>
+            </div>
 
-                                                    <div class="form-group mb-0 hub-filter-field">
-                                                        <span class="filter-label">Address</span>
-                                                        <div style="position: relative;">
-                                                            <input type="text" id="filter-hub-address" class="form-control filter-input" placeholder="type here" style="padding-right: 30px;">
-                                                            <div style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); pointer-events: none;">
-                                                                <i class="ti-more-alt" style="color: #999; font-size: 10px; background: #eee; padding: 2px 4px; border-radius: 2px;"></i>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+            <div class="hubs-table-area list-ajax-table-wrapper">
+                <table id="hubs-table">
+                    <thead>
+                        @include('hub.partials.table-head-row')
+                    </thead>
+                    <tbody>
+                        @include('hub.partials.rows')
+                    </tbody>
+                </table>
+            </div>
 
-                                                    <div class="form-group mb-0 hub-filter-field">
-                                                        <span class="filter-label">City</span>
-                                                        <input type="text" id="filter-hub-city" class="form-control filter-input" placeholder="type here">
-                                                    </div>
-
-                                                    <div class="form-group mb-0 hub-filter-field hub-filter-field-country">
-                                                        <div class="filter-group">
-                                                            <span class="filter-label">Country</span>
-                                                            <select id="filter-hub-country" class="form-control filter-input hub-filter-multiselect" multiple="multiple">
-                                                                @foreach ($countries as $country)
-                                                                    <option value="{{ $country }}">{{ $country }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="hub-filter-meta">
-                                                        <div class="d-flex align-items-center" style="border: 1px solid #ced4da; padding: 4px 8px; border-radius: 2px; height: 30px;">
-                                                            <span style="font-size: 11px; margin-right: 8px;">Hide inactive</span>
-                                                            <input type="checkbox" id="filter-hide-inactive" checked style="width: 14px; height: 14px;">
-                                                        </div>
-                                                        <a href="#" id="clear-hub-filters" class="clear-filters">Clear filters</a>
-                                                    </div>
-
-                                                    <div class="hub-filter-actions">
-                                                        <a href="#" style="border: 1px solid #ced4da; padding: 4px 10px; border-radius: 2px; color: #666; font-size: 14px;">
-                                                            <i class="ti-download"></i>
-                                                        </a>
-                                                        @if($canWriteAdministration)
-                                                        <a class="btn btn-primary hub-add-desktop" href="{{ route('hub.create') }}"
-                                                           style="font-size: 11px; padding: 6px 15px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
-                                                           Add hub
-                                                        </a>
-                                                        @endif
-                                                    </div>
-                                                </div>
-
-                                                <div class="hub-table-wrap dt-responsive">
-                                                    <table id="offices-table" class="table-other-companies">
-                                                        <thead style="background: #fdfdfd;">
-                                                            <tr>
-                                                                <th style=" font-weight: 600;">Hub name</th>
-                                                                <th style=" font-weight: 600;">Code</th>
-                                                                <th style=" font-weight: 600;">City</th>
-                                                                <th style=" font-weight: 600;">Country</th>
-                                                                <th style=" font-weight: 600;">Phone number</th>
-                                                                <th style=" font-weight: 600;">E-mail</th>
-                                                                <th style=" font-weight: 600;">Status</th>
-                                                                <th></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @include('hub.partials.rows')
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <div id="hubs-pagination" class="mt-3 px-3 pb-2">
-                                                    {{ $hubs->links() }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- Hub Index Design end -->
-                                    </div>
-                                        <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
-                                </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="hubs-pagination" class="pagination-sticky-footer">
+                @include('partials.list-pagination-footer-inner', ['paginator' => $hubs])
             </div>
         </div>
     </div>
 
+    @include('layouts.partials.pcoded-shell-end')
+@endsection
 
+@push('scripts')
     <script>
-        $(document).ready(function() {
-            var hubsIndexUrl = @json(route('hub.index'));
-            var table = null;
-            var searchTimer = null;
-            var filtersReady = false;
-            var requestToken = 0;
-            var suppressFilterLoad = false;
-            var currentPage = 1;
+        $(document).ready(function () {
+            $('body').addClass('hubs-list-page');
 
-            function shouldLoadFilters() {
-                return filtersReady && !suppressFilterLoad;
-            }
-
-            $('.hub-filter-multiselect').multiselect({
-                enableCaseInsensitiveFiltering: true,
-                includeResetOption: true,
-                resetText: 'Clear',
-                filterPlaceholder: 'Type here',
-                maxHeight: 420,
-                buttonWidth: '100%',
-                nonSelectedText: 'Click here',
-                numberDisplayed: 1,
-                nSelectedText: 'selected',
-                buttonText: function (options) {
-                    if (options.length === 0) {
-                        return 'Click here';
-                    }
-
-                    var firstSelection = $(options[0]).text();
-                    return options.length === 1 ? firstSelection : firstSelection + ', ...';
-                },
-                buttonTitle: function (options) {
-                    var labels = [];
-                    options.each(function () {
-                        labels.push($(this).text());
-                    });
-
-                    return labels.join(', ');
-                },
-                onChange: function () {
-                    if (shouldLoadFilters()) {
-                        loadHubs(1);
-                    }
-                },
-                onSelectAll: function () {
-                    if (shouldLoadFilters()) {
-                        loadHubs(1);
-                    }
-                },
-                onDeselectAll: function () {
-                    if (shouldLoadFilters()) {
-                        loadHubs(1);
-                    }
+            var currentHubPage = 1;
+            var table = $('#hubs-table').DataTable({
+                dom: 'rt',
+                paging: false,
+                info: false,
+                lengthChange: false,
+                responsive: false,
+                searching: false,
+                ordering: true,
+                order: [],
+                autoWidth: false,
+                scrollX: false,
+                columnDefs: [
+                    { orderable: false, targets: 7 }
+                ],
+                language: {
+                    emptyTable: 'No hubs found.'
                 }
             });
 
-            function initHubsTable() {
-                if ($.fn.DataTable.isDataTable('#offices-table')) {
-                    return $('#offices-table').DataTable();
-                }
-
-                return $('#offices-table').DataTable({
-                    "dom": 'rt',
-                    "lengthChange": false,
-                    "paging": false,
-                    "info": false,
-                    "responsive": false,
-                    "searching": false,
-                    "ordering": true,
-                    "order": [],
-                    "autoWidth": false,
-                    "scrollX": true,
-                    "columnDefs": [
-                        { "orderable": false, "targets": [7] }
-                    ],
-                    "language": {
-                        "emptyTable": "No hubs found."
-                    }
-                });
-            }
-
-            table = initHubsTable();
-
-            function currentFilterParams(page) {
-                return {
-                    name: $.trim($('#filter-hub-name').val() || ''),
-                    code: $.trim($('#filter-hub-code').val() || ''),
-                    address: $.trim($('#filter-hub-address').val() || ''),
-                    city: $.trim($('#filter-hub-city').val() || ''),
-                    country: $('#filter-hub-country').val() || [],
-                    hide_inactive: $('#filter-hide-inactive').is(':checked') ? 1 : 0,
-                    page: page || 1
-                };
-            }
-
-            function replaceHubRows(html, paginationHtml) {
-                table = initHubsTable();
-                table.clear();
-
-                var $rows = $('<table><tbody>' + html + '</tbody></table>').find('tr').filter(function () {
-                    return $(this).find('td[colspan]').length === 0;
-                });
-
-                if ($rows.length) {
-                    table.rows.add($rows);
-                }
-
-                table.draw(false);
-                table.columns.adjust();
-                $('#hubs-pagination').html(paginationHtml || '');
-            }
-
-            function loadHubs(page) {
-                var params = currentFilterParams(page);
-                var token = ++requestToken;
-                currentPage = page || 1;
-
-                $.ajax({
-                    url: hubsIndexUrl,
-                    method: 'GET',
-                    data: params,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).done(function (response) {
-                    if (token !== requestToken) {
-                        return;
-                    }
-
-                    replaceHubRows(response.html, response.pagination);
-                });
-            }
-
-            function resetHubFilterFields() {
-                $('#filter-hub-name, #filter-hub-code, #filter-hub-address, #filter-hub-city').val('');
-                $('.hub-filter-multiselect').each(function () {
-                    var $select = $(this);
-                    $select.find('option').prop('selected', false);
-                    $select.val([]);
-                    $select.multiselect('clearSelection');
-                    $select.closest('.multiselect-native-select').find('.multiselect-search').val('');
-                    $select.closest('.multiselect-native-select').find('li.multiselect-filter-hidden')
-                        .removeClass('multiselect-filter-hidden')
-                        .show();
-                });
-                $('#filter-hide-inactive').prop('checked', true);
-            }
-
-            $('#btn-hub-filters-toggle').on('click', function () {
-                $('body').toggleClass('hub-filters-open');
-                var isOpen = $('body').hasClass('hub-filters-open');
-                $(this).toggleClass('is-open', isOpen);
-                $(this).find('.hub-filters-toggle-label').text(isOpen ? 'Hide filters' : 'Show filters');
-                setTimeout(function () {
-                    if (table) {
-                        table.columns.adjust();
-                    }
-                }, 50);
-            });
-
-            $(window).on('resize', function () {
-                if (table) {
+            var hubsListFiltersApi = bindAjaxListFilters({
+                tableSelector: '#hubs-table',
+                paginationSelector: '#hubs-pagination',
+                indexUrl: @json(route('hub.index')),
+                existingTable: table,
+                multiselectSelector: '.hub-filter-multiselect',
+                clearSelector: '#clear-hub-filters',
+                getParams: function (page) {
+                    currentHubPage = page || 1;
+                    return {
+                        name: $.trim($('#filter-hub-name').val() || ''),
+                        code: $.trim($('#filter-hub-code').val() || ''),
+                        address: $.trim($('#filter-hub-address').val() || ''),
+                        city: $.trim($('#filter-hub-city').val() || ''),
+                        country: $('#filter-hub-country').val() || [],
+                        hide_inactive: $('#filter-hide-inactive').is(':checked') ? 1 : 0,
+                        page: currentHubPage
+                    };
+                },
+                textSelectors: '#filter-hub-name, #filter-hub-code, #filter-hub-address, #filter-hub-city',
+                changeSelectors: '#filter-hide-inactive',
+                resetFields: function () {
+                    $('#filter-hub-name, #filter-hub-code, #filter-hub-address, #filter-hub-city').val('');
+                    clearSearchableFilterMultiselect('.hub-filter-multiselect', false);
+                    $('#filter-hide-inactive').prop('checked', true);
+                },
+                resetClickScope: '.filter-item',
+                afterDraw: function () {
                     table.columns.adjust();
                 }
             });
 
-            setTimeout(function () {
-                if (table) {
-                    table.columns.adjust();
-                }
-            }, 100);
+            window.hubsListFilters = hubsListFiltersApi;
 
-            $('#filter-hub-name, #filter-hub-code, #filter-hub-address, #filter-hub-city').on('input keyup', function (e) {
-                if (e.type === 'keyup' && e.key === 'Enter') {
-                    e.preventDefault();
-                    clearTimeout(searchTimer);
-                    loadHubs(1);
-                    return;
-                }
-
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(function () {
-                    loadHubs(1);
-                }, 200);
-            });
-
-            $('#filter-hide-inactive').on('change', function () {
-                loadHubs(1);
-            });
-
-            $('#hubs-pagination').on('click', 'a', function (e) {
-                var href = $(this).attr('href');
-                if (!href || href === '#') {
-                    return;
-                }
-
-                e.preventDefault();
-                var page = new URL(href, window.location.origin).searchParams.get('page') || 1;
-                loadHubs(page);
-            });
-
-            $(document).on('click', '#clear-hub-filters', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                clearTimeout(searchTimer);
-                suppressFilterLoad = true;
-                resetHubFilterFields();
-                suppressFilterLoad = false;
-                loadHubs(1);
-                return false;
-            });
-
-            $(document).on('click', '.hub-filter-field .multiselect-reset a', function () {
-                if (!shouldLoadFilters()) {
-                    return;
-                }
-
-                setTimeout(function () {
-                    loadHubs(1);
-                }, 0);
-            });
-
-            setTimeout(function () {
-                filtersReady = true;
-            }, 200);
-
-            $(document).on('click', '.hub-status-toggle', function() {
+            $(document).on('click', '.hub-status-toggle', function () {
                 var $button = $(this);
                 var $row = $button.closest('tr');
                 var currentStatus = String($button.data('status') || 'active').toLowerCase();
@@ -863,7 +416,7 @@
                     closeOnConfirm: false,
                     closeOnCancel: true,
                     showLoaderOnConfirm: true
-                }, function(isConfirm) {
+                }, function (isConfirm) {
                     if (!isConfirm) {
                         return;
                     }
@@ -877,7 +430,7 @@
                             _token: '{{ csrf_token() }}',
                             status: nextStatus
                         },
-                        success: function(response) {
+                        success: function (response) {
                             if (!response.success) {
                                 $button.prop('disabled', false);
                                 swal('Error', response.message || 'Unable to update hub status.', 'error');
@@ -895,9 +448,7 @@
                             $row.attr('data-is-inactive', response.is_inactive ? '1' : '0');
 
                             if (response.is_inactive && $('#filter-hide-inactive').is(':checked')) {
-                                loadHubs(currentPage);
-                            } else if (table && table.row($row).node()) {
-                                table.row($row).invalidate('dom').draw(false);
+                                hubsListFiltersApi.load(currentHubPage);
                             }
 
                             swal({
@@ -908,7 +459,7 @@
                                 showConfirmButton: false
                             });
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             $button.prop('disabled', false);
                             var message = (xhr.responseJSON && xhr.responseJSON.message)
                                 ? xhr.responseJSON.message
@@ -919,7 +470,7 @@
                 });
             });
 
-            $(document).on('click', '.delete-hub', function() {
+            $(document).on('click', '.delete-hub', function () {
                 var id = $(this).data('id');
                 var name = $(this).data('name') || 'this hub';
 
@@ -933,7 +484,7 @@
                     closeOnConfirm: false,
                     closeOnCancel: true,
                     showLoaderOnConfirm: true
-                }, function(isConfirm) {
+                }, function (isConfirm) {
                     if (!isConfirm) {
                         return;
                     }
@@ -944,7 +495,7 @@
                         data: {
                             _token: '{{ csrf_token() }}'
                         },
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 swal({
                                     title: 'Deleted',
@@ -953,12 +504,12 @@
                                     timer: 1500,
                                     showConfirmButton: false
                                 });
-                                loadHubs(currentPage);
+                                hubsListFiltersApi.load(currentHubPage);
                             } else {
                                 swal('Error', response.message || 'Error deleting hub.', 'error');
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             var message = (xhr.responseJSON && xhr.responseJSON.message)
                                 ? xhr.responseJSON.message
                                 : 'An error occurred while deleting the hub.';
@@ -969,4 +520,4 @@
             });
         });
     </script>
-@endsection
+@endpush

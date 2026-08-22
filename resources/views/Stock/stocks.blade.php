@@ -109,17 +109,16 @@
         }
         .filter-group .filter-label {
             font-size: 11px;
-            color: #ffffff;
+            color: #64748b;
             margin-bottom: 0;
             padding: 0 10px;
             white-space: nowrap;
-            font-weight: 700;
-            border-right: 1px solid #5a7fa0;
+            font-weight: 500;
+            border-right: 1px solid #e2e8f0;
             height: 100%;
             display: flex;
             align-items: center;
-            background: #6992b5;
-            background-color: #6992b5;
+            background: #f8fafc;
             min-width: fit-content;
         }
         .filter-group .filter-input {
@@ -131,52 +130,6 @@
             background: transparent !important;
             width: 100%;
             color: #1e293b;
-        }
-        .filter-group .multiselect-native-select {
-            flex: 1;
-            min-width: 0;
-        }
-        .filter-group .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .filter-group .multiselect-native-select .multiselect {
-            height: 30px;
-            padding: 4px 26px 4px 10px;
-            overflow: hidden;
-            border: 0;
-            border-radius: 0;
-            background: #fff;
-            color: #1e293b;
-            font-size: 11px;
-            text-align: left;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .filter-group .multiselect-native-select .multiselect-container {
-            width: max(100%, 280px);
-            max-height: 420px;
-            overflow-y: auto;
-            padding: 6px 0;
-            z-index: 1050;
-        }
-        .filter-group .multiselect-native-select .multiselect-container .input-group {
-            width: calc(100% - 12px);
-            margin: 0 6px 6px;
-        }
-        .filter-group .multiselect-native-select .multiselect-container label {
-            padding-top: 7px;
-            padding-bottom: 7px;
-            color: #263238;
-            font-size: 12px;
-            white-space: normal;
-        }
-        .filter-group .multiselect-native-select .multiselect-container input[type="checkbox"] {
-            margin-right: 8px;
-            accent-color: #176b87;
-        }
-        .filter-group .multiselect-native-select .multiselect-container .multiselect-reset a {
-            color: #176b87;
-            font-weight: 600;
         }
         .filter-group .select2-container--default .select2-selection--single,
         .filter-group .select2-container--default .select2-selection--multiple {
@@ -262,56 +215,6 @@
             color: #ff5252;
             margin-right: 5px;
         }
-        /* Bootstrap Multiselect Custom Styling */
-        .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .multiselect-native-select .multiselect {
-            width: 100%;
-            text-align: left;
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 11px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .multiselect-native-select .multiselect-container {
-            width: 235px;
-            font-size: 11px;
-        }
-        .multiselect-native-select .multiselect-container li a label {
-            padding: 6px 10px 6px 6px;
-            display: block;
-            margin: 0;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .multiselect-native-select .multiselect-selected .form-check-label {
-            color: #008080;
-            font-weight: bold;
-        }
-        .multiselect-item.multiselect-all label {
-            font-weight: bold;
-            color: #333;
-        }
-        input.form-control.multiselect-search {
-            font-size: 11px;
-        }
-        .multiselect-container .input-group {
-            margin: 2px;
-        }
-        .input-group-addon {
-            background-color: #01a9ac;
-            color: #fff;
-            max-height: 31px;
-        }
-        .multiselect-container>li {
-            padding: 0px 5px;
-        }
-        .multiselect-item .input-group {
-            width: 114%;
-        }
         /* Select2 Custom Styling */
         .select2-container--default .select2-selection--single {
             background-color: #fff !important;
@@ -360,21 +263,6 @@
         .select2-container--default .select2-selection--multiple .select2-selection__choice span {
             color: #495057 !important;
         }
-        /* Filter Toggle Button Styling */
-        .btn-filter-toggle {
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 14px;
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-filter-toggle:hover, .btn-filter-toggle:focus, .btn-filter-toggle:active {
-            background-color: #008080 !important;
-            color: white !important;
-            border-color: #008080 !important;
-        }
-        
         /* Reduce gap/margin between sidebar and content */
         .pcoded-inner-content {
             padding: 0 !important;
@@ -491,14 +379,8 @@
             .stocks-filters-fields .custom-col.d-flex.justify-content-end {
                 display: none !important;
             }
-            /* Hide column picker (desktop-only); must win over .custom-col { display:block } below */
-            .stocks-filters-fields .custom-col[style*="flex: 0 0 50px"],
-            .stocks-filters-fields .btn-filter-toggle,
-            .stocks-filters-fields #filter-multiselect,
-            .stocks-filters-fields .mc-column-picker,
-            .stocks-filters-fields .mc-column-picker-native,
-            .stocks-filters-fields .custom-col:has(.mc-column-picker),
-            .stocks-filters-fields .custom-col:has(#filter-multiselect) {
+            /* Hide column picker on mobile — toolbar toggle controls filter visibility */
+            .stocks-filters-fields .list-dense-filter-controls {
                 display: none !important;
             }
             .stocks-filters-fields .filter-row {
@@ -851,30 +733,31 @@
                                                         <a href="{{ route('create-crr') }}" class="btn btn-outline-teal btn-sm">Create CRR</a>
                                                     </div>
                                                 </div>
-                                                <div class="d-flex justify-content-between align-items-start pt-2 stocks-filters-fields">
-                                                    <div style="width: 100%;">
+                                                <div class="d-flex justify-content-between align-items-start pt-2 stocks-filters-fields list-dense-filter-bar">
+                                                    <div class="list-dense-filter-shell" style="width: 100%;">
+                                                        <div class="list-dense-filter-controls stocks-filter-controls">
+                                                            <select id="filter-multiselect" multiple="multiple" data-storage-key="stocks-list-filters">
+                                                                <option value="Customer" selected>Customer</option>
+                                                                <option value="Vessel" selected>Vessel</option>
+                                                                <option value="Hub/Agent" selected>Hub/Agent</option>
+                                                                <option value="Status" selected>Status</option>
+                                                                <option value="PO number" selected>PO number</option>
+                                                                <option value="Supplier" selected>Supplier</option>
+                                                                <option value="Stock number" selected>Stock number</option>
+                                                                <option value="Service reference" selected>Service reference</option>
+                                                                <option value="Shipment no" selected>Shipment no</option>
+                                                                <option value="Transit id" selected>Transit id</option>
+                                                                <option value="Account manager" selected>Account manager</option>
+                                                                <option value="Office" selected>Office</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="list-dense-filter-fields">
                                                         <!-- Row 1 -->
-                                                        <div class="row custom-row filter-row">
-                                                            <div class="custom-col" style="flex: 0 0 50px;">
-                                                                <select id="filter-multiselect" multiple="multiple">
-                                                                    <option value="Customer" selected>Customer</option>
-                                                                    <option value="Vessel" selected>Vessel</option>
-                                                                    <option value="Hub/Agent" selected>Hub/Agent</option>
-                                                                    <option value="Status" selected>Status</option>
-                                                                    <option value="PO number" selected>PO number</option>
-                                                                    <option value="Supplier" selected>Supplier</option>
-                                                                    <option value="Stock number" selected>Stock number</option>
-                                                                    <option value="Service reference" selected>Service reference</option>
-                                                                    <option value="Shipment no" selected>Shipment no</option>
-                                                                    <option value="Transit id" selected>Transit id</option>
-                                                                    <option value="Account manager" selected>Account manager</option>
-                                                                    <option value="Office" selected>Office</option>
-                                                                </select>
-                                                            </div>
+                                                        <div class="row custom-row filter-row list-dense-filter-row">
                                                             <div id="col-Hub-Agent" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Hub/Agent</span>
-                                                                    <select class="form-control filter-input stock-filter-multiselect" multiple="multiple">
+                                                                    <select class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
                                                                         @foreach($hubAgentOptions as $hubAgentOption)
                                                                             <option value="{{ $hubAgentOption }}">{{ $hubAgentOption }}</option>
                                                                         @endforeach
@@ -884,7 +767,7 @@
                                                             <div id="col-Customer" class="custom-col" style="flex: 0 0 250px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Customer</span>
-                                                                    <select class="form-control filter-input stock-filter-multiselect" multiple="multiple">
+                                                                    <select class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
                                                                         @foreach($customers as $customer)
                                                                             <option value="{{ $customer }}">{{ $customer }}</option>
                                                                         @endforeach
@@ -894,7 +777,7 @@
                                                             <div id="col-Vessel" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Vessel</span>
-                                                                    <select class="form-control filter-input stock-filter-multiselect" multiple="multiple">
+                                                                    <select class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
                                                                         @foreach($vessels as $vessel)
                                                                             <option value="{{ $vessel }}">{{ $vessel }}</option>
                                                                         @endforeach
@@ -904,7 +787,7 @@
                                                             <div id="col-Status" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Status</span>
-                                                                    <select class="form-control filter-input stock-filter-multiselect" multiple="multiple">
+                                                                    <select class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
                                                                         @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
                                                                             <option value="{{ $label }}">{{ $label }}</option>
                                                                         @endforeach
@@ -931,7 +814,7 @@
                                                         </div>
 
                                                         <!-- Row 2 -->
-                                                        <div class="row custom-row filter-row">
+                                                        <div class="row custom-row filter-row list-dense-filter-row">
                                                             <div id="col-PO-number" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">PO no.</span>
@@ -944,13 +827,13 @@
                                                                     <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
-                                                            <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 250px;">
+                                                            <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Shipment no.</span>
                                                                     <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
-                                                            <div id="col-Transit-id" class="custom-col" style="flex: 0 0 250px;">
+                                                            <div id="col-Transit-id" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Transit id</span>
                                                                     <input type="text" class="form-control filter-input" placeholder="starts with">
@@ -959,7 +842,7 @@
                                                             <div id="col-Account-manager" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Account manager</span>
-                                                                    <select class="form-control filter-input stock-filter-multiselect" multiple="multiple">
+                                                                    <select class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
                                                                         @foreach($accountManagers as $accountManager)
                                                                             <option value="{{ $accountManager }}">{{ $accountManager }}</option>
                                                                         @endforeach
@@ -969,7 +852,7 @@
                                                             <div id="col-Office" class="custom-col" style="flex: 0 0 200px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Office</span>
-                                                                    <select class="form-control filter-input stock-filter-multiselect" multiple="multiple">
+                                                                    <select class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
                                                                         @foreach($offices as $office)
                                                                             <option value="{{ $office }}">{{ $office }}</option>
                                                                         @endforeach
@@ -979,6 +862,7 @@
                                                             <div class="custom-col">
                                                                 <x-lists.clear-filters id="clear-stocks-filters" />
                                                             </div>
+                                                        </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1073,70 +957,30 @@
         $(document).ready(function() {
             $('body').addClass('stocks-list-page');
 
-            // Checkbox multiselects for stock filters
-            $('.stock-filter-multiselect').multiselect({
-                enableCaseInsensitiveFiltering: true,
-                includeResetOption: true,
-                resetText: 'Clear',
-                filterPlaceholder: 'Type here',
-                maxHeight: 420,
-                buttonWidth: '100%',
-                nonSelectedText: 'Click here',
-                numberDisplayed: 1,
-                nSelectedText: 'selected',
-                buttonText: function(options) {
-                    if (options.length === 0) {
-                        return 'Click here';
-                    }
-
-                    var firstSelection = $(options[0]).text();
-                    return options.length === 1 ? firstSelection : firstSelection + ', ...';
-                },
-                buttonTitle: function(options) {
-                    var labels = [];
-                    options.each(function() {
-                        labels.push($(this).text());
-                    });
-
-                    return labels.join(', ');
-                },
-                onChange: function() {
-                    if (window.stocksListFilters) {
-                        window.stocksListFilters.load(1);
-                    }
-                },
-                onSelectAll: function() {
-                    if (window.stocksListFilters) {
-                        window.stocksListFilters.load(1);
-                    }
-                },
-                onDeselectAll: function() {
-                    if (window.stocksListFilters) {
-                        window.stocksListFilters.load(1);
-                    }
+            function loadStocksOnFilterChange() {
+                if (window.stocksListFilters) {
+                    window.stocksListFilters.load(1);
                 }
+            }
+
+            initializeSearchableFilterMultiselect('.searchable-filter-multiselect', {
+                onChange: loadStocksOnFilterChange,
+                onSelectAll: loadStocksOnFilterChange,
+                onDeselectAll: loadStocksOnFilterChange
             });
 
-            // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: false,
-                buttonWidth: '100%',
-                nonSelectedText: '',
-                allSelectedText: '',
-                nSelectedText: '',
-                numberDisplayed: 0,
-                buttonClass: 'btn btn-outline-teal btn-filter-toggle',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><i class="ti-filter"></i></button>'
-                },
-                onChange: function(option, checked) {
+                includeResetOption: true,
+                resetText: 'Clear all',
+                storageKey: 'stocks-list-filters',
+                onChange: function () {
                     toggleFilterVisibility();
                 },
-                onSelectAll: function() {
+                onSelectAll: function () {
                     toggleFilterVisibility();
                 },
-                onDeselectAll: function() {
+                onDeselectAll: function () {
                     toggleFilterVisibility();
                 }
             });
@@ -1169,8 +1013,11 @@
                 ].forEach(function (id) {
                     $('#' + id).show().css('display', '');
                 });
-                $('.stocks-filters-fields .custom-col[style*="flex: 0 0 50px"]').hide();
-                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+                $('.stocks-filter-controls').hide();
+                var $panel = $('#filter-multiselect').data('mcColumnPickerPanel');
+                if ($panel && $panel.length) {
+                    $panel.removeClass('is-open');
+                }
             }
 
             function toggleFilterVisibility() {
@@ -1324,7 +1171,7 @@
                 },
                 textSelectors: '#col-Stock-number input, #col-PO-number input, #col-Supplier input, #col-Service-reference input, #col-Shipment-no input, #col-Transit-id input',
                 resetFields: function () {
-                    clearSearchableFilterMultiselect('.stock-filter-multiselect', false);
+                    clearSearchableFilterMultiselect('.searchable-filter-multiselect', false);
                     $('#col-Stock-number input, #col-PO-number input, #col-Supplier input, #col-Service-reference input, #col-Shipment-no input, #col-Transit-id input').val('');
                 },
                 afterDraw: function () {

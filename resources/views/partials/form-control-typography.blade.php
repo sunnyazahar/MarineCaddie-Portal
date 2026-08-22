@@ -49,6 +49,13 @@
         font-size: var(--mc-control-font-size, 14px) !important;
     }
 
+    html body .filter-group .select2-container--default .select2-selection--single .select2-selection__rendered,
+    html body .filter-group .select2-container--default .select2-selection--multiple .select2-selection__rendered,
+    html body .filter-group .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        font-size: 11px !important;
+        line-height: 1.25 !important;
+    }
+
     html body .select2-container--default .select2-results__option {
         font-size: var(--mc-control-font-size, 14px) !important;
     }

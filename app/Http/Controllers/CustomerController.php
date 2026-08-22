@@ -685,10 +685,10 @@ class CustomerController extends Controller
      */
     public function createVessel($id)
     {
-        $customer = $this->customerRepo->findOrFail($id, ['contacts']);
+        $customer = $this->customerRepo->findOrFail($id, ['contacts', 'primaryAddress']);
         $customerContacts = $customer->contacts;
 
-        return view('customers.customer-vessels-add', compact('id', 'customerContacts'));
+        return view('customers.customer-vessels-add', compact('customer', 'customerContacts'));
     }
 
     /**
@@ -696,7 +696,9 @@ class CustomerController extends Controller
      */
     public function createContact($id)
     {
-        return view('contacts.create', ['customer_id' => $id]);
+        $customer = $this->customerRepo->findOrFail($id, ['primaryAddress']);
+
+        return view('contacts.create', compact('customer'));
     }
 
     /**
@@ -705,7 +707,9 @@ class CustomerController extends Controller
     public function editContact($id)
     {
         $contact = $this->contactRepo->findOrFail((int) $id);
-        return view('contacts.edit', compact('contact'));
+        $customer = $this->customerRepo->findOrFail($contact->customer_id, ['primaryAddress']);
+
+        return view('contacts.edit', compact('contact', 'customer'));
     }
 
     /**

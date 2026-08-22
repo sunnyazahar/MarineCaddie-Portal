@@ -3,13 +3,13 @@
 @keyframes mc-rise {
     from {
         opacity: 0;
-        transform: translateY(18px) scale(0.985);
+        transform: translateY(18px);
         filter: blur(4px);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
+        transform: none;
+        filter: none;
     }
 }
 
@@ -21,19 +21,19 @@
     }
     to {
         opacity: 1;
-        transform: translateX(0) scale(1);
-        filter: blur(0);
+        transform: none;
+        filter: none;
     }
 }
 
 @keyframes mc-chip-in {
     from {
         opacity: 0;
-        transform: translateY(12px) scale(0.94);
+        transform: translateY(12px);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: none;
     }
 }
 
@@ -79,13 +79,13 @@
 @keyframes mc-tab-swap {
     from {
         opacity: 0;
-        transform: translateY(14px) scale(0.99);
+        transform: translateY(14px);
         filter: blur(2px);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
+        transform: none;
+        filter: none;
     }
 }
 
@@ -96,18 +96,17 @@
     }
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: none;
     }
 }
 
+/* Opacity only — transform on fixed footers breaks viewport positioning */
 @keyframes mc-footer-up {
     from {
         opacity: 0;
-        transform: translateY(100%);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
     }
 }
 
@@ -380,7 +379,7 @@ body.shipment-edit-page .edit-footer .btn-save-custom:hover:not(:disabled) {
 
 /* ========== Shipment create ========== */
 body.create-shipment-page .create-shipment-card {
-    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: mc-rise-soft 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 body.create-shipment-page .cs-pillars > .custom-col > .cs-pillar {
@@ -483,7 +482,7 @@ body.create-crr-page .create-crr-back {
 }
 
 body.create-crr-page .create-crr-card {
-    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+    animation: mc-rise-soft 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
 }
 
 body.create-crr-page .crr-pillars > .crr-col > .crr-pillar {
@@ -599,6 +598,804 @@ body.create-crr-page .create-crr-footer .btn-save-custom:hover {
     animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
 }
 
+@keyframes mc-filter-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mc-filter-pop {
+    0% {
+        transform: scale(1);
+    }
+    45% {
+        transform: scale(1.015);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ========== Global tabs (hub/agent/office/supplier + Bootstrap) ========== */
+.tabs-container,
+.edit-office-tabs,
+.custom-nav-tabs {
+    animation: mc-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.tabs-container .tab-item,
+.edit-office-tab,
+.nav-tab-item,
+.custom-tab {
+    transition:
+        color 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease,
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tabs-container .tab-item:hover,
+.edit-office-tab:hover,
+.nav-tab-item:hover,
+.custom-tab:hover {
+    transform: translateY(-2px);
+}
+
+.tab-content-custom.active,
+.tab-content-custom.mc-tab-swap,
+.tab-pane.active,
+.tab-pane.mc-tab-swap,
+.tab-panel.active,
+.tab-panel.mc-tab-swap {
+    animation: mc-tab-swap 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[class*="-pane-toolbar"] {
+    animation: mc-chip-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+[class*="-pane-action"],
+[class*="-pane-toolbar"] .btn-teal,
+[class*="-pane-toolbar"] a.btn {
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease;
+}
+
+[class*="-pane-action"]:hover {
+    transform: translateY(-2px);
+}
+
+[class*="-table-wrap"] tbody tr,
+.ops-table-wrap tbody tr,
+.list-ajax-table-wrapper tbody tr {
+    animation: mc-doc-row 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[class*="-table-wrap"] tbody tr:nth-child(1),
+.ops-table-wrap tbody tr:nth-child(1),
+.list-ajax-table-wrapper tbody tr:nth-child(1) {
+    animation-delay: 0.04s;
+}
+
+[class*="-table-wrap"] tbody tr:nth-child(2),
+.ops-table-wrap tbody tr:nth-child(2),
+.list-ajax-table-wrapper tbody tr:nth-child(2) {
+    animation-delay: 0.08s;
+}
+
+[class*="-table-wrap"] tbody tr:nth-child(3),
+.ops-table-wrap tbody tr:nth-child(3),
+.list-ajax-table-wrapper tbody tr:nth-child(3) {
+    animation-delay: 0.12s;
+}
+
+[class*="-table-wrap"] tbody tr:nth-child(4),
+.ops-table-wrap tbody tr:nth-child(4),
+.list-ajax-table-wrapper tbody tr:nth-child(4) {
+    animation-delay: 0.16s;
+}
+
+[class*="-table-wrap"] tbody tr:nth-child(5),
+.ops-table-wrap tbody tr:nth-child(5),
+.list-ajax-table-wrapper tbody tr:nth-child(5) {
+    animation-delay: 0.2s;
+}
+
+[class*="-table-wrap"] tbody tr:nth-child(n + 6),
+.ops-table-wrap tbody tr:nth-child(n + 6),
+.list-ajax-table-wrapper tbody tr:nth-child(n + 6) {
+    animation-delay: 0.24s;
+}
+
+table.dataTable tbody tr.mc-list-row-in {
+    animation: mc-doc-row 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ========== Global filters & search (all list pages) ========== */
+.list-filters-toolbar,
+.list-inline-toolbar,
+.filter-row,
+[class*="-filters-area"] {
+    animation: mc-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both;
+}
+
+.filter-row.mc-filter-reveal,
+[class*="-filters-area"].mc-filter-reveal {
+    animation: mc-filter-reveal 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.filter-item,
+.searchable-filter-wrapper,
+.filter-row .filter-group,
+[class*="-filters-area"] .filter-group {
+    animation: mc-chip-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.filter-row .filter-item:nth-child(1),
+.filter-row .searchable-filter-wrapper:nth-child(1),
+.filter-row .filter-group:nth-child(1),
+[class*="-filters-area"] .filter-item:nth-child(1) {
+    animation-delay: 0.06s;
+}
+
+.filter-row .filter-item:nth-child(2),
+.filter-row .searchable-filter-wrapper:nth-child(2),
+.filter-row .filter-group:nth-child(2),
+[class*="-filters-area"] .filter-item:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.filter-row .filter-item:nth-child(3),
+.filter-row .searchable-filter-wrapper:nth-child(3),
+.filter-row .filter-group:nth-child(3),
+[class*="-filters-area"] .filter-item:nth-child(3) {
+    animation-delay: 0.14s;
+}
+
+.filter-row .filter-item:nth-child(4),
+.filter-row .searchable-filter-wrapper:nth-child(4),
+.filter-row .filter-group:nth-child(4),
+[class*="-filters-area"] .filter-item:nth-child(4) {
+    animation-delay: 0.18s;
+}
+
+.filter-row .filter-item:nth-child(5),
+.filter-row .searchable-filter-wrapper:nth-child(5),
+.filter-row .filter-group:nth-child(5),
+[class*="-filters-area"] .filter-item:nth-child(5) {
+    animation-delay: 0.22s;
+}
+
+.filter-row .filter-item:nth-child(n + 6),
+.filter-row .searchable-filter-wrapper:nth-child(n + 6),
+.filter-row .filter-group:nth-child(n + 6),
+[class*="-filters-area"] .filter-item:nth-child(n + 6) {
+    animation-delay: 0.26s;
+}
+
+.filter-group,
+.list-inline-toolbar-search .filter-group,
+.searchable-filter-wrapper {
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.filter-group:focus-within,
+.searchable-filter-wrapper:focus-within,
+.searchable-filter-wrapper.mc-search-active,
+.filter-group.mc-search-active {
+    border-color: #0088c7;
+    box-shadow: 0 0 0 3px rgba(0, 136, 199, 0.12);
+}
+
+.searchable-filter-wrapper.mc-filter-active,
+.filter-item.mc-filter-active,
+.filter-group.mc-filter-active {
+    animation: mc-filter-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.filter-item.mc-filter-reset,
+.searchable-filter-wrapper.mc-filter-reset,
+.filter-group.mc-filter-reset {
+    animation: mc-chip-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.list-page-header-count strong.mc-count-pulse {
+    animation: mc-chip-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    display: inline-block;
+}
+
+.list-ajax-table-wrapper.mc-list-loading,
+.table-responsive.mc-list-loading,
+.card-block.mc-list-loading {
+    opacity: 0.58;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
+}
+
+.mc-filter-select2-dropdown .select2-results__option {
+    animation: mc-doc-row 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mc-filter-select2-dropdown .select2-results__option:nth-child(1) {
+    animation-delay: 0.02s;
+}
+
+.mc-filter-select2-dropdown .select2-results__option:nth-child(2) {
+    animation-delay: 0.05s;
+}
+
+.mc-filter-select2-dropdown .select2-results__option:nth-child(3) {
+    animation-delay: 0.08s;
+}
+
+.mc-filter-select2-dropdown .select2-results__option:nth-child(4) {
+    animation-delay: 0.11s;
+}
+
+.mc-filter-select2-dropdown .select2-results__option:nth-child(5) {
+    animation-delay: 0.14s;
+}
+
+.list-filters-toggle {
+    transition:
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.list-filters-toggle.is-open {
+    animation: mc-chip-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.list-filters-toggle:hover {
+    transform: translateY(-1px);
+}
+
+.btn-clear-filters,
+.clear-filters {
+    transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.btn-clear-filters:hover,
+.clear-filters:hover {
+    transform: translateY(-1px);
+}
+
+/* ========== Admin migrated shells (hub / agents / offices / users lists + forms) ========== */
+body.agents-list-page .agents-list-card,
+body.other-companies-list-page .other-companies-list-card,
+body.suppliers-list-page .suppliers-list-card,
+body.customers-list-page .customers-list-card,
+body.hubs-list-page .hubs-list-card,
+body.offices-list-page .offices-list-card,
+body.users-list-page .users-list-card,
+body.stocks-list-page .stocks-list-card,
+body.pickup-list-page .pickup-list-card,
+body.shipments-list-page .shipments-list-card,
+body.shipment-followup-list-page .shipment-followup-list-card,
+body.stock-followup-list-page .followup-list-card,
+body.cost-follow-up-list-page .cost-list-card,
+body.prealert-list-page .prealert-list-card {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+
+body.agents-list-page .agents-filters-area,
+body.other-companies-list-page .other-companies-filters-area,
+body.suppliers-list-page .suppliers-filters-area,
+body.customers-list-page .customers-filters-area,
+body.hubs-list-page .hubs-filters-area {
+    animation: mc-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
+}
+
+body.agents-list-page .btn-agents-add,
+body.other-companies-list-page .btn-other-companies-add,
+body.suppliers-list-page .btn-suppliers-add,
+body.customers-list-page .btn-customers-add,
+body.hubs-list-page .btn-hubs-add,
+body.offices-list-page .btn-offices-add,
+body.edit-hub-page .btn-hub-pane-action,
+body.edit-agent-page .btn-agent-pane-action,
+body.edit-other-company-page .btn-oc-pane-action,
+body.edit-supplier-page .btn-sup-pane-action ,
+body.edit-customer-page .btn-cust-pane-action {
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease;
+}
+
+body.agents-list-page .btn-agents-add:hover,
+body.other-companies-list-page .btn-other-companies-add:hover,
+body.suppliers-list-page .btn-suppliers-add:hover,
+body.customers-list-page .btn-customers-add:hover,
+body.hubs-list-page .btn-hubs-add:hover,
+body.offices-list-page .btn-offices-add:hover,
+body.edit-hub-page .btn-hub-pane-action:hover,
+body.edit-agent-page .btn-agent-pane-action:hover,
+body.edit-other-company-page .btn-oc-pane-action,
+body.edit-supplier-page .btn-sup-pane-action:hover ,
+body.edit-customer-page .btn-cust-pane-action:hover {
+    transform: translateY(-2px);
+}
+
+body.create-hub-page .create-hub-hero,
+body.create-agent-page .create-agent-hero,
+body.create-other-company-page .create-other-company-hero,
+body.create-supplier-page .create-supplier-hero,
+body.create-customer-page .create-customer-hero,
+body.create-office-page .create-office-hero,
+body.edit-hub-page .edit-hub-hero,
+body.edit-agent-page .edit-agent-hero,
+body.edit-other-company-page .edit-other-company-hero,
+body.edit-supplier-page .edit-supplier-hero,
+body.edit-customer-page .edit-customer-hero,
+body.edit-vessel-page .edit-vessel-hero,
+body.edit-office-page .edit-office-hero,
+body.hub-user-page .hub-user-hero,
+body.hub-contact-page .hub-contact-hero,
+body.agent-contact-page .agent-contact-hero,
+body.oc-contact-page .oc-contact-hero,
+body.supplier-contact-page .supplier-contact-hero,
+body.office-user-page .office-user-hero {
+    animation: mc-rise 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.create-hub-page .create-hub-hero-icon,
+body.create-agent-page .create-agent-hero-icon,
+body.create-other-company-page .create-other-company-hero-icon,
+body.create-supplier-page .create-supplier-hero-icon,
+body.create-customer-page .create-customer-hero-icon,
+body.create-office-page .create-office-hero-icon,
+body.edit-hub-page .edit-hub-hero-icon,
+body.edit-agent-page .edit-agent-hero-icon,
+body.edit-other-company-page .edit-other-company-hero-icon,
+body.edit-supplier-page .edit-supplier-hero-icon,
+body.edit-customer-page .edit-customer-hero-icon,
+body.edit-vessel-page .edit-vessel-hero-icon,
+body.edit-office-page .edit-office-hero-icon,
+body.hub-user-page .hub-user-hero-icon,
+body.hub-contact-page .hub-contact-hero-icon,
+body.agent-contact-page .agent-contact-hero-icon,
+body.oc-contact-page .oc-contact-hero-icon,
+body.supplier-contact-page .supplier-contact-hero-icon,
+body.agent-user-page .agent-user-hero-icon,
+body.office-user-page .office-user-hero-icon {
+    animation:
+        mc-icon-bloom 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both,
+        mc-icon-float 3.2s ease-in-out 0.9s infinite;
+}
+
+body.create-hub-page .create-hub-back,
+body.create-agent-page .create-agent-back,
+body.create-other-company-page .create-other-company-back,
+body.create-supplier-page .create-supplier-back,
+body.create-customer-page .create-customer-back,
+body.create-office-page .create-office-back,
+body.edit-hub-page .edit-hub-back,
+body.edit-agent-page .edit-agent-back,
+body.edit-other-company-page .edit-other-company-back,
+body.edit-supplier-page .edit-supplier-back,
+body.edit-customer-page .edit-customer-back,
+body.edit-vessel-page .edit-vessel-back,
+body.edit-office-page .edit-office-back,
+body.hub-user-page .hub-user-back,
+body.hub-contact-page .hub-contact-back,
+body.agent-contact-page .agent-contact-back,
+body.oc-contact-page .oc-contact-back,
+body.supplier-contact-page .supplier-contact-back,
+body.agent-user-page .agent-user-back,
+body.office-user-page .office-user-back {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+body.edit-hub-page .edit-hub-meta-pill,
+body.edit-agent-page .edit-agent-meta-pill,
+body.edit-other-company-page .edit-other-company-meta-pill,
+body.edit-supplier-page .edit-supplier-meta-pill,
+body.edit-customer-page .edit-customer-meta-pill,
+body.edit-vessel-page .edit-vessel-meta-pill,
+body.edit-office-page .edit-office-meta-pill,
+body.hub-user-page .hub-user-meta-pill,
+body.hub-contact-page .hub-contact-meta-pill,
+body.agent-contact-page .agent-contact-meta-pill,
+body.oc-contact-page .oc-contact-meta-pill,
+body.supplier-contact-page .supplier-contact-meta-pill,
+body.agent-user-page .agent-user-meta-pill,
+body.office-user-page .office-user-meta-pill {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.edit-hub-page .edit-hub-meta-pill:nth-child(1),
+body.edit-agent-page .edit-agent-meta-pill:nth-child(1),
+body.edit-other-company-page .edit-other-company-meta-pill:nth-child(1),
+body.edit-supplier-page .edit-supplier-meta-pill:nth-child(1),
+body.edit-customer-page .edit-customer-meta-pill:nth-child(1),
+body.edit-vessel-page .edit-vessel-meta-pill:nth-child(1),
+body.edit-office-page .edit-office-meta-pill:nth-child(1),
+body.hub-user-page .hub-user-meta-pill:nth-child(1),
+body.hub-contact-page .hub-contact-meta-pill:nth-child(1),
+body.agent-user-page .agent-user-meta-pill:nth-child(1),
+body.office-user-page .office-user-meta-pill:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+body.edit-hub-page .edit-hub-meta-pill:nth-child(2),
+body.edit-agent-page .edit-agent-meta-pill:nth-child(2),
+body.edit-other-company-page .edit-other-company-meta-pill:nth-child(2),
+body.edit-supplier-page .edit-supplier-meta-pill:nth-child(2),
+body.edit-customer-page .edit-customer-meta-pill:nth-child(2),
+body.edit-vessel-page .edit-vessel-meta-pill:nth-child(2),
+body.edit-office-page .edit-office-meta-pill:nth-child(2),
+body.hub-user-page .hub-user-meta-pill:nth-child(2),
+body.hub-contact-page .hub-contact-meta-pill:nth-child(2),
+body.agent-user-page .agent-user-meta-pill:nth-child(2),
+body.office-user-page .office-user-meta-pill:nth-child(2) {
+    animation-delay: 0.16s;
+}
+
+body.edit-hub-page .edit-hub-meta-pill:nth-child(3),
+body.edit-agent-page .edit-agent-meta-pill:nth-child(3),
+body.edit-other-company-page .edit-other-company-meta-pill:nth-child(3),
+body.edit-supplier-page .edit-supplier-meta-pill:nth-child(3),
+body.edit-customer-page .edit-customer-meta-pill:nth-child(3),
+body.edit-vessel-page .edit-vessel-meta-pill:nth-child(3),
+body.edit-office-page .edit-office-meta-pill:nth-child(3) {
+    animation-delay: 0.22s;
+}
+
+body.edit-hub-page .edit-hub-meta-pill:nth-child(4),
+body.edit-agent-page .edit-agent-meta-pill:nth-child(4),
+body.edit-other-company-page .edit-other-company-meta-pill:nth-child(4),
+body.edit-supplier-page .edit-supplier-meta-pill:nth-child(4),
+body.edit-customer-page .edit-customer-meta-pill:nth-child(4),
+body.edit-office-page .edit-office-meta-pill:nth-child(4) {
+    animation-delay: 0.28s;
+}
+
+body.edit-hub-page .tabs-container,
+body.edit-agent-page .tabs-container,
+body.edit-other-company-page .tabs-container,
+body.edit-supplier-page .tabs-container ,
+body.edit-customer-page .tabs-container,
+body.edit-vessel-page .tabs-container {
+    animation: mc-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+body.edit-hub-page .tabs-container .tab-item,
+body.edit-agent-page .tabs-container .tab-item,
+body.edit-other-company-page .tabs-container,
+body.edit-supplier-page .tabs-container .tab-item ,
+body.edit-customer-page .tabs-container .tab-item,
+body.edit-vessel-page .tabs-container .tab-item {
+    transition:
+        color 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease,
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.edit-hub-page .tabs-container .tab-item:hover,
+body.edit-agent-page .tabs-container .tab-item:hover,
+body.edit-other-company-page .tabs-container,
+body.edit-supplier-page .tabs-container .tab-item:hover ,
+body.edit-customer-page .tabs-container .tab-item:hover,
+body.edit-vessel-page .tabs-container .tab-item:hover {
+    transform: translateY(-2px);
+}
+
+body.edit-hub-page .edit-hub-card,
+body.edit-agent-page .edit-agent-card,
+body.create-hub-page .create-hub-card,
+body.create-agent-page .create-agent-card,
+body.create-other-company-page .create-other-company-card,
+body.create-supplier-page .create-supplier-card,
+body.create-customer-page .create-customer-card,
+body.create-office-page .create-office-card,
+body.edit-other-company-page .edit-other-company-card,
+body.edit-supplier-page .edit-supplier-card,
+body.edit-customer-page .edit-customer-card,
+body.edit-vessel-page .edit-vessel-card,
+body.edit-office-page .edit-office-card,
+body.hub-user-page .hub-user-card,
+body.hub-contact-page .hub-contact-card,
+body.agent-contact-page .agent-contact-card,
+body.oc-contact-page .oc-contact-card,
+body.supplier-contact-page .supplier-contact-card,
+body.agent-user-page .agent-user-card,
+body.office-user-page .office-user-card {
+    animation: mc-rise-soft 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+body.edit-hub-page .form-pillar-container > .form-pillar,
+body.edit-agent-page .form-pillar-container > .form-pillar,
+body.edit-other-company-page .form-pillar-container > .form-pillar,
+body.edit-supplier-page .form-pillar-container > .form-pillar ,
+body.edit-customer-page .form-pillar-container > .form-pillar,
+body.edit-vessel-page .form-pillar-container > .form-pillar {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease,
+        border-color 0.2s ease;
+}
+
+body.edit-hub-page .form-pillar-container > .form-pillar:nth-child(1),
+body.edit-agent-page .form-pillar-container > .form-pillar:nth-child(1),
+body.edit-other-company-page .form-pillar-container > .form-pillar,
+body.edit-supplier-page .form-pillar-container > .form-pillar:nth-child(1) ,
+body.edit-customer-page .form-pillar-container > .form-pillar:nth-child(1),
+body.edit-vessel-page .form-pillar-container > .form-pillar:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+body.edit-hub-page .form-pillar-container > .form-pillar:nth-child(2),
+body.edit-agent-page .form-pillar-container > .form-pillar:nth-child(2),
+body.edit-other-company-page .form-pillar-container > .form-pillar,
+body.edit-supplier-page .form-pillar-container > .form-pillar:nth-child(2) ,
+body.edit-customer-page .form-pillar-container > .form-pillar:nth-child(2),
+body.edit-vessel-page .form-pillar-container > .form-pillar:nth-child(2) {
+    animation-delay: 0.28s;
+}
+
+body.edit-hub-page .form-pillar-container > .form-pillar:nth-child(3),
+body.edit-agent-page .form-pillar-container > .form-pillar:nth-child(3),
+body.edit-other-company-page .form-pillar-container > .form-pillar,
+body.edit-supplier-page .form-pillar-container > .form-pillar:nth-child(3) ,
+body.edit-customer-page .form-pillar-container > .form-pillar:nth-child(3),
+body.edit-vessel-page .form-pillar-container > .form-pillar:nth-child(3) {
+    animation-delay: 0.36s;
+}
+
+body.edit-vessel-page .form-pillar-container > .form-pillar:nth-child(4) {
+    animation-delay: 0.44s;
+}
+
+body.edit-hub-page .form-pillar-container > .form-pillar:hover,
+body.edit-agent-page .form-pillar-container > .form-pillar:hover,
+body.edit-other-company-page .form-pillar-container > .form-pillar,
+body.edit-supplier-page .form-pillar-container > .form-pillar:hover ,
+body.edit-customer-page .form-pillar-container > .form-pillar:hover,
+body.edit-vessel-page .form-pillar-container > .form-pillar:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 2px 4px rgba(14, 29, 74, 0.05),
+        0 12px 28px rgba(14, 29, 74, 0.08);
+    border-color: #b7d3e4;
+}
+
+body.create-hub-page .hub-pillars > .hub-pillar-col > .hub-pillar,
+body.create-agent-page .agent-pillars > .agent-pillar-col > .agent-pillar,
+body.create-other-company-page .oc-pillars > .oc-pillar-col > .oc-pillar,
+body.create-supplier-page .sup-pillars > .sup-pillar-col > .sup-pillar,
+body.create-customer-page .cust-pillars > .sup-pillar-col > .sup-pillar,
+body.create-office-page .office-pillars > .office-pillar-col > .office-pillar,
+body.edit-office-page .office-pillars > .office-pillar-col > .office-pillar {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease,
+        border-color 0.2s ease;
+}
+
+body.create-hub-page .hub-pillars > .hub-pillar-col:nth-child(1) > .hub-pillar,
+body.create-agent-page .agent-pillars > .agent-pillar-col:nth-child(1) > .agent-pillar,
+body.create-other-company-page .oc-pillars > .oc-pillar-col:nth-child(1) > .oc-pillar,
+body.create-supplier-page .sup-pillars > .sup-pillar-col:nth-child(1) > .sup-pillar,
+body.create-customer-page .cust-pillars > .sup-pillar-col:nth-child(1) > .sup-pillar,
+body.create-office-page .office-pillars > .office-pillar-col:nth-child(1) > .office-pillar,
+body.edit-office-page .office-pillars > .office-pillar-col:nth-child(1) > .office-pillar {
+    animation-delay: 0.14s;
+}
+
+body.create-hub-page .hub-pillars > .hub-pillar-col:nth-child(2) > .hub-pillar,
+body.create-agent-page .agent-pillars > .agent-pillar-col:nth-child(2) > .agent-pillar,
+body.create-other-company-page .oc-pillars > .oc-pillar-col:nth-child(2) > .oc-pillar,
+body.create-supplier-page .sup-pillars > .sup-pillar-col:nth-child(2) > .sup-pillar,
+body.create-customer-page .cust-pillars > .sup-pillar-col:nth-child(2) > .sup-pillar,
+body.create-office-page .office-pillars > .office-pillar-col:nth-child(2) > .office-pillar,
+body.edit-office-page .office-pillars > .office-pillar-col:nth-child(2) > .office-pillar {
+    animation-delay: 0.22s;
+}
+
+body.create-hub-page .hub-pillars > .hub-pillar-col:nth-child(3) > .hub-pillar,
+body.create-agent-page .agent-pillars > .agent-pillar-col:nth-child(3) > .agent-pillar,
+body.create-other-company-page .oc-pillars > .oc-pillar-col:nth-child(3) > .oc-pillar,
+body.create-supplier-page .sup-pillars > .sup-pillar-col:nth-child(3) > .sup-pillar,
+body.create-customer-page .cust-pillars > .sup-pillar-col:nth-child(3) > .sup-pillar,
+body.create-office-page .office-pillars > .office-pillar-col:nth-child(3) > .office-pillar,
+body.edit-office-page .office-pillars > .office-pillar-col:nth-child(3) > .office-pillar {
+    animation-delay: 0.3s;
+}
+
+body.create-hub-page .hub-pillars > .hub-pillar-col:nth-child(4) > .hub-pillar,
+body.create-office-page .office-pillars > .office-pillar-col:nth-child(4) > .office-pillar,
+body.edit-office-page .office-pillars > .office-pillar-col:nth-child(4) > .office-pillar {
+    animation-delay: 0.38s;
+}
+
+body.create-hub-page .hub-pillars > .hub-pillar-col > .hub-pillar:hover,
+body.create-agent-page .agent-pillars > .agent-pillar-col > .agent-pillar:hover,
+body.create-other-company-page .oc-pillars > .oc-pillar-col > .oc-pillar:hover,
+body.create-supplier-page .sup-pillars > .sup-pillar-col > .sup-pillar:hover,
+body.create-customer-page .cust-pillars > .sup-pillar-col > .sup-pillar:hover,
+body.create-office-page .office-pillars > .office-pillar-col > .office-pillar:hover,
+body.edit-office-page .office-pillars > .office-pillar-col > .office-pillar:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 2px 4px rgba(14, 29, 74, 0.05),
+        0 12px 28px rgba(14, 29, 74, 0.08);
+    border-color: #b7d3e4;
+}
+
+body.hub-user-page .hub-user-pillar,
+body.hub-contact-page .hub-contact-pillar,
+body.agent-contact-page .agent-contact-pillar,
+body.oc-contact-page .oc-contact-pillar,
+body.supplier-contact-page .supplier-contact-pillar,
+body.agent-user-page .agent-user-pillar,
+body.office-user-page .office-user-pillar {
+    animation: mc-chip-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both;
+}
+
+body.edit-hub-page .hub-pane-toolbar,
+body.edit-agent-page .agent-pane-toolbar,
+body.edit-other-company-page .oc-pane-toolbar,
+body.edit-supplier-page .sup-pane-toolbar ,
+body.edit-customer-page .cust-pane-toolbar {
+    animation: mc-chip-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+body.edit-hub-page .hub-table-wrap tbody tr,
+body.edit-agent-page .agent-table-wrap tbody tr,
+body.edit-other-company-page .oc-table-wrap tbody tr,
+body.edit-supplier-page .sup-table-wrap tbody tr ,
+body.edit-customer-page .cust-table-wrap tbody tr {
+    animation: mc-doc-row 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.edit-hub-page .hub-table-wrap tbody tr:nth-child(1),
+body.edit-agent-page .agent-table-wrap tbody tr:nth-child(1),
+body.edit-other-company-page .oc-table-wrap tbody tr,
+body.edit-supplier-page .sup-table-wrap tbody tr:nth-child(1) ,
+body.edit-customer-page .cust-table-wrap tbody tr:nth-child(1) {
+    animation-delay: 0.04s;
+}
+
+body.edit-hub-page .hub-table-wrap tbody tr:nth-child(2),
+body.edit-agent-page .agent-table-wrap tbody tr:nth-child(2),
+body.edit-other-company-page .oc-table-wrap tbody tr,
+body.edit-supplier-page .sup-table-wrap tbody tr:nth-child(2) ,
+body.edit-customer-page .cust-table-wrap tbody tr:nth-child(2) {
+    animation-delay: 0.08s;
+}
+
+body.edit-hub-page .hub-table-wrap tbody tr:nth-child(3),
+body.edit-agent-page .agent-table-wrap tbody tr:nth-child(3),
+body.edit-other-company-page .oc-table-wrap tbody tr,
+body.edit-supplier-page .sup-table-wrap tbody tr:nth-child(3) ,
+body.edit-customer-page .cust-table-wrap tbody tr:nth-child(3) {
+    animation-delay: 0.12s;
+}
+
+body.edit-hub-page .hub-table-wrap tbody tr:nth-child(4),
+body.edit-agent-page .agent-table-wrap tbody tr:nth-child(4),
+body.edit-other-company-page .oc-table-wrap tbody tr,
+body.edit-supplier-page .sup-table-wrap tbody tr:nth-child(4) ,
+body.edit-customer-page .cust-table-wrap tbody tr:nth-child(4) {
+    animation-delay: 0.16s;
+}
+
+body.edit-hub-page .hub-table-wrap tbody tr:nth-child(5),
+body.edit-agent-page .agent-table-wrap tbody tr:nth-child(5),
+body.edit-other-company-page .oc-table-wrap tbody tr,
+body.edit-supplier-page .sup-table-wrap tbody tr:nth-child(5) ,
+body.edit-customer-page .cust-table-wrap tbody tr:nth-child(5) {
+    animation-delay: 0.2s;
+}
+
+body.edit-hub-page .hub-table-wrap tbody tr:nth-child(n + 6),
+body.edit-agent-page .agent-table-wrap tbody tr:nth-child(n + 6),
+body.edit-other-company-page .oc-table-wrap tbody tr,
+body.edit-supplier-page .sup-table-wrap tbody tr:nth-child(n + 6) ,
+body.edit-customer-page .cust-table-wrap tbody tr:nth-child(n + 6) {
+    animation-delay: 0.24s;
+}
+
+body.edit-hub-page .tab-content-custom.active,
+body.edit-hub-page .tab-content-custom.mc-tab-swap,
+body.edit-agent-page .tab-content-custom.active,
+body.edit-agent-page .tab-content-custom.mc-tab-swap,
+body.edit-other-company-page .tab-content-custom.active,
+body.edit-supplier-page .tab-content-custom.active,
+body.edit-customer-page .tab-content-custom.active,
+body.edit-vessel-page .tab-content-custom.active,
+body.edit-other-company-page .tab-content-custom.mc-tab-swap,
+body.edit-supplier-page .tab-content-custom.mc-tab-swap ,
+body.edit-customer-page .tab-content-custom.mc-tab-swap,
+body.edit-vessel-page .tab-content-custom.mc-tab-swap {
+    animation: mc-tab-swap 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body.create-hub-page .create-hub-footer,
+body.create-agent-page .create-agent-footer,
+body.create-other-company-page .create-other-company-footer,
+body.create-supplier-page .create-supplier-footer,
+body.create-customer-page .create-customer-footer,
+body.create-office-page .create-office-footer,
+body.edit-hub-page .hub-edit-footer,
+body.edit-agent-page .agent-edit-footer,
+body.edit-other-company-page .other-company-edit-footer,
+body.edit-supplier-page .supplier-edit-footer,
+body.edit-customer-page .customer-edit-footer,
+body.edit-vessel-page .vessel-edit-footer,
+body.edit-office-page .edit-footer,
+body.hub-user-page .hub-user-footer,
+body.hub-contact-page .hub-contact-footer,
+body.agent-contact-page .agent-contact-footer,
+body.oc-contact-page .oc-contact-footer,
+body.supplier-contact-page .supplier-contact-footer,
+body.agent-user-page .agent-user-footer,
+body.office-user-page .office-user-footer {
+    animation: mc-footer-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
+body.create-hub-page .create-hub-footer .btn-save-custom,
+body.create-agent-page .create-agent-footer .btn-save-custom,
+body.create-other-company-page .create-other-company-footer .btn-save-custom,
+body.create-supplier-page .create-supplier-footer .btn-save-custom,
+body.create-customer-page .create-customer-footer .btn-save-custom,
+body.create-office-page .create-office-footer .btn-save-custom,
+body.edit-hub-page .hub-edit-footer .btn-save-custom,
+body.edit-agent-page .agent-edit-footer .btn-save-custom,
+body.edit-other-company-page .other-company-edit-footer .btn-save-custom,
+body.edit-supplier-page .supplier-edit-footer .btn-save-custom,
+body.edit-customer-page .customer-edit-footer .btn-save-custom,
+body.edit-vessel-page .vessel-edit-footer .btn-save-custom,
+body.edit-office-page .edit-footer .btn-save-custom,
+body.hub-user-page .hub-user-footer .btn-save-custom,
+body.hub-contact-page .hub-contact-footer .btn-save-custom,
+body.agent-contact-page .agent-contact-footer .btn-save-custom,
+body.oc-contact-page .oc-contact-footer .btn-save-custom,
+body.supplier-contact-page .supplier-contact-footer .btn-save-custom,
+body.agent-user-page .agent-user-footer .btn-save-custom,
+body.office-user-page .office-user-footer .btn-save-custom {
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease;
+}
+
+body.create-hub-page .create-hub-footer .btn-save-custom:hover,
+body.create-agent-page .create-agent-footer .btn-save-custom:hover,
+body.create-other-company-page .create-other-company-footer .btn-save-custom:hover,
+body.create-supplier-page .create-supplier-footer .btn-save-custom:hover,
+body.create-customer-page .create-customer-footer .btn-save-custom:hover,
+body.create-office-page .create-office-footer .btn-save-custom:hover,
+body.edit-hub-page .hub-edit-footer .btn-save-custom:hover,
+body.edit-agent-page .agent-edit-footer .btn-save-custom:hover,
+body.edit-other-company-page .other-company-edit-footer .btn-save-custom:hover,
+body.edit-supplier-page .supplier-edit-footer .btn-save-custom:hover,
+body.edit-customer-page .customer-edit-footer .btn-save-custom:hover,
+body.edit-vessel-page .vessel-edit-footer .btn-save-custom:hover,
+body.edit-office-page .edit-footer .btn-save-custom:hover,
+body.hub-user-page .hub-user-footer .btn-save-custom:hover,
+body.hub-contact-page .hub-contact-footer .btn-save-custom:hover,
+body.agent-contact-page .agent-contact-footer .btn-save-custom:hover,
+body.oc-contact-page .oc-contact-footer .btn-save-custom:hover,
+body.supplier-contact-page .supplier-contact-footer .btn-save-custom:hover,
+body.agent-user-page .agent-user-footer .btn-save-custom:hover,
+body.office-user-page .office-user-footer .btn-save-custom:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .page-body > .card,
     .page-body > .list-page-header,
@@ -653,7 +1450,180 @@ body.create-crr-page .create-crr-footer .btn-save-custom:hover {
     .stock-right-panel,
     .stock-edit-wrapper .panel-card,
     .stock-edit-wrapper .crr-pillars > .edit-form-col > .crr-pillar,
-    .stock-edit-wrapper .stock-grid-card.crr-section-shell {
+    .stock-edit-wrapper .stock-grid-card.crr-section-shell,
+    body.agents-list-page .agents-list-card,
+    body.other-companies-list-page .other-companies-list-card,
+    body.hubs-list-page .hubs-list-card,
+    body.offices-list-page .offices-list-card,
+    body.users-list-page .users-list-card,
+    body.stocks-list-page .stocks-list-card,
+    body.pickup-list-page .pickup-list-card,
+    body.shipments-list-page .shipments-list-card,
+    body.shipment-followup-list-page .shipment-followup-list-card,
+    body.stock-followup-list-page .followup-list-card,
+    body.cost-follow-up-list-page .cost-list-card,
+    body.prealert-list-page .prealert-list-card,
+    body.agents-list-page .agents-filters-area,
+    body.other-companies-list-page .other-companies-filters-area,
+    body.hubs-list-page .hubs-filters-area,
+body.create-hub-page .create-hub-hero,
+body.create-agent-page .create-agent-hero,
+body.create-other-company-page .create-other-company-hero,
+body.create-supplier-page .create-supplier-hero,
+body.create-office-page .create-office-hero,
+body.edit-hub-page .edit-hub-hero,
+body.edit-agent-page .edit-agent-hero,
+body.edit-other-company-page .edit-other-company-hero,
+body.edit-supplier-page .edit-supplier-hero,
+body.edit-vessel-page .edit-vessel-hero,
+body.edit-office-page .edit-office-hero,
+    body.hub-user-page .hub-user-hero,
+    body.hub-contact-page .hub-contact-hero,
+    body.agent-user-page .agent-user-hero,
+    body.office-user-page .office-user-hero,
+body.create-hub-page .create-hub-hero-icon,
+body.create-agent-page .create-agent-hero-icon,
+body.create-other-company-page .create-other-company-hero-icon,
+body.create-supplier-page .create-supplier-hero-icon,
+body.create-office-page .create-office-hero-icon,
+body.edit-hub-page .edit-hub-hero-icon,
+body.edit-agent-page .edit-agent-hero-icon,
+body.edit-other-company-page .edit-other-company-hero-icon,
+body.edit-supplier-page .edit-supplier-hero-icon,
+body.edit-vessel-page .edit-vessel-hero-icon,
+body.edit-office-page .edit-office-hero-icon,
+    body.hub-user-page .hub-user-hero-icon,
+    body.hub-contact-page .hub-contact-hero-icon,
+    body.agent-user-page .agent-user-hero-icon,
+    body.office-user-page .office-user-hero-icon,
+body.create-hub-page .create-hub-back,
+body.create-agent-page .create-agent-back,
+body.create-other-company-page .create-other-company-back,
+body.create-supplier-page .create-supplier-back,
+body.create-office-page .create-office-back,
+body.edit-hub-page .edit-hub-back,
+body.edit-agent-page .edit-agent-back,
+body.edit-other-company-page .edit-other-company-back,
+body.edit-supplier-page .edit-supplier-back,
+body.edit-vessel-page .edit-vessel-back,
+body.edit-office-page .edit-office-back,
+    body.hub-user-page .hub-user-back,
+    body.hub-contact-page .hub-contact-back,
+    body.agent-user-page .agent-user-back,
+    body.office-user-page .office-user-back,
+    body.edit-hub-page .edit-hub-meta-pill,
+    body.edit-agent-page .edit-agent-meta-pill,
+    body.edit-other-company-page .edit-other-company-meta-pill,
+body.edit-supplier-page .edit-supplier-meta-pill,
+body.edit-vessel-page .edit-vessel-meta-pill,
+    body.edit-office-page .edit-office-meta-pill,
+    body.hub-user-page .hub-user-meta-pill,
+    body.hub-contact-page .hub-contact-meta-pill,
+    body.agent-user-page .agent-user-meta-pill,
+    body.office-user-page .office-user-meta-pill,
+    body.edit-hub-page .tabs-container,
+    body.edit-agent-page .tabs-container,
+    body.edit-other-company-page .tabs-container,
+body.edit-supplier-page .tabs-container,
+body.edit-customer-page .tabs-container,
+body.edit-vessel-page .tabs-container,
+    body.edit-hub-page .edit-hub-card,
+    body.edit-agent-page .edit-agent-card,
+    body.create-other-company-page .create-other-company-card,
+body.create-supplier-page .create-supplier-card,
+    body.edit-other-company-page .edit-other-company-card,
+body.edit-supplier-page .edit-supplier-card,
+body.edit-vessel-page .edit-vessel-card,
+    body.create-hub-page .create-hub-card,
+    body.create-agent-page .create-agent-card,
+    body.create-office-page .create-office-card,
+    body.edit-office-page .edit-office-card,
+    body.hub-user-page .hub-user-card,
+    body.hub-contact-page .hub-contact-card,
+    body.agent-user-page .agent-user-card,
+    body.office-user-page .office-user-card,
+    body.edit-hub-page .form-pillar-container > .form-pillar,
+    body.edit-agent-page .form-pillar-container > .form-pillar,
+    body.edit-other-company-page .form-pillar-container > .form-pillar,
+body.edit-supplier-page .form-pillar-container > .form-pillar,
+body.edit-customer-page .form-pillar-container > .form-pillar,
+body.edit-vessel-page .form-pillar-container > .form-pillar,
+    body.create-hub-page .hub-pillars > .hub-pillar-col > .hub-pillar,
+    body.create-agent-page .agent-pillars > .agent-pillar-col > .agent-pillar,
+    body.create-other-company-page .oc-pillars > .oc-pillar-col > .oc-pillar,
+body.create-supplier-page .sup-pillars > .sup-pillar-col > .sup-pillar,
+    body.create-office-page .office-pillars > .office-pillar-col > .office-pillar,
+    body.edit-office-page .office-pillars > .office-pillar-col > .office-pillar,
+    body.hub-user-page .hub-user-pillar,
+    body.hub-contact-page .hub-contact-pillar,
+    body.agent-user-page .agent-user-pillar,
+    body.office-user-page .office-user-pillar,
+    body.edit-hub-page .hub-pane-toolbar,
+    body.edit-agent-page .agent-pane-toolbar,
+    body.edit-other-company-page .oc-pane-toolbar,
+body.edit-supplier-page .sup-pane-toolbar,
+body.edit-customer-page .cust-pane-toolbar,
+    body.edit-hub-page .hub-table-wrap tbody tr,
+    body.edit-agent-page .agent-table-wrap tbody tr,
+    body.edit-other-company-page .oc-table-wrap tbody tr,
+body.edit-supplier-page .sup-table-wrap tbody tr,
+body.edit-customer-page .cust-table-wrap tbody tr,
+    body.edit-hub-page .tab-content-custom.active,
+    body.edit-hub-page .tab-content-custom.mc-tab-swap,
+    body.edit-agent-page .tab-content-custom.active,
+    body.edit-agent-page .tab-content-custom.mc-tab-swap,
+    body.edit-other-company-page .tab-content-custom.active,
+body.edit-supplier-page .tab-content-custom.active,
+    body.edit-other-company-page .tab-content-custom.mc-tab-swap,
+body.edit-supplier-page .tab-content-custom.mc-tab-swap,
+body.edit-customer-page .tab-content-custom.mc-tab-swap,
+body.edit-vessel-page .tab-content-custom.active,
+body.edit-vessel-page .tab-content-custom.mc-tab-swap,
+    body.create-hub-page .create-hub-footer,
+    body.create-agent-page .create-agent-footer,
+    body.create-other-company-page .create-other-company-footer,
+body.create-supplier-page .create-supplier-footer,
+    body.create-office-page .create-office-footer,
+    body.edit-hub-page .hub-edit-footer,
+    body.edit-agent-page .agent-edit-footer,
+    body.edit-other-company-page .other-company-edit-footer,
+body.edit-supplier-page .supplier-edit-footer,
+body.edit-vessel-page .vessel-edit-footer,
+    body.edit-office-page .edit-footer,
+    body.hub-user-page .hub-user-footer,
+    body.hub-contact-page .hub-contact-footer,
+    body.agent-user-page .agent-user-footer,
+    body.office-user-page .office-user-footer,
+    .tabs-container,
+    .edit-office-tabs,
+    .custom-nav-tabs,
+    .tab-content-custom.active,
+    .tab-content-custom.mc-tab-swap,
+    .tab-pane.active,
+    .tab-pane.mc-tab-swap,
+    .filter-row,
+    [class*="-filters-area"],
+    .filter-row.mc-filter-reveal,
+    .filter-item,
+    .searchable-filter-wrapper,
+    table.dataTable tbody tr.mc-list-row-in,
+    .list-page-header-count strong.mc-count-pulse,
+    body.agent-contact-page .agent-contact-hero,
+    body.agent-contact-page .agent-contact-hero-icon,
+    body.agent-contact-page .agent-contact-back,
+    body.agent-contact-page .agent-contact-meta-pill,
+    body.agent-contact-page .agent-contact-card,
+    body.agent-contact-page .agent-contact-pillar,
+    body.agent-contact-page .agent-contact-footer,
+    body.oc-contact-page .oc-contact-hero,
+    body.oc-contact-page .oc-contact-hero-icon,
+    body.oc-contact-page .oc-contact-back,
+    body.oc-contact-page .oc-contact-meta-pill,
+    body.oc-contact-page .oc-contact-card,
+    body.oc-contact-page .oc-contact-pillar,
+    body.oc-contact-page .oc-contact-footer,
+    body.supplier-contact-page .supplier-contact-footer ,
+    body.customer-contact-page .supplier-contact-footer {
         animation: none !important;
         filter: none !important;
     }
@@ -669,7 +1639,40 @@ body.create-crr-page .create-crr-footer .btn-save-custom:hover {
     body.create-shipment-page .create-shipment-footer .btn-save-custom:hover,
     body.create-crr-page .crr-pillars > .crr-col > .crr-pillar:hover,
     body.create-crr-page .create-crr-footer .btn-save-custom:hover,
-    .stock-edit-wrapper .crr-pillars > .edit-form-col > .crr-pillar:hover {
+    .stock-edit-wrapper .crr-pillars > .edit-form-col > .crr-pillar:hover,
+    body.agents-list-page .btn-agents-add:hover,
+    body.other-companies-list-page .btn-other-companies-add:hover,
+    body.hubs-list-page .btn-hubs-add:hover,
+    body.offices-list-page .btn-offices-add:hover,
+    body.edit-hub-page .btn-hub-pane-action:hover,
+    body.edit-agent-page .btn-agent-pane-action:hover,
+    body.edit-hub-page .tabs-container .tab-item:hover,
+    body.edit-agent-page .tabs-container .tab-item:hover,
+    body.edit-hub-page .form-pillar-container > .form-pillar:hover,
+    body.edit-agent-page .form-pillar-container > .form-pillar:hover,
+    body.create-hub-page .hub-pillars > .hub-pillar-col > .hub-pillar:hover,
+    body.create-agent-page .agent-pillars > .agent-pillar-col > .agent-pillar:hover,
+    body.create-office-page .office-pillars > .office-pillar-col > .office-pillar:hover,
+    body.edit-office-page .office-pillars > .office-pillar-col > .office-pillar:hover,
+    body.create-hub-page .create-hub-footer .btn-save-custom:hover,
+    body.create-agent-page .create-agent-footer .btn-save-custom:hover,
+    body.create-office-page .create-office-footer .btn-save-custom:hover,
+    body.edit-hub-page .hub-edit-footer .btn-save-custom:hover,
+    body.edit-agent-page .agent-edit-footer .btn-save-custom:hover,
+    body.edit-office-page .edit-footer .btn-save-custom:hover,
+    body.hub-user-page .hub-user-footer .btn-save-custom:hover,
+    body.hub-contact-page .hub-contact-footer .btn-save-custom:hover,
+    body.edit-vessel-page .tabs-container .tab-item:hover,
+    body.edit-vessel-page .form-pillar-container > .form-pillar:hover,
+    body.edit-vessel-page .vessel-edit-footer .btn-save-custom:hover,
+    body.agent-user-page .agent-user-footer .btn-save-custom:hover,
+    body.office-user-page .office-user-footer .btn-save-custom:hover,
+    .tabs-container .tab-item:hover,
+    .edit-office-tab:hover,
+    .filter-group:focus-within,
+    .list-filters-toggle:hover,
+    .btn-clear-filters:hover,
+    .clear-filters:hover {
         transform: none;
     }
 }

@@ -41,12 +41,19 @@ class MigratedBladeViewsTest extends RegressionTestCase
         ]);
 
         $this->assertHtmlContainsAll($html, [
+            'agents-list-page',
             'filter-agent-name',
             'agents-table',
             'clear-agent-filters',
             'btn-agents-filters-toggle',
             'Hide inactive',
+            'list-page-header',
+            'Manage agent companies',
         ]);
+
+        $contents = file_get_contents(resource_path('views/Agents/index.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
     }
 
     public function test_suppliers_index_blade_renders_list_shell(): void
@@ -56,11 +63,49 @@ class MigratedBladeViewsTest extends RegressionTestCase
         ]);
 
         $this->assertHtmlContainsAll($html, [
+            'suppliers-list-card',
+            'list-page-header',
             'supplier-search-filter',
             'suppliers-table',
+            'clear-supplier-filters',
+            'btn-suppliers-filters-toggle',
+            'suppliers-pagination',
+            'pagination-sticky-footer',
             'Add supplier',
-            'list-inline-toolbar',
         ]);
+
+        $contents = file_get_contents(resource_path('views/Suppliers/index.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('<x-lists.ajax-table', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_customers_index_blade_renders_list_shell(): void
+    {
+        $html = $this->renderMigratedView('customers.index', [
+            'customers' => $this->emptyPaginator(),
+            'responsibleOffices' => ['Singapore'],
+            'accountManagers' => ['Jane Manager'],
+            'salesManagers' => ['John Sales'],
+            'countries' => ['Singapore'],
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'customers-list-card',
+            'list-page-header',
+            'filter-customer-search',
+            'customers-table',
+            'clear-customer-filters',
+            'btn-customers-filters-toggle',
+            'customers-pagination',
+            'pagination-sticky-footer',
+            'Add customer',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/customers/index.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="offices-table"', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
     }
 
     public function test_vessels_index_blade_renders_list_shell(): void
@@ -71,11 +116,53 @@ class MigratedBladeViewsTest extends RegressionTestCase
         ]);
 
         $this->assertHtmlContainsAll($html, [
+            'vessels-list-card',
+            'list-page-header',
             'vesselNameFilter',
+            'imoFilter',
+            'typeFilter',
             'vessels-table',
             'clear-vessel-filters',
             'btn-vessels-filters-toggle',
+            'vessels-pagination',
+            'pagination-sticky-footer',
+            'Vessels',
         ]);
+
+        $contents = file_get_contents(resource_path('views/Vessels/index.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('<x-lists.ajax-table', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_administration_change_logs_blade_renders_list_shell(): void
+    {
+        $html = $this->renderMigratedView('administration.change-logs', [
+            'users' => collect(),
+            'entityTypes' => [
+                \App\Models\Customer::class => 'Customer',
+                \App\Models\CustomerVessel::class => 'Vessel',
+            ],
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'change-logs-list-page',
+            'change-logs-list-card',
+            'list-page-header',
+            'Administration change logs',
+            'filter-search',
+            'filter-entity-type',
+            'filter-user-id',
+            'filter-date-range',
+            'change-logs-table',
+            'pagination-sticky-footer',
+            'filter-reset',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/administration/change-logs.blade.php'));
+        $this->assertStringContainsString('x-lists.base-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
     }
 
     public function test_other_companies_index_blade_renders_list_shell(): void
@@ -86,11 +173,43 @@ class MigratedBladeViewsTest extends RegressionTestCase
         ]);
 
         $this->assertHtmlContainsAll($html, [
+            'other-companies-list-card',
+            'list-page-header',
             'filter-company-name',
             'other-companies-table',
             'clear-company-filters',
             'btn-other-companies-filters-toggle',
+            'other-companies-pagination',
+            'pagination-sticky-footer',
         ]);
+
+        $contents = file_get_contents(resource_path('views/Other Companies/index.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('<x-lists.ajax-table', $contents);
+    }
+
+    public function test_hubs_index_blade_renders_list_shell(): void
+    {
+        $html = $this->renderMigratedView('hub.index', [
+            'hubs' => $this->emptyPaginator(),
+            'countries' => ['Singapore'],
+            'countryFlags' => ['Singapore' => 'https://example.com/sg.svg'],
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'hubs-list-card',
+            'list-page-header',
+            'filter-hub-name',
+            'hubs-table',
+            'clear-hub-filters',
+            'btn-hubs-filters-toggle',
+            'Hide inactive',
+            'hubs-pagination',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/hub/index.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('#offices-table', $contents);
     }
 
     public function test_stocks_index_blade_renders_list_shell(): void
@@ -108,6 +227,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'btn-stocks-filters-toggle',
             'clear-stocks-filters',
             'col-Customer',
+            'list-dense-filter-shell',
             'offices-table',
             'Create CRR',
             'data-list-page-header="1"',
@@ -151,6 +271,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertHtmlContainsAll($html, [
             'clear-pickup-filters',
             'pickup-filters-toolbar',
+            'list-dense-filter-shell',
             'pickup-pagination',
             'pagination-sticky-footer',
             'list-pagination-meta',
@@ -181,6 +302,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'clear-shipments-filters',
             'col-Customer',
             'col-Departure-hub',
+            'list-dense-filter-shell',
             'shipments-filters-toolbar',
             'data-list-page-header="1"',
             'shipments-pagination',
@@ -216,6 +338,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertHtmlContainsAll($html, [
             'btn-followup-filters-toggle',
             'clear-followup-filters',
+            'list-dense-filter-shell',
             'col-Customer',
             'filter-shipment-no',
             'data-list-page-header="1"',
@@ -238,6 +361,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertHtmlContainsAll($html, [
             'btn-cost-filters-toggle',
             'clear-cost-filters',
+            'list-dense-filter-shell',
             'col-Customer',
             'data-list-page-header="1"',
             'Cost follow-up',
@@ -261,6 +385,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertHtmlContainsAll($html, [
             'btn-prealert-filters-toggle',
             'clear-prealert-filters',
+            'list-dense-filter-shell',
             'data-list-page-header="1"',
             'Pre-alert reminders',
             'pagination-sticky-footer',
@@ -277,6 +402,55 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertPortSelectPresent($html, 'port_code');
         $this->assertCountrySelectPresent($html, 'country_id');
         $this->assertCountrySelectPresent($html, 'office_country_id');
+
+        $this->assertHtmlContainsAll($html, [
+            'create-agent-page',
+            'create-agent-hero-icon',
+            'agent-pillars',
+            'create-agent-footer',
+            'Create agent',
+            'agentForm',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Agents/create.blade.php'));
+        $this->assertStringContainsString('create-page-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_agent_edit_blade_uses_edit_shell(): void
+    {
+        $agent = MigratedViewStubs::agent();
+        $agent->city = 'Dubai';
+        $agent->setRelation('country', (object) ['name' => 'United Arab Emirates']);
+        $agent->setRelation('documents', collect());
+        $agent->setRelation('agentUsers', collect());
+        $agent->setRelation('contacts', collect());
+        $agent->setRelation('billingExceptions', collect());
+
+        $html = $this->renderMigratedView('Agents.edit', [
+            'agent' => $agent,
+            'countries' => MigratedViewStubs::countries(),
+        ]);
+
+        $this->assertPortSelectPresent($html, 'port_code');
+        $this->assertCountrySelectPresent($html, 'country_id');
+        $this->assertHtmlContainsAll($html, [
+            'edit-agent-page',
+            'edit-agent-hero-icon',
+            'agentEditForm',
+            'agent-edit-footer',
+            'agent-details',
+            'billing-details',
+            'Save agent',
+            'Add agent user',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Agents/edit.blade.php'));
+        $this->assertStringContainsString('edit-page-styles', $contents);
+        $this->assertStringContainsString('Agent users / contacts tabs live outside agentEditForm', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
     }
 
     public function test_suppliers_create_blade_renders_port_select(): void
@@ -289,6 +463,54 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertPortSelectPresent($html, 'port_code');
         $this->assertCountrySelectPresent($html, 'country_id');
         $this->assertCountrySelectPresent($html, 'office_country_id');
+
+        $this->assertHtmlContainsAll($html, [
+            'create-supplier-page',
+            'create-supplier-hero-icon',
+            'create-supplier-footer',
+            'supplierForm',
+            'Save supplier',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Suppliers/create.blade.php'));
+        $this->assertStringContainsString('create-page-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_suppliers_edit_blade_uses_edit_shell(): void
+    {
+        $supplier = MigratedViewStubs::supplier();
+        $supplier->city = 'Rotterdam';
+        $supplier->contact_person = 'John Supplier';
+        $supplier->setRelation('country', (object) ['name' => 'Netherlands']);
+        $supplier->setRelation('contacts', collect());
+
+        $html = $this->renderMigratedView('Suppliers.edit', [
+            'supplier' => $supplier,
+            'countries' => MigratedViewStubs::countries(),
+            'currencies' => ['USD'],
+        ]);
+
+        $this->assertPortSelectPresent($html, 'port_code');
+        $this->assertCountrySelectPresent($html, 'country_id');
+        $this->assertCountrySelectPresent($html, 'office_country_id');
+        $this->assertHtmlContainsAll($html, [
+            'edit-supplier-page',
+            'edit-supplier-hero-icon',
+            'edit-supplier-form',
+            'supplier-edit-footer',
+            'supplier-details',
+            'contacts',
+            'Save supplier',
+            'Add contact',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Suppliers/edit.blade.php'));
+        $this->assertStringContainsString('edit-page-styles', $contents);
+        $this->assertStringContainsString('Contacts tab lives outside #edit-supplier-form', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
     }
 
     public function test_other_companies_create_blade_renders_port_select(): void
@@ -302,6 +524,56 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertPortSelectPresent($html, 'port_code');
         $this->assertCountrySelectPresent($html, 'country_id');
         $this->assertCountrySelectPresent($html, 'office_country_id');
+
+        $this->assertHtmlContainsAll($html, [
+            'create-other-company-page',
+            'create-other-company-hero-icon',
+            'create-other-company-footer',
+            'companyCreateForm',
+            'Save company',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Other Companies/create.blade.php'));
+        $this->assertStringContainsString('create-page-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_other_companies_edit_blade_uses_edit_shell(): void
+    {
+        $otherCompany = MigratedViewStubs::otherCompany();
+        $otherCompany->city = 'Dubai';
+        $otherCompany->contact_person = 'Jane Doe';
+        $otherCompany->setRelation('country', (object) ['name' => 'United Arab Emirates']);
+        $otherCompany->setRelation('contacts', collect());
+
+        $html = $this->renderMigratedView('Other Companies.edit', [
+            'otherCompany' => $otherCompany,
+            'countries' => MigratedViewStubs::countries(),
+            'currencies' => ['USD'],
+            'companyTypes' => ['Agent'],
+        ]);
+
+        $this->assertPortSelectPresent($html, 'port_code');
+        $this->assertCountrySelectPresent($html, 'country_id');
+        $this->assertCountrySelectPresent($html, 'office_country_id');
+        $this->assertHtmlContainsAll($html, [
+            'edit-other-company-page',
+            'edit-other-company-hero-icon',
+            'edit-company-form',
+            'other-company-edit-footer',
+            'company-details',
+            'contacts',
+            'Save company',
+            'Add contact',
+            'delete-other-company-contact',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Other Companies/edit.blade.php'));
+        $this->assertStringContainsString('edit-page-styles', $contents);
+        $this->assertStringContainsString('Contacts tab lives outside #edit-company-form', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
     }
 
     public function test_customers_create_blade_renders_port_select(): void
@@ -316,6 +588,74 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertCountrySelectPresent($html, 'country');
         $this->assertCountrySelectPresent($html, 'postal_country');
         $this->assertCountrySelectPresent($html, 'invoice_country');
+
+        $this->assertHtmlContainsAll($html, [
+            'create-customer-page',
+            'create-customer-hero-icon',
+            'cust-pillars',
+            'create-customer-footer',
+            'Save customer',
+            'customerForm',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/customers/create.blade.php'));
+        $this->assertStringContainsString('create-page-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_customers_edit_blade_uses_edit_shell(): void
+    {
+        $customer = MigratedViewStubs::customer();
+        $customer->customer_number = 'FM-001';
+        $customer->setRelation('postalAddress', null);
+        $customer->setRelation('invoiceAddress', null);
+        $customer->setRelation('invoiceDetail', null);
+        $customer->setRelation('responsible', (object) [
+            'accountManager' => (object) ['name' => 'Jane Manager'],
+            'sales_manager_id' => null,
+            'account_manager_id' => null,
+            'accounting_user_id' => null,
+        ]);
+        $customer->setRelation('sop', null);
+        $customer->setRelation('notificationSetting', null);
+        $customer->setRelation('documents', collect());
+        $customer->setRelation('vessels', collect());
+        $customer->setRelation('contacts', collect());
+        $customer->setRelation('group', null);
+
+        $html = $this->renderMigratedView('customers.edit', [
+            'customer' => $customer,
+            'countries' => MigratedViewStubs::countries(),
+            'salesManagers' => collect(),
+            'groups' => collect(),
+            'id' => $customer->id,
+        ]);
+
+        $this->assertPortSelectPresent($html, 'port_code');
+        $this->assertCountrySelectPresent($html, 'country');
+        $this->assertCountrySelectPresent($html, 'postal_country');
+        $this->assertCountrySelectPresent($html, 'invoice_country');
+        $this->assertHtmlContainsAll($html, [
+            'edit-customer-page',
+            'edit-customer-hero-icon',
+            'customerForm',
+            'customer-edit-footer',
+            'customer-details',
+            'contacts',
+            'sop',
+            'vessels',
+            'notification-settings',
+            'Save customer',
+            'Add contact',
+            'Add vessel',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/customers/edit.blade.php'));
+        $this->assertStringContainsString('edit-page-styles', $contents);
+        $this->assertStringContainsString('Contacts / Vessels tabs live outside #customerForm', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
     }
 
     public function test_hub_create_blade_renders_port_select(): void
@@ -327,6 +667,502 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertPortSelectPresent($html, 'port_code');
         $this->assertCountrySelectPresent($html, 'country');
         $this->assertCountrySelectPresent($html, 'office_country');
+
+        $this->assertHtmlContainsAll($html, [
+            'create-hub-page',
+            'create-hub-hero-icon',
+            'hub-pillars',
+            'create-hub-footer',
+            'Create hub',
+            'hubForm',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/hub/create.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+    }
+
+    public function test_hub_show_blade_uses_edit_shell(): void
+    {
+        $hub = MigratedViewStubs::hub();
+        $hub->contact_person = 'Hub Contact';
+        $hub->city = 'Singapore';
+        $hub->country = 'Singapore';
+        $hub->setRelation('documents', collect());
+        $hub->setRelation('pricingDocuments', collect());
+        $hub->setRelation('hubUsers', collect());
+        $hub->setRelation('contacts', collect());
+
+        $html = $this->renderMigratedView('hub.show', [
+            'hub' => $hub,
+            'countries' => MigratedViewStubs::countries(),
+        ]);
+
+        $this->assertPortSelectPresent($html, 'port_code');
+        $this->assertCountrySelectPresent($html, 'country');
+        $this->assertHtmlContainsAll($html, [
+            'edit-hub-page',
+            'edit-hub-hero-icon',
+            'hubEditForm',
+            'hub-edit-footer',
+            'hub-details',
+            'billing-details',
+            'Save hub',
+            'Add hub user',
+            '/hubs/' . $hub->id . '/users/create',
+            'Add contact',
+            '/hubs/' . $hub->id . '/contacts/create',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/hub/show.blade.php'));
+        $this->assertStringContainsString('show-page-styles', $contents);
+        $this->assertStringContainsString('Hub Users / Contacts tabs live outside hubEditForm', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_hub_user_create_blade_uses_form_shell(): void
+    {
+        $hub = MigratedViewStubs::hub();
+        $hub->city = 'Singapore';
+        $hub->country = 'Singapore';
+
+        $html = $this->renderMigratedView('hub.users.create', [
+            'hub' => $hub,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'hub-user-page',
+            'hub-user-hero-icon',
+            'hub-user-pillar',
+            'hubUserForm',
+            'hub-user-footer',
+            'Add hub user',
+            'hub-users',
+            'show_in_scan_gun',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/hub/users/create.blade.php'));
+        $this->assertStringContainsString('hub-user-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_agent_user_create_blade_uses_form_shell(): void
+    {
+        $agent = MigratedViewStubs::agent();
+        $agent->city = 'Amsterdam';
+        $agent->setRelation('country', (object) ['name' => 'Netherlands']);
+
+        $html = $this->renderMigratedView('Agents.Users.create', [
+            'agent' => $agent,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'agent-user-page',
+            'agent-user-hero-icon',
+            'agent-user-pillar',
+            'agentUserForm',
+            'agent-user-footer',
+            'Add agent user',
+            'agent-users',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Agents/Users/create.blade.php'));
+        $this->assertStringContainsString('agent-user-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_agent_user_edit_blade_uses_form_shell(): void
+    {
+        $agent = MigratedViewStubs::agent();
+        $agent->city = 'Amsterdam';
+        $agent->setRelation('country', (object) ['name' => 'Netherlands']);
+
+        $user = new \App\Models\AgentUser([
+            'name' => 'Jane Agent',
+            'email' => 'jane@example.com',
+            'phone_number' => '+31 20 1234567',
+            'description' => 'Operations',
+        ]);
+        $user->id = 5;
+        $user->agent_id = $agent->id;
+
+        $html = $this->renderMigratedView('Agents.Users.edit', [
+            'agent' => $agent,
+            'user' => $user,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'agent-user-page',
+            'agent-user-hero-icon',
+            'agentUserForm',
+            'agent-user-footer',
+            'Edit agent user',
+            'Jane Agent',
+            'agent-users',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Agents/Users/edit.blade.php'));
+        $this->assertStringContainsString('agent-user-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_agent_contact_create_blade_uses_form_shell(): void
+    {
+        $agent = MigratedViewStubs::agent();
+        $agent->city = 'Amsterdam';
+        $agent->setRelation('country', (object) ['name' => 'Netherlands']);
+
+        $html = $this->renderMigratedView('Agents.contacts.create', [
+            'agent' => $agent,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'agent-contact-page',
+            'agent-contact-hero-icon',
+            'agent-contact-pillar',
+            'agentContactForm',
+            'agent-contact-footer',
+            'Add contact',
+            '#contacts',
+            'is_main_contact',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Agents/contacts/create.blade.php'));
+        $this->assertStringContainsString('agent-contact-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_agent_contact_edit_blade_uses_form_shell(): void
+    {
+        $agent = MigratedViewStubs::agent();
+        $agent->city = 'Amsterdam';
+        $agent->setRelation('country', (object) ['name' => 'Netherlands']);
+
+        $contact = new \App\Models\Contact([
+            'name' => 'John Contact',
+            'email' => 'john@example.com',
+            'phone_number' => '+31 20 7654321',
+            'description' => 'Sales',
+            'is_main_contact' => true,
+        ]);
+        $contact->id = 8;
+        $contact->agent_id = $agent->id;
+
+        $html = $this->renderMigratedView('Agents.contacts.edit', [
+            'agent' => $agent,
+            'contact' => $contact,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'agent-contact-page',
+            'agentContactForm',
+            'agent-contact-footer',
+            'Edit contact',
+            'John Contact',
+            '#contacts',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Agents/contacts/edit.blade.php'));
+        $this->assertStringContainsString('agent-contact-form-styles', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_hub_contact_create_blade_uses_form_shell(): void
+    {
+        $hub = MigratedViewStubs::hub();
+        $hub->city = 'Singapore';
+        $hub->country = 'Singapore';
+
+        $html = $this->renderMigratedView('hub.contacts.create', [
+            'hub' => $hub,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'hub-contact-page',
+            'hub-contact-hero-icon',
+            'hub-contact-pillar',
+            'hubContactForm',
+            'hub-contact-footer',
+            'Add contact',
+            '#contacts',
+            'is_main_contact',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/hub/contacts/create.blade.php'));
+        $this->assertStringContainsString('hub-contact-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_other_company_contact_create_blade_uses_form_shell(): void
+    {
+        $otherCompany = MigratedViewStubs::otherCompany();
+        $otherCompany->city = 'Mundra';
+        $otherCompany->setRelation('country', (object) ['name' => 'India']);
+
+        $html = $this->renderMigratedView('Other Companies.contacts.create', [
+            'otherCompany' => $otherCompany,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'oc-contact-page',
+            'oc-contact-hero-icon',
+            'oc-contact-pillar',
+            'ocContactForm',
+            'oc-contact-footer',
+            'Add contact',
+            '#contacts',
+            'is_main_contact',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Other Companies/contacts/create.blade.php'));
+        $this->assertStringContainsString('oc-contact-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_other_company_contact_edit_blade_uses_form_shell(): void
+    {
+        $otherCompany = MigratedViewStubs::otherCompany();
+        $otherCompany->city = 'Mundra';
+        $otherCompany->setRelation('country', (object) ['name' => 'India']);
+
+        $contact = new \App\Models\Contact([
+            'name' => 'Jane Contact',
+            'email' => 'jane@example.com',
+            'phone_number' => '+91 9876543210',
+            'description' => 'Operations',
+            'is_main_contact' => true,
+        ]);
+        $contact->id = 12;
+        $contact->other_company_id = $otherCompany->id;
+
+        $html = $this->renderMigratedView('Other Companies.contacts.edit', [
+            'otherCompany' => $otherCompany,
+            'contact' => $contact,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'oc-contact-page',
+            'ocContactForm',
+            'oc-contact-footer',
+            'Edit contact',
+            'Jane Contact',
+            '#contacts',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Other Companies/contacts/edit.blade.php'));
+        $this->assertStringContainsString('oc-contact-form-styles', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_supplier_contact_create_blade_uses_form_shell(): void
+    {
+        $supplier = MigratedViewStubs::supplier();
+        $supplier->city = 'Rotterdam';
+        $supplier->un_locode = 'NLRTM';
+        $supplier->setRelation('country', (object) ['name' => 'Netherlands']);
+
+        $html = $this->renderMigratedView('Suppliers.contacts.create', [
+            'supplier' => $supplier,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'supplier-contact-page',
+            'supplier-contact-hero-icon',
+            'supplier-contact-pillar',
+            'supplierContactForm',
+            'supplier-contact-footer',
+            'Add contact',
+            '#contacts',
+            'is_main_contact',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Suppliers/contacts/create.blade.php'));
+        $this->assertStringContainsString('supplier-contact-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_supplier_contact_edit_blade_uses_form_shell(): void
+    {
+        $supplier = MigratedViewStubs::supplier();
+        $supplier->city = 'Rotterdam';
+        $supplier->un_locode = 'NLRTM';
+        $supplier->setRelation('country', (object) ['name' => 'Netherlands']);
+
+        $contact = new \App\Models\Contact([
+            'name' => 'Supplier Contact',
+            'email' => 'contact@supplier.com',
+            'phone_number' => '+31 10 1234567',
+            'description' => 'Purchasing',
+            'is_main_contact' => true,
+        ]);
+        $contact->id = 15;
+        $contact->supplier_id = $supplier->id;
+
+        $html = $this->renderMigratedView('Suppliers.contacts.edit', [
+            'supplier' => $supplier,
+            'contact' => $contact,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'supplier-contact-page',
+            'supplierContactForm',
+            'supplier-contact-footer',
+            'Edit contact',
+            'Supplier Contact',
+            '#contacts',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/Suppliers/contacts/edit.blade.php'));
+        $this->assertStringContainsString('supplier-contact-form-styles', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_customer_contact_create_blade_uses_form_shell(): void
+    {
+        $customer = MigratedViewStubs::customer();
+        $customer->customer_number = 'FM-004';
+        $customer->primaryAddress->city = 'Dubai';
+
+        $html = $this->renderMigratedView('contacts.create', [
+            'customer' => $customer,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'customer-contact-page',
+            'customer-contact-hero-icon',
+            'customer-contact-pillar',
+            'customerContactForm',
+            'customer-contact-footer',
+            'Add contact',
+            '#contacts',
+            'is_main_contact',
+            $customer->customer_name,
+        ]);
+
+        $contents = file_get_contents(resource_path('views/contacts/create.blade.php'));
+        $this->assertStringContainsString('customer-contact-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_customer_contact_edit_blade_uses_form_shell(): void
+    {
+        $customer = MigratedViewStubs::customer();
+        $customer->customer_number = 'FM-004';
+        $customer->primaryAddress->city = 'Dubai';
+
+        $contact = new \App\Models\Contact([
+            'name' => 'Customer Contact',
+            'email' => 'contact@customer.com',
+            'phone_number' => '+971 4 1234567',
+            'description' => 'Operations',
+            'is_main_contact' => true,
+        ]);
+        $contact->id = 20;
+        $contact->customer_id = $customer->id;
+
+        $html = $this->renderMigratedView('contacts.edit', [
+            'customer' => $customer,
+            'contact' => $contact,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'customer-contact-page',
+            'customerContactForm',
+            'customer-contact-footer',
+            'Edit contact',
+            'Customer Contact',
+            '#contacts',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/contacts/edit.blade.php'));
+        $this->assertStringContainsString('customer-contact-form-styles', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
+    public function test_customer_vessel_edit_blade_uses_edit_shell(): void
+    {
+        $customer = MigratedViewStubs::customer();
+        $customer->customer_number = 'FM-004';
+
+        $vessel = new \App\Models\CustomerVessel([
+            'vessel' => 'MV Stub Vessel',
+            'vessel_name_alias' => 'Stub Alias',
+            'vessel_imo' => '1234567',
+            'customer_vessel_code' => 'V-001',
+            'vessel_type_alias' => 'MV',
+            'account_manager' => 'Jane Manager',
+            'inactive_vessel' => false,
+            'sanction_blocked' => false,
+            'financially_blocked' => false,
+        ]);
+        $vessel->id = 13;
+        $vessel->customer_id = $customer->id;
+        $vessel->setRelation('customer', $customer);
+
+        $html = $this->renderMigratedView('customers.customer-vessels', [
+            'vessel' => $vessel,
+            'customerContacts' => collect(),
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'edit-vessel-page',
+            'edit-vessel-hero-icon',
+            'edit-vessel-meta',
+            'vesselForm',
+            'vessel-edit-footer',
+            'Save vessel',
+            'MV Stub Vessel',
+            'Stub Customer',
+            '#vessels',
+            'vessel-details',
+            'account-manager-select',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/customers/customer-vessels.blade.php'));
+        $this->assertStringContainsString('vessel-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+        $this->assertStringNotContainsString('id="offices-table"', $contents);
+    }
+
+    public function test_customer_vessel_create_blade_uses_form_shell(): void
+    {
+        $customer = MigratedViewStubs::customer();
+        $customer->customer_number = 'FM-004';
+        $customer->primaryAddress->city = 'Dubai';
+
+        $html = $this->renderMigratedView('customers.customer-vessels-add', [
+            'customer' => $customer,
+            'customerContacts' => collect(),
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'create-vessel-page',
+            'edit-vessel-page',
+            'edit-vessel-hero-icon',
+            'Add vessel',
+            'vesselForm',
+            'vessel-edit-footer',
+            'Save vessel',
+            'Stub Customer',
+            '#vessels',
+            'vessel-details',
+            'account-manager-select',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/customers/customer-vessels-add.blade.php'));
+        $this->assertStringContainsString('vessel-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+        $this->assertStringNotContainsString('id="offices-table"', $contents);
     }
 
     public function test_migrated_edit_blade_sources_use_port_select_component(): void
@@ -470,6 +1306,20 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('closest(\'.alert\')', $contents);
     }
 
+    public function test_column_picker_supports_clear_all(): void
+    {
+        $shim = file_get_contents(resource_path('views/partials/multiselect-select2-shim.blade.php'));
+        $styles = file_get_contents(resource_path('views/partials/common-assets-styles.blade.php'));
+        $layout = file_get_contents(resource_path('views/layouts/app.blade.php'));
+
+        $this->assertStringContainsString('mc-column-picker__clear-all', $shim);
+        $this->assertStringContainsString('clearAllColumns', $shim);
+        $this->assertStringContainsString('mc-column-picker__tools', $styles);
+        $this->assertStringContainsString('saveMcColumnPickerSelection', $shim);
+        $this->assertStringContainsString('loadMcColumnPickerSelection', $shim);
+        $this->assertStringContainsString('data-mc-user-id', $layout);
+    }
+
     public function test_users_blade_uses_list_header_and_pagination_footer(): void
     {
         $contents = file_get_contents(resource_path('views/Users/users.blade.php'));
@@ -480,5 +1330,337 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('list-pagination-footer-inner', $contents);
         $this->assertStringContainsString('addUserModal', $contents);
         $this->assertStringContainsString('btn-add-user', $contents);
+    }
+
+    public function test_offices_index_blade_renders_list_shell(): void
+    {
+        $html = $this->renderMigratedView('offices.index', [
+            'offices' => collect(),
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'offices-list-card',
+            'data-list-page-header="1"',
+            'Offices',
+            'offices-search-input',
+            'offices-list-footer',
+            'pagination-sticky-footer',
+            'btn-offices-add',
+            'offices-table',
+        ]);
+    }
+
+    public function test_offices_create_blade_uses_pillar_shell(): void
+    {
+        $html = $this->renderMigratedView('offices.create', [
+            'companies' => collect(),
+            'countries' => MigratedViewStubs::countries(),
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'create-office-page',
+            'create-office-hero-icon',
+            'office-pillars',
+            'office-pillar__title',
+            'create-office-footer',
+            'btn-add-account',
+        ]);
+        $this->assertCountrySelectPresent($html, 'country_id');
+        $this->assertCountrySelectPresent($html, 'office_country_id');
+
+        $contents = file_get_contents(resource_path('views/offices/create.blade.php'));
+        $this->assertStringContainsString('create-office-page', $contents);
+        $this->assertStringContainsString('office-pillar', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+    }
+
+    public function test_offices_edit_blade_uses_pillar_shell(): void
+    {
+        $office = new \App\Models\Office([
+            'office_name' => 'MARINECADDIE SINGAPORE PTE LTD',
+            'office_short_name' => 'MC SIN',
+            'status' => 1,
+        ]);
+        $office->id = 3;
+        $office->setRelation('bankAccounts', collect());
+        $office->setRelation('contacts', collect());
+
+        $html = $this->renderMigratedView('offices.edit', [
+            'office' => $office,
+            'companies' => collect(),
+            'countries' => MigratedViewStubs::countries(),
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'edit-office-page',
+            'edit-office-hero-icon',
+            'office-pillars',
+            'office-pillar__title',
+            'edit-office-tab',
+            'office-details',
+            'officeEditForm',
+        ]);
+        $this->assertCountrySelectPresent($html, 'country_id');
+        $this->assertCountrySelectPresent($html, 'office_country_id');
+
+        $contents = file_get_contents(resource_path('views/offices/edit.blade.php'));
+        $this->assertStringContainsString('edit-page-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+    }
+
+    public function test_operations_user_create_blade_uses_form_shell(): void
+    {
+        $office = new \App\Models\Office([
+            'office_name' => 'MARINECADDIE SINGAPORE PTE LTD',
+            'status' => 1,
+        ]);
+        $office->id = 3;
+
+        $html = $this->renderMigratedView('offices.operations_users.create', [
+            'office' => $office,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'office-user-page',
+            'office-user-hero-icon',
+            'office-user-pillar',
+            'operationUserForm',
+            'office-user-footer',
+            'Add operation user',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/offices/operations_users/create.blade.php'));
+        $this->assertStringContainsString('office-user-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('offices-table', $contents);
+    }
+
+    public function test_operations_user_edit_blade_uses_form_shell(): void
+    {
+        $office = new \App\Models\Office([
+            'office_name' => 'MARINECADDIE SINGAPORE PTE LTD',
+            'status' => 1,
+        ]);
+        $office->id = 3;
+
+        $contact = new \App\Models\Contact([
+            'name' => 'Mirza Mohammed',
+            'email' => 'mirza@marinecaddie.com',
+            'phone_number' => '+65 9113 5978',
+            'category' => 'operations',
+        ]);
+        $contact->id = 12;
+
+        $html = $this->renderMigratedView('offices.operations_users.edit', [
+            'office' => $office,
+            'contact' => $contact,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'office-user-page',
+            'office-user-hero-icon',
+            'office-user-tab',
+            'user-details',
+            'operationUserEditForm',
+            'office-user-footer',
+            'Mirza Mohammed',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/offices/operations_users/edit.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('offices-table', $contents);
+    }
+
+    public function test_account_user_create_blade_uses_form_shell(): void
+    {
+        $office = new \App\Models\Office([
+            'office_name' => 'MARINECADDIE SINGAPORE PTE LTD',
+            'status' => 1,
+        ]);
+        $office->id = 3;
+
+        $html = $this->renderMigratedView('offices.account_users.create', [
+            'office' => $office,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'office-user-page',
+            'office-user-hero-icon',
+            'office-user-pillar',
+            'accountUserForm',
+            'office-user-footer',
+            'Add account user',
+            'accounting-users',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/offices/account_users/create.blade.php'));
+        $this->assertStringContainsString('office-user-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('offices-table', $contents);
+    }
+
+    public function test_account_user_edit_blade_uses_form_shell(): void
+    {
+        $office = new \App\Models\Office([
+            'office_name' => 'MARINECADDIE SINGAPORE PTE LTD',
+            'status' => 1,
+        ]);
+        $office->id = 3;
+
+        $contact = new \App\Models\Contact([
+            'name' => 'test',
+            'email' => 'test@sdf.com',
+            'phone_number' => '1234567890',
+            'category' => 'account',
+        ]);
+        $contact->id = 33;
+
+        $html = $this->renderMigratedView('offices.account_users.edit', [
+            'office' => $office,
+            'contact' => $contact,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'office-user-page',
+            'office-user-hero-icon',
+            'office-user-tab',
+            'user-details',
+            'accountUserEditForm',
+            'office-user-footer',
+            'Accounting user',
+            'accounting-users',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/offices/account_users/edit.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('offices-table', $contents);
+    }
+
+    public function test_sales_user_create_blade_uses_form_shell(): void
+    {
+        $office = new \App\Models\Office([
+            'office_name' => 'MARINECADDIE SINGAPORE PTE LTD',
+            'status' => 1,
+        ]);
+        $office->id = 3;
+
+        $html = $this->renderMigratedView('offices.sales_users.create', [
+            'office' => $office,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'office-user-page',
+            'office-user-hero-icon',
+            'office-user-pillar',
+            'salesUserForm',
+            'office-user-footer',
+            'Add sales user',
+            'sales-users',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/offices/sales_users/create.blade.php'));
+        $this->assertStringContainsString('office-user-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('offices-table', $contents);
+    }
+
+    public function test_manager_user_create_blade_uses_form_shell(): void
+    {
+        $office = new \App\Models\Office([
+            'office_name' => 'MARINECADDIE SINGAPORE PTE LTD',
+            'status' => 1,
+        ]);
+        $office->id = 3;
+
+        $html = $this->renderMigratedView('offices.manager_users.create', [
+            'office' => $office,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'office-user-page',
+            'office-user-hero-icon',
+            'office-user-pillar',
+            'managerUserForm',
+            'office-user-footer',
+            'Add manager user',
+            'manager-users',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/offices/manager_users/create.blade.php'));
+        $this->assertStringContainsString('office-user-form-styles', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('offices-table', $contents);
+    }
+
+    public function test_manager_user_edit_blade_uses_form_shell(): void
+    {
+        $office = new \App\Models\Office([
+            'office_name' => 'MARINECADDIE SINGAPORE PTE LTD',
+            'status' => 1,
+        ]);
+        $office->id = 3;
+
+        $contact = new \App\Models\Contact([
+            'name' => 'Manager User',
+            'email' => 'manager@example.com',
+            'category' => 'manager',
+        ]);
+        $contact->id = 35;
+
+        $html = $this->renderMigratedView('offices.manager_users.edit', [
+            'office' => $office,
+            'contact' => $contact,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'office-user-page',
+            'office-user-hero-icon',
+            'office-user-tab',
+            'user-details',
+            'managerUserEditForm',
+            'office-user-footer',
+            'Manager user',
+            'manager-users',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/offices/manager_users/edit.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('offices-table', $contents);
+    }
+
+    public function test_sales_user_edit_blade_uses_form_shell(): void
+    {
+        $office = new \App\Models\Office([
+            'office_name' => 'MARINECADDIE SINGAPORE PTE LTD',
+            'status' => 1,
+        ]);
+        $office->id = 3;
+
+        $contact = new \App\Models\Contact([
+            'name' => 'Sales User',
+            'email' => 'sales@example.com',
+            'category' => 'sales',
+        ]);
+        $contact->id = 34;
+
+        $html = $this->renderMigratedView('offices.sales_users.edit', [
+            'office' => $office,
+            'contact' => $contact,
+        ]);
+
+        $this->assertHtmlContainsAll($html, [
+            'office-user-page',
+            'office-user-hero-icon',
+            'office-user-tab',
+            'user-details',
+            'salesUserEditForm',
+            'office-user-footer',
+            'Sales user',
+            'sales-users',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/offices/sales_users/edit.blade.php'));
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('offices-table', $contents);
     }
 }

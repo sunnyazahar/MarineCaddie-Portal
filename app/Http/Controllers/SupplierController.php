@@ -66,7 +66,7 @@ class SupplierController extends Controller
 
     public function edit($id)
     {
-        $supplier   = $this->suppliers->findWithRelations((int) $id, ['creator', 'updater']);
+        $supplier   = $this->suppliers->findWithRelations((int) $id, ['creator', 'updater', 'country', 'contacts']);
         $countries  = CountryCache::active();
         $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD'];
         return view('Suppliers.edit', compact('supplier', 'countries', 'currencies'));
@@ -105,6 +105,8 @@ class SupplierController extends Controller
     public function createContact($supplierId)
     {
         $supplier = $this->suppliers->findOrFail((int) $supplierId);
+        $supplier->load('country');
+
         return view('Suppliers.contacts.create', compact('supplier'));
     }
 
@@ -136,7 +138,9 @@ class SupplierController extends Controller
     public function editContact($supplierId, $contactId)
     {
         $supplier = $this->suppliers->findOrFail((int) $supplierId);
+        $supplier->load('country');
         $contact  = $this->contacts->findOrFail((int) $contactId);
+
         return view('Suppliers.contacts.edit', compact('supplier', 'contact'));
     }
 

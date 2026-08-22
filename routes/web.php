@@ -784,17 +784,13 @@ Route::delete('/Agents/{id}', [App\Http\Controllers\AgentController::class, 'des
 Route::delete('/Agents/documents/{id}', [App\Http\Controllers\AgentController::class, 'deleteDocument'])->name('agents.documents.delete');
 Route::get('/Agents/{agentId}/documents/{docId}', [App\Http\Controllers\AgentController::class, 'showDocument'])->name('agents.documents.show');
 
-Route::get('/Agents/{id}/contacts/create', function ($id) {
-    return view('Agents.contacts.create', ['agent_id' => $id]);
-})->name('agents.contacts.create');
+Route::get('/Agents/{id}/contacts/create', [App\Http\Controllers\AgentController::class, 'createContact'])->name('agents.contacts.create');
 
 Route::post('/Agents/{id}/contacts/store', [App\Http\Controllers\AgentController::class, 'storeContact'])->name('agents.contacts.store');
 Route::get('/Agents/contacts/edit/{id}', [App\Http\Controllers\AgentController::class, 'editContact'])->name('agents.contacts.edit');
 Route::put('/Agents/contacts/update/{id}', [App\Http\Controllers\AgentController::class, 'updateContact'])->name('agents.contacts.update');
 Route::delete('/Agents/contacts/destroy/{id}', [App\Http\Controllers\AgentController::class, 'destroyContact'])->name('agents.contacts.destroy');
-Route::get('/Agents/{id}/users/create', function ($id) {
-    return view('Agents.Users.create', ['agent_id' => $id]);
-})->name('agents.users.create');
+Route::get('/Agents/{id}/users/create', [App\Http\Controllers\AgentController::class, 'createUser'])->name('agents.users.create');
 Route::post('/Agents/{id}/users/store', [App\Http\Controllers\AgentController::class, 'storeUser'])->name('agents.users.store');
 Route::get('/Agents/users/edit/{id}', [App\Http\Controllers\AgentController::class, 'editUser'])->name('agents.users.edit');
 Route::put('/Agents/users/update/{id}', [App\Http\Controllers\AgentController::class, 'updateUser'])->name('agents.users.update');

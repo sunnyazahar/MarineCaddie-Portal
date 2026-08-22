@@ -32,6 +32,7 @@
     --mc-control-font-size: 14px;
     --mc-label-font-size: 13px;
     --mc-control-radius: 8px;
+    --mc-form-footer-space: 84px;
     --shipment-input-height: var(--mc-control-height);
     --shipment-input-font-size: var(--mc-control-font-size);
 }
@@ -1060,37 +1061,43 @@ body.mc-sidebar-open .pcoded-overlay-box {
 }
 
 .header-navbar .navbar-logo {
-    @apply relative flex h-16 w-[var(--spacing-sidebar)] shrink-0 items-center justify-center gap-2 border-r border-white/10 bg-gradient-to-br from-mc-sidebar to-mc-sidebar-2 px-3;
+    @apply relative flex h-16 w-[var(--spacing-sidebar)] shrink-0 items-center justify-center border-r border-slate-200 bg-white px-3 py-2;
+    background: #ffffff !important;
 }
 
 .header-navbar .navbar-logo .navbar-logo-link {
-    @apply inline-flex max-w-[150px] items-center justify-center;
+    @apply flex h-full min-w-0 flex-1 items-center justify-center;
+    width: 100%;
+    max-width: none;
+    padding: 0;
 }
 
 .header-navbar .navbar-logo .navbar-logo-link img,
 .header-navbar .navbar-logo img.marinecaddie-logo {
     display: block !important;
-    width: auto !important;
-    max-width: 140px !important;
-    height: 32px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
     object-fit: contain;
+    object-position: center;
     background: transparent !important;
 }
 
 .header-navbar .navbar-logo .mobile-menu,
 .header-navbar .navbar-logo .mobile-options {
-    @apply absolute top-1/2 hidden -translate-y-1/2 cursor-pointer items-center justify-center text-white;
+    @apply absolute top-1/2 hidden -translate-y-1/2 cursor-pointer items-center justify-center text-mc-sidebar;
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(11, 31, 74, 0.06);
+    border: 1px solid rgba(11, 31, 74, 0.12);
     z-index: 2;
 }
 
 .header-navbar .navbar-logo .mobile-menu i,
 .header-navbar .navbar-logo .mobile-options i {
-    color: #ffffff !important;
+    color: #0b1f4a !important;
     font-size: 18px;
     line-height: 1;
     opacity: 1 !important;
@@ -1108,7 +1115,7 @@ body.mc-sidebar-open .pcoded-overlay-box {
 .header-navbar .navbar-logo .mobile-options:hover,
 .header-navbar .navbar-logo .mobile-menu:active,
 .header-navbar .navbar-logo .mobile-options:active {
-    background: rgba(255, 255, 255, 0.24);
+    background: rgba(11, 31, 74, 0.12);
 }
 
 .header-navbar .navbar-container {
@@ -1177,7 +1184,7 @@ body.mc-sidebar-open .pcoded-overlay-box {
 }
 
 .pcoded-navbar .pcoded-item > li > a {
-    @apply relative mx-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-100/90 transition;
+    @apply relative mx-1 flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm text-slate-100/90 transition;
 }
 
 .pcoded-navbar .pcoded-item > li > a:hover {
@@ -1202,7 +1209,7 @@ body.mc-sidebar-open .pcoded-overlay-box {
 }
 
 .pcoded-navbar .pcoded-micon {
-    @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/25 bg-transparent text-base text-white/95;
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/25 bg-transparent text-sm text-white/95;
 }
 
 .pcoded-navbar .pcoded-item > li.active > a .pcoded-micon,
@@ -1238,11 +1245,11 @@ body.mc-sidebar-open .pcoded-overlay-box {
 }
 
 .pcoded-navbar .pcoded-submenu {
-    @apply m-0 list-none bg-black/15 p-0 py-1;
+    @apply m-0 list-none bg-black/15 p-0 py-0.5;
 }
 
 .pcoded-navbar .pcoded-submenu > li > a {
-    @apply block rounded-lg px-3 py-2.5 pl-12 text-[13px] font-medium text-white/90 hover:bg-white/10 hover:text-white;
+    @apply block rounded-lg px-3 py-1.5 pl-11 text-[13px] font-medium text-white/90 hover:bg-white/10 hover:text-white;
 }
 
 .pcoded-navbar .pcoded-submenu > li.active > a {
@@ -1275,7 +1282,7 @@ body.mc-sidebar-open .pcoded-overlay-box {
 
 @media (max-width: 991.98px) {
     .header-navbar .navbar-logo {
-        @apply w-full justify-center border-r-0 px-14;
+        @apply w-full justify-center border-r-0 bg-white px-14;
     }
 
     .header-navbar .navbar-logo .mobile-menu,
@@ -1285,8 +1292,8 @@ body.mc-sidebar-open .pcoded-overlay-box {
 
     .header-navbar .navbar-logo .navbar-logo-link img,
     .header-navbar .navbar-logo img.marinecaddie-logo {
-        max-width: 128px !important;
-        height: 30px !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
     }
 
     /* Keep header options panel closed by default; open as compact row */
@@ -1522,8 +1529,12 @@ table.dataTable tbody td {
 }
 
 /* ========== Dashboard ========== */
+.dash-page {
+    @apply px-5 pb-6 sm:px-6 lg:px-8;
+}
+
 .dash-hero {
-    @apply relative mb-6 flex flex-col gap-5 overflow-hidden rounded-2xl px-5 py-6 text-white sm:flex-row sm:items-end sm:justify-between sm:px-7 sm:py-7;
+    @apply relative -mx-5 mb-6 flex flex-col gap-3 overflow-hidden px-5 py-3 text-white sm:-mx-6 sm:flex-row sm:items-end sm:justify-between sm:px-6 sm:py-4 lg:-mx-8 lg:px-8;
     /* Soft brand spectrum (logo coral → orange → sky) with navy wash for readable type */
     background:
         linear-gradient(105deg, rgba(11, 31, 74, 0.92) 0%, rgba(11, 31, 74, 0.72) 38%, rgba(11, 31, 74, 0.28) 68%, rgba(11, 31, 74, 0.12) 100%),
@@ -1590,12 +1601,12 @@ table.dataTable tbody td {
 }
 
 .dash-hero__title {
-    @apply m-0 text-2xl font-bold tracking-tight text-white sm:text-3xl;
+    @apply m-0 text-xl font-bold tracking-tight text-white sm:text-2xl;
     text-shadow: 0 1px 12px rgba(11, 31, 74, 0.25);
 }
 
 .dash-hero__sub {
-    @apply mt-2 mb-0 max-w-xl text-sm text-white/85;
+    @apply mt-1 mb-0 max-w-xl text-xs text-white/85 sm:text-sm;
 }
 
 .dash-period {
@@ -1846,4 +1857,31 @@ a.dash-kpi:hover {
     background:
         radial-gradient(ellipse 70% 40% at 100% 0%, rgba(0, 174, 239, 0.07), transparent 50%),
         radial-gradient(ellipse 50% 30% at 0% 0%, rgba(14, 29, 74, 0.05), transparent 45%);
+}
+
+/* Global form save buttons — disabled until form is dirty (form-save-state.js) */
+button.btn-save-custom.mc-save-btn {
+    transition:
+        opacity 0.22s ease,
+        filter 0.22s ease,
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease;
+}
+
+button.btn-save-custom:disabled,
+button.btn-save-custom.mc-save-btn--idle {
+    opacity: 0.48 !important;
+    filter: saturate(0.55) blur(0.4px);
+    border: none !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+    pointer-events: none;
+}
+
+button.btn-save-custom.mc-save-btn--dirty:not(:disabled),
+button.btn-save-custom.mc-save-btn:not(:disabled):not(.mc-save-btn--idle) {
+    opacity: 1 !important;
+    filter: none;
+    pointer-events: auto;
 }

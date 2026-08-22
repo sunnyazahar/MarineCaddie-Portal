@@ -20,7 +20,7 @@ class VesselController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html'       => view('Vessels.partials.rows', compact('vessels'))->render(),
-                'pagination' => (string) $vessels->links(),
+                'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $vessels])->render(),
                 'total'      => $vessels->total(),
             ]);
         }

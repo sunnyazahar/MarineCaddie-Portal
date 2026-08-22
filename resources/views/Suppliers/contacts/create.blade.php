@@ -1,333 +1,131 @@
 @extends('layouts.app')
 
 @section('styles')
-    <style>
-        /* Base wrapper adjustments */
-        .pcoded-inner-content {
-            padding: 0 !important;
-        }
-        .main-body .page-wrapper {
-            padding: 20px !important;
-            background: #f6f7f9;
-        }
-        
-        /* --- Premium Form Styling --- */
-        .contact-card {
-            background: #fff;
-            border: none;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            min-height: calc(100vh - 120px);
-            position: relative;
-        }
-
-        .edit-header-summary {
-            padding: 20px 30px;
-            display: flex;
-            gap: 50px;
-            border-bottom: 1px solid #f0f2f5;
-        }
-        .summary-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .summary-label {
-            font-size: 10px;
-            color: #8da2b5;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-        .summary-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .form-content-area {
-            padding: 30px;
-            flex-grow: 1;
-            max-width: 100%;
-        }
-
-        .form-pillar {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            max-width: 100%;
-        }
-
-        .form-group-custom {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-label-custom {
-            font-size: 13px;
-            font-weight: 500;
-            color: #3c485a;
-            margin-bottom: 0;
-        }
-
-        .form-input-custom {
-            height: 38px;
-            padding: 8px 12px;
-            font-size: 13px;
-            border: 1px solid #e1e8ed;
-            border-radius: 4px;
-            width: 100%;
-            outline: none;
-            color: #2c3e50;
-            transition: border-color 0.2s;
-        }
-        .form-input-custom:focus {
-            border-color: #01a9ac;
-        }
-
-        .form-textarea-custom {
-            padding: 10px 12px;
-            font-size: 13px;
-            border: 1px solid #e1e8ed;
-            border-radius: 4px;
-            width: 100%;
-            min-height: 100px;
-            outline: none;
-            color: #2c3e50;
-            resize: vertical;
-            transition: border-color 0.2s;
-        }
-        .form-textarea-custom:focus {
-            border-color: #01a9ac;
-        }
-
-        .input-group-custom {
-            display: flex;
-            position: relative;
-            width: 100%;
-        }
-        .input-group-custom .form-input-custom {
-            padding-right: 40px;
-        }
-        .btn-input-append {
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 38px;
-            background: #f1f4f6;
-            border: none;
-            border-left: 1px solid #e1e8ed;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #aab8c2;
-            cursor: pointer;
-            border-radius: 0 4px 4px 0;
-        }
-
-        /* Footer Styling - Fixed at the bottom */
-        .form-footer-container {
-            padding: 15px 30px;
-            background: rgba(255, 255, 255, 0.98);
-            border-top: 1px solid #f0f2f5;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: fixed;
-            bottom: 0;
-            left: 240px; /* This matches the standard sidebar width */
-            right: 0;
-            z-index: 1000;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
-        }
-
-        @media (max-width: 991px) {
-            .form-footer-container {
-                left: 0;
-            }
-        }
-
-        .footer-left-actions {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-
-        /* Button styling to match Save/Cancel UI */
-        .btn-saved-disabled {
-            background-color: #e6e9ed;
-            color: #8da2b5;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: default;
-        }
-        
-        .btn-teal {
-            background-color: #01a9ac;
-            color: white;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(1, 169, 172, 0.2);
-        }
-
-        .btn-cancel-link {
-            color: #01a9ac;
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        .btn-cancel-link:hover {
-            text-decoration: underline;
-        }
-
-        .footer-metadata {
-            text-align: right;
-            font-size: 11px;
-            color: #9cb1c1;
-            line-height: 1.5;
-        }
-        
-        /* Padding for content area to not be hidden by footer */
-        .page-body {
-            padding-bottom: 80px !important;
-        }
-
-        /* Custom Checkbox */
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 5px;
-        }
-        .checkbox-container input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
-
-        /* Validation Styling */
-        .error-message {
-            color: #e74c3c;
-            font-size: 11px;
-            margin-top: 4px;
-        }
-    </style>
+    @include('Suppliers.partials.supplier-contact-form-styles')
 @endsection
 
 @section('content')
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
-            @include('layouts.top-menu')
-            @include('layouts.left-menu')
+    <script>document.body.classList.add('supplier-contact-page');</script>
 
-            <div class="pcoded-content">
-                <div class="pcoded-inner-content">
-                    <div class="main-body">
-                        <div class="page-wrapper">
-                            <div class="page-body">
-                                <div class="contact-card mt-5">
-                                    <!-- Summary Header -->
-                                    <div class="edit-header-summary">
-                                        <div class="summary-item">
-                                            <div class="summary-label">Supplier Name</div>
-                                            <div class="summary-value">{{ $supplier->supplier_name }}</div>
-                                        </div>
-                                        <div class="summary-item">
-                                            <div class="summary-label">Code</div>
-                                            <div class="summary-value">{{ $supplier->un_locode ?: 'N/A' }}</div>
-                                        </div>
-                                    </div>
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
 
-                                    <form id="contactForm" action="{{ route('suppliers.contacts.store', $supplier->id) }}" method="POST">
-                                        @csrf
-                                        <div class="form-content-area">
-                                            <div class="form-pillar" style="max-width: 400px;">
-                                                <div class="form-group-custom">
-                                                    <label class="form-label-custom">Name</label>
-                                                    <div class="input-group-custom">
-                                                        <input type="text" name="name" class="form-input-custom" value="" required>
-                                                        <button type="button" class="btn-input-append"><i class="ti-more-alt"></i></button>
-                                                    </div>
-                                                </div>
+    <div class="supplier-contact-page">
+        <div class="supplier-contact-hero">
+            <div class="supplier-contact-hero-main">
+                <span class="supplier-contact-hero-icon" aria-hidden="true">
+                    <i class="ti-id-badge"></i>
+                </span>
+                <div>
+                    <p class="supplier-contact-kicker">Supplier contact</p>
+                    <h1 class="supplier-contact-title">Add contact</h1>
+                    <p class="supplier-contact-sub">
+                        Add a contact person for <strong>{{ $supplier->supplier_name }}</strong>.
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('suppliers.edit', $supplier->id) }}#contacts" class="supplier-contact-back">
+                <i class="ti-arrow-left"></i> Back to supplier
+            </a>
+        </div>
 
-                                                <div class="form-group-custom">
-                                                    <label class="form-label-custom">Email</label>
-                                                    <input type="email" name="email" class="form-input-custom" value="">
-                                                </div>
+        <div class="supplier-contact-meta">
+            @if ($supplier->un_locode)
+                <span class="supplier-contact-meta-pill">UN/LOCODE <strong>{{ $supplier->un_locode }}</strong></span>
+            @endif
+            @if ($supplier->city || $supplier->country)
+                <span class="supplier-contact-meta-pill">
+                    Location
+                    <strong>{{ trim(($supplier->city ? $supplier->city . ', ' : '') . ($supplier->country?->name ?? '')) }}</strong>
+                </span>
+            @endif
+        </div>
 
-                                                <div class="form-group-custom">
-                                                    <label class="form-label-custom">Phone number (with country code)</label>
-                                                    <input type="text" name="phone_number" class="form-input-custom" value="">
-                                                </div>
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show supplier-contact-form-alert" role="alert">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+        @endif
 
-                                                <div class="form-group-custom">
-                                                    <label class="form-label-custom">Description</label>
-                                                    <textarea name="description" class="form-textarea-custom"></textarea>
-                                                </div>
+        <div class="supplier-contact-card">
+            <form action="{{ route('suppliers.contacts.store', $supplier->id) }}" method="POST" id="supplierContactForm" class="supplier-contact-form">
+                @csrf
 
-                                                <div class="checkbox-container">
-                                                    <input type="checkbox" name="is_main_contact" id="is_main_contact" value="1">
-                                                    <label class="form-label-custom" for="is_main_contact">Is main contact</label>
-                                                </div>
-                                            </div>
-                                        </div>
+                <div class="supplier-contact-form-container">
+                    <div class="supplier-contact-pillar">
+                        <div class="supplier-contact-pillar__title">Contact details</div>
 
-                                        <div class="form-footer-container">
-                                            <div class="footer-left-actions">
-                                                <button type="submit" id="saveButton" class="btn-saved-disabled">All changes saved</button>
-                                                <a href="{{ route('suppliers.edit', $supplier->id) }}#contacts" class="btn-cancel-link">Cancel</a>
-                                            </div>
-                                            
-                                            <div class="footer-metadata"></div>
-                                        </div>
-                                    </form>
-                                </div>
+                        <div class="supplier-contact-fields">
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="supplier_contact_name">Name <span class="text-danger">*</span></label>
+                                <input type="text" id="supplier_contact_name" name="name" class="form-control-custom"
+                                    value="{{ old('name') }}" required autocomplete="name">
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="supplier_contact_email">Email</label>
+                                <input type="email" id="supplier_contact_email" name="email" class="form-control-custom"
+                                    value="{{ old('email') }}" autocomplete="email">
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="supplier_contact_phone">Phone number (with country code)</label>
+                                <input type="text" id="supplier_contact_phone" name="phone_number" class="form-control-custom"
+                                    value="{{ old('phone_number') }}" autocomplete="tel">
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="supplier_contact_description">Description</label>
+                                <textarea id="supplier_contact_description" name="description" class="form-control-custom" rows="4">{{ old('description') }}</textarea>
+                            </div>
+
+                            <div class="supplier-contact-checkbox">
+                                <input type="checkbox" name="is_main_contact" id="is_main_contact" value="1"
+                                    {{ old('is_main_contact') ? 'checked' : '' }}>
+                                <label for="is_main_contact">Is main contact</label>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </form>
+        </div>
+
+        <div class="supplier-contact-footer">
+            <button type="submit" class="btn-save-custom" form="supplierContactForm">Save contact</button>
+            <a href="{{ route('suppliers.edit', $supplier->id) }}#contacts" class="btn-cancel-custom">Cancel</a>
         </div>
     </div>
 
-    
+    @include('layouts.partials.pcoded-shell-end')
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-
     <script>
-        $(document).ready(function() {
-            // Logic to change button style when input changes
-            $('#contactForm input, #contactForm textarea').on('input change', function() {
-                $('#saveButton').removeClass('btn-saved-disabled').addClass('btn-teal').text('Save Contact').css('cursor', 'pointer');
-            });
+        $(document).ready(function () {
+            $('body').addClass('supplier-contact-page');
 
-            $('#contactForm').validate({
+            $('#supplierContactForm').validate({
                 rules: {
                     name: { required: true, minlength: 2 },
                     email: { email: true }
                 },
                 errorElement: 'div',
                 errorClass: 'error-message',
-                errorPlacement: function(error, element) {
-                    if (element.parent('.input-group-custom').length) {
-                        error.insertAfter(element.parent());
-                    } else {
-                        error.insertAfter(element);
-                    }
+                highlight: function (element) {
+                    $(element).addClass('error');
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass('error');
                 }
             });
         });
     </script>
+
+    @include('partials.unsaved-changes-guard', [
+        'formSelector' => '#supplierContactForm',
+        'fallbackUrl' => route('suppliers.edit', $supplier->id) . '#contacts',
+    ])
 @endsection

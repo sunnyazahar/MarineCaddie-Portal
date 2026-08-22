@@ -83,18 +83,62 @@
 
     .mc-column-picker__panel {
         display: none;
+        flex-direction: column;
         position: absolute;
         top: calc(100% + 4px);
         left: 0;
         z-index: 1200;
         min-width: 220px;
         max-height: 320px;
-        overflow: auto;
-        padding: 8px;
+        overflow: hidden;
+        padding: 0;
         background: #fff;
         border: 1px solid #d6e3ee;
         border-radius: 8px;
         box-shadow: 0 12px 28px rgba(14, 29, 74, 0.14);
+    }
+
+    .mc-column-picker__panel.is-open {
+        display: flex;
+    }
+
+    .mc-column-picker__tools {
+        display: flex;
+        gap: 6px;
+        flex: 0 0 auto;
+        padding: 8px 8px 8px;
+        margin: 0;
+        border-bottom: 1px solid #e8eef4;
+        background: #fff;
+        z-index: 2;
+    }
+
+    .mc-column-picker__tools button {
+        flex: 1 1 0;
+        border: 0;
+        background: transparent;
+        color: #008080;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 6px;
+        cursor: pointer;
+        line-height: 1.3;
+    }
+
+    .mc-column-picker__tools button:hover {
+        color: #176b87;
+        text-decoration: underline;
+    }
+
+    .mc-column-picker__list {
+        display: block;
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: 260px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 4px 8px 8px;
+        -webkit-overflow-scrolling: touch;
     }
 
     .mc-column-picker__row {
@@ -127,14 +171,118 @@
         max-width: 44px !important;
     }
 
+    /* Dense list pages (Shipments, Stocks): icon left, filter fields on the right */
+    .list-dense-filter-bar,
+    .list-dense-filter-bar .list-dense-filter-shell,
+    .list-dense-filter-bar .list-dense-filter-controls,
+    .list-dense-filter-bar .list-dense-filter-fields,
+    .list-dense-filter-bar .list-dense-filter-row {
+        overflow: visible !important;
+    }
+
+    .list-dense-filter-shell {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+    }
+
+    .list-dense-filter-controls {
+        position: relative;
+        z-index: 80;
+        flex: 0 0 44px;
+        width: 44px;
+        max-width: 44px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        align-self: center;
+        margin-bottom: 0;
+        padding: 0;
+    }
+
+    .list-dense-filter-controls .mc-column-picker {
+        margin: 0;
+    }
+
+    .list-dense-filter-controls .mc-column-picker__panel {
+        z-index: 1300;
+    }
+
+    .list-dense-filter-fields {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .list-dense-filter-fields .list-dense-filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px;
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 0 !important;
+    }
+
+    .list-dense-filter-fields .custom-col {
+        padding: 2px;
+        margin-bottom: 0 !important;
+    }
+
+    .list-dense-filter-fields .filter-row {
+        margin-bottom: 0 !important;
+    }
+
+    /* Desktop: keep each filter row on one line; scroll horizontally if needed */
+    @media (min-width: 992px) {
+        .list-dense-filter-fields {
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .list-dense-filter-shell {
+            align-items: center;
+        }
+
+        .list-dense-filter-fields .list-dense-filter-row {
+            flex-wrap: nowrap;
+            align-items: center;
+            width: max-content;
+            min-width: 100%;
+        }
+
+        .list-dense-filter-fields .custom-col {
+            flex-shrink: 0;
+        }
+
+        .list-dense-filter-fields .btn-clear-filters,
+        .list-dense-filter-fields .clear-filters {
+            align-self: center;
+            white-space: nowrap;
+        }
+    }
+
     /* Mobile: only the toolbar "Show/Hide filters" control — hide column picker funnel */
     @media (max-width: 991.98px) {
         .mc-column-picker,
         .mc-column-picker-native,
+        .list-dense-filter-controls,
+        .list-dense-filter-shell {
+            display: block;
+        }
+        .list-dense-filter-controls,
         .custom-col:has(.mc-column-picker),
         .custom-col:has(#filter-multiselect),
         .custom-col[style*="flex: 0 0 50px"] {
             display: none !important;
+        }
+        .list-dense-filter-fields {
+            width: 100%;
         }
     }
 

@@ -1,10 +1,11 @@
 {{--
-  Unsaved changes leave guard (SweetAlert).
+  Unsaved changes leave guard (SweetAlert) + save button state (via form-save-state.js).
   Usage:
     @include('partials.unsaved-changes-guard', [
         'formSelector' => '#officeEditForm',
         'fallbackUrl' => route('offices.index'),
-        'saveButtonSelector' => '#btn-save', // optional
+        'saveButtonSelector' => '#btn-save', // optional — auto-resolved when omitted
+        'legacySaveLabelSwap' => true,     // optional — idle/dirty label text (legacy pages)
     ])
 --}}
 @php
@@ -12,6 +13,8 @@
     $fallbackUrl = $fallbackUrl ?? url('/');
     $saveButtonSelector = $saveButtonSelector ?? null;
     $includeSweetAlert = $includeSweetAlert ?? true;
+    $legacySaveLabelSwap = $legacySaveLabelSwap ?? false;
+    $snapshotExcludeNames = $snapshotExcludeNames ?? ['active_tab'];
 @endphp
 
 {{-- SweetAlert loaded via layouts/app common assets --}}
@@ -21,61 +24,69 @@
 <script>
 (function($) {
     function initUnsavedChangesGuard() {
-        var $form = $('{{ $formSelector }}');
+        var formSelector = @json($formSelector);
+        var $form = $(formSelector);
         if (!$form.length) {
             return;
         }
 
         var unsavedLeaveMessage = 'There are unsaved changes in the form. Are you sure you want to leave without saving?';
+        var fallbackUrl = @json($fallbackUrl);
+        var saveButtonSelector = @json($saveButtonSelector);
+        var snapshotExcludeNames = @json($snapshotExcludeNames);
+        var legacySaveLabelSwap = @json($legacySaveLabelSwap);
+
+        var saveState = null;
         var initialSnapshot = '';
         var fileDirty = false;
         var allowLeave = false;
-        var fallbackUrl = @json($fallbackUrl);
-        var saveButtonSelector = @json($saveButtonSelector);
-        var $saveBtn = saveButtonSelector ? $(saveButtonSelector) : $();
 
-        function formSnapshot() {
-            return $form.serialize();
+        if (window.McFormSaveState) {
+            saveState = window.McFormSaveState.get(formSelector);
+            if (!saveState) {
+                saveState = window.McFormSaveState.bind({
+                    formSelector: formSelector,
+                    saveButtonSelector: saveButtonSelector,
+                    snapshotExcludeNames: snapshotExcludeNames,
+                    legacyLabelSwap: legacySaveLabelSwap
+                });
+            }
         }
 
-        function isDirty() {
+        function formSnapshot() {
+            if (!snapshotExcludeNames.length) {
+                return $form.serialize();
+            }
+
+            return $form.find(':input').filter(function() {
+                var name = this.name;
+                return name && snapshotExcludeNames.indexOf(name) === -1;
+            }).serialize();
+        }
+
+        function isDirtyFallback() {
             return fileDirty || formSnapshot() !== initialSnapshot;
         }
 
         function hasUnsavedChanges() {
-            return !allowLeave && isDirty();
-        }
-
-        function resetBaseline() {
-            initialSnapshot = formSnapshot();
-            fileDirty = false;
-            syncSaveButtonState();
-        }
-
-        function syncSaveButtonState() {
-            if (!$saveBtn.length) {
-                return;
+            if (saveState) {
+                return saveState.isDirty();
             }
-            var dirty = isDirty();
-            if (dirty) {
-                $saveBtn.prop('disabled', false);
-                if (!$saveBtn.data('saved-label')) {
-                    $saveBtn.data('saved-label', $.trim($saveBtn.text()) || 'All changes saved');
-                }
-                if (!$saveBtn.data('dirty-label')) {
-                    $saveBtn.data('dirty-label', 'Save changes');
-                }
-                $saveBtn.text($saveBtn.data('dirty-label'));
-                $saveBtn.css({ background: '#1b5e6f', color: '#fff', cursor: 'pointer' });
-            } else {
-                $saveBtn.prop('disabled', true);
-                $saveBtn.text($saveBtn.data('saved-label') || 'All changes saved');
-                $saveBtn.css({ background: '#e9ecef', color: '#a0aec0', cursor: 'default' });
-            }
+            return !allowLeave && isDirtyFallback();
         }
 
         function markAllowLeave() {
+            if (saveState) {
+                saveState.markAllowLeave();
+                return;
+            }
             allowLeave = true;
+        }
+
+        function resetBaselineFallback() {
+            initialSnapshot = formSnapshot();
+            fileDirty = false;
+            allowLeave = false;
         }
 
         function isLeavingPage(href) {
@@ -103,6 +114,7 @@
                 || $link.attr('data-toggle') === 'dropdown'
                 || $link.hasClass('custom-tab')
                 || $link.hasClass('tab-item')
+                || $link.hasClass('edit-office-tab')
                 || $link.data('tab')) {
                 return false;
             }
@@ -175,16 +187,16 @@
             markAllowLeave();
         });
 
-        $form.on('input change', ':input', function() {
-            if ($(this).is(':file')) {
-                fileDirty = true;
-            }
-            syncSaveButtonState();
-        });
+        if (!saveState) {
+            $form.on('input change', ':input', function() {
+                if ($(this).is(':file')) {
+                    fileDirty = true;
+                }
+            });
 
-        $(document).on('select2:select select2:unselect select2:clear', '{{ $formSelector }} .select2, {{ $formSelector }} select', function() {
-            setTimeout(syncSaveButtonState, 0);
-        });
+            setTimeout(resetBaselineFallback, 300);
+            $(window).on('load', resetBaselineFallback);
+        }
 
         document.addEventListener('click', function(e) {
             var linkEl = e.target.closest('a[href]');
@@ -255,9 +267,13 @@
             });
         }
 
-        // Delay baseline so select2 / late widgets settle
-        setTimeout(resetBaseline, 50);
-        window.unsavedChangesGuardReset = resetBaseline;
+        window.unsavedChangesGuardReset = function() {
+            if (saveState) {
+                saveState.resetBaseline();
+                return;
+            }
+            resetBaselineFallback();
+        };
         window.unsavedChangesGuardAllowLeave = markAllowLeave;
     }
 

@@ -67,7 +67,7 @@ class OtherCompanyController extends Controller
 
     public function edit(\App\Models\OtherCompany $otherCompany)
     {
-        $otherCompany->load(['creator', 'updater']);
+        $otherCompany->load(['creator', 'updater', 'country', 'contacts']);
         $countries    = CountryCache::active();
         $currencies   = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD', 'INR', 'AUD', 'CAD'];
         $companyTypes = $this->companyTypeOptions();
@@ -133,6 +133,8 @@ class OtherCompanyController extends Controller
     public function createContact($otherCompanyId)
     {
         $otherCompany = $this->companies->findOrFail((int) $otherCompanyId);
+        $otherCompany->load('country');
+
         return view('Other Companies.contacts.create', compact('otherCompany'));
     }
 
@@ -164,7 +166,9 @@ class OtherCompanyController extends Controller
     public function editContact($otherCompanyId, $contactId)
     {
         $otherCompany = $this->companies->findOrFail((int) $otherCompanyId);
+        $otherCompany->load('country');
         $contact      = $this->contacts->findOrFail((int) $contactId);
+
         return view('Other Companies.contacts.edit', compact('otherCompany', 'contact'));
     }
 

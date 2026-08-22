@@ -186,6 +186,48 @@
         }
         .followup-filters-fields {
             width: 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .followup-filters-fields .custom-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -5px;
+            margin-left: -5px;
+        }
+
+        .followup-filters-fields .custom-col {
+            padding-right: 5px;
+            padding-left: 5px;
+            margin-bottom: 0 !important;
+            flex-shrink: 0;
+        }
+
+        .followup-filters-fields .filter-row {
+            margin-bottom: 0;
+        }
+
+        .followup-filters-fields .list-dense-filter-row {
+            gap: 8px;
+            border-bottom: none !important;
+            padding: 0 !important;
+            background: transparent !important;
+            align-items: center;
+            flex-wrap: wrap !important;
+            align-content: flex-start;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .followup-filters-fields .list-dense-filter-row .btn-clear-filters {
+            display: inline-flex;
+            align-items: center;
+            height: 32px;
+            white-space: nowrap;
+            margin-left: 0;
+            padding: 0 4px;
         }
 
         @media (max-width: 991.98px) {
@@ -203,11 +245,11 @@
             body.followup-filters-open .followup-filters-fields {
                 display: flex !important;
             }
-            .followup-filters-fields .mr-2,
-            .followup-filters-fields .btn-filter-toggle {
+            .followup-filters-fields .list-dense-filter-controls,
+            .followup-filters-fields .followup-filter-controls {
                 display: none !important;
             }
-            .followup-filters-fields .row.no-gutters {
+            .followup-filters-fields .list-dense-filter-row {
                 display: flex !important;
                 flex-direction: column !important;
                 flex-wrap: nowrap !important;
@@ -250,6 +292,34 @@
         }
 
         @media (min-width: 992px) {
+            .followup-filters-fixed {
+                overflow: visible;
+                z-index: 120;
+            }
+            .followup-filters-fields .list-dense-filter-shell {
+                align-items: flex-start;
+            }
+            .followup-filters-fields .list-dense-filter-controls {
+                align-self: flex-start;
+                position: relative;
+                z-index: 51;
+            }
+            .followup-filters-fields .list-dense-filter-fields {
+                position: relative;
+                z-index: 1;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                overflow: visible !important;
+            }
+            .followup-filters-fields .list-dense-filter-controls .mc-column-picker {
+                position: relative;
+                z-index: 52;
+            }
+            .followup-filters-fields .list-dense-filter-controls .mc-column-picker__panel {
+                z-index: 1300;
+                isolation: isolate;
+            }
             .followup-filters-fields {
                 display: flex !important;
                 max-height: none !important;
@@ -287,55 +357,6 @@
         .label {
             border-radius: 4px;
             font-size: 100%;
-        }
-        /* Bootstrap Multiselect Custom Styling */
-        .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .multiselect-native-select .multiselect {
-            width: 100%;
-            text-align: left;
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 11px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .multiselect-native-select .multiselect-container {
-            width: 235px;
-            font-size: 11px;
-        }
-        .multiselect-native-select .multiselect-container li a label {
-            padding: 5px 10px 5px 0;
-            display: block;
-            margin: 0;
-            cursor: pointer;
-        }
-        .multiselect-native-select .multiselect-selected .form-check-label {
-            color: #008080;
-            font-weight: bold;
-        }
-        .multiselect-item.multiselect-all label {
-            font-weight: bold;
-            color: #333;
-        }
-        input.form-control.multiselect-search {
-            font-size: 11px;
-        }
-        .multiselect-container .input-group {
-            margin: 2px;
-        }
-        .input-group-addon {
-            background-color: #01a9ac;
-            color: #fff;
-            max-height: 31px;
-        }
-        .multiselect-container>li {
-            padding: 0px 5px;
-        }
-        .multiselect-item .input-group {
-            width: 114%;
         }
         /* Select2 Custom Styling */
         .select2-container--default .select2-selection--single {
@@ -389,21 +410,6 @@
             margin-top: 4px !important;
             padding: 1px 5px !important;
         }
-        /* Filter Toggle Button Styling */
-        .btn-filter-toggle {
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 14px;
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-filter-toggle:hover, .btn-filter-toggle:focus, .btn-filter-toggle:active {
-            background-color: #008080 !important;
-            color: white !important;
-            border-color: #008080 !important;
-        }
-        
         /* Pagination look: partials/list-pagination-footer-styles */
         .dataTables_wrapper .dataTables_paginate {
             margin-top: 0 !important;
@@ -453,8 +459,11 @@
         .followup-filters-fixed {
             background: #fff;
             position: relative;
-            z-index: 40;
+            z-index: 120;
             padding-bottom: 6px;
+        }
+        .followup-table-area #offices-table thead th {
+            z-index: 10 !important;
         }
         #followup-pagination.pagination-sticky-footer {
             flex-shrink: 0;
@@ -927,21 +936,21 @@
                                                     body-class="followup-filters-open"
                                                     toolbar-class="followup-filters-toolbar"
                                                 />
-                                                <div class="d-flex justify-content-between align-items-start pt-2 followup-filters-fields">
-                                                    <div style="width: 100%;">
-                                                        <div class="row no-gutters">
-                                                            <div class="mr-2" style="margin-top: 2px;">
-                                                                <select id="filter-multiselect" multiple="multiple">
-                                                                    <option value="Account manager" selected>Account manager</option>
-                                                                    <option value="Shipment no" selected>Shipment no</option>
-                                                                    <option value="Customer" selected>Customer</option>
-                                                                    <option value="Vessel" selected>Vessel</option>
-                                                                    <option value="Port of destination" selected>Port of destination</option>
-                                                                    <option value="Status" selected>Status</option>
-                                                                    <option value="Created by" selected>Created by</option>
-                                                                </select>
-                                                            </div>
-
+                                                <div class="d-flex pt-2 followup-filters-fields list-dense-filter-bar">
+                                                    <div class="list-dense-filter-shell" style="width: 100%;">
+                                                        <div class="list-dense-filter-controls followup-filter-controls">
+                                                            <select id="filter-multiselect" multiple="multiple" data-storage-key="followup-list-filters-v2">
+                                                                <option value="Account manager" selected>Account manager</option>
+                                                                <option value="Shipment no" selected>Shipment no</option>
+                                                                <option value="Customer" selected>Customer</option>
+                                                                <option value="Vessel" selected>Vessel</option>
+                                                                <option value="Port of destination" selected>Port of destination</option>
+                                                                <option value="Status" selected>Status</option>
+                                                                <option value="Created by" selected>Created by</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="list-dense-filter-fields">
+                                                        <div class="row custom-row filter-row list-dense-filter-row">
                                                             <div id="col-Account-manager" class="custom-col" style="flex: 0 0 220px;">
                                                                 <div class="filter-group">
                                                                     <span class="filter-label">Account manager</span>
@@ -1011,7 +1020,10 @@
                                                                 </div>
                                                             </div>
 
-                                                            <x-lists.clear-filters id="clear-followup-filters" />
+                                                            <div class="custom-col" style="flex: 0 0 auto;">
+                                                                <x-lists.clear-filters id="clear-followup-filters" />
+                                                            </div>
+                                                        </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1097,33 +1109,27 @@
                 }
             );
 
-            // Initialize Bootstrap Multiselect for special filter toggle
             $('#filter-multiselect').multiselect({
                 includeSelectAllOption: true,
-                enableFiltering: false,
-                buttonWidth: '100%',
-                maxHeight: 200,
-                nonSelectedText: '',
-                allSelectedText: '',
-                nSelectedText: '',
-                numberDisplayed: 0,
-                buttonClass: 'btn btn-outline-teal btn-filter-toggle',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><i class="ti-filter"></i></button>'
-                },
-                onChange: function(option, checked) {
+                includeResetOption: true,
+                resetText: 'Clear all',
+                storageKey: 'followup-list-filters-v2',
+                onChange: function () {
                     toggleFilterVisibility();
                 },
-                onSelectAll: function() {
+                onSelectAll: function () {
                     toggleFilterVisibility();
                 },
-                onDeselectAll: function() {
+                onDeselectAll: function () {
                     toggleFilterVisibility();
                 }
             });
 
             $('#filter-multiselect').multiselect('selectAll', false);
-            $('#filter-multiselect').multiselect('updateButtonText');
+            if ($('#filter-multiselect option:selected').length === 0) {
+                $('#filter-multiselect option').prop('selected', true);
+                $('#filter-multiselect').multiselect('updateButtonText');
+            }
 
             var followupFilterIds = [
                 'col-Account-manager',
@@ -1146,8 +1152,11 @@
                 followupFilterIds.forEach(function (id) {
                     $('#' + id).show().css('display', '');
                 });
-                $('.followup-filters-fields .mr-2').hide();
-                $('#filter-multiselect').closest('.btn-group').find('.multiselect-container').removeClass('show').hide();
+                $('.followup-filter-controls').hide();
+                var $panel = $('#filter-multiselect').data('mcColumnPickerPanel');
+                if ($panel && $panel.length) {
+                    $panel.removeClass('is-open');
+                }
             }
 
             function toggleFilterVisibility() {
@@ -1172,9 +1181,16 @@
                     {val: 'Created by', id: 'col-Created-by'}
                 ];
 
+                if (selectedValues.length === 0) {
+                    allFilters.forEach(function(filter) {
+                        $('#' + filter.id).hide();
+                    });
+                    return;
+                }
+
                 allFilters.forEach(function(filter) {
                     if (selectedValues.indexOf(filter.val) !== -1) {
-                        $('#' + filter.id).show();
+                        $('#' + filter.id).css('display', '');
                     } else {
                         $('#' + filter.id).hide();
                     }

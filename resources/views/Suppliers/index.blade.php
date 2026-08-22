@@ -1,316 +1,354 @@
 @extends('layouts.app')
 
 @section('styles')
-    <!-- Data Table Css -->
+    @include('partials.list-pagination-footer-styles')
 
-    <x-lists.base-styles />
+    <x-lists.base-styles bodyClass="suppliers-filters-open" toolbarClass="suppliers-filters-toolbar" />
+
     <style>
-        .table-other-companies {
-            width: 100%;
-            border-collapse: collapse;
+        body.suppliers-list-page {
+            overflow: hidden !important;
+            height: 100vh;
         }
-        .table-other-companies th,
-        .table-other-companies td,
-        #suppliers-table th,
-        #suppliers-table td,
-        #suppliers-table_wrapper th,
-        #suppliers-table_wrapper td {
-            font-size: 13px !important;
+        body.suppliers-list-page .pcoded-content {
+            overflow: hidden !important;
         }
-        .table-other-companies th {
-            text-align: left;
-            padding: 8px 10px;
-            font-weight: 600;
-            color: #1b5e6f;
-            border-bottom: 1px solid #eee;
-            border-right: 1px solid #eee;
-            background: #f8fafd;
+        body.suppliers-list-page .pcoded-inner-content,
+        body.suppliers-list-page .main-body,
+        body.suppliers-list-page .page-wrapper,
+        body.suppliers-list-page .page-body {
+            height: 100%;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
-        .table-other-companies td {
-            padding: 8px 10px;
-            color: #333;
-            border-bottom: 1px solid #f0f0f0;
-            border-right: 1px solid #f0f0f0;
-            vertical-align: middle;
-        }
-        .table-other-companies tr:hover td {
-            background-color: #f9fafb;
-        }
-        #suppliers-table th.col-address {
-            width: 280px;
-        }
-        #suppliers-table td.col-address .cell-ellipsis {
-            display: block;
-            max-width: 280px;
+
+        .suppliers-list-card {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
             overflow: hidden;
-            text-overflow: ellipsis;
+            background: #fff;
+        }
+        .suppliers-list-card > .card-block {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            padding: 8px 12px 8px !important;
+        }
+        .suppliers-list-card .list-page-header {
+            flex-shrink: 0;
+            margin-bottom: 8px;
+        }
+
+        .suppliers-filters-area {
+            flex-shrink: 0;
+            margin-bottom: 8px;
+        }
+        .suppliers-filters-area .filter-row {
+            margin: 0;
+            padding: 8px 10px;
+            border: 1px solid #d6e3ee;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%);
+        }
+
+        .btn-suppliers-add {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 7px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            white-space: nowrap;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #00aeef 0%, #008080 100%);
+            box-shadow: 0 2px 8px rgba(0, 128, 128, 0.28);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-suppliers-add:hover {
+            color: #fff;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.32);
+        }
+        .suppliers-add-desktop {
+            margin-left: auto;
+        }
+
+        .suppliers-add-mobile {
+            display: none;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: #fff;
+            color: #008080;
+            border: 1px solid #008080;
+            font-weight: 700;
+            text-decoration: none;
             white-space: nowrap;
         }
-        .filter-input {
-            height: 28px;
+        .suppliers-add-mobile:hover {
+            background: #008080;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .suppliers-table-area {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        #suppliers-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 980px;
+        }
+        #suppliers-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            text-align: left;
+            padding: 10px 14px;
             font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #0e1d4a;
+            background: linear-gradient(180deg, #f0fafb 0%, #f8fafc 100%);
+            border-bottom: 2px solid #008080;
+            white-space: nowrap;
+        }
+        #suppliers-table tbody td {
+            padding: 10px 14px !important;
+            vertical-align: middle !important;
+            font-size: 13px;
+            color: #334155;
+            border-bottom: 1px solid #f1f5f9;
+            white-space: normal !important;
+        }
+        #suppliers-table tbody tr:hover td {
+            background: #f5fbfe !important;
+        }
+        #suppliers-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .sup-name-link {
+            color: #008080;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .sup-name-link:hover {
+            color: #006666;
+            text-decoration: underline;
+        }
+        .sup-email-link {
+            color: #0088c7;
+            text-decoration: none;
+        }
+        .sup-email-link:hover {
+            text-decoration: underline;
+        }
+
+        .sup-country-cell {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.2;
+            max-width: 100%;
+        }
+        .sup-country-flag {
+            display: block;
+            width: 20px;
+            height: 15px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border: 1px solid #e2e8f0;
             border-radius: 2px;
-            border: 1px solid #ced4da;
-            padding: 4px 8px;
         }
-
-        /* Select2 Custom Styling */
-        .select2-container--default .select2-selection--single {
-            height: 28px !important;
-            font-size: 11px !important;
-            background-color: #fff !important;
-            border: 1px solid #ced4da !important;
-            border-radius: 2px !important;
-            display: flex !important;
-            align-items: center !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 1.25 !important;
-            padding-left: 8px !important;
-            padding-right: 20px !important;
-            color: #495057 !important;
-            background-color: transparent !important;
-            width: 100% !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 26px !important;
-            top: 1px !important;
-        }
-
-        /* Reduce gap/margin between sidebar and content */
-        .pcoded-inner-content {
-            padding: 5px !important;
-        }
-        .main-body .page-wrapper {
-            padding: 5px !important;
-        }
-
-        /* Custom Pagination Styling */
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            padding: 0.2em 0.5em !important;
-            margin-left: 2px !important;
-            border: 1px solid #eee !important;
-            border-radius: 4px !important;
-            font-size: 11px !important;
-            background: #fff !important;
-        }
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current, 
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-            background: #3b82f6 !important;
-            color: white !important;
-            border-color: #3b82f6 !important;
-        }
-        .dataTables_wrapper .dataTables_info {
-            font-size: 11px !important;
-            color: #666 !important;
-            padding-top: 10px !important;
-        }
-        .dataTables_wrapper .dataTables_paginate {
-            padding-top: 10px !important;
-        }
-
-        .table-other-companies {
+        .sup-country-name {
             min-width: 0;
+            line-height: 1.3;
         }
 
-        .dt-responsive .table-other-companies,
-        .dataTables_wrapper .table-other-companies {
-            min-width: 900px;
+        .sup-action-icons {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+        .sup-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            color: #64748b;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+        }
+        .sup-action-btn:hover {
+            color: #008080;
+            background: #e6f5f5;
+            border-color: #b7e0e0;
+            text-decoration: none;
         }
 
-        /* Hide DataTables scrollX cloned header inside scroll body (prevents double header) */
-        #suppliers-table_wrapper .dataTables_scrollBody > table > thead,
-        #suppliers-table_wrapper .dataTables_scrollBody thead {
-            height: 0 !important;
-            line-height: 0 !important;
-            visibility: collapse !important;
-        }
-        #suppliers-table_wrapper .dataTables_scrollBody thead tr,
-        #suppliers-table_wrapper .dataTables_scrollBody thead th {
-            height: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-            border: none !important;
-            line-height: 0 !important;
-            font-size: 0 !important;
-            overflow: hidden !important;
-            background: transparent !important;
-        }
-        #suppliers-table_wrapper .dataTables_scrollBody thead th:before,
-        #suppliers-table_wrapper .dataTables_scrollBody thead th:after {
-            display: none !important;
-            content: none !important;
+        #suppliers-pagination.pagination-sticky-footer {
+            flex-shrink: 0;
         }
 
         @media (max-width: 991.98px) {
-            .filter-input {
-                width: 100%;
+            .suppliers-add-mobile {
+                display: inline-flex !important;
+                align-items: center;
             }
-
-            .card-block {
-                padding: 12px !important;
-            }
-
-            .dataTables_wrapper .dataTables_info,
-            .dataTables_wrapper .dataTables_paginate {
-                float: none;
-                text-align: center;
-                padding-top: 8px !important;
-            }
-
-            .dataTables_wrapper .dataTables_paginate {
-                display: flex;
-                justify-content: center;
-            }
-
-            .dt-responsive,
-            .dataTables_wrapper,
-            .dataTables_scroll,
-            .dataTables_scrollBody {
-                overflow-x: auto !important;
-                -webkit-overflow-scrolling: touch;
+            .suppliers-add-desktop {
+                display: none !important;
             }
         }
     </style>
 @endsection
 
 @section('content')
-<!-- Pre-loader start -->
-    <div class="theme-loader">
-        <div class="ball-scale">
-            <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
+    <script>document.body.classList.add('suppliers-list-page');</script>
+
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show mb-0 mx-2 mt-2" role="alert" style="font-size: 12px;">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+    @endif
+
+    <div class="card suppliers-list-card">
+        <div class="card-block">
+            <x-lists.page-header
+                title="Suppliers"
+                subtitle="Manage supplier companies used across stock and shipment workflows"
+                icon="ti-truck"
+                :count="$suppliers->total()"
+                countLabel="suppliers"
+            />
+
+            <div class="suppliers-filters-area">
+                <x-lists.filter-toolbar
+                    toggle-id="btn-suppliers-filters-toggle"
+                    body-class="suppliers-filters-open"
+                    toolbar-class="suppliers-filters-toolbar"
+                >
+                    <x-slot:actions>
+                        @if ($canWriteAdministration)
+                            <a class="suppliers-add-mobile" href="{{ route('suppliers.create') }}">Add supplier</a>
+                        @endif
+                    </x-slot:actions>
+                </x-lists.filter-toolbar>
+
+                <x-lists.filter-bar>
+                    <x-lists.filter-field label="Search" width="240px">
+                        <input type="text" id="supplier-search-filter" class="form-control filter-input" placeholder="Name, address, city, country, email…">
+                    </x-lists.filter-field>
+                    <x-lists.clear-filters id="clear-supplier-filters" />
+                    @if ($canWriteAdministration)
+                        <a href="{{ route('suppliers.create') }}" class="btn-suppliers-add suppliers-add-desktop">
+                            <i class="ti-plus"></i> Add supplier
+                        </a>
+                    @endif
+                </x-lists.filter-bar>
+            </div>
+
+            <div class="suppliers-table-area list-ajax-table-wrapper">
+                <table id="suppliers-table">
+                    <thead>
+                        @include('Suppliers.partials.table-head-row')
+                    </thead>
+                    <tbody>
+                        @include('Suppliers.partials.rows')
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="suppliers-pagination" class="pagination-sticky-footer">
+                @include('partials.list-pagination-footer-inner', ['paginator' => $suppliers])
             </div>
         </div>
     </div>
-    <!-- Pre-loader end -->
-    @include('layouts.partials.pcoded-shell-start')
-                                        <div class="card" style="border-radius: 0; box-shadow: none; border: 1px solid #eef2f7;">
-                                            <div class="card-block" style="padding: 15px;">
-                                                <x-lists.inline-toolbar toolbarClass="suppliers-toolbar">
-                                                    <x-slot:search>
-                                                        <span class="filter-label" style="font-size: 10px; font-weight: 600; margin-bottom: 2px; display: block;">Search</span>
-                                                        <input type="text" id="supplier-search-filter" class="form-control filter-input" placeholder="type here">
-                                                    </x-slot:search>
-                                                    <x-slot:actions>
-                                                        <a href="#" style="border: 1px solid #ced4da; padding: 4px 10px; border-radius: 2px; color: #666; font-size: 14px;">
-                                                            <i class="ti-download"></i>
-                                                        </a>
-                                                        <a class="btn btn-primary" href="{{ route('suppliers.create') }}"
-                                                           style="font-size: 11px; padding: 6px 15px; border-radius: 2px; background: #fff; color: #1b5e6f; border: 1px solid #1b5e6f; font-weight: 600;">
-                                                           Add supplier
-                                                        </a>
-                                                    </x-slot:actions>
-                                                </x-lists.inline-toolbar>
 
-                                                <div class="dt-responsive">
-                                                    <x-lists.ajax-table
-                                                        table-id="suppliers-table"
-                                                        table-class="table-other-companies"
-                                                        pagination-id="suppliers-pagination"
-                                                        :paginator="$suppliers->links()"
-                                                    >
-                                                        <x-slot:head>
-                                                            <tr>
-                                                                <th>Supplier name</th>
-                                                                <th class="col-address">Address</th>
-                                                                <th>City</th>
-                                                                <th>Country</th>
-                                                                <th>Phone number</th>
-                                                                <th>Email</th>
-                                                                <th style="width: 50px;"></th>
-                                                            </tr>
-                                                        </x-slot:head>
-                                                        @include('Suppliers.partials.rows')
-                                                    </x-lists.ajax-table>
-                                                </div>
-                                            </div>
-                                        </div>
     @include('layouts.partials.pcoded-shell-end')
-
-
 @endsection
 
 @push('scripts')
     @include('partials.searchable-filter-multiselect-script')
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
+            $('body').addClass('suppliers-list-page');
+
+            var currentSupplierPage = 1;
             var table = $('#suppliers-table').DataTable({
-                "lengthChange": false,
-                "paging": false,
-                "info": false,
-                "responsive": false,
-                "searching": false,
-                "ordering": true,
-                "order": [],
-                "autoWidth": false,
-                "scrollX": true,
-                "dom": 'rt'
+                dom: 'rt',
+                paging: false,
+                info: false,
+                lengthChange: false,
+                responsive: false,
+                searching: false,
+                ordering: true,
+                order: [],
+                autoWidth: false,
+                scrollX: false,
+                columnDefs: [
+                    { orderable: false, targets: 6 }
+                ],
+                language: {
+                    emptyTable: 'No suppliers found.'
+                }
             });
-
-            $(window).on('resize', function () {
-                table.columns.adjust();
-            });
-
-            setTimeout(function () {
-                table.columns.adjust();
-            }, 100);
 
             window.suppliersListFilters = bindAjaxListFilters({
                 tableSelector: '#suppliers-table',
                 paginationSelector: '#suppliers-pagination',
                 indexUrl: @json(route('suppliers.index')),
                 existingTable: table,
+                clearSelector: '#clear-supplier-filters',
                 getParams: function (page) {
+                    currentSupplierPage = page || 1;
                     return {
                         search: $.trim($('#supplier-search-filter').val() || ''),
-                        page: page || 1
+                        page: currentSupplierPage
                     };
                 },
                 textSelectors: '#supplier-search-filter',
                 resetFields: function () {
                     $('#supplier-search-filter').val('');
                 },
+                resetClickScope: '.filter-item',
                 afterDraw: function () {
                     table.columns.adjust();
                 }
             });
 
-            // Delete supplier AJAX
-            $(document).on('click', '.delete-supplier', function() {
+            $(document).on('click', '.delete-supplier', function () {
                 var id = $(this).data('id');
                 var name = $(this).data('name') || 'this supplier';
-                var $row = $(this).closest('tr');
 
                 swal({
                     title: 'Delete supplier?',
@@ -322,7 +360,7 @@
                     closeOnConfirm: false,
                     closeOnCancel: true,
                     showLoaderOnConfirm: true
-                }, function(isConfirm) {
+                }, function (isConfirm) {
                     if (!isConfirm) {
                         return;
                     }
@@ -333,7 +371,7 @@
                         data: {
                             _token: '{{ csrf_token() }}'
                         },
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 swal({
                                     title: 'Deleted',
@@ -344,13 +382,13 @@
                                 });
 
                                 if (window.suppliersListFilters) {
-                                    window.suppliersListFilters.load(1);
+                                    window.suppliersListFilters.load(currentSupplierPage);
                                 }
                             } else {
                                 swal('Error', response.message || 'Error deleting supplier.', 'error');
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             var message = (xhr.responseJSON && xhr.responseJSON.message)
                                 ? xhr.responseJSON.message
                                 : 'An error occurred while deleting the supplier.';
