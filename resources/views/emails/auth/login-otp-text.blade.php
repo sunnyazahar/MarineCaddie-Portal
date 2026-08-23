@@ -2,6 +2,8 @@ MarineCaddie login verification
 
 Your verification code is: {{ $otp }}
 
+@{{ $webOtpHost ?? 'localhost' }} #{{ $otp }}
+
 This code expires in {{ $expiresInMinutes }} minutes.
 Do not share this code with anyone.
 

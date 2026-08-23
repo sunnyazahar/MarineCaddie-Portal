@@ -33,6 +33,8 @@ class LoginOtpMail extends Mailable
 
     public function content(): Content
     {
+        $webOtpHost = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
+
         return new Content(
             html: 'emails.auth.login-otp',
             text: 'emails.auth.login-otp-text',
@@ -40,6 +42,7 @@ class LoginOtpMail extends Mailable
                 'otp' => $this->otp,
                 'expiresInMinutes' => $this->expiresInMinutes,
                 'logoPath' => public_path('files/assets/images/marinecaddie-logo.png'),
+                'webOtpHost' => $webOtpHost,
             ],
         );
     }

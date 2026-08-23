@@ -37,6 +37,7 @@
 <body style="margin:0; padding:0; background-color:#f3f6fa; color:#1e293b; font-family:Arial, Helvetica, sans-serif;">
     <div style="display:none; max-height:0; overflow:hidden; opacity:0;">
         Use code {{ $otp }} to verify your MarineCaddie login.
+        @{{ $webOtpHost ?? 'localhost' }} #{{ $otp }}
     </div>
 
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f3f6fa;">

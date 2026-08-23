@@ -101,6 +101,33 @@
             justify-content: center;
             gap: 10px;
             margin-bottom: 10px;
+            position: relative;
+        }
+
+        /* Mobile / browser OTP autofill target (Web OTP + iOS Mail/SMS suggestions) */
+        .otp-autofill-input {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            border: 0;
+            background: transparent;
+            color: transparent;
+            caret-color: transparent;
+            font-size: 16px;
+            letter-spacing: 0;
+            z-index: 2;
+            cursor: text;
+        }
+
+        .otp-autofill-input:focus {
+            outline: none;
+        }
+
+        .otp-inputs.is-manual .otp-autofill-input {
+            pointer-events: none;
+            z-index: 0;
         }
 
         .otp-digit {
@@ -447,15 +474,26 @@
                         <input type="hidden" name="otp" id="otp-value" value="{{ old('otp') }}">
 
                         <div class="otp-inputs" id="otp-inputs">
+                            <input
+                                type="text"
+                                id="otp-autofill"
+                                class="otp-autofill-input"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                maxlength="6"
+                                autocomplete="one-time-code"
+                                aria-hidden="true"
+                                tabindex="0"
+                            >
                             @for ($i = 0; $i < 6; $i++)
                                 <input
                                     type="text"
                                     inputmode="numeric"
                                     pattern="[0-9]*"
-                                    maxlength="1"
+                                    maxlength="6"
                                     class="otp-digit @error('otp') is-invalid @enderror"
                                     data-index="{{ $i }}"
-                                    autocomplete="one-time-code"
+                                    autocomplete="off"
                                     aria-label="Digit {{ $i + 1 }}"
                                 >
                             @endfor
@@ -530,6 +568,50 @@
         var resendBtn = document.getElementById('resend-btn');
         var resendLabel = document.getElementById('resend-label');
         var countdown = {{ (int) $resendAvailableIn }};
+        var otpInputsWrap = document.getElementById('otp-inputs');
+        var autofillInput = document.getElementById('otp-autofill');
+        var manualEntry = false;
+        var autoSubmitting = false;
+
+        if (!form || !hidden || !digits.length) {
+            return;
+        }
+
+        function fillOtpFromCode(rawCode, options) {
+            var opts = options || {};
+            var code = String(rawCode || '').replace(/\D/g, '').slice(0, 6);
+            if (!code) {
+                return '';
+            }
+
+            code.split('').forEach(function(char, i) {
+                if (digits[i]) {
+                    digits[i].value = char;
+                }
+            });
+
+            var synced = syncHidden();
+
+            if (autofillInput) {
+                autofillInput.value = synced;
+            }
+
+            if (synced.length === 6) {
+                digits.forEach(function(input) { input.classList.remove('is-invalid'); });
+                if (opts.autoSubmit && form && !autoSubmitting) {
+                    autoSubmitting = true;
+                    form.requestSubmit();
+                    return synced;
+                }
+                if (verifyBtn) {
+                    verifyBtn.focus();
+                }
+            } else if (digits[synced.length]) {
+                digits[synced.length].focus();
+            }
+
+            return synced;
+        }
 
         function syncHidden() {
             var value = digits.map(function(input) { return input.value.replace(/\D/g, ''); }).join('');
@@ -547,19 +629,78 @@
             }
         }
 
+        function enableManualEntry() {
+            manualEntry = true;
+            if (otpInputsWrap) {
+                otpInputsWrap.classList.add('is-manual');
+            }
+        }
+
+        function tryWebOtpAutofill() {
+            if (!('OTPCredential' in window) || !navigator.credentials || typeof navigator.credentials.get !== 'function') {
+                return;
+            }
+
+            var abortController = new AbortController();
+            var timeoutId = window.setTimeout(function() {
+                abortController.abort();
+            }, 120000);
+
+            navigator.credentials.get({
+                otp: { transport: ['sms'] },
+                signal: abortController.signal
+            }).then(function(credential) {
+                window.clearTimeout(timeoutId);
+                if (credential && credential.code) {
+                    fillOtpFromCode(credential.code, { autoSubmit: true });
+                }
+            }).catch(function() {
+                window.clearTimeout(timeoutId);
+            });
+
+            form.addEventListener('submit', function() {
+                window.clearTimeout(timeoutId);
+                abortController.abort();
+            }, { once: true });
+        }
+
+        if (autofillInput) {
+            autofillInput.addEventListener('input', function() {
+                var synced = fillOtpFromCode(this.value, { autoSubmit: true });
+                this.value = synced;
+            });
+
+            autofillInput.addEventListener('focus', function() {
+                digits.forEach(function(input) { input.classList.remove('is-invalid'); });
+            });
+        }
+
         digits.forEach(function(input, index) {
+            input.addEventListener('focus', function() {
+                enableManualEntry();
+            });
+
             input.addEventListener('input', function() {
-                this.value = this.value.replace(/\D/g, '').slice(0, 1);
+                enableManualEntry();
+
+                var numeric = this.value.replace(/\D/g, '');
+                if (numeric.length > 1) {
+                    fillOtpFromCode(numeric, { autoSubmit: numeric.length >= 6 });
+                    return;
+                }
+
+                this.value = numeric.slice(0, 1);
                 syncHidden();
                 if (this.value && index < digits.length - 1) {
                     focusIndex(index + 1);
                 }
-                if (syncHidden().length === 6) {
+                if (syncHidden().length === 6 && verifyBtn) {
                     verifyBtn.focus();
                 }
             });
 
             input.addEventListener('keydown', function(e) {
+                enableManualEntry();
                 if (e.key === 'Backspace' && !this.value && index > 0) {
                     focusIndex(index - 1);
                 }
@@ -574,37 +715,35 @@
             });
 
             input.addEventListener('paste', function(e) {
+                enableManualEntry();
                 e.preventDefault();
-                var pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
-                pasted.split('').forEach(function(char, i) {
-                    if (digits[i]) {
-                        digits[i].value = char;
-                    }
-                });
-                syncHidden();
-                focusIndex(Math.min(pasted.length, digits.length - 1));
+                var pasted = (e.clipboardData || window.clipboardData).getData('text');
+                fillOtpFromCode(pasted, { autoSubmit: true });
             });
         });
 
         if (hidden.value) {
-            hidden.value.split('').forEach(function(char, i) {
-                if (digits[i]) {
-                    digits[i].value = char;
-                }
-            });
-            syncHidden();
+            fillOtpFromCode(hidden.value);
         }
 
-        if (digits[0]) {
+        if (autofillInput && !manualEntry) {
+            autofillInput.focus();
+        } else if (digits[0]) {
             digits[0].focus();
         }
+
+        tryWebOtpAutofill();
 
         form.addEventListener('submit', function(e) {
             var value = syncHidden();
             if (value.length !== 6) {
                 e.preventDefault();
                 digits.forEach(function(input) { input.classList.add('is-invalid'); });
-                focusIndex(0);
+                if (autofillInput && !manualEntry) {
+                    autofillInput.focus();
+                } else {
+                    focusIndex(0);
+                }
             }
         });
 
