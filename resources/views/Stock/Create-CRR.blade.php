@@ -1143,7 +1143,8 @@
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">PO numbers (Separate by commas or
                                                             spaces)</label>
-                                                        <input type="text" class="crr-input" name="po_numbers">
+                                                        <textarea class="crr-input" name="po_numbers" rows="3"
+                                                            style="height: auto; min-height: 70px; resize: vertical;"></textarea>
                                                     </div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">PO remarks</label>

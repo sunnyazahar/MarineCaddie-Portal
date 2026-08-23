@@ -2953,8 +2953,8 @@
                                                     <div class="field-group">
                                                         <label class="field-label">PO numbers (Separate by commas or
                                                             spaces)</label>
-                                                        <input type="text" class="field-input" name="po_numbers"
-                                                            value="{{ is_array($crr->po_numbers) ? implode(', ', $crr->po_numbers) : ($crr->po_numbers ?? '') }}">
+                                                        <textarea class="field-input" name="po_numbers" rows="3"
+                                                            style="height: auto; min-height: 70px; resize: vertical;">{{ is_array($crr->po_numbers) ? implode(', ', $crr->po_numbers) : ($crr->po_numbers ?? '') }}</textarea>
                                                     </div>
 
                                                     <div class="field-group">
