@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Http\Request;
 
@@ -165,6 +166,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Never allow migrate:fresh / db:wipe / schema:drop on production,
+        // marinecaddie hosts, or any non-local MySQL (e.g. Hostinger).
+        if ($this->shouldProhibitDestructiveDatabaseCommands()) {
+            DB::prohibitDestructiveCommands();
+        }
+
         $tmp = storage_path('framework/tmp');
         if (! is_dir($tmp)) {
             @mkdir($tmp, 0777, true);
@@ -209,5 +216,33 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Illuminate\Pagination\Paginator::useBootstrapFive();
+    }
+
+    /**
+     * Block Artisan destructive DB commands outside disposable local DBs.
+     */
+    private function shouldProhibitDestructiveDatabaseCommands(): bool
+    {
+        if ($this->app->environment('production', 'staging')) {
+            return true;
+        }
+
+        $appUrl = strtolower((string) config('app.url'));
+        if (str_contains($appUrl, 'marinecaddie.com')) {
+            return true;
+        }
+
+        $connection = (string) config('database.default');
+        $driver = (string) config("database.connections.{$connection}.driver");
+        $host = strtolower((string) config("database.connections.{$connection}.host", ''));
+
+        if (in_array($driver, ['mysql', 'mariadb'], true)
+            && $host !== ''
+            && ! in_array($host, ['127.0.0.1', 'localhost', '::1'], true)
+        ) {
+            return true;
+        }
+
+        return false;
     }
 }

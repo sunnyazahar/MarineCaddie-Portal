@@ -4,11 +4,53 @@ namespace Tests\Concerns;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 
 trait CreatesRegressionSchema
 {
+    /**
+     * Hard stop: never create/drop regression tables against MySQL/MariaDB
+     * (local `saf`, Hostinger production, or any remote DB). SQLite :memory: only.
+     */
+    protected function assertSafeTestingDatabase(): void
+    {
+        if (! app()->environment('testing')) {
+            throw new RuntimeException(
+                'Regression schema refused: APP_ENV must be [testing]. '
+                .'Run tests via `composer test` or `php artisan test` (loads phpunit.xml).'
+            );
+        }
+
+        $connection = (string) config('database.default');
+        $driver = (string) config("database.connections.{$connection}.driver");
+        $database = (string) config("database.connections.{$connection}.database");
+        $host = (string) config("database.connections.{$connection}.host", '');
+
+        if (in_array($driver, ['mysql', 'mariadb', 'pgsql', 'sqlsrv'], true)) {
+            throw new RuntimeException(
+                "Regression schema refused: driver [{$driver}] host [{$host}] database [{$database}]. "
+                .'PHPUnit must use SQLite :memory: from phpunit.xml — never drop tables on MySQL.'
+            );
+        }
+
+        $isSqliteMemory = $driver === 'sqlite' && (
+            $database === ':memory:'
+            || $database === ''
+            || str_contains($database, ':memory:')
+        );
+
+        if (! $isSqliteMemory) {
+            throw new RuntimeException(
+                "Regression schema refused: connection [{$connection}] driver [{$driver}] database [{$database}]. "
+                .'Use phpunit.xml SQLite :memory: only.'
+            );
+        }
+    }
+
     protected function createRegressionSchema(): void
     {
+        $this->assertSafeTestingDatabase();
+
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -204,6 +246,8 @@ trait CreatesRegressionSchema
 
     protected function dropRegressionSchema(): void
     {
+        $this->assertSafeTestingDatabase();
+
         Schema::disableForeignKeyConstraints();
 
         foreach ([

@@ -1041,6 +1041,9 @@ composer test
 - Naya module / route / filter add karo → us module ka Feature test bhi add karo
 - **Component-migrated Blade** (`x-lists.*`, `x-forms.port-select`, `x-forms.country-select`) → `MigratedBladeViewsTest` mein marker assert add karo (Create button, filter IDs, port/country field names)
 - Test DB = SQLite in-memory (`phpunit.xml`) — production DB kabhi use mat karo
+- **Never** run `phpunit --no-configuration` (bypasses sqlite override and can wipe MySQL)
+- Regression schema create/drop is guarded: MySQL/MariaDB/pgsql refused; `APP_ENV=testing` + SQLite `:memory:` only (`CreatesRegressionSchema`, `Tests\TestCase`)
+- Production / `*.marinecaddie.com` / remote MySQL: `DB::prohibitDestructiveCommands()` blocks `migrate:fresh`, `db:wipe`, etc.
 - OTP in tests = `LOCAL_OTP_BYPASS=true` (phpunit env only; production pe ignored)
 - Shared schema helpers: `tests/RegressionTestCase.php`, `tests/Concerns/*`
 
