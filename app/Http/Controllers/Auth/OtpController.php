@@ -293,12 +293,16 @@ class OtpController extends Controller
                 'mailer' => $mailer,
                 'mail_delivered' => $delivered,
             ]);
+        } else {
+            session()->forget('login_otp_local');
         }
     }
 
     private function localDebugOtp(Request $request): ?string
     {
         if (! $this->shouldExposeLocalOtp()) {
+            $request->session()->forget('login_otp_local');
+
             return null;
         }
 
@@ -308,15 +312,37 @@ class OtpController extends Controller
     }
 
     /**
-     * Show the OTP on-screen only outside production (local XAMPP, etc.).
+     * Show the OTP on-screen only for true local/dev hosts.
+     * Never on portal.marinecaddie.com (even if APP_ENV is misconfigured).
      */
     private function shouldExposeLocalOtp(): bool
     {
-        if (app()->environment('production')) {
+        if ($this->isLiveMarineCaddieHost((string) request()->getHost())) {
+            return false;
+        }
+
+        $configuredHost = (string) (parse_url((string) config('app.url'), PHP_URL_HOST) ?: '');
+        if ($this->isLiveMarineCaddieHost($configuredHost)) {
+            return false;
+        }
+
+        if (app()->isProduction() || app()->environment('production')) {
             return false;
         }
 
         return app()->environment(['local', 'localhost', 'development', 'testing']);
+    }
+
+    private function isLiveMarineCaddieHost(string $host): bool
+    {
+        $host = strtolower(trim($host));
+
+        if ($host === '' || $host === 'localhost' || $host === '127.0.0.1' || str_starts_with($host, '192.168.')) {
+            return false;
+        }
+
+        return $host === 'marinecaddie.com'
+            || str_ends_with($host, '.marinecaddie.com');
     }
 
     private function shouldBypassOtp(): bool

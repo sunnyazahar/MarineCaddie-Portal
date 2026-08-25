@@ -947,6 +947,8 @@ Send endpoints require: `to`, `subject`; optional `cc`, `bcc`, `body`, `files[]`
 
 - Sent on login via `OtpController::issueOtp()`
 - Local env may show OTP on screen when mail delivery unavailable
+- **Never** show on-screen OTP on `*.marinecaddie.com` hosts, even if `APP_ENV` is mis-set to local/development
+- Live server `.env` must use `APP_ENV=production` and `APP_DEBUG=false`
 
 ### Scheduled mail/commands
 
