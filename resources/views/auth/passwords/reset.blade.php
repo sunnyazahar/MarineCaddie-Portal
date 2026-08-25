@@ -10,7 +10,6 @@
             <div class="login-panel-inner">
                 <div class="login-brand">
                     {!! \App\Support\LogoHelper::imgTag('220px') !!}
-                    <p class="login-brand-tagline">Maritime logistics portal</p>
                 </div>
 
                 <div class="login-card">

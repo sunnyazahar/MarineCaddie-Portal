@@ -24,9 +24,6 @@ trait InteractsWithAuthenticatedUsers
         return [
             'email' => $email,
             'password' => $password,
-            'browser_latitude' => 28.6139,
-            'browser_longitude' => 77.2090,
-            'browser_location_accuracy' => 25,
         ];
     }
 }

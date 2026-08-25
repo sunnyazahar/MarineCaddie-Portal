@@ -868,6 +868,52 @@
             outline: none !important;
         }
 
+        /* Compact grid inputs: thin height, square corners (Costs / Packages) */
+        #costsTable .crr-input,
+        #packagesTable .crr-input {
+            height: 20px !important;
+            min-height: 20px !important;
+            max-height: 20px !important;
+            padding: 0 6px !important;
+            font-size: 11px !important;
+            border-radius: 0 !important;
+            line-height: 1.1 !important;
+        }
+
+        #costsTable .crr-input:focus,
+        #packagesTable .crr-input:focus {
+            box-shadow: 0 0 0 2px rgba(0, 174, 239, 0.14) !important;
+        }
+
+        #costsTable td,
+        #packagesTable td {
+            padding: 2px 4px;
+            vertical-align: middle;
+        }
+
+        #costsTable .select2-container--default .select2-selection--single,
+        #packagesTable .select2-container--default .select2-selection--single,
+        .crr-form-container #costsTable .select2-container--default .select2-selection--single,
+        .crr-form-container #packagesTable .select2-container--default .select2-selection--single {
+            height: 20px !important;
+            min-height: 20px !important;
+            max-height: 20px !important;
+            border-radius: 0 !important;
+        }
+
+        #costsTable .select2-container--default .select2-selection--single .select2-selection__rendered,
+        #packagesTable .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 18px !important;
+            font-size: 11px !important;
+            padding-left: 6px !important;
+        }
+
+        #costsTable .select2-container--default .select2-selection--single .select2-selection__arrow,
+        #packagesTable .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 18px !important;
+            top: 1px !important;
+        }
+
         .crr-form-container .select2-container--default .select2-selection--single {
             height: var(--mc-control-height, 34px) !important;
         }

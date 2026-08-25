@@ -3,6 +3,136 @@
 @section('styles')
     @include('partials.auth-guest-page-styles')
     <style>
+        .login-panel--signin {
+            background:
+                radial-gradient(ellipse 70% 50% at 0% 0%, rgba(0, 128, 128, 0.11), transparent 55%),
+                radial-gradient(ellipse 55% 45% at 100% 15%, rgba(14, 29, 74, 0.07), transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0, 174, 239, 0.08), transparent 45%),
+                linear-gradient(180deg, #f4f8fb 0%, #eef4f8 48%, #f8fafc 100%);
+            overflow: hidden;
+        }
+
+        .login-panel--signin::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+            background-image:
+                linear-gradient(rgba(14, 29, 74, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 29, 74, 0.035) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: radial-gradient(ellipse 75% 70% at 50% 40%, #000 20%, transparent 75%);
+        }
+
+        .login-panel--signin .login-panel-inner,
+        .login-panel--signin .login-footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-panel--signin .login-brand {
+            margin-bottom: 32px;
+            animation: loginFadeUp 0.55s ease both;
+        }
+
+        .login-panel--signin .login-brand .marinecaddie-logo {
+            max-height: 78px !important;
+            max-width: 240px !important;
+            filter: drop-shadow(0 8px 18px rgba(14, 29, 74, 0.1));
+        }
+
+        .login-panel--signin .login-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 18px;
+            padding: 34px 30px 30px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.9) inset,
+                0 10px 28px rgba(14, 29, 74, 0.07),
+                0 28px 56px rgba(14, 29, 74, 0.06);
+            animation: loginFadeUp 0.65s ease 0.06s both;
+        }
+
+        .login-panel--signin .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #FF5A5F 0%, #38bdf8 55%, #008080 100%);
+        }
+
+        .login-panel--signin .login-card-head {
+            margin-bottom: 26px;
+        }
+
+        .login-panel--signin .login-card-title {
+            font-size: 26px;
+            letter-spacing: -0.03em;
+        }
+
+        .login-panel--signin .login-card-subtitle {
+            font-size: 14.5px;
+            line-height: 1.5;
+        }
+
+        .login-panel--signin .field-input {
+            height: 48px;
+            border-radius: 12px;
+            background: #fbfdff;
+        }
+
+        .login-panel--signin .field-input:focus {
+            background: #fff;
+            border-color: #008080;
+            box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.12);
+        }
+
+        .login-panel--signin .field-input-wrap:focus-within .field-input-icon {
+            color: #008080;
+        }
+
+        .login-panel--signin .btn-login {
+            height: 48px;
+            margin-top: 20px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #FF5A5F 0%, #ff7a7e 55%, #ff8f70 100%);
+            box-shadow: 0 12px 24px rgba(255, 90, 95, 0.28);
+            letter-spacing: 0.03em;
+        }
+
+        .login-panel--signin .btn-login:hover:not(:disabled) {
+            box-shadow: 0 14px 28px rgba(255, 90, 95, 0.34);
+        }
+
+        .login-panel--signin .form-footer {
+            margin-top: 20px;
+            padding-top: 4px;
+        }
+
+        .login-secure-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin: 18px 0 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            animation: loginFadeUp 0.7s ease 0.12s both;
+        }
+
+        .login-secure-note i {
+            font-size: 13px;
+            color: #008080;
+        }
+
         .remember-me {
             display: inline-flex;
             align-items: center;
@@ -20,60 +150,72 @@
             cursor: pointer;
         }
 
-        .location-card {
-            margin-top: 14px;
-            padding: 12px 14px;
-            border-radius: 10px;
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
+        .login-hero-title {
+            font-weight: 300;
         }
 
-        .location-status {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #b45309;
-            line-height: 1.45;
-        }
-
-        .location-status i {
-            flex-shrink: 0;
-            margin-top: 2px;
-            font-size: 16px;
-        }
-
-        .location-status.is-ready {
-            color: #15803d;
-        }
-
-        .btn-location {
-            margin-top: 8px;
-            padding: 0;
-            border: 0;
-            background: transparent;
-            color: var(--mc-teal);
-            cursor: pointer;
-            font-size: 13px;
+        .login-hero-title b,
+        .login-hero-title strong {
             font-weight: 700;
-            text-decoration: underline;
-            text-underline-offset: 2px;
+            color: #fff;
+            background: none;
+            -webkit-background-clip: unset;
+            background-clip: unset;
         }
 
-        .btn-location:hover {
-            color: var(--mc-teal-dark);
+        .login-hero-separator {
+            width: 100%;
+            max-width: 420px;
+            height: 1px;
+            margin: 0 0 20px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-readmore {
+            display: inline-block;
+            padding: 10px 25px;
+            border: 1px solid #FFFFFF;
+            color: #FFFFFF;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-readmore:hover {
+            background: #FFFFFF;
+            color: #0E1D4A;
+            text-decoration: none;
+        }
+
+        @keyframes loginFadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .login-panel--signin .login-brand,
+            .login-panel--signin .login-card,
+            .login-secure-note {
+                animation: none;
+            }
         }
     </style>
 @endsection
 
 @section('content')
     <div class="login-page">
-        <div class="login-panel">
+        <div class="login-panel login-panel--signin">
             <div class="login-panel-inner">
                 <div class="login-brand">
-                    {!! \App\Support\LogoHelper::imgTag('220px') !!}
-                    <p class="login-brand-tagline">Maritime logistics portal</p>
+                    {!! \App\Support\LogoHelper::imgTag('240px') !!}
                 </div>
 
                 <div class="login-card">
@@ -88,9 +230,6 @@
 
                     <form id="login-form" method="POST" action="{{ route('login') }}">
                         @csrf
-                        <input type="hidden" id="browser-latitude" name="browser_latitude">
-                        <input type="hidden" id="browser-longitude" name="browser_longitude">
-                        <input type="hidden" id="browser-location-accuracy" name="browser_location_accuracy">
                         <input type="hidden" id="screen-resolution" name="screen_resolution">
                         <input type="hidden" id="browser-language" name="browser_language">
                         <input type="hidden" id="browser-timezone" name="browser_timezone">
@@ -121,20 +260,7 @@
                             @enderror
                         </div>
 
-                        <div class="location-card">
-                            <div id="location-status" class="location-status">
-                                <i class="ti-location-pin" aria-hidden="true"></i>
-                                <span>Location permission is required to log in.</span>
-                            </div>
-                            <button type="button" id="request-location-button" class="btn-location">
-                                Enable location
-                            </button>
-                            @error('browser_latitude')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <button type="submit" id="login-button" class="btn-login" disabled>Log in</button>
+                        <button type="submit" id="login-button" class="btn-login">Log in</button>
 
                         <div class="form-footer">
                             <label class="remember-me">
@@ -147,6 +273,11 @@
                         </div>
                     </form>
                 </div>
+
+                <p class="login-secure-note">
+                    <i class="ti-lock" aria-hidden="true"></i>
+                    Secured login · OTP verification enabled
+                </p>
             </div>
 
             <div class="login-footer">
@@ -156,35 +287,17 @@
             </div>
         </div>
 
-        <aside class="login-hero" aria-hidden="true">
+        <aside class="login-hero">
             <div class="login-hero-overlay"></div>
 
             <div class="login-hero-content">
-                <div class="login-hero-badge">
-                    <i class="ti-ship"></i>
-                    Global logistics
-                </div>
-                <h2 class="login-hero-title">
-                    Smart shipping for<br><span>modern maritime ops</span>
-                </h2>
+                <h2 class="login-hero-title">Welcome to <b>MarineCaddie</b></h2>
+                <div class="login-hero-separator" aria-hidden="true"></div>
                 <p class="login-hero-text">
-                    MarineCaddie gives your team real-time visibility, efficient cargo handling,
-                    and reliable delivery workflows — from pre-alert to final mile.
+                    MarineCaddie transforms logistics with smart, technology-driven solutions ensuring real-time visibility,
+                    efficient handling, and reliable delivery of your cargo worldwide.
                 </p>
-                <ul class="login-hero-features">
-                    <li>
-                        <i class="ti-eye"></i>
-                        <span>Track shipments and stock in one place</span>
-                    </li>
-                    <li>
-                        <i class="ti-package"></i>
-                        <span>Coordinate hubs, agents, and warehouse deadlines</span>
-                    </li>
-                    <li>
-                        <i class="ti-world"></i>
-                        <span>Operate worldwide with confidence and control</span>
-                    </li>
-                </ul>
+                <a href="https://www.marinecaddie.com/" class="btn-readmore" target="_blank" rel="noopener noreferrer">Read more ..</a>
             </div>
         </aside>
     </div>
@@ -192,9 +305,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var loginButton = document.getElementById('login-button');
-            var locationButton = document.getElementById('request-location-button');
-            var locationStatus = document.getElementById('location-status');
-            var locationStatusText = locationStatus.querySelector('span');
 
             document.getElementById('screen-resolution').value =
                 window.screen.width + 'x' + window.screen.height;
@@ -202,49 +312,6 @@
                 navigator.language || '';
             document.getElementById('browser-timezone').value =
                 Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-
-            function setLocationMessage(message, ready) {
-                locationStatus.classList.toggle('is-ready', !!ready);
-                if (locationStatusText) {
-                    locationStatusText.textContent = message;
-                } else {
-                    locationStatus.textContent = message;
-                }
-            }
-
-            function requestLocation() {
-                setLocationMessage('Requesting your location...', false);
-
-                if (!navigator.geolocation) {
-                    setLocationMessage('This browser does not support location access. Login is unavailable.', false);
-                    return;
-                }
-
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    document.getElementById('browser-latitude').value = position.coords.latitude;
-                    document.getElementById('browser-longitude').value = position.coords.longitude;
-                    document.getElementById('browser-location-accuracy').value = position.coords.accuracy;
-                    setLocationMessage('Location permission granted.', true);
-                    locationButton.style.display = 'none';
-                    loginButton.disabled = false;
-                }, function(error) {
-                    loginButton.disabled = true;
-                    locationButton.style.display = 'inline-block';
-                    setLocationMessage(
-                        error.code === error.PERMISSION_DENIED
-                            ? 'Location permission was denied. Please enable it to log in.'
-                            : 'Your location could not be detected. Please try again.',
-                        false
-                    );
-                }, {
-                    enableHighAccuracy: false,
-                    timeout: 10000,
-                    maximumAge: 300000
-                });
-            }
-
-            locationButton.addEventListener('click', requestLocation);
-            requestLocation();
 
             var loginForm = document.getElementById('login-form');
             var csrfRefreshing = false;
