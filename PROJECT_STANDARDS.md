@@ -820,6 +820,8 @@ Use **Services** when logic involves:
 
 - PDF generation (manifest, pre-alert, combined PO)
 - Mail preview + send (ManifestMailService, PreAlertMailService)
+- Linked stock → shipment manifest regen (`LinkedStockShipmentManifestService`: after CRR update/status/flags/accept, create a new manifest on linked shipments except `Completed` / `Cancelled`)
+- Stock change email to vessel account manager (`CrrAccountManagerNotifyService` → customer responsible AM Contact email; skip if no changes / no AM email; **never on first-time stock create**)
 - Multi-model transactions with side effects
 - External API calls (currency rates)
 - Change log snapshots

@@ -79,10 +79,11 @@ class CrrChangeLogService
         ];
     }
 
-    public function logChangesFromSnapshot(Crr $crr, array $before): void
+    public function logChangesFromSnapshot(Crr $crr, array $before): array
     {
         $crr->loadMissing(['packages', 'costs']);
         $after = $this->captureSnapshot($crr);
+        $changes = [];
 
         foreach (self::FIELD_LABELS as $field => $label) {
             $old = $before['attributes'][$field] ?? null;
@@ -94,6 +95,10 @@ class CrrChangeLogService
 
             if ($field === 'accept' && $new === true && $old !== true) {
                 $this->logAccepted($crr);
+                $changes[] = [
+                    'title' => 'Stock accepted',
+                    'description' => null,
+                ];
                 continue;
             }
 
@@ -110,23 +115,31 @@ class CrrChangeLogService
                 : $label . ' edited';
 
             $this->log($crr, $title, $description);
+            $changes[] = [
+                'title' => $title,
+                'description' => $description,
+            ];
         }
 
         if (($before['packages'] ?? []) !== ($after['packages'] ?? [])) {
-            $this->log(
-                $crr,
-                'Packages edited',
-                $this->collectionCountDescription(count($before['packages'] ?? []), count($after['packages'] ?? []))
-            );
+            $description = $this->collectionCountDescription(count($before['packages'] ?? []), count($after['packages'] ?? []));
+            $this->log($crr, 'Packages edited', $description);
+            $changes[] = [
+                'title' => 'Packages edited',
+                'description' => $description,
+            ];
         }
 
         if (($before['costs'] ?? []) !== ($after['costs'] ?? [])) {
-            $this->log(
-                $crr,
-                'Costs edited',
-                $this->collectionCountDescription(count($before['costs'] ?? []), count($after['costs'] ?? []))
-            );
+            $description = $this->collectionCountDescription(count($before['costs'] ?? []), count($after['costs'] ?? []));
+            $this->log($crr, 'Costs edited', $description);
+            $changes[] = [
+                'title' => 'Costs edited',
+                'description' => $description,
+            ];
         }
+
+        return $changes;
     }
 
     private function normalizeAttributes(Crr $crr): array

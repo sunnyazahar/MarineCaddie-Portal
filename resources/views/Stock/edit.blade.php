@@ -4582,8 +4582,76 @@
             var packageIndex = {{ count($crr->packages) }};
             $('.btn-add-package').on('click', function () {
                 $('#packagesTable tbody .empty-row').remove();
-                let row = `<tr data-index="${packageIndex}"><td>${packageIndex + 1}</td><td><input name="packages[${packageIndex}][length]"class="crr-input pkg-dim pkg-l"step="0.01"></td><td><input name="packages[${packageIndex}][width]"class="crr-input pkg-dim pkg-w"step="0.01"></td><td><input name="packages[${packageIndex}][height]"class="crr-input pkg-dim pkg-h"step="0.01"></td><td><input name="packages[${packageIndex}][weight]"class="crr-input pkg-weight"step="0.01"></td><td><input name="packages[${packageIndex}][cbm]"class="crr-input pkg-cbm"readonly value="0"></td><td><input name="packages[${packageIndex}][warehouse_location]"class="crr-input"></td><td><input name="packages[${packageIndex}][remarks]" class="crr-input"></td><td class="text-center"><input type="checkbox" class="pkg-is-irregular" name="packages[${packageIndex}][is_delivery_irregularity]"></td><td class="text-center"><input name="packages[${packageIndex}][is_dgr]" class="pkg-is-dgr" type="checkbox"></td><td class="text-center"><input name="packages[${packageIndex}][is_not_stackable]"type="checkbox"></td><td class="text-center"><input name="packages[${packageIndex}][is_medicine]"type="checkbox"></td><td class="text-center"><input name="packages[${packageIndex}][is_xray]"type="checkbox"></td><td class="text-center"><button class="btn btn-link p-0 btn-copy-row text-primary"type="button"><i class="icofont icofont-copy-alt"></i></button></td><td class="text-center"><button class="btn btn-link p-0 btn-remove-row text-danger"type="button"><i class="icofont icofont-trash"></i></button></td></tr><tr class="irregularity-sub-row" data-index="${packageIndex}" style="display: none;"><td colspan="2"></td><td colspan="13"><div class="dgr-container" style="background: #fff9e6; border: 1px solid #ffeeba;"><i class="icofont icofont-warning dgr-warning-icon" style="color: #f0ad4e;"></i><div class="dgr-field" style="flex: 1;"><label class="crr-label">Delivery irregularities</label><select class="form-control select2 select2-irregularities" name="packages[${packageIndex}][delivery_irregularities][]" multiple="multiple"><option value="Damaged packaging - no repacking required">Damaged packaging - no repacking required</option><option value="Damaged packaging - repacking required">Damaged packaging - repacking required</option><option value="Missing DG label / marking on package">Missing DG label / marking on package</option><option value="Missing documentation - Commercial invoice / Packing list">Missing documentation - Commercial invoice / Packing list</option><option value="Missing documentation - DG">Missing documentation - DG</option><option value="Missing documentation - Other">Missing documentation - Other</option><option value="Missing label on packaging">Missing label on packaging</option><option value="Packaging not fit for airfreight">Packaging not fit for airfreight</option><option value="Packaging not fumigated">Packaging not fumigated</option><option value="Packaging not heat treated">Packaging not heat treated</option><option value="Vessel Name / PO Number not mentioned on packaging (label)">Vessel Name / PO Number not mentioned on packaging (label)</option><option value="Vessel Name / PO Number not mentioned on supplier documentation">Vessel Name / PO Number not mentioned on supplier documentation</option></select></div></div></td></tr><tr data-index="${packageIndex}"class="dgr-sub-row"style="display:none"><td colspan="2"></td><td colspan="7"><div class="dgr-container"><i class="icofont dgr-warning-icon icofont-warning"></i><div class="dgr-field"><label class="field-label">Dangerous goods description</label> <input name="packages[${packageIndex}][dgr_description]"class="field-input"placeholder=""></div><div class="dgr-field small"><label class="field-label">UN number</label> <input name="packages[${packageIndex}][un_number]"class="field-input"placeholder=""></div><div class="dgr-field small"><label class="field-label">Class</label> <input name="packages[${packageIndex}][dgr_class]"class="field-input"placeholder=""></div></div></td></tr>`;
-                let $row = $(row); $('#packagesTable tbody').append($row); $row.filter('.irregularity-sub-row').find('.select2-irregularities').select2({placeholder: 'Select irregularities', allowClear: false, width: '100%'}).next('.select2-container').addClass('select2-irreg-container');
+                // Column order must match thead (no Remarks column between warehouse and Irreg.).
+                let row = `
+                    <tr data-index="${packageIndex}">
+                        <td>${packageIndex + 1}</td>
+                        <td><input type="text" step="0.01" class="crr-input pkg-dim pkg-l" name="packages[${packageIndex}][length]"></td>
+                        <td><input type="text" step="0.01" class="crr-input pkg-dim pkg-w" name="packages[${packageIndex}][width]"></td>
+                        <td><input type="text" step="0.01" class="crr-input pkg-dim pkg-h" name="packages[${packageIndex}][height]"></td>
+                        <td><input type="text" step="0.01" class="crr-input pkg-weight" name="packages[${packageIndex}][weight]"></td>
+                        <td><input type="text" class="crr-input pkg-cbm" name="packages[${packageIndex}][cbm]" readonly value="0"></td>
+                        <td><input type="text" class="crr-input" name="packages[${packageIndex}][warehouse_location]"></td>
+                        <td class="text-center"><input type="checkbox" class="pkg-is-irregular" name="packages[${packageIndex}][is_delivery_irregularity]"></td>
+                        <td class="text-center"><input type="checkbox" class="pkg-is-dgr" name="packages[${packageIndex}][is_dgr]"></td>
+                        <td class="text-center"><input type="checkbox" name="packages[${packageIndex}][is_not_stackable]"></td>
+                        <td class="text-center"><input type="checkbox" name="packages[${packageIndex}][is_medicine]"></td>
+                        <td class="text-center"><input type="checkbox" name="packages[${packageIndex}][is_xray]"></td>
+                        <td class="text-center"><button type="button" class="btn btn-link text-primary p-0 btn-copy-row"><i class="icofont icofont-copy-alt"></i></button></td>
+                        <td class="text-center"><button type="button" class="btn btn-link text-danger p-0 btn-remove-row"><i class="icofont icofont-trash"></i></button></td>
+                    </tr>
+                    <tr class="irregularity-sub-row" data-index="${packageIndex}" style="display: none;">
+                        <td colspan="2"></td>
+                        <td colspan="12">
+                            <div class="dgr-container dgr-container--irregularity">
+                                <i class="icofont icofont-warning dgr-warning-icon" style="color: #f0ad4e;"></i>
+                                <div class="dgr-field" style="flex: 1;">
+                                    <label class="field-label">Delivery irregularities</label>
+                                    <select class="form-control select2-irregularities" name="packages[${packageIndex}][delivery_irregularities][]" multiple="multiple">
+                                        <option value="Damaged packaging - no repacking required">Damaged packaging - no repacking required</option>
+                                        <option value="Damaged packaging - repacking required">Damaged packaging - repacking required</option>
+                                        <option value="Missing DG label / marking on package">Missing DG label / marking on package</option>
+                                        <option value="Missing documentation - Commercial invoice / Packing list">Missing documentation - Commercial invoice / Packing list</option>
+                                        <option value="Missing documentation - DG">Missing documentation - DG</option>
+                                        <option value="Missing documentation - Other">Missing documentation - Other</option>
+                                        <option value="Missing label on packaging">Missing label on packaging</option>
+                                        <option value="Packaging not fit for airfreight">Packaging not fit for airfreight</option>
+                                        <option value="Packaging not fumigated">Packaging not fumigated</option>
+                                        <option value="Packaging not heat treated">Packaging not heat treated</option>
+                                        <option value="Vessel Name / PO Number not mentioned on packaging (label)">Vessel Name / PO Number not mentioned on packaging (label)</option>
+                                        <option value="Vessel Name / PO Number not mentioned on supplier documentation">Vessel Name / PO Number not mentioned on supplier documentation</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="dgr-sub-row" data-index="${packageIndex}" style="display: none;">
+                        <td colspan="2"></td>
+                        <td colspan="12">
+                            <div class="dgr-container">
+                                <i class="icofont icofont-warning dgr-warning-icon"></i>
+                                <div class="dgr-field">
+                                    <label class="field-label">Dangerous goods description</label>
+                                    <input type="text" class="field-input" name="packages[${packageIndex}][dgr_description]" placeholder="">
+                                </div>
+                                <div class="dgr-field small">
+                                    <label class="field-label">UN number</label>
+                                    <input type="text" class="field-input" name="packages[${packageIndex}][un_number]" placeholder="">
+                                </div>
+                                <div class="dgr-field small">
+                                    <label class="field-label">Class</label>
+                                    <input type="text" class="field-input" name="packages[${packageIndex}][dgr_class]" placeholder="">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+                let $row = $(row);
+                $('#packagesTable tbody').append($row);
+                $row.filter('.irregularity-sub-row').find('.select2-irregularities').select2({
+                    placeholder: 'Select irregularities',
+                    allowClear: false,
+                    width: '100%'
+                }).next('.select2-container').addClass('select2-irreg-container');
                 packageIndex++;
                 updatePackageSummary();
             });

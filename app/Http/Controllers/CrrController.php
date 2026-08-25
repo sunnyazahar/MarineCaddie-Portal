@@ -6,7 +6,9 @@ use App\Models\Crr;
 use App\Models\CrrCost;
 use App\Models\CrrDocument;
 use App\Repositories\Contracts\CrrRepositoryInterface;
+use App\Services\CrrAccountManagerNotifyService;
 use App\Services\CrrChangeLogService;
+use App\Services\LinkedStockShipmentManifestService;
 use App\Support\CountryCache;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -185,6 +187,8 @@ class CrrController extends Controller
 
             DB::commit();
 
+            // First-time creation: do not email the vessel account manager.
+
             return redirect()->route('stocks')
                 ->with('success', 'CRR created successfully! Stock number: ' . $crr->stock_number);
 
@@ -342,7 +346,9 @@ class CrrController extends Controller
             DB::commit();
 
             $crr->load(['packages', 'costs']);
-            $changeLogService->logChangesFromSnapshot($crr, $changeLogSnapshot);
+            $changes = $changeLogService->logChangesFromSnapshot($crr, $changeLogSnapshot);
+            app(CrrAccountManagerNotifyService::class)->notifyOfChanges($crr, $changes);
+            app(LinkedStockShipmentManifestService::class)->regenerateForCrr($crr);
 
             return redirect()->back()
                 ->with('success', 'CRR updated successfully! Stock number: ' . $crr->stock_number);
@@ -466,7 +472,13 @@ class CrrController extends Controller
             if ($previousStatus !== (int) $crr->status) {
                 $oldLabel = Crr::getStatusLabels()[$previousStatus] ?? (string) $previousStatus;
                 $newLabel = Crr::getStatusLabels()[(int) $crr->status] ?? (string) $crr->status;
-                $changeLogService->log($crr, 'Status edited', 'From ' . $oldLabel . ' to ' . $newLabel);
+                $description = 'From ' . $oldLabel . ' to ' . $newLabel;
+                $changeLogService->log($crr, 'Status edited', $description);
+                app(CrrAccountManagerNotifyService::class)->notifyOfChanges($crr, [[
+                    'title' => 'Status edited',
+                    'description' => $description,
+                ]]);
+                app(LinkedStockShipmentManifestService::class)->regenerateForCrr($crr);
             }
 
             return response()->json([
@@ -503,7 +515,13 @@ class CrrController extends Controller
             $newLabel = $flags !== [] ? implode(', ', $flags) : 'empty';
 
             if ($oldLabel !== $newLabel) {
-                $changeLogService->log($crr, 'Flags edited', 'From ' . $oldLabel . ' to ' . $newLabel);
+                $description = 'From ' . $oldLabel . ' to ' . $newLabel;
+                $changeLogService->log($crr, 'Flags edited', $description);
+                app(CrrAccountManagerNotifyService::class)->notifyOfChanges($crr, [[
+                    'title' => 'Flags edited',
+                    'description' => $description,
+                ]]);
+                app(LinkedStockShipmentManifestService::class)->regenerateForCrr($crr);
             }
 
             return response()->json(['success' => true, 'flags' => $crr->flags ?? []]);
@@ -524,6 +542,11 @@ class CrrController extends Controller
 
             if (! $wasAccepted) {
                 $changeLogService->logAccepted($crr);
+                app(CrrAccountManagerNotifyService::class)->notifyOfChanges($crr, [[
+                    'title' => 'Stock accepted',
+                    'description' => null,
+                ]]);
+                app(LinkedStockShipmentManifestService::class)->regenerateForCrr($crr);
             }
 
             return response()->json([
