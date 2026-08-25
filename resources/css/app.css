@@ -31,7 +31,7 @@
     --mc-control-height: 34px;
     --mc-control-font-size: 14px;
     --mc-label-font-size: 13px;
-    --mc-meta-label-font-size: 12px;
+    --mc-meta-label-font-size: 10px;
     --mc-control-radius: 8px;
     --mc-form-footer-space: 84px;
     --mc-header-h: 4rem;
@@ -1946,7 +1946,7 @@ a.dash-kpi:hover {
 /* Summary header meta labels (stock / shipment edit) */
 .meta-label,
 .summary-label {
-    font-size: var(--mc-meta-label-font-size, 12px);
+    font-size: var(--mc-meta-label-font-size, 10px);
     font-weight: 700;
     color: #64748b;
     margin-bottom: 0;

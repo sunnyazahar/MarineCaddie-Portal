@@ -529,7 +529,7 @@
             box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
         }
         .meta-label {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 700;
             color: #64748b;
             margin-bottom: 0;

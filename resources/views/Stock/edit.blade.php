@@ -558,7 +558,7 @@
 
         .meta-label,
         .summary-label {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 700;
             color: #64748b;
             margin-bottom: 0;
@@ -2604,7 +2604,7 @@
             }
 
             .summary-header .meta-label {
-                font-size: 12px !important;
+                font-size: 10px !important;
                 letter-spacing: 0.05em !important;
                 line-height: 1.2 !important;
             }

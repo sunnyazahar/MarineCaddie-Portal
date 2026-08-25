@@ -3,7 +3,7 @@
     :root {
         --mc-control-font-size: 14px;
         --mc-label-font-size: 13px;
-        --mc-meta-label-font-size: 12px;
+        --mc-meta-label-font-size: 10px;
         --shipment-input-font-size: var(--mc-control-font-size);
     }
 
@@ -88,7 +88,7 @@
     /* Summary / meta header labels (stock + shipment edit, etc.) */
     html body .meta-label,
     html body .summary-label {
-        font-size: var(--mc-meta-label-font-size, 12px) !important;
+        font-size: var(--mc-meta-label-font-size, 10px) !important;
         font-weight: 700 !important;
         color: #64748b !important;
         margin-bottom: 0 !important;
