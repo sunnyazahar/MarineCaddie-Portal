@@ -161,6 +161,34 @@ class Crr extends Model
         return $this->belongsToMany(Shipment::class, 'shipment_crr');
     }
 
+    /**
+     * Form "Internal shipment" only posts ETL/KTL/RTL (or empty).
+     * Linked stocks store the real shipment number in the same column — empty posts
+     * must not wipe that value (or falsely log "Related shipment … to empty").
+     */
+    public function resolveInternalShipmentFromForm(?string $posted): ?string
+    {
+        $posted = trim((string) ($posted ?? ''));
+        $specialCodes = ['ETL', 'KTL', 'RTL'];
+
+        if ($posted !== '') {
+            return $posted;
+        }
+
+        $current = trim((string) ($this->internal_shipment ?? ''));
+        if ($current !== '' && ! in_array(strtoupper($current), $specialCodes, true)) {
+            return $current;
+        }
+
+        $this->loadMissing('shipments');
+        $linked = $this->shipments
+            ->pluck('shipment_number')
+            ->filter(fn ($number) => filled($number))
+            ->first();
+
+        return $linked ? (string) $linked : null;
+    }
+
     public function registeredBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'registered_by');

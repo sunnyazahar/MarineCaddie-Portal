@@ -265,7 +265,7 @@ class CrrController extends Controller
                 'actual_delivery_date'    => $request->input('actual_delivery_date'),
                 'supplier_reference'      => $request->input('supplier_reference'),
                 'deadline_warehouse'      => $request->input('deadline_warehouse'),
-                'internal_shipment'       => $request->input('internal_shipment'),
+                'internal_shipment'       => $crr->resolveInternalShipmentFromForm($request->input('internal_shipment')),
                 'delivery_irregularities' => $request->input('delivery_irregularities') ?: null,
                 'incoterm'                => $request->input('incoterm') ?: null,
                 'hub_agent'               => $request->input('hub_agent'),

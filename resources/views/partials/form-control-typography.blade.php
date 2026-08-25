@@ -3,6 +3,7 @@
     :root {
         --mc-control-font-size: 14px;
         --mc-label-font-size: 13px;
+        --mc-meta-label-font-size: 12px;
         --shipment-input-font-size: var(--mc-control-font-size);
     }
 
@@ -82,6 +83,17 @@
     html body .filter-group > .filter-label,
     html body .filter-group .filter-label {
         font-size: 11px !important;
+    }
+
+    /* Summary / meta header labels (stock + shipment edit, etc.) */
+    html body .meta-label,
+    html body .summary-label {
+        font-size: var(--mc-meta-label-font-size, 12px) !important;
+        font-weight: 700 !important;
+        color: #64748b !important;
+        margin-bottom: 0 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
     }
 
     @media (max-width: 991.98px) {

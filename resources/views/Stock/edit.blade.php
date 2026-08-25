@@ -526,7 +526,7 @@
         @media (max-width: 575.98px) {
             .stock-tab {
                 padding: 12px 4px;
-                font-size: 12px;
+                font-size: 14px;
             }
 
             .summary-header .header-actions,
@@ -558,7 +558,7 @@
 
         .meta-label,
         .summary-label {
-            font-size: 9px;
+            font-size: 12px;
             font-weight: 700;
             color: #64748b;
             margin-bottom: 0;
@@ -779,7 +779,7 @@
 
         .stock-tab {
             padding: 10px 4px;
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 500;
             color: #64748b;
             cursor: pointer;
@@ -1779,55 +1779,6 @@
             font-weight: 600;
         }
 
-        /* Compact grid inputs: thin height, square corners (Costs / Packages) */
-        #costsTable .crr-input,
-        #packagesTable .crr-input {
-            height: 20px;
-            min-height: 20px;
-            max-height: 20px;
-            padding: 0 6px;
-            font-size: 11px;
-            border-radius: 0;
-            line-height: 1.1;
-        }
-
-        #costsTable .crr-input:focus,
-        #packagesTable .crr-input:focus {
-            box-shadow: 0 0 0 2px rgba(0, 174, 239, 0.14);
-        }
-
-        #costsTable td,
-        #packagesTable td {
-            padding: 2px 4px;
-            vertical-align: middle;
-        }
-
-        #costsTable .select2-container--default .select2-selection--single,
-        #packagesTable .select2-container--default .select2-selection--single {
-            height: 20px !important;
-            min-height: 20px !important;
-            max-height: 20px !important;
-            border-radius: 0 !important;
-        }
-
-        #costsTable .select2-container--default .select2-selection--single .select2-selection__rendered,
-        #packagesTable .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 18px !important;
-            font-size: 11px !important;
-            padding-left: 6px !important;
-        }
-
-        #costsTable .select2-container--default .select2-selection--single .select2-selection__arrow,
-        #packagesTable .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 18px !important;
-            top: 1px !important;
-        }
-
-        .stock-main-content #costsTable .select2-container--default .select2-selection--single,
-        .stock-main-content #packagesTable .select2-container--default .select2-selection--single {
-            border-radius: 0 !important;
-        }
-
         .btn-outline-teal {
             border: 1px solid #0088c7;
             background: #fff;
@@ -2068,6 +2019,7 @@
         }
 
         .stock-tab {
+            font-size: 15px !important;
             font-weight: 600 !important;
             color: #64748b !important;
             transition: color 0.15s ease;
@@ -2652,8 +2604,8 @@
             }
 
             .summary-header .meta-label {
-                font-size: 8px !important;
-                letter-spacing: 0.04em !important;
+                font-size: 12px !important;
+                letter-spacing: 0.05em !important;
                 line-height: 1.2 !important;
             }
 
@@ -2801,6 +2753,7 @@
             }
         }
     </style>
+    @include('partials.stock-grid-input-styles')
 @endsection
 
 @section('content')
@@ -3181,9 +3134,18 @@
                                                         <label class="field-label">Internal shipment</label>
                                                         <select class="field-input select2" name="internal_shipment">
                                                             <option></option>
-                                                            <option value="ETL" {{ $crr->internal_shipment == 'ETL' ? 'selected' : '' }}>ETL</option>
-                                                            <option value="KTL" {{ $crr->internal_shipment == 'KTL' ? 'selected' : '' }}>KTL</option>
-                                                            <option value="RTL" {{ $crr->internal_shipment == 'RTL' ? 'selected' : '' }}>RTL</option>
+                                                            @php
+                                                                $internalShipment = (string) ($crr->internal_shipment ?? '');
+                                                                $internalShipmentCodes = ['ETL', 'KTL', 'RTL'];
+                                                                $isLinkedShipmentNumber = $internalShipment !== ''
+                                                                    && ! in_array(strtoupper($internalShipment), $internalShipmentCodes, true);
+                                                            @endphp
+                                                            @if ($isLinkedShipmentNumber)
+                                                                <option value="{{ $internalShipment }}" selected>{{ $internalShipment }}</option>
+                                                            @endif
+                                                            <option value="ETL" {{ $internalShipment == 'ETL' ? 'selected' : '' }}>ETL</option>
+                                                            <option value="KTL" {{ $internalShipment == 'KTL' ? 'selected' : '' }}>KTL</option>
+                                                            <option value="RTL" {{ $internalShipment == 'RTL' ? 'selected' : '' }}>RTL</option>
                                                         </select>
                                                     </div>
 
