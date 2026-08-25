@@ -204,10 +204,7 @@ async function testStockEditTabsAndUpdate(page, report) {
 
 async function main() {
   const browser = await firefox.launch({ headless: true });
-  const context = await browser.newContext({
-    permissions: ["geolocation"],
-    geolocation: { latitude: 19.076, longitude: 72.8777 },
-  });
+  const context = await browser.newContext();
   const page = await context.newPage();
 
   const report = { pages: [], filters: [], crud: [], mail: [], errors: [] };

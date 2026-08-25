@@ -145,7 +145,7 @@ guest → auth → otp.verified → ops.admin.readonly → (admin for /users)
 ## 5. Request / Auth Flow
 
 ```
-Login (email + password + geolocation)
+Login (email + password)
   → OTP page (/otp) — email code
   → otp.verify → session otp_verified = true
   → Dashboard / intended URL
@@ -153,7 +153,7 @@ Login (email + password + geolocation)
 
 ### Login rules
 
-- Login form requires browser geolocation (`browser_latitude`, `browser_longitude`).
+- Login does not require browser geolocation; users can sign in without sharing location.
 - CSRF token refresh on submit via `/login/csrf`.
 - Inactive users (`is_active = 0`) cannot log in.
 

@@ -13,6 +13,12 @@ class LoginFlowTest extends RegressionTestCase
 
         $response->assertOk();
         $response->assertViewIs('auth.login');
+        $response->assertDontSee('Location permission is required to log in.');
+        $response->assertDontSee('Enable location');
+        $response->assertDontSee('navigator.geolocation');
+        $response->assertSee('Privacy Policy', false);
+        $response->assertSee('data-mc-privacy-open', false);
+        $response->assertSee('MarineCaddie Shipping', false);
     }
 
     public function test_valid_credentials_log_in_with_testing_otp_bypass(): void

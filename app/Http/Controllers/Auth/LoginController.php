@@ -48,21 +48,15 @@ class LoginController extends Controller
         $request->validate([
             $this->username() => ['required', 'string'],
             'password' => ['required', 'string'],
-            'browser_latitude' => ['required', 'numeric', 'between:-90,90'],
-            'browser_longitude' => ['required', 'numeric', 'between:-180,180'],
-            'browser_location_accuracy' => ['nullable', 'numeric', 'min:0'],
-        ], [
-            'browser_latitude.required' => 'Location permission is required to log in.',
-            'browser_longitude.required' => 'Location permission is required to log in.',
         ]);
     }
 
     protected function authenticated(Request $request, $user)
     {
         $request->session()->put('login_client_context', [
-            'latitude' => $request->input('browser_latitude'),
-            'longitude' => $request->input('browser_longitude'),
-            'accuracy' => $request->input('browser_location_accuracy'),
+            'latitude' => null,
+            'longitude' => null,
+            'accuracy' => null,
             'screen_resolution' => $request->input('screen_resolution'),
             'language' => $request->input('browser_language'),
             'timezone' => $request->input('browser_timezone'),

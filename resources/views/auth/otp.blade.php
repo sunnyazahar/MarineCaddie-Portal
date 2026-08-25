@@ -497,7 +497,7 @@
 
             <div class="page-footer">
                 <span style="font-size: 12px; font-weight: 500; color:#000000">© 2026 MarineCaddie, inc. All rights
-                    reserved. | <a href="#">Privacy Policy</a></span>
+                    reserved. | <a href="#" class="mc-privacy-link" data-mc-privacy-open>Privacy Policy</a></span>
             </div>
         </div>
 
@@ -516,7 +516,7 @@
                     <div class="hero-point"><span></span> Protects sensitive logistics operations</div>
                     <div class="hero-point"><span></span> Fast verification, safer access</div>
                 </div>
-                <a href="#" class="btn-readmore">Learn more ..</a>
+                <a href="https://www.marinecaddie.com/" class="btn-readmore" target="_blank" rel="noopener noreferrer">Learn more ..</a>
             </div>
         </div>
     </div>
@@ -635,4 +635,6 @@
         }
     })();
     </script>
+
+    @include('partials.privacy-policy-modal')
 @endsection

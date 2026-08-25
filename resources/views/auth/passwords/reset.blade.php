@@ -281,7 +281,7 @@
 
             <div class="page-footer">
                 <span style="font-size: 12px; font-weight: 500; color:#000000">© 2026 MarineCaddie, inc. All rights
-                    reserved. | <a href="#">Privacy Policy</a></span>
+                    reserved. | <a href="#" class="mc-privacy-link" data-mc-privacy-open>Privacy Policy</a></span>
             </div>
         </div>
 
@@ -302,4 +302,6 @@
             </div>
         </div>
     </div>
+
+    @include('partials.privacy-policy-modal')
 @endsection
