@@ -4,6 +4,7 @@
         --mc-control-font-size: 14px;
         --mc-label-font-size: 13px;
         --mc-meta-label-font-size: 10px;
+        --mc-datatable-header-font-size: 13px;
         --shipment-input-font-size: var(--mc-control-font-size);
     }
 
@@ -96,10 +97,32 @@
         letter-spacing: 0.05em !important;
     }
 
+    /* DataTables / list table headers — project-wide */
+    html body table.dataTable thead th,
+    html body .dataTables_wrapper table thead th,
+    html body .dataTables_scrollHead thead th,
+    html body .dataTables_scrollHeadInner thead th,
+    html body table.office-table thead th,
+    html body .office-table thead th,
+    html body #offices-table thead th,
+    html body #agents-table thead th,
+    html body #customers-table thead th,
+    html body #hubs-table thead th,
+    html body #suppliers-table thead th,
+    html body #other-companies-table thead th,
+    html body #vessels-table thead th,
+    html body #etl-table thead th,
+    html body #change-logs-table thead th,
+    html body #exports-table thead th,
+    html body #exrates-table thead th {
+        font-size: var(--mc-datatable-header-font-size, 13px) !important;
+    }
+
     @media (max-width: 991.98px) {
         :root {
             --mc-control-font-size: 14px;
             --mc-label-font-size: 13px;
+            --mc-datatable-header-font-size: 13px;
         }
     }
 </style>

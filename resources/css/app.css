@@ -32,6 +32,7 @@
     --mc-control-font-size: 14px;
     --mc-label-font-size: 13px;
     --mc-meta-label-font-size: 10px;
+    --mc-datatable-header-font-size: 13px;
     --mc-control-radius: 8px;
     --mc-form-footer-space: 84px;
     --mc-header-h: 4rem;
@@ -1530,7 +1531,8 @@ body.mc-sidebar-open .pcoded-overlay-box {
 }
 
 table.dataTable thead th {
-    @apply border-b border-mc-border bg-mc-sea/50 px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wide;
+    @apply border-b border-mc-border bg-mc-sea/50 px-3 py-2.5 text-left font-bold uppercase tracking-wide;
+    font-size: var(--mc-datatable-header-font-size, 13px);
 }
 
 table.dataTable tbody td {

@@ -431,6 +431,7 @@
     .nav-tab-item {
         white-space: nowrap;
         flex: 0 0 auto;
+        font-size: 13px !important;
     }
 
     .address-grid {

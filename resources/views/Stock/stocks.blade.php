@@ -522,7 +522,7 @@
             z-index: 21 !important;
             background-color: #fdfdfd !important;
             color: #374151;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 600;
             padding: 10px 8px;
             border-bottom: 2px solid #dee2e6 !important;

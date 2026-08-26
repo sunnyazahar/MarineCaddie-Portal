@@ -643,7 +643,6 @@
         }
         .nav-tab-item {
             padding: 11px 18px;
-            font-size: 11px;
             font-weight: 600;
             color: #64748b;
             cursor: pointer;
