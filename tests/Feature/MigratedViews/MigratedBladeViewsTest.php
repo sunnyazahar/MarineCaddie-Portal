@@ -1278,6 +1278,16 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('cs-section-shell', $contents);
     }
 
+    public function test_shipment_edit_prompts_pending_transit_on_open(): void
+    {
+        $contents = file_get_contents(resource_path('views/Shipment/edit.blade.php'));
+
+        $this->assertStringContainsString('function promptPendingTransitOnEditOpen()', $contents);
+        $this->assertStringContainsString("['office', 'hub', 'agent']", $contents);
+        $this->assertStringContainsString("['Courier', 'Airfreight', 'Sea freight', 'Truck']", $contents);
+        $this->assertStringContainsString('promptPendingTransitOnEditOpen();', $contents);
+    }
+
     public function test_shipment_irregularity_fields_use_indexed_array_names(): void
     {
         $files = [

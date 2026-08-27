@@ -10,6 +10,7 @@ use App\Services\CrrAccountManagerNotifyService;
 use App\Services\CrrChangeLogService;
 use App\Services\LinkedStockShipmentManifestService;
 use App\Support\CountryCache;
+use App\Support\SimpleXlsxWriter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -402,7 +403,7 @@ class CrrController extends Controller
     }
 
     /**
-     * Excel export for selected CRRs (SpreadsheetML .xls with styled header).
+     * Excel (.xlsx) export for selected CRRs with styled header.
      * Columns match the MarineCaddie stock Excel template.
      */
     public function exportStockListExcel(Request $request)
@@ -445,80 +446,17 @@ class CrrController extends Controller
         ];
 
         $rows = $crrs->map(fn (Crr $crr) => $this->stockListExcelRow($crr))->all();
-        $filename = 'Stock-List-' . now()->format('YmdHis') . '.xls';
+        $filename = 'Stock-List-' . now()->format('YmdHis') . '.xlsx';
+        $binary = SimpleXlsxWriter::build($headers, $rows, 'Stock List');
 
-        return response($this->buildStockListExcelXml($headers, $rows), 200, [
-            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+        return response($binary, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"; filename*=UTF-8\'\'' . rawurlencode($filename),
+            'Content-Length' => (string) strlen($binary),
             'Cache-Control' => 'max-age=0, no-cache, must-revalidate, proxy-revalidate',
             'Pragma' => 'public',
             'X-Content-Type-Options' => 'nosniff',
         ]);
-    }
-
-    /**
-     * @param  list<string>  $headers
-     * @param  list<list<string|int|float>>  $rows
-     */
-    private function buildStockListExcelXml(array $headers, array $rows): string
-    {
-        $xml = [];
-        $xml[] = '<?xml version="1.0" encoding="UTF-8"?>';
-        $xml[] = '<?mso-application progid="Excel.Sheet"?>';
-        $xml[] = '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"';
-        $xml[] = ' xmlns:o="urn:schemas-microsoft-com:office:office"';
-        $xml[] = ' xmlns:x="urn:schemas-microsoft-com:office:excel"';
-        $xml[] = ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"';
-        $xml[] = ' xmlns:html="http://www.w3.org/TR/REC-html40">';
-        $xml[] = '<Styles>';
-        $xml[] = '<Style ss:ID="Header">';
-        $xml[] = '<Font ss:Bold="1" ss:Color="#000000" ss:Size="11"/>';
-        // Screenshot header blue (~ Excel Accent blue)
-        $xml[] = '<Interior ss:Color="#8DB4E2" ss:Pattern="Solid"/>';
-        $xml[] = '<Alignment ss:Vertical="Center" ss:WrapText="1"/>';
-        $xml[] = '</Style>';
-        $xml[] = '<Style ss:ID="Cell">';
-        $xml[] = '<Alignment ss:Vertical="Center"/>';
-        $xml[] = '</Style>';
-        $xml[] = '</Styles>';
-        $xml[] = '<Worksheet ss:Name="Stock List">';
-        $xml[] = '<Table>';
-
-        $xml[] = '<Row ss:AutoFitHeight="0" ss:Height="20">';
-        foreach ($headers as $header) {
-            $xml[] = '<Cell ss:StyleID="Header"><Data ss:Type="String">'.$this->escapeExcelXml((string) $header).'</Data></Cell>';
-        }
-        $xml[] = '</Row>';
-
-        foreach ($rows as $row) {
-            $xml[] = '<Row>';
-            foreach ($row as $value) {
-                $stringValue = (string) $value;
-                $type = is_numeric($stringValue) && $stringValue !== '' ? 'Number' : 'String';
-                // Keep formatted values (e.g. 3,386.65 / 56x28x36 / dates) as text.
-                if (
-                    str_contains($stringValue, ',')
-                    || str_contains($stringValue, 'x')
-                    || str_contains($stringValue, '/')
-                    || ! is_numeric($stringValue)
-                ) {
-                    $type = 'String';
-                }
-                $xml[] = '<Cell ss:StyleID="Cell"><Data ss:Type="'.$type.'">'.$this->escapeExcelXml($stringValue).'</Data></Cell>';
-            }
-            $xml[] = '</Row>';
-        }
-
-        $xml[] = '</Table>';
-        $xml[] = '</Worksheet>';
-        $xml[] = '</Workbook>';
-
-        return implode('', $xml);
-    }
-
-    private function escapeExcelXml(string $value): string
-    {
-        return htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8');
     }
 
     /**
@@ -621,7 +559,6 @@ class CrrController extends Controller
             ? (string) (int) $value
             : rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
     }
-
     /**
      * Print a single CRR detailed report.
      */

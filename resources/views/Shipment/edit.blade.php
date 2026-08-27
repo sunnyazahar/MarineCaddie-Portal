@@ -7273,8 +7273,63 @@
             $transitBtn.attr('title', isCompleted ? '' : 'Complete the shipment first');
         }
 
+        function shouldPromptPendingTransit() {
+            var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
+            if (status !== 'Completed') {
+                return false;
+            }
+
+            var consignee = String($('#consignee-select').val() || '').toLowerCase();
+            var consigneeType = consignee.split(':')[0];
+            if (['office', 'hub', 'agent'].indexOf(consigneeType) === -1) {
+                return false;
+            }
+
+            var service = String($('select[name="service"]').val() || '');
+            return ['Courier', 'Airfreight', 'Sea freight', 'Truck'].indexOf(service) !== -1;
+        }
+
+        function promptPendingTransitOnEditOpen() {
+            if (!shouldPromptPendingTransit()) {
+                return;
+            }
+
+            // Avoid stacking on top of validation / server error alerts.
+            if (serverErrors.length || serverErrorMessage) {
+                return;
+            }
+
+            var message = 'This shipment is marked as Completed. Transit is still pending for destination.';
+
+            if (typeof swal === 'function') {
+                swal({
+                    title: 'Transit required',
+                    text: message,
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Transit now',
+                    cancelButtonText: 'Later',
+                    closeOnConfirm: true
+                }, function(isConfirm) {
+                    if (!isConfirm) {
+                        return;
+                    }
+
+                    // Let SweetAlert close before opening Bootstrap modal.
+                    setTimeout(function() {
+                        syncFinalizeChoiceButtonState();
+                        $('#finalize-shipment-transit-btn').trigger('click');
+                    }, 150);
+                });
+            } else if (window.confirm(message)) {
+                syncFinalizeChoiceButtonState();
+                $('#finalize-shipment-transit-btn').trigger('click');
+            }
+        }
+
         syncAddStockItemsButtonState();
         syncFinalizeChoiceButtonState();
+        promptPendingTransitOnEditOpen();
 
         $('#add-stock-items-btn').on('click', function() {
             if ($(this).prop('disabled')) {

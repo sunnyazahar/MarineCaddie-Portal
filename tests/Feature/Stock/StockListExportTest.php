@@ -5,10 +5,11 @@ namespace Tests\Feature\Stock;
 use App\Models\Crr;
 use Carbon\Carbon;
 use Tests\RegressionTestCase;
+use ZipArchive;
 
 class StockListExportTest extends RegressionTestCase
 {
-    public function test_excel_export_downloads_xls_for_selected_stocks(): void
+    public function test_excel_export_downloads_xlsx_for_selected_stocks(): void
     {
         $user = $this->createAdminUser();
 
@@ -31,19 +32,30 @@ class StockListExportTest extends RegressionTestCase
 
         $response->assertOk();
         $this->assertStringContainsString(
-            'application/vnd.ms-excel',
+            'spreadsheetml.sheet',
             strtolower((string) $response->headers->get('content-type'))
         );
+        $this->assertStringContainsString('.xlsx', (string) $response->headers->get('content-disposition'));
 
-        $content = $response->getContent();
-        $this->assertStringContainsString('Location/Hub', $content);
-        $this->assertStringContainsString('Volume volume weight', $content);
-        $this->assertStringContainsString('#8DB4E2', $content);
-        $this->assertStringContainsString('ss:Bold="1"', $content);
-        $this->assertStringContainsString('DXB-EXPORT-1', $content);
-        $this->assertStringContainsString('Test Supplier', $content);
-        $this->assertStringContainsString('18/08/26', $content); // created_at
-        $this->assertStringContainsString('Yes', $content); // Pick up flag
+        $binary = $response->getContent();
+        $this->assertNotFalse($binary);
+        $this->assertSame('PK', substr($binary, 0, 2)); // zip/xlsx signature
+
+        $tmp = tempnam(sys_get_temp_dir(), 'xlsx_test_');
+        file_put_contents($tmp, $binary);
+        $zip = new ZipArchive();
+        $this->assertTrue($zip->open($tmp) === true);
+        $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $zip->close();
+        @unlink($tmp);
+
+        $this->assertNotFalse($sheet);
+        $this->assertStringContainsString('Location/Hub', $sheet);
+        $this->assertStringContainsString('Volume volume weight', $sheet);
+        $this->assertStringContainsString('DXB-EXPORT-1', $sheet);
+        $this->assertStringContainsString('Test Supplier', $sheet);
+        $this->assertStringContainsString('18/08/26', $sheet);
+        $this->assertStringContainsString('Yes', $sheet);
 
         Carbon::setTestNow();
     }
@@ -86,10 +98,17 @@ class StockListExportTest extends RegressionTestCase
         ]));
 
         $response->assertOk();
-        $content = $response->getContent();
+        $binary = $response->getContent();
+        $tmp = tempnam(sys_get_temp_dir(), 'xlsx_test_');
+        file_put_contents($tmp, $binary);
+        $zip = new ZipArchive();
+        $this->assertTrue($zip->open($tmp) === true);
+        $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $zip->close();
+        @unlink($tmp);
 
-        $newerPos = strpos($content, 'DXB-EXPORT-NEW');
-        $olderPos = strpos($content, 'DXB-EXPORT-OLD');
+        $newerPos = strpos((string) $sheet, 'DXB-EXPORT-NEW');
+        $olderPos = strpos((string) $sheet, 'DXB-EXPORT-OLD');
 
         $this->assertNotFalse($newerPos);
         $this->assertNotFalse($olderPos);

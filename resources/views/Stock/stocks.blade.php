@@ -795,6 +795,10 @@
             color: #ffffff !important;
         }
 
+        .stock-export-menu.dropdown-menu:not(.show) {
+            display: none !important;
+        }
+
         .stock-bulk-footer {
             position: fixed;
             left: 0;
@@ -1982,10 +1986,10 @@
 
             function startStockDownloadRequest(url, format, label) {
                 var fallbackName = format === 'excel'
-                    ? ('Stock-List-' + Date.now() + '.xls')
+                    ? ('Stock-List-' + Date.now() + '.xlsx')
                     : ('Stock-List-' + Date.now() + '.pdf');
                 var mimeType = format === 'excel'
-                    ? 'application/vnd.ms-excel'
+                    ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                     : 'application/pdf';
                 var hasRealProgress = false;
 
@@ -2027,8 +2031,8 @@
                         xhr.getResponseHeader('Content-Disposition'),
                         fallbackName
                     );
-                    if (format === 'excel' && !/\.xls[x]?$/i.test(filename)) {
-                        filename += '.xls';
+                    if (format === 'excel' && !/\.xlsx?$/i.test(filename)) {
+                        filename += '.xlsx';
                     }
                     if (format === 'pdf' && !/\.pdf$/i.test(filename)) {
                         filename += '.pdf';
@@ -2085,6 +2089,28 @@
                 }, 450);
             }
 
+            function closeStockExportDropdowns() {
+                $('.stock-export-dropdown').each(function () {
+                    var $dropdown = $(this);
+                    var $toggle = $dropdown.find('.stock-export-toggle');
+                    var $menu = $dropdown.find('.stock-export-menu');
+
+                    $dropdown.removeClass('show');
+                    $toggle
+                        .removeClass('show')
+                        .attr('aria-expanded', 'false')
+                        .blur();
+                    $menu
+                        .removeClass('show')
+                        .attr('aria-expanded', 'false')
+                        .removeAttr('style')
+                        .css('display', 'none');
+                });
+
+                // Collapse any leftover open menus from Bootstrap/Popper.
+                $('.stock-export-menu').removeClass('show').css('display', 'none');
+            }
+
             function exportSelectedStocks(format) {
                 var selectedIds = getSelectedIds();
 
@@ -2097,16 +2123,31 @@
                     ? @json(route('stocks.export-excel')) + '?ids=' + selectedIds.join(',')
                     : @json(route('stocks.print')) + '?ids=' + selectedIds.join(',');
 
-                $('.stock-export-dropdown.show').removeClass('show');
-                $('.stock-export-menu.show').removeClass('show');
-                $('.stock-export-toggle').attr('aria-expanded', 'false');
-
+                closeStockExportDropdowns();
                 downloadStockExport(url, format);
             }
 
+            // Ensure menu can reopen after we force-hide it.
+            $(document).on('show.bs.dropdown', '.stock-export-dropdown', function () {
+                $(this).find('.stock-export-menu').css('display', '');
+            });
+
+            $(document).on('hide.bs.dropdown', '.stock-export-dropdown', function () {
+                $(this).find('.stock-export-menu').css('display', 'none');
+            });
+
             $(document).on('click', '.stock-export-option', function (e) {
                 e.preventDefault();
-                exportSelectedStocks($(this).data('format'));
+                e.stopImmediatePropagation();
+
+                var format = $(this).data('format');
+                closeStockExportDropdowns();
+
+                // Run after current Bootstrap dropdown handlers finish.
+                setTimeout(function () {
+                    closeStockExportDropdowns();
+                    exportSelectedStocks(format);
+                }, 0);
             });
         });
     </script>
