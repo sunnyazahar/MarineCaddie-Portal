@@ -299,7 +299,11 @@ class CrrRepository extends BaseRepository implements CrrRepositoryInterface
 
     public function selectedWithRelations(array $ids, array $relations = []): \Illuminate\Database\Eloquent\Collection
     {
-        return $this->query()->with($relations)->whereIn('id', $ids)->get();
+        return $this->query()
+            ->with($relations)
+            ->whereIn('id', $ids)
+            ->orderByDesc('id')
+            ->get();
     }
 
     public function createDocument(array $attributes): CrrDocument

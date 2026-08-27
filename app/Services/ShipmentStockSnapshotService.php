@@ -66,10 +66,30 @@ class ShipmentStockSnapshotService
 
     public function resolveStockCrrs(Shipment $shipment): Collection
     {
-        if ($shipment->status === 'Completed') {
-            $shipment->loadMissing('stockSnapshots');
+        $shipment->loadMissing([
+            'crrs.packages',
+            'crrs.customerVessel.customer',
+            'stockSnapshots',
+        ]);
 
-            if ($shipment->stockSnapshots->isNotEmpty()) {
+        if ($shipment->status === 'Completed' && $shipment->stockSnapshots->isNotEmpty()) {
+            $liveIds = $shipment->crrs
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->sort()
+                ->values();
+            $snapshotIds = $shipment->stockSnapshots
+                ->pluck('original_crr_id')
+                ->map(fn ($id) => (int) $id)
+                ->sort()
+                ->values();
+
+            // Prefer frozen snapshot only when it still matches shipment_crr.
+            // If pivot was changed after complete, shipment_crr is the source of truth.
+            $snapshotMatchesPivot = $liveIds->isNotEmpty()
+                && $liveIds->values()->all() === $snapshotIds->values()->all();
+
+            if ($snapshotMatchesPivot || $liveIds->isEmpty()) {
                 $snapshots = $shipment->stockSnapshots
                     ->sortBy('sort_order')
                     ->values();
@@ -80,11 +100,6 @@ class ShipmentStockSnapshotService
                 );
             }
         }
-
-        $shipment->loadMissing([
-            'crrs.packages',
-            'crrs.customerVessel.customer',
-        ]);
 
         return $shipment->crrs;
     }

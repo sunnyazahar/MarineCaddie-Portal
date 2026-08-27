@@ -442,7 +442,6 @@ class CrrController extends Controller
             'Dimensions',
             'Total CBM',
             'Volume volume weight',
-            'Category',
         ];
 
         $rows = $crrs->map(fn (Crr $crr) => $this->stockListExcelRow($crr))->all();
@@ -587,7 +586,6 @@ class CrrController extends Controller
             $dimensions,
             $totalCbm > 0 ? rtrim(rtrim(number_format($totalCbm, 5, '.', ''), '0'), '.') : '',
             $volumeWeight > 0 ? number_format($volumeWeight, 2, '.', '') : '',
-            'General',
         ];
     }
 

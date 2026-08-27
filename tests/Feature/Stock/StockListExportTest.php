@@ -44,7 +44,6 @@ class StockListExportTest extends RegressionTestCase
         $this->assertStringContainsString('Test Supplier', $content);
         $this->assertStringContainsString('18/08/26', $content); // created_at
         $this->assertStringContainsString('Yes', $content); // Pick up flag
-        $this->assertStringContainsString('General', $content); // Category default
 
         Carbon::setTestNow();
     }
@@ -58,5 +57,42 @@ class StockListExportTest extends RegressionTestCase
         ]));
 
         $response->assertStatus(422);
+    }
+
+    public function test_excel_export_orders_rows_by_id_desc(): void
+    {
+        $user = $this->createAdminUser();
+
+        $older = Crr::create([
+            'stock_number' => 'DXB-EXPORT-OLD',
+            'content' => 'Shipspares',
+            'status' => Crr::STATUS_ACTIVE,
+            'accept' => false,
+            'supplier' => 'Older Supplier',
+            'hub_agent' => 'DXB',
+        ]);
+
+        $newer = Crr::create([
+            'stock_number' => 'DXB-EXPORT-NEW',
+            'content' => 'Shipspares',
+            'status' => Crr::STATUS_ACTIVE,
+            'accept' => false,
+            'supplier' => 'Newer Supplier',
+            'hub_agent' => 'DXB',
+        ]);
+
+        $response = $this->actingAsVerified($user)->get(route('stocks.export-excel', [
+            'ids' => $older->id.','.$newer->id,
+        ]));
+
+        $response->assertOk();
+        $content = $response->getContent();
+
+        $newerPos = strpos($content, 'DXB-EXPORT-NEW');
+        $olderPos = strpos($content, 'DXB-EXPORT-OLD');
+
+        $this->assertNotFalse($newerPos);
+        $this->assertNotFalse($olderPos);
+        $this->assertLessThan($olderPos, $newerPos);
     }
 }
