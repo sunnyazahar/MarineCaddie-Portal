@@ -4145,8 +4145,16 @@
                 <p class="mb-0" style="font-size: 12px; color: #4b5563;">Choose how you want to finalize this shipment.</p>
             </div>
             <div class="modal-footer py-2 d-flex justify-content-between">
-                <button type="button" class="btn btn-premium btn-teal btn-sm" id="finalize-shipment-complete-btn">Complete</button>
-                <button type="button" class="btn btn-premium btn-outline-custom btn-sm" id="finalize-shipment-transit-btn" @disabled($shipment->status !== 'Completed') title="{{ $shipment->status !== 'Completed' ? 'Complete the shipment first' : '' }}">Transit</button>
+                <button type="button"
+                    class="btn btn-premium btn-teal btn-sm"
+                    id="finalize-shipment-complete-btn"
+                    @disabled($shipment->status === 'Completed')
+                    title="{{ $shipment->status === 'Completed' ? 'Shipment already completed' : '' }}">Complete</button>
+                <button type="button"
+                    class="btn btn-premium btn-outline-custom btn-sm"
+                    id="finalize-shipment-transit-btn"
+                    @disabled($shipment->status !== 'Completed')
+                    title="{{ $shipment->status !== 'Completed' ? 'Complete the shipment first' : '' }}">Transit</button>
             </div>
         </div>
     </div>
@@ -5837,7 +5845,7 @@
 
         $(document).on('click', '#finalize-shipment-btn', function(e) {
             e.preventDefault();
-            syncFinalizeTransitButtonState();
+            syncFinalizeChoiceButtonState();
             $('#finalize-shipment-choice-modal').modal('show');
         });
 
@@ -5853,6 +5861,10 @@
 
         $(document).on('click', '#finalize-shipment-complete-btn', function() {
             var $btn = $(this);
+            if ($btn.prop('disabled')) {
+                return;
+            }
+
             var originalText = $btn.text();
 
             $btn.prop('disabled', true).text('Completing...');
@@ -5873,19 +5885,17 @@
                 .done(function(response) {
                     if (!response || !response.success) {
                         alert((response && response.message) || 'Could not complete shipment.');
+                        $btn.prop('disabled', false).text(originalText);
                         return;
                     }
 
-                    if (response.status) {
-                        $('.header-meta-group .status-badge')
-                            .removeClass('stock-status-new stock-status-stock shipment-status-in-transit stock-status-in-progress stock-status-pending stock-status-cancelled stock-status-completed stock-status-archived stock-status-unknown')
-                            .addClass('stock-status-badge ' + stockStatusBadgeClass(response.status))
-                            .text(response.status);
-                        $('.select2-status-inline').val(response.status).trigger('change.select2');
-                        $('#shipment-current-status').val(response.status);
-                        syncAddStockItemsButtonState();
-                        syncFinalizeTransitButtonState();
-                    }
+                    var nextStatus = response.status || 'Completed';
+                    $('.header-meta-group .status-badge')
+                        .removeClass('stock-status-new stock-status-stock shipment-status-in-transit stock-status-in-progress stock-status-pending stock-status-cancelled stock-status-completed stock-status-archived stock-status-unknown')
+                        .addClass('stock-status-badge ' + stockStatusBadgeClass(nextStatus))
+                        .text(nextStatus);
+                    $('.select2-status-inline').val(nextStatus).trigger('change.select2');
+                    $('#shipment-current-status').val(nextStatus);
 
                     (response.stocks || []).forEach(function(stock) {
                         var $row = $('#stock-items-table tbody tr.selected-stock-row[data-crr-id="' + stock.id + '"]');
@@ -5900,8 +5910,10 @@
                         $('#stock-items-modal-table tbody tr[data-id="' + stock.id + '"]').remove();
                     });
 
+                    // Keep Complete disabled; enable Transit.
+                    $btn.text(originalText);
                     syncAddStockItemsButtonState();
-                    syncFinalizeTransitButtonState();
+                    syncFinalizeChoiceButtonState();
                 })
                 .fail(function(xhr) {
                     var message = 'Could not complete shipment.';
@@ -5909,8 +5921,6 @@
                         message = xhr.responseJSON.message;
                     }
                     alert(message);
-                })
-                .always(function() {
                     $btn.prop('disabled', false).text(originalText);
                 });
         });
@@ -5951,7 +5961,7 @@
                         $('.select2-status-inline').val(response.status).trigger('change.select2');
                         $('#shipment-current-status').val(response.status);
                         syncAddStockItemsButtonState();
-                        syncFinalizeTransitButtonState();
+                        syncFinalizeChoiceButtonState();
                     }
 
                     $('#finalize-shipment-transit-modal').modal('hide');
@@ -7250,17 +7260,21 @@
 
        
 
-        function syncFinalizeTransitButtonState() {
+        function syncFinalizeChoiceButtonState() {
             var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
-            var canTransit = status === 'Completed';
+            var isCompleted = status === 'Completed';
+            var $completeBtn = $('#finalize-shipment-complete-btn');
             var $transitBtn = $('#finalize-shipment-transit-btn');
 
-            $transitBtn.prop('disabled', !canTransit);
-            $transitBtn.attr('title', canTransit ? '' : 'Complete the shipment first');
+            $completeBtn.prop('disabled', isCompleted);
+            $completeBtn.attr('title', isCompleted ? 'Shipment already completed' : '');
+
+            $transitBtn.prop('disabled', !isCompleted);
+            $transitBtn.attr('title', isCompleted ? '' : 'Complete the shipment first');
         }
 
         syncAddStockItemsButtonState();
-        syncFinalizeTransitButtonState();
+        syncFinalizeChoiceButtonState();
 
         $('#add-stock-items-btn').on('click', function() {
             if ($(this).prop('disabled')) {
