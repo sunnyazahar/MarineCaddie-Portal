@@ -402,6 +402,229 @@ class CrrController extends Controller
     }
 
     /**
+     * Excel export for selected CRRs (SpreadsheetML .xls with styled header).
+     * Columns match the MarineCaddie stock Excel template.
+     */
+    public function exportStockListExcel(Request $request)
+    {
+        $ids = array_values(array_filter(array_map(
+            static fn ($id) => (int) trim((string) $id),
+            explode(',', (string) $request->query('ids', ''))
+        )));
+
+        $crrs = $this->crrRepository->selectedWithRelations($ids, [
+            'packages',
+            'costs',
+        ]);
+
+        if ($crrs->isEmpty()) {
+            return response('No items selected.', 422);
+        }
+
+        $headers = [
+            'Location/Hub',
+            'Date',
+            'Supplier',
+            'PO number',
+            'Content',
+            'Pcs',
+            'Weight',
+            'Value',
+            'Currency',
+            'Status',
+            'Landed goods',
+            'Shipment number',
+            'Stock no',
+            'Pick up cost',
+            'Pick up',
+            'Pick up date',
+            'Dangerous goods',
+            'Dimensions',
+            'Total CBM',
+            'Volume volume weight',
+            'Category',
+        ];
+
+        $rows = $crrs->map(fn (Crr $crr) => $this->stockListExcelRow($crr))->all();
+        $filename = 'Stock-List-' . now()->format('YmdHis') . '.xls';
+
+        return response($this->buildStockListExcelXml($headers, $rows), 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"; filename*=UTF-8\'\'' . rawurlencode($filename),
+            'Cache-Control' => 'max-age=0, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma' => 'public',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    /**
+     * @param  list<string>  $headers
+     * @param  list<list<string|int|float>>  $rows
+     */
+    private function buildStockListExcelXml(array $headers, array $rows): string
+    {
+        $xml = [];
+        $xml[] = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml[] = '<?mso-application progid="Excel.Sheet"?>';
+        $xml[] = '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"';
+        $xml[] = ' xmlns:o="urn:schemas-microsoft-com:office:office"';
+        $xml[] = ' xmlns:x="urn:schemas-microsoft-com:office:excel"';
+        $xml[] = ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"';
+        $xml[] = ' xmlns:html="http://www.w3.org/TR/REC-html40">';
+        $xml[] = '<Styles>';
+        $xml[] = '<Style ss:ID="Header">';
+        $xml[] = '<Font ss:Bold="1" ss:Color="#000000" ss:Size="11"/>';
+        // Screenshot header blue (~ Excel Accent blue)
+        $xml[] = '<Interior ss:Color="#8DB4E2" ss:Pattern="Solid"/>';
+        $xml[] = '<Alignment ss:Vertical="Center" ss:WrapText="1"/>';
+        $xml[] = '</Style>';
+        $xml[] = '<Style ss:ID="Cell">';
+        $xml[] = '<Alignment ss:Vertical="Center"/>';
+        $xml[] = '</Style>';
+        $xml[] = '</Styles>';
+        $xml[] = '<Worksheet ss:Name="Stock List">';
+        $xml[] = '<Table>';
+
+        $xml[] = '<Row ss:AutoFitHeight="0" ss:Height="20">';
+        foreach ($headers as $header) {
+            $xml[] = '<Cell ss:StyleID="Header"><Data ss:Type="String">'.$this->escapeExcelXml((string) $header).'</Data></Cell>';
+        }
+        $xml[] = '</Row>';
+
+        foreach ($rows as $row) {
+            $xml[] = '<Row>';
+            foreach ($row as $value) {
+                $stringValue = (string) $value;
+                $type = is_numeric($stringValue) && $stringValue !== '' ? 'Number' : 'String';
+                // Keep formatted values (e.g. 3,386.65 / 56x28x36 / dates) as text.
+                if (
+                    str_contains($stringValue, ',')
+                    || str_contains($stringValue, 'x')
+                    || str_contains($stringValue, '/')
+                    || ! is_numeric($stringValue)
+                ) {
+                    $type = 'String';
+                }
+                $xml[] = '<Cell ss:StyleID="Cell"><Data ss:Type="'.$type.'">'.$this->escapeExcelXml($stringValue).'</Data></Cell>';
+            }
+            $xml[] = '</Row>';
+        }
+
+        $xml[] = '</Table>';
+        $xml[] = '</Worksheet>';
+        $xml[] = '</Workbook>';
+
+        return implode('', $xml);
+    }
+
+    private function escapeExcelXml(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8');
+    }
+
+    /**
+     * @return list<string|int|float>
+     */
+    private function stockListExcelRow(Crr $crr): array
+    {
+        $packages = $crr->packages;
+        $pcs = $packages->count();
+        $totalWeight = (float) $packages->sum('weight');
+        $totalCbm = (float) $packages->sum('cbm');
+        $volumeWeight = round($totalCbm * 167, 2);
+
+        $dimensions = $packages
+            ->map(function ($pkg) {
+                if ($pkg->length === null && $pkg->width === null && $pkg->height === null) {
+                    return null;
+                }
+
+                return implode('x', [
+                    $this->formatExcelDimension($pkg->length),
+                    $this->formatExcelDimension($pkg->width),
+                    $this->formatExcelDimension($pkg->height),
+                ]);
+            })
+            ->filter()
+            ->values()
+            ->implode(', ');
+
+        $poNumbers = is_array($crr->po_numbers)
+            ? implode(', ', $crr->po_numbers)
+            : (string) ($crr->po_numbers ?? '');
+
+        $flags = is_array($crr->flags) ? $crr->flags : [];
+        $isPickup = in_array('Pick up', $flags, true);
+
+        $pickupCost = $crr->costs
+            ->first(fn ($cost) => stripos((string) $cost->type, 'pick') !== false);
+
+        $pickupCostValue = '';
+        if ($pickupCost !== null) {
+            $pickupCostValue = $pickupCost->net_value !== null
+                ? number_format((float) $pickupCost->net_value, 2, '.', ',')
+                : 'Yes';
+        }
+
+        return [
+            (string) ($crr->hub_agent ?: $crr->location ?: ''),
+            $this->formatExcelDate($crr->created_at),
+            (string) ($crr->supplier ?? ''),
+            $poNumbers,
+            (string) ($crr->content ?? ''),
+            $pcs,
+            $totalWeight > 0 ? $this->formatExcelNumber($totalWeight) : '',
+            $crr->customs_value !== null ? number_format((float) $crr->customs_value, 2, '.', ',') : '',
+            (string) ($crr->currency ?? ''),
+            Crr::getStatusLabels()[$crr->status] ?? 'Unknown',
+            $crr->is_landed_goods ? 'Yes' : '',
+            (string) ($crr->internal_shipment ?? ''),
+            (string) ($crr->stock_number ?? ''),
+            $pickupCostValue,
+            $isPickup ? 'Yes' : '',
+            $this->formatExcelDate($crr->actual_delivery_date),
+            $packages->contains(fn ($pkg) => (bool) $pkg->is_dgr) ? 'Yes' : '',
+            $dimensions,
+            $totalCbm > 0 ? rtrim(rtrim(number_format($totalCbm, 5, '.', ''), '0'), '.') : '',
+            $volumeWeight > 0 ? number_format($volumeWeight, 2, '.', '') : '',
+            'General',
+        ];
+    }
+
+    private function formatExcelDate(mixed $value): string
+    {
+        if (blank($value)) {
+            return '';
+        }
+
+        try {
+            return \Illuminate\Support\Carbon::parse($value)->format('d/m/y');
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
+    private function formatExcelDimension(mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '0';
+        }
+
+        $number = (float) $value;
+
+        return fmod($number, 1.0) === 0.0
+            ? (string) (int) $number
+            : rtrim(rtrim(number_format($number, 2, '.', ''), '0'), '.');
+    }
+
+    private function formatExcelNumber(float $value): string
+    {
+        return fmod($value, 1.0) === 0.0
+            ? (string) (int) $value
+            : rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
+    }
+
+    /**
      * Print a single CRR detailed report.
      */
     public function showPrintCrr($id)

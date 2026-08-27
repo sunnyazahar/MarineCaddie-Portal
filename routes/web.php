@@ -689,6 +689,7 @@ Route::post('/stocks/{id}/status', [App\Http\Controllers\CrrController::class, '
 Route::post('/stocks/{id}/flags', [App\Http\Controllers\CrrController::class, 'updateFlags'])->name('stocks.crr.update-flags');
 Route::post('/stocks/{id}/accept', [App\Http\Controllers\CrrController::class, 'updateAccept'])->name('stocks.crr.update-accept');
 Route::get('/stocks/print', [App\Http\Controllers\CrrController::class, 'printStockList'])->name('stocks.print');
+Route::get('/stocks/export-excel', [App\Http\Controllers\CrrController::class, 'exportStockListExcel'])->name('stocks.export-excel');
 
 Route::get('/stock-follow-up', [App\Http\Controllers\CrrController::class, 'stockFollowUp'])->name('stock-follow-up');
 

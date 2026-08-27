@@ -232,6 +232,17 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'Create CRR',
             'data-list-page-header="1"',
             'Stock list',
+            'stock-export-dropdown',
+            'stock-export-option',
+            'stock-export-menu',
+            'bootstrap-growl.min.js',
+            'animated rotateIn',
+            'stock-dl-pct',
+            '#008080',
+            'icofont-file-pdf',
+            'icofont-file-excel',
+            'data-format="pdf"',
+            'data-format="excel"',
         ]);
     }
 

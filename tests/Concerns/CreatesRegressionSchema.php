@@ -173,6 +173,14 @@ trait CreatesRegressionSchema
             $table->string('content')->default('Shipspares');
             $table->string('supplier')->nullable();
             $table->string('hub_agent')->nullable();
+            $table->string('location')->nullable();
+            $table->string('currency')->nullable();
+            $table->decimal('customs_value', 12, 2)->nullable();
+            $table->date('expected_delivery_date')->nullable();
+            $table->date('actual_delivery_date')->nullable();
+            $table->json('po_numbers')->nullable();
+            $table->boolean('is_landed_goods')->default(false);
+            $table->string('internal_shipment')->nullable();
             $table->string('priority')->nullable();
             $table->unsignedTinyInteger('status')->default(1);
             $table->json('flags')->nullable();
@@ -183,6 +191,21 @@ trait CreatesRegressionSchema
         Schema::create('crr_packages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('crr_id');
+            $table->decimal('length', 10, 2)->nullable();
+            $table->decimal('width', 10, 2)->nullable();
+            $table->decimal('height', 10, 2)->nullable();
+            $table->decimal('weight', 10, 2)->nullable();
+            $table->decimal('cbm', 12, 4)->nullable();
+            $table->boolean('is_dgr')->default(false);
+            $table->timestamps();
+        });
+
+        Schema::create('crr_costs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('crr_id');
+            $table->string('type')->nullable();
+            $table->decimal('net_value', 12, 2)->nullable();
+            $table->string('currency')->nullable();
             $table->timestamps();
         });
 
@@ -261,6 +284,7 @@ trait CreatesRegressionSchema
             'shipment_irregularities',
             'shipment_crr',
             'shipments',
+            'crr_costs',
             'crr_packages',
             'crrs',
             'customer_vessels',

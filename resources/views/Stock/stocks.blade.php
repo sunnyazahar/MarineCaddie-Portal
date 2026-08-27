@@ -3,6 +3,9 @@
 @section('styles')
     @include('partials.list-pagination-footer-styles')
 
+    <link rel="stylesheet" type="text/css" href="{{ asset('files/bower_components/animate.css/animate.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('files/assets/pages/notification/notification.css') }}">
+
     <!-- Select 2 css -->
 
     <style>
@@ -566,6 +569,232 @@
             display: inline-block;
         }
 
+        .stock-export-dropdown {
+            position: relative;
+            z-index: 5;
+            display: inline-flex;
+        }
+
+        /* Open menu must sit above "Clear filters" (row 2) */
+        .stock-export-dropdown.show {
+            z-index: 4000 !important;
+        }
+
+        .stock-export-toggle {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            padding: 0 14px !important;
+            font-weight: 600;
+            border-radius: 8px !important;
+        }
+
+        .stock-export-toggle--compact {
+            height: 32px;
+        }
+
+        .stock-export-dropdown.show > .stock-export-toggle,
+        .stock-export-dropdown .stock-export-toggle[aria-expanded="true"] {
+            background: #e8f6fc;
+            border-color: #00aeef;
+            color: #0e1d4a;
+        }
+
+        /* Override theme `.card .card-block .dropdown-menu { top: 38px }` */
+        .stocks-list-card .card-block .stock-export-menu.dropdown-menu,
+        .stock-export-menu.dropdown-menu {
+            min-width: 148px;
+            top: 100% !important;
+            bottom: auto !important;
+            left: auto !important;
+            right: 0 !important;
+            margin-top: 8px !important;
+            padding: 6px !important;
+            border: 1px solid #d6e3ee !important;
+            border-radius: 10px !important;
+            background: #fff !important;
+            box-shadow:
+                0 12px 28px rgba(14, 29, 74, 0.14),
+                0 2px 6px rgba(14, 29, 74, 0.06) !important;
+            z-index: 4001 !important;
+            transform: none !important;
+        }
+
+        .stock-export-menu .stock-export-option {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 10px;
+            padding: 10px 12px !important;
+            margin: 0 !important;
+            border-radius: 8px;
+            color: #0e1d4a !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            line-height: 1.2 !important;
+            text-decoration: none !important;
+            white-space: nowrap;
+            background: transparent !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+
+        .stock-export-menu .stock-export-option + .stock-export-option {
+            margin-top: 2px !important;
+        }
+
+        .stock-export-menu .stock-export-option > i {
+            order: 0;
+            flex: 0 0 28px;
+            width: 28px;
+            height: 28px;
+            margin: 0 !important;
+            float: none !important;
+            border-radius: 7px;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .stock-export-menu .stock-export-option > span {
+            order: 1;
+            flex: 1 1 auto;
+        }
+
+        .stock-export-menu .stock-export-option[data-format="pdf"] > i {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .stock-export-menu .stock-export-option[data-format="excel"] > i {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        .stock-export-menu .stock-export-option:hover,
+        .stock-export-menu .stock-export-option:focus {
+            background: #f0fafb !important;
+            color: #0088c7 !important;
+        }
+
+        /* Keep export menu from being clipped / covered by filter shells */
+        .stocks-filters-fixed,
+        .stocks-filters-toolbar,
+        .stocks-filters-toolbar-actions,
+        .stocks-filters-fields,
+        .list-dense-filter-shell,
+        .list-dense-filter-fields,
+        .list-dense-filter-row,
+        .custom-row.filter-row {
+            overflow: visible !important;
+        }
+
+        .stocks-filters-fields .list-dense-filter-row {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stocks-filters-fields .list-dense-filter-row:first-child {
+            z-index: 3;
+        }
+
+        .stocks-filters-fields .btn-clear-filters,
+        .stocks-filters-fields .clear-filters {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stock-download-growl.alert,
+        .stock-download-growl.alert-inverse,
+        .stock-download-growl.alert-success,
+        .alert.stock-download-growl {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px;
+            min-width: 280px;
+            max-width: 420px;
+            padding: 12px 14px !important;
+            margin-bottom: 0 !important;
+            background-color: #008080 !important;
+            border-color: #007070 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(0, 128, 128, 0.35) !important;
+        }
+
+        .stock-download-growl .stock-dl-pct {
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+            margin-left: 4px;
+            color: #ffffff !important;
+        }
+
+        .stock-download-growl [data-growl="icon"] {
+            flex: 0 0 auto;
+            float: none !important;
+            margin: 0 !important;
+            color: #ffffff !important;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .stock-download-growl [data-growl="title"],
+        .stock-download-growl [data-growl="message"] {
+            color: #ffffff !important;
+            font-weight: 700;
+            float: none !important;
+            display: inline !important;
+            margin: 0 !important;
+            line-height: 1.3;
+        }
+
+        .stock-download-growl [data-growl="title"] {
+            margin-right: 4px !important;
+        }
+
+        .stock-download-growl [data-growl="message"] {
+            flex: 1 1 auto;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stock-download-growl [data-growl="url"] {
+            display: none !important;
+        }
+
+        .stock-download-growl .close,
+        .stock-download-growl button.close {
+            position: static !important;
+            top: auto !important;
+            right: auto !important;
+            float: none !important;
+            order: 10;
+            flex: 0 0 auto;
+            margin: 0 0 0 auto !important;
+            padding: 0 0 0 10px !important;
+            align-self: center;
+            color: #ffffff !important;
+            opacity: 0.95;
+            text-shadow: none;
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stock-download-growl .close span {
+            color: #ffffff !important;
+        }
+
+        .stock-download-growl .close:hover,
+        .stock-download-growl .close:focus {
+            opacity: 1;
+            color: #ffffff !important;
+        }
+
         .stock-bulk-footer {
             position: fixed;
             left: 0;
@@ -734,7 +963,7 @@
                                                         <i class="ti-filter"></i> <span class="stocks-filters-toggle-label">Show filters</span>
                                                     </button>
                                                     <div class="stocks-filters-toolbar-actions">
-                                                        <button type="button" id="btn-export-pdf-mobile" class="btn btn-outline-teal btn-sm"><i class="ti-download"></i> Export</button>
+                                                        @include('Stock.partials.export-dropdown')
                                                         <a href="{{ route('create-crr') }}" class="btn btn-outline-teal btn-sm">Create CRR</a>
                                                     </div>
                                                 </div>
@@ -811,9 +1040,9 @@
                                                                     <input type="text" class="form-control filter-input" placeholder="starts with">
                                                                 </div>
                                                             </div>
-                                                            <div class="custom-col d-flex justify-content-end" style="flex: 0 0 auto; margin-left: auto;">
-                                                                <button id="btn-export-pdf" class="btn btn-outline-teal btn-sm" style="height: 32px; padding: 0 15px;"><i class="ti-download"></i> Export</button>
-                                                                <a href="{{ route('create-crr') }}"><button class="btn btn-outline-teal btn-sm ml-2" style="height: 32px; padding: 0 15px;">Create CRR</button></a>
+                                                            <div class="custom-col d-flex justify-content-end align-items-center" style="flex: 0 0 auto; margin-left: auto; gap: 8px;">
+                                                                @include('Stock.partials.export-dropdown', ['compact' => true])
+                                                                <a href="{{ route('create-crr') }}" class="btn btn-outline-teal btn-sm" style="height: 32px; padding: 0 15px; display: inline-flex; align-items: center;">Create CRR</a>
                                                             </div>
                                                             
                                                         </div>
@@ -958,6 +1187,7 @@
 @endsection
 
 @push('scripts')
+    <script type="text/javascript" src="{{ asset('files/assets/js/bootstrap-growl.min.js') }}"></script>
     <script>
         $(document).ready(function() {
             $('body').addClass('stocks-list-page');
@@ -1138,10 +1368,6 @@
                 }
                 setTimeout(adjustStockTableLayout, 50);
                 setTimeout(adjustStockTableLayout, 200);
-            });
-
-            $('#btn-export-pdf-mobile').on('click', function () {
-                $('#btn-export-pdf').trigger('click');
             });
 
             $(window).on('resize', function() {
@@ -1580,7 +1806,286 @@
                 window.open('{{ route("stocks.print") }}?ids=' + selectedIds.join(','), '_blank');
             });
 
-            $('#btn-export-pdf').on('click', function() {
+            var stockDownloadXhr = null;
+            var stockDownloadSimTimer = null;
+            var stockDownloadStartTimer = null;
+            var $stockDownloadGrowl = null;
+            var stockDownloadHideTimer = null;
+            var stockDownloadPercent = 0;
+
+            function stopStockDownloadSimulation() {
+                if (stockDownloadSimTimer) {
+                    clearInterval(stockDownloadSimTimer);
+                    stockDownloadSimTimer = null;
+                }
+            }
+
+            function clearStockDownloadStartTimer() {
+                if (stockDownloadStartTimer) {
+                    clearTimeout(stockDownloadStartTimer);
+                    stockDownloadStartTimer = null;
+                }
+            }
+
+            function clearStockDownloadHideTimer() {
+                if (stockDownloadHideTimer) {
+                    clearTimeout(stockDownloadHideTimer);
+                    stockDownloadHideTimer = null;
+                }
+            }
+
+            function abortStockDownload() {
+                clearStockDownloadStartTimer();
+                stopStockDownloadSimulation();
+                if (stockDownloadXhr) {
+                    stockDownloadXhr.onabort = null;
+                    stockDownloadXhr.abort();
+                    stockDownloadXhr = null;
+                }
+            }
+
+            function dismissStockDownloadGrowl() {
+                clearStockDownloadHideTimer();
+                if ($stockDownloadGrowl && $stockDownloadGrowl.length) {
+                    $stockDownloadGrowl.off('.stockDownload');
+                    $stockDownloadGrowl.remove();
+                }
+                $stockDownloadGrowl = null;
+                $('.alert.stock-download-growl').remove();
+            }
+
+            function setStockDownloadPercent(percent) {
+                var safe = Math.max(stockDownloadPercent, Math.min(100, Math.round(percent)));
+                stockDownloadPercent = safe;
+                if ($stockDownloadGrowl && $stockDownloadGrowl.length) {
+                    $stockDownloadGrowl.find('.stock-dl-pct').text(safe + '%');
+                }
+            }
+
+            function showStockDownloadNotify(label) {
+                dismissStockDownloadGrowl();
+                stockDownloadPercent = 0;
+
+                if (typeof $.growl !== 'function') {
+                    return;
+                }
+
+                $.growl({
+                    icon: 'ti-download',
+                    title: ' Export ',
+                    message: label + ' <strong class="stock-dl-pct">0%</strong>',
+                    url: ''
+                }, {
+                    element: 'body',
+                    type: 'inverse',
+                    allow_dismiss: true,
+                    placement: {
+                        from: 'top',
+                        align: 'right'
+                    },
+                    offset: {
+                        x: 30,
+                        y: 30
+                    },
+                    spacing: 10,
+                    z_index: 999999,
+                    delay: 0,
+                    timer: 1000,
+                    mouse_over: false,
+                    animate: {
+                        enter: 'animated rotateIn',
+                        exit: 'animated rotateOut'
+                    },
+                    icon_type: 'class',
+                    template: '<div data-growl="container" class="alert stock-download-growl" role="alert">' +
+                        '<span data-growl="icon"></span>' +
+                        '<span data-growl="title"></span>' +
+                        '<span data-growl="message"></span>' +
+                        '<a href="#" data-growl="url"></a>' +
+                        '<button type="button" class="close" data-growl="dismiss" aria-label="Close">' +
+                        '<span aria-hidden="true">&times;</span>' +
+                        '</button>' +
+                        '</div>'
+                });
+
+                $stockDownloadGrowl = $('.alert.stock-download-growl').last();
+                $stockDownloadGrowl.on('click.stockDownload', '[data-growl="dismiss"]', function () {
+                    abortStockDownload();
+                    dismissStockDownloadGrowl();
+                });
+            }
+
+            function completeStockDownloadNotify(doneLabel) {
+                stockDownloadPercent = 100;
+                if ($stockDownloadGrowl && $stockDownloadGrowl.length) {
+                    $stockDownloadGrowl.find('.stock-dl-pct').text('100%');
+                    $stockDownloadGrowl.find('[data-growl="icon"]')
+                        .removeClass('ti-download')
+                        .addClass('ti-check');
+                    $stockDownloadGrowl.find('[data-growl="message"]').html(
+                        doneLabel + ' <strong class="stock-dl-pct">100%</strong>'
+                    );
+                }
+
+                clearStockDownloadHideTimer();
+                stockDownloadHideTimer = setTimeout(function () {
+                    if (!$stockDownloadGrowl || !$stockDownloadGrowl.length) {
+                        return;
+                    }
+                    var $el = $stockDownloadGrowl;
+                    $el.removeClass('animated rotateIn').addClass('animated rotateOut');
+                    setTimeout(function () {
+                        if ($stockDownloadGrowl && $stockDownloadGrowl.is($el)) {
+                            dismissStockDownloadGrowl();
+                        } else {
+                            $el.remove();
+                        }
+                    }, 700);
+                }, 800);
+            }
+
+            function parseDownloadFilename(disposition, fallback) {
+                if (!disposition) {
+                    return fallback;
+                }
+                var utfMatch = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(disposition);
+                if (utfMatch && utfMatch[1]) {
+                    try {
+                        return decodeURIComponent(utfMatch[1].replace(/["']/g, '').trim());
+                    } catch (e) {}
+                }
+                var match = /filename\s*=\s*("?)([^";]+)\1/i.exec(disposition);
+                if (match && match[2]) {
+                    return match[2].trim();
+                }
+                return fallback;
+            }
+
+            function saveBlobFile(blob, filename, mimeType) {
+                var fileBlob = blob;
+                if (mimeType && (!blob.type || blob.type === 'application/octet-stream')) {
+                    fileBlob = new Blob([blob], { type: mimeType });
+                }
+
+                var objectUrl = window.URL.createObjectURL(fileBlob);
+                var link = document.createElement('a');
+                link.style.display = 'none';
+                link.href = objectUrl;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(function () {
+                    link.remove();
+                    window.URL.revokeObjectURL(objectUrl);
+                }, 1500);
+            }
+
+            function startStockDownloadRequest(url, format, label) {
+                var fallbackName = format === 'excel'
+                    ? ('Stock-List-' + Date.now() + '.xls')
+                    : ('Stock-List-' + Date.now() + '.pdf');
+                var mimeType = format === 'excel'
+                    ? 'application/vnd.ms-excel'
+                    : 'application/pdf';
+                var hasRealProgress = false;
+
+                stopStockDownloadSimulation();
+                stockDownloadSimTimer = setInterval(function () {
+                    if (hasRealProgress || stockDownloadPercent >= 90) {
+                        return;
+                    }
+                    // Slow crawl only until real progress (or completion) arrives.
+                    setStockDownloadPercent(stockDownloadPercent + 1);
+                }, 250);
+
+                stockDownloadXhr = new XMLHttpRequest();
+                stockDownloadXhr.open('GET', url, true);
+                stockDownloadXhr.responseType = 'blob';
+
+                stockDownloadXhr.onprogress = function (event) {
+                    if (!event.lengthComputable || !event.total) {
+                        return;
+                    }
+                    hasRealProgress = true;
+                    stopStockDownloadSimulation();
+                    var pct = Math.floor((event.loaded / event.total) * 100);
+                    setStockDownloadPercent(Math.min(99, pct));
+                };
+
+                stockDownloadXhr.onload = function () {
+                    stopStockDownloadSimulation();
+                    var xhr = stockDownloadXhr;
+                    stockDownloadXhr = null;
+
+                    if (!xhr || xhr.status < 200 || xhr.status >= 300) {
+                        dismissStockDownloadGrowl();
+                        alert('Download failed. Please try again.');
+                        return;
+                    }
+
+                    var filename = parseDownloadFilename(
+                        xhr.getResponseHeader('Content-Disposition'),
+                        fallbackName
+                    );
+                    if (format === 'excel' && !/\.xls[x]?$/i.test(filename)) {
+                        filename += '.xls';
+                    }
+                    if (format === 'pdf' && !/\.pdf$/i.test(filename)) {
+                        filename += '.pdf';
+                    }
+
+                    setStockDownloadPercent(100);
+
+                    if (format === 'excel') {
+                        saveBlobFile(xhr.response, filename, mimeType);
+                        completeStockDownloadNotify('Excel downloaded');
+                    } else {
+                        // PDF: open preview tab from the same completed blob.
+                        var objectUrl = window.URL.createObjectURL(
+                            new Blob([xhr.response], { type: mimeType })
+                        );
+                        window.open(objectUrl, '_blank');
+                        setTimeout(function () {
+                            window.URL.revokeObjectURL(objectUrl);
+                        }, 60000);
+                        completeStockDownloadNotify('PDF ready');
+                    }
+                };
+
+                stockDownloadXhr.onerror = function () {
+                    stopStockDownloadSimulation();
+                    stockDownloadXhr = null;
+                    dismissStockDownloadGrowl();
+                    alert('Download failed. Please try again.');
+                };
+
+                stockDownloadXhr.onabort = function () {
+                    stopStockDownloadSimulation();
+                    stockDownloadXhr = null;
+                };
+
+                stockDownloadXhr.send();
+            }
+
+            function downloadStockExport(url, format) {
+                abortStockDownload();
+                clearStockDownloadHideTimer();
+
+                var label = format === 'excel' ? 'Downloading Excel…' : 'Downloading PDF…';
+
+                // 1) Toaster first
+                showStockDownloadNotify(label);
+                setStockDownloadPercent(0);
+
+                // 2) Let rotateIn play, then start the actual download with % updates
+                clearStockDownloadStartTimer();
+                stockDownloadStartTimer = setTimeout(function () {
+                    stockDownloadStartTimer = null;
+                    startStockDownloadRequest(url, format, label);
+                }, 450);
+            }
+
+            function exportSelectedStocks(format) {
                 var selectedIds = getSelectedIds();
 
                 if (selectedIds.length === 0) {
@@ -1588,7 +2093,20 @@
                     return;
                 }
 
-                window.open('{{ route("stocks.print") }}?ids=' + selectedIds.join(','), '_blank');
+                var url = format === 'excel'
+                    ? @json(route('stocks.export-excel')) + '?ids=' + selectedIds.join(',')
+                    : @json(route('stocks.print')) + '?ids=' + selectedIds.join(',');
+
+                $('.stock-export-dropdown.show').removeClass('show');
+                $('.stock-export-menu.show').removeClass('show');
+                $('.stock-export-toggle').attr('aria-expanded', 'false');
+
+                downloadStockExport(url, format);
+            }
+
+            $(document).on('click', '.stock-export-option', function (e) {
+                e.preventDefault();
+                exportSelectedStocks($(this).data('format'));
             });
         });
     </script>
