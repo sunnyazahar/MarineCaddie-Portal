@@ -8,10 +8,13 @@ use Illuminate\Support\Collection;
 interface ShipmentTransitStockRepositoryInterface
 {
     /**
+     * Destination copies created FROM the given original CRR ids
+     * (excludes the originals themselves).
+     *
      * @param  array<int, int>  $originalIds
      * @return Collection<int, Crr>
      */
-    public function existingDuplicates(array $originalIds, string $shipmentNumber): Collection;
+    public function existingDuplicates(array $originalIds): Collection;
 
     public function createCrr(array $attributes): Crr;
 

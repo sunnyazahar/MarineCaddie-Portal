@@ -56,8 +56,8 @@
         <div class="row">
             <div class="col-6">
                 <div class="form-group-custom">
-                    <label>Service</label>
-                    <select name="service" class="form-control-sm-custom select2">
+                    <label>Service <span class="text-danger">*</span></label>
+                    <select name="service" class="form-control-sm-custom select2" required>
                         <option></option>
                         @foreach ($serviceOptions as $serviceOption)
                             <option value="{{ $serviceOption }}" {{ old('service', $shipment->service) === $serviceOption ? 'selected' : '' }}>{{ $serviceOption }}</option>
@@ -203,6 +203,7 @@
             label="Port code"
             :value="$shipment->consignee_port_code"
             class="form-control-sm-custom"
+            :required="true"
         />
         <div class="form-group-custom">
             <label>Location</label>

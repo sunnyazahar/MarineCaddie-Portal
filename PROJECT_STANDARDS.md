@@ -20,6 +20,7 @@
 10. [SweetAlert v1 Rules](#10-sweetalert-v1-rules)
 11. [Repository Pattern](#11-repository-pattern)
 12. [Services vs Controllers](#12-services-vs-controllers)
+12a. [Shipment Finalize — Complete / Transit / Destination Stocks](#12a-shipment-finalize--complete--transit--destination-stocks)
 13. [Validation & Mass Assignment](#13-validation--mass-assignment)
 14. [Database & Query Rules](#14-database--query-rules)
 15. [File Storage](#15-file-storage)
@@ -821,6 +822,7 @@ Use **Services** when logic involves:
 - PDF generation (manifest, pre-alert, combined PO)
 - Mail preview + send (ManifestMailService, PreAlertMailService)
 - Linked stock → shipment manifest regen (`LinkedStockShipmentManifestService`: after CRR update/status/flags/accept, create a new manifest on linked shipments except `Completed` / `Cancelled`)
+- Shipment Complete/Transit destination stock copies (`ShipmentTransitStockDuplicationService` — see **§12a**)
 - Stock change email to vessel account manager (`CrrAccountManagerNotifyService` → customer responsible AM Contact email; skip if no changes / no AM email; **never on first-time stock create**)
 - Multi-model transactions with side effects
 - External API calls (currency rates)
@@ -833,6 +835,91 @@ Use **Repository** when logic is:
 - Simple lookups / existence checks
 
 **Never** put 200+ lines of query logic in controllers — extract to repository.
+
+---
+
+## 12a. Shipment Finalize — Complete / Transit / Destination Stocks
+
+> Edit page: **Finalize shipment** → Complete / Transit.  
+> Core service: `App\Services\ShipmentTransitStockDuplicationService`  
+> Shared Complete helper: `ShipmentController::completeShipmentWithDestinationStocks()`  
+> Route: `POST /shipments/{id}/finalize` (`action=complete|transit`)
+
+### Status picker (header pencil)
+
+Manual options only:
+
+- **In transit**
+- **Delivered**
+- **Completed**
+- **Cancelled**
+
+`In process` is **not** offered in the picker. New shipments default to **`In transit`** on create (hidden field + `buildShipmentAttributes` fallback). If an older shipment is still `In process`, the current value is shown so the select does not blank out, but users cannot re-select it from the list.
+
+Select2 for status/flags: `dropdownParent: $(document.body)` + high z-index so the menu is not clipped by `.summary-header` / `.main-content-area` `overflow: hidden`.
+
+### When destination stocks are deferred to Transit only
+
+If **all** of these are true:
+
+1. Consignee type = `office` / `hub` / `agent` (`consignee` like `hub:1`)
+2. Service = `Courier` / `Airfreight` / `Sea freight` / `Truck`
+
+Then:
+
+| Action | Shipment status | Original linked stocks | New duplicate stocks |
+|---|---|---|---|
+| **Complete** | `Completed` | Marked Completed; stay on `shipment_crr` | **Not created** |
+| **Transit** (after Complete) | stays **`Completed`** | Stay linked (still shown on edit) | **Created** (Active copies) |
+
+Helper: `shouldDeferDestinationStockGenerationToTransit($shipment)`.
+
+Pending Transit reminder (edit page open): SweetAlert when Completed + office/hub/agent + freight services + destination stocks **not yet** created for **this shipment’s linked stocks**. Skip if `hasDestinationStocksForShipment()` is true.
+
+Multi-leg: same `stock_number` may exist many times. Each new shipment number gets its own destination copy created **from that shipment’s linked CRRs**. A linked stock that is itself a prior-leg duplicate must not block Transit.
+
+### Other Complete cases (not deferred)
+
+Example: hub + `Release` / Hand Carry / On-board, or non office/hub/agent consignee.
+
+- **Complete** still creates destination stock copies (`syncShipmentLinks=false`)
+- Same shared helper; only the defer check differs
+- Finalize modal **Transit** button is **disabled** for `Release` / `Hand Carry` / `On-board delivery` (Complete only). Backend also rejects `action=transit` for those services.
+
+### What duplicate stocks copy (`duplicateStocksForTransit`)
+
+Always the **same generation rules** (Complete when not deferred, and Transit):
+
+- New CRR: `duplicated_from_crr_id`, `internal_shipment` = null (no shipment number on Complete/Transit copies), `status` = Active
+- `hub_agent` from consignee code / party (`office`/`hub`/`agent`)
+- `transit_type` / `transit_id` from service legs (AWB / B/L / CMR / etc.)
+- Delivery dates from `deadline_arrival`
+- Packages (warehouse_location → shipment number), costs, documents (file copy via `PrivateDisk`)
+
+**Critical:** `syncShipmentLinks` must be **`false`** for Finalize Complete **and** Finalize Transit so the shipment keeps showing the **old completed stocks**. Duplicates exist separately for destination / stock list; they must **not** replace `shipment_crr`.
+
+### Completed shipment stock display (snapshots)
+
+`ShipmentStockSnapshotService::resolveStockCrrs()`:
+
+- On `Completed`, use frozen snapshot **only if** snapshot `original_crr_id` **and** `stock_number` still match live `shipment_crr`
+- If IDs match but stock numbers diverge (stale snapshot / recycled CRR ids), prefer **live** `shipment_crr`
+
+### Paths that must stay in sync
+
+| Path | Behaviour |
+|---|---|
+| Finalize → Complete | `completeShipmentWithDestinationStocks()` |
+| Mark as arrived | same Complete helper |
+| Header status → Completed | same Complete helper |
+| Finalize → Transit | requires Completed first; duplicates + status stays Completed; no link sync |
+| Header status → In transit | may create duplicates with `sync=false`; status becomes `In transit` |
+
+### Tests
+
+- `tests/Feature/Shipment/ShipmentFinalizeStockDuplicationTest.php`
+- `tests/Unit/ShipmentStockSnapshotResolveTest.php`
+- Blade markers: pending transit prompt + status picker exclusions in `MigratedBladeViewsTest`
 
 ---
 
@@ -1170,7 +1257,10 @@ Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | ta
 | `base-styles` on shipments/stocks grid | Custom toolbar only + `multiselect-assets` |
 | OTP bypass on production | Never set `LOCAL_OTP_BYPASS` on production |
 | Push without user permission | Wait for explicit "push karo" |
+| Transit syncing duplicates onto `shipment_crr` | Keep `syncShipmentLinks=false` on Finalize Complete/Transit — shipment must show completed originals |
+| Complete creating hub/freight destination stocks | Office/Hub/Agent + Courier/Air/Sea/Truck → defer to Transit only |
+| Snapshot showing wrong stock number | Match snapshot by id **and** stock_number; else use live pivot |
 
 ---
 
-*Last updated: Global motion for tabs/filters/search (`mc-motion.css` + `mc-motion.js`), agent contact sub-forms, Blade components catalog (§6g), country-select + list components, regression tests.*
+*Last updated: Shipment Finalize Complete/Transit destination-stock rules (§12a), stock snapshot resolve, status picker (no In process), pending Transit prompt, stock Excel `.xlsx` export.*

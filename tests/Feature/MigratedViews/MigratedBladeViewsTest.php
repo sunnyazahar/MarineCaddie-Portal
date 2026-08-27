@@ -1276,6 +1276,10 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('cs-pillar__title">Consignee', $contents);
         $this->assertStringContainsString('Account &amp; comments', $contents);
         $this->assertStringContainsString('cs-section-shell', $contents);
+        $this->assertStringContainsString('name="service"', $contents);
+        $this->assertMatchesRegularExpression('/name="service"[^>]*\brequired\b/', $contents);
+        $this->assertStringContainsString('name="consignee_port_code"', $contents);
+        $this->assertStringContainsString(':required="true"', $contents);
     }
 
     public function test_shipment_edit_prompts_pending_transit_on_open(): void
@@ -1286,6 +1290,17 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString("['office', 'hub', 'agent']", $contents);
         $this->assertStringContainsString("['Courier', 'Airfreight', 'Sea freight', 'Truck']", $contents);
         $this->assertStringContainsString('promptPendingTransitOnEditOpen();', $contents);
+    }
+
+    public function test_shipment_edit_status_picker_excludes_system_statuses(): void
+    {
+        $contents = file_get_contents(resource_path('views/Shipment/edit.blade.php'));
+
+        $this->assertStringContainsString("\$manualShipmentStatuses = ['In transit', 'Delivered', 'Completed', 'Cancelled']", $contents);
+        $this->assertStringNotContainsString(
+            "['In process', 'In transit', 'Delivered', 'Completed', 'Cancelled']",
+            $contents
+        );
     }
 
     public function test_shipment_irregularity_fields_use_indexed_array_names(): void

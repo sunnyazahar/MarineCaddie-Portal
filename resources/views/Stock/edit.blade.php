@@ -2832,24 +2832,24 @@
                                                 <div class="meta-item">
                                                     <span class="meta-label">Stock number</span>
                                                     <span class="meta-value meta-value-primary">{{ $crr->stock_number }}</span>
-                                                </div>
+                                            </div>
                                                 <div class="meta-item">
                                                     <span class="meta-label">Registration date</span>
                                                     <span class="meta-value meta-value-with-icon">
                                                         <i class="ti-calendar meta-cal-icon" aria-hidden="true"></i>
                                                         <span>{{ $crr->created_at->format('d.m.Y') }}</span>
                                                     </span>
-                                                </div>
+                                            </div>
                                                 <div class="meta-item">
                                                     <span class="meta-label">Registered by</span>
                                                     <span class="meta-value text-primary">{{ $crr->registeredBy?->name ?? '—' }}</span>
-                                                </div>
+                                            </div>
                                                 <div class="meta-item">
                                                     <span class="meta-label">Account manager</span>
                                                     <span class="meta-value text-primary" id="summary-account-manager">
                                                         {{ $crr->customerVessel?->customer?->responsible?->accountManager?->name ?? '—' }}
                                                     </span>
-                                                </div>
+                                            </div>
                                                 <div class="meta-item">
                                                     <span class="meta-label">Flags</span>
                                                     <div class="header-inline-edit" id="flags-edit-container">
@@ -2864,16 +2864,16 @@
                                                                 @empty
                                                                     <span class="text-muted" style="font-size: 11px; font-weight: 500;">—</span>
                                                                 @endforelse
-                                                            </div>
+                                                    </div>
                                                             <i class="ti-pencil-alt" style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
-                                                        </div>
+                                                </div>
                                                         <div class="header-inline-select flags-select-wrapper" style="display: none; min-width: 180px;">
                                                             <select class="select2-flags-inline" name="header_flags[]">
                                                                 @foreach (\App\Models\Crr::availableFlags() as $flagOption)
                                                                     <option value="{{ $flagOption }}" {{ in_array($flagOption, $stockFlags, true) ? 'selected' : '' }}>{{ $flagOption }}</option>
                                                                 @endforeach
                                                             </select>
-                                                        </div>
+                                            </div>
                                                     </div>
                                                 </div>
                                                 <div class="meta-item">
@@ -2884,15 +2884,15 @@
                                                             <i class="ti-pencil-alt" style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
                                                         </div>
                                                         <div class="header-inline-select status-select-wrapper" style="display: none; min-width: 150px;">
-                                                            <select class="select2-status-inline" name="status">
-                                                                @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
-                                                                    <option value="{{ $value }}" {{ $crr->status == $value ? 'selected' : '' }}>{{ $label }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
+                                                        <select class="select2-status-inline" name="status">
+                                                            @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
+                                                                <option value="{{ $value }}" {{ $crr->status == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                                            @endforeach
+                                                        </select>
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
                                         </div>
                                         <div class="header-actions summary-actions">
                                             <button type="button"
@@ -3385,7 +3385,7 @@
                                                     <span class="crr-table-header__icon" aria-hidden="true"><i class="icofont icofont-box"></i></span>
                                                     <span class="crr-table-header__label">Packages</span>
                                                     <span id="package-summary-text" class="package-summary-badge">(Total : 0.00 kg, 0 Packages, 0.0000 CBM)</span>
-                                                </div>
+                                            </div>
                                                 <button type="button" class="btn btn-outline-teal btn-add-package">Add item</button>
                                             </div>
                                             <div id="packages-validation-error" style="display:none; margin: 10px 16px 0; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 8px; font-size: 12px; position: relative; padding-right: 32px;">
@@ -3544,7 +3544,7 @@
                                                 <div class="crr-table-header__title">
                                                     <span class="crr-table-header__icon" aria-hidden="true"><i class="icofont icofont-money"></i></span>
                                                     <span class="crr-table-header__label">Costs</span>
-                                                </div>
+                                            </div>
                                                 <button type="button" class="btn btn-outline-teal btn-add-cost">Add cost</button>
                                             </div>
                                             <div class="table-responsive costs-table-wrap">
@@ -3605,14 +3605,14 @@
                                                                         name="costs[{{ $index }}][hub_agent]">
                                                                         <option value=""></option>
                                                                         <optgroup label="Hubs">
-                                                                            @foreach($hubs as $h)
-                                                                                <option value="{{ $h->code }}"
-                                                                                    data-city="{{ $h->city }}"
-                                                                                    data-country="{{ $h->country }}"
-                                                                                    data-code="{{ $h->code }}" {{ ($cost->hub_agent == $h->code || $cost->hub_agent == $h->hub_name) ? 'selected' : '' }}>
-                                                                                    {{ $h->code }} - {{ $h->hub_name }}
-                                                                                </option>
-                                                                            @endforeach
+                                                                        @foreach($hubs as $h)
+                                                                            <option value="{{ $h->code }}"
+                                                                                data-city="{{ $h->city }}"
+                                                                                data-country="{{ $h->country }}"
+                                                                                data-code="{{ $h->code }}" {{ ($cost->hub_agent == $h->code || $cost->hub_agent == $h->hub_name) ? 'selected' : '' }}>
+                                                                                {{ $h->code }} - {{ $h->hub_name }}
+                                                                            </option>
+                                                                        @endforeach
                                                                         </optgroup>
                                                                         <optgroup label="Agents">
                                                                             @foreach($agents as $agent)
@@ -4048,7 +4048,7 @@
                                                             <option value="{{ $selectedDocType }}" selected>{{ $selectedDocType }}</option>
                                                         @endif
                                                     </select>
-                                                </div>
+                                                    </div>
                                                 <div class="doc-side">
                                                     <div class="doc-side-row">
                                                         <div class="doc-internal checkbox-fade fade-in-primary">
@@ -4107,9 +4107,9 @@
                                             @empty
                                                 <div class="panel-empty-msg">
                                                     No changes recorded yet.
-                                                </div>
-                                            @endforelse
                                         </div>
+                                            @endforelse
+                                            </div>
                                         <div id="location-history" class="panel-tab-content" style="display: none;">
                                             <div class="panel-empty-msg">No location history available</div>
                                         </div>
@@ -4131,7 +4131,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                </div>
+                        </div>
                 <form id="add-supplier-form">
                     <div class="modal-body" style="padding: 16px 20px; max-height: 70vh; overflow-y: auto;">
                         <div class="add-supplier-grid">
@@ -4142,16 +4142,16 @@
                                 <div class="field-group mb-2">
                                     <label class="field-label">Supplier name <span class="text-danger">*</span></label>
                                     <input type="text" class="field-input" name="supplier_name" id="modal-supplier-name" required>
-                                </div>
+                    </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Phone number (with country code)</label>
                                     <input type="text" class="field-input" name="phone_number" id="modal-supplier-phone">
-                                </div>
+                </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Email</label>
                                     <input type="text" class="field-input" name="email" id="modal-supplier-email"
                                         placeholder="email@example.com; email2@example.com">
-                                </div>
+            </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Remarks</label>
                                     <textarea class="field-input" name="remarks" id="modal-supplier-remarks" rows="3" style="height: auto; min-height: 70px;"></textarea>
@@ -4159,8 +4159,8 @@
                                 <div class="field-group mb-2">
                                     <label class="field-label">Special considerations for destination</label>
                                     <textarea class="field-input" name="special_considerations" id="modal-supplier-special" rows="3" style="height: auto; min-height: 70px;"></textarea>
-                                </div>
-                            </div>
+        </div>
+    </div>
 
                             {{-- Column 2: Address --}}
                             <div class="add-supplier-col">
@@ -5400,8 +5400,8 @@ function updatePackageSummary() {
             var statusConfirmOpen = false;
 
             function closeStockStatusEditor() {
-                $('.status-select-wrapper').hide();
-                $('.status-display').show();
+                    $('.status-select-wrapper').hide();
+                    $('.status-display').show();
             }
 
             function revertStockStatusSelection() {
@@ -5430,8 +5430,8 @@ function updatePackageSummary() {
                         if (!isConfirm) {
                             statusConfirmOpen = false;
                             revertStockStatusSelection();
-                            return;
-                        }
+                    return;
+                }
 
                         onConfirm();
                     });
@@ -5586,8 +5586,8 @@ function updatePackageSummary() {
 
             $('#flags-edit-container .flags-display').on('click', function(e) {
                 e.stopPropagation();
-                $('.status-select-wrapper').hide();
-                $('.status-display').show();
+                        $('.status-select-wrapper').hide();
+                        $('.status-display').show();
                 $(this).hide();
                 $('#flags-edit-container .flags-select-wrapper').show();
 

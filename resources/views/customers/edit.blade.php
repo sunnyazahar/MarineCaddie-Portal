@@ -141,7 +141,7 @@
                                     <input type="checkbox" id="show_transport_details" name="show_transport_details" class="checkbox-custom"
                                         {{ old('show_transport_details', $customer->show_transport_details) ? 'checked' : '' }}>
                                     <label class="checkbox-label" for="show_transport_details">Show transport details on customer portal</label>
-                                </div>
+                                    </div>
 
                                 <div class="checkbox-group d-none">
                                     <input type="checkbox" id="esea_store_stock_only" name="esea_store_stock_only" class="checkbox-custom"
@@ -156,25 +156,25 @@
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="street_address">Street address <span class="text-danger">*</span></label>
                                     <textarea id="street_address" name="street_address" class="form-textarea-custom" rows="3" required>{{ old('street_address', $customer->primaryAddress->street ?? '') }}</textarea>
-                                </div>
+                                                        </div>
 
                                 <div class="input-row">
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="city">City <span class="text-danger">*</span></label>
                                         <input type="text" id="city" name="city" class="form-control-custom"
                                             value="{{ old('city', $customer->primaryAddress->city ?? '') }}" required>
-                                    </div>
+                                                    </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="district_state">District/state</label>
                                         <input type="text" id="district_state" name="district_state" class="form-control-custom"
                                             value="{{ old('district_state', $customer->primaryAddress->state ?? '') }}">
-                                    </div>
+                                                    </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="zip_code">Zip code</label>
                                         <input type="text" id="zip_code" name="zip_code" class="form-control-custom"
                                             value="{{ old('zip_code', $customer->primaryAddress->zip_code ?? '') }}">
-                                    </div>
-                                </div>
+                                                    </div>
+                                                    </div>
 
                                 <x-forms.country-select
                                     name="country"
@@ -197,26 +197,26 @@
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="postal_street_address">Street address / post box</label>
                                     <textarea id="postal_street_address" name="postal_street_address" class="form-textarea-custom" rows="3">{{ old('postal_street_address', $customer->postalAddress->street ?? '') }}</textarea>
-                                </div>
+                                                    </div>
 
                                 <div class="input-row">
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="postal_city">City</label>
                                         <input type="text" id="postal_city" name="postal_city" class="form-control-custom"
                                             value="{{ old('postal_city', $customer->postalAddress->city ?? '') }}">
-                                    </div>
+                                                    </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="postal_district_state">District/state</label>
                                         <input type="text" id="postal_district_state" name="postal_district_state" class="form-control-custom"
                                             value="{{ old('postal_district_state', $customer->postalAddress->state ?? '') }}">
-                                    </div>
+                                                    </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="postal_zip_code">Zip code</label>
                                         <input type="text" id="postal_zip_code" name="postal_zip_code" class="form-control-custom"
                                             value="{{ old('postal_zip_code', $customer->postalAddress->zip_code ?? '') }}">
-                                    </div>
-                                </div>
-
+                                                    </div>
+                                                    </div>
+                                                    
                                 <x-forms.country-select
                                     name="postal_country"
                                     label="Country"
@@ -225,7 +225,7 @@
                                     class="form-control-custom"
                                     :allowClear="false"
                                 />
-                            </div>
+                                                    </div>
 
                             <div class="form-pillar">
                                 <div class="form-section-header">Invoice details</div>
@@ -234,30 +234,30 @@
                                     <label class="form-label-custom" for="invoice_recipient_name">Invoice recipient name <span class="text-danger">*</span></label>
                                     <input type="text" id="invoice_recipient_name" name="invoice_recipient_name" class="form-control-custom"
                                         value="{{ old('invoice_recipient_name', $customer->invoiceDetail->invoice_recipient_name ?? '') }}" required>
-                                </div>
+                                                    </div>
 
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="invoice_recipient_address">Invoice recipient address <span class="text-danger">*</span></label>
                                     <textarea id="invoice_recipient_address" name="invoice_recipient_address" class="form-textarea-custom" rows="3" required>{{ old('invoice_recipient_address', $customer->invoiceAddress->street ?? '') }}</textarea>
-                                </div>
+                                                </div>
 
                                 <div class="input-row">
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="invoice_city">City <span class="text-danger">*</span></label>
                                         <input type="text" id="invoice_city" name="invoice_city" class="form-control-custom"
                                             value="{{ old('invoice_city', $customer->invoiceAddress->city ?? '') }}" required>
-                                    </div>
+                                                </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="invoice_district_state">District/state</label>
                                         <input type="text" id="invoice_district_state" name="invoice_district_state" class="form-control-custom"
                                             value="{{ old('invoice_district_state', $customer->invoiceAddress->state ?? '') }}">
-                                    </div>
+                                                    </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="invoice_zip_code">Zip code</label>
                                         <input type="text" id="invoice_zip_code" name="invoice_zip_code" class="form-control-custom"
                                             value="{{ old('invoice_zip_code', $customer->invoiceAddress->zip_code ?? '') }}">
-                                    </div>
-                                </div>
+                                                    </div>
+                                                    </div>
 
                                 <x-forms.country-select
                                     name="invoice_country"
@@ -276,7 +276,7 @@
                                         <option value="GBP" {{ old('currency', $customer->invoiceDetail->currency_code ?? '') == 'GBP' ? 'selected' : '' }}>GBP - British Pound</option>
                                         <option value="INR" {{ old('currency', $customer->invoiceDetail->currency_code ?? '') == 'INR' ? 'selected' : '' }}>INR - Indian Rupee</option>
                                     </select>
-                                </div>
+                                                </div>
 
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="invoicing_email">E-mails for invoicing <span class="text-danger">*</span></label>
@@ -302,28 +302,28 @@
                                             <option value="Daily" {{ old('invoice_frequency', $customer->invoiceDetail->invoice_frequency ?? '') == 'Daily' ? 'selected' : '' }}>Daily</option>
                                             <option value="Weekly" {{ old('invoice_frequency', $customer->invoiceDetail->invoice_frequency ?? '') == 'Weekly' ? 'selected' : '' }}>Weekly</option>
                                             <option value="Monthly" {{ old('invoice_frequency', $customer->invoiceDetail->invoice_frequency ?? '') == 'Monthly' ? 'selected' : '' }}>Monthly</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                                    </select>
+                                                </div>
+                                                </div>
 
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="invoicing_remarks">Remarks regarding invoicing</label>
                                     <textarea id="invoicing_remarks" name="invoicing_remarks" class="form-textarea-custom" rows="3">{{ old('invoicing_remarks', $customer->invoiceDetail->invoice_remarks ?? '') }}</textarea>
-                                </div>
+                                                </div>
 
                                 <div class="input-row">
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="vat_number">VAT number</label>
                                         <input type="text" id="vat_number" name="vat_number" class="form-control-custom"
                                             value="{{ old('vat_number', $customer->invoiceDetail->vat_number ?? '') }}">
-                                    </div>
+                                                    </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="eori_number">EORI number</label>
                                         <input type="text" id="eori_number" name="eori_number" class="form-control-custom"
                                             value="{{ old('eori_number', $customer->invoiceDetail->eori_number ?? '') }}">
-                                    </div>
-                                </div>
-                            </div>
+                                                    </div>
+                                                    </div>
+                                                </div>
 
                             <div class="form-pillar">
                                 @php
@@ -353,9 +353,9 @@
                                         <option value=""></option>
                                         @foreach ($salesManagers as $manager)
                                             <option value="{{ $manager->id }}" {{ (string) old('sales_manager', $customer->responsible->sales_manager_id ?? '') === (string) $manager->id ? 'selected' : '' }}>{{ $manager->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
 
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="main-account-manager-select">Main account manager <span class="text-danger">*</span></label>
@@ -365,7 +365,7 @@
                                             <option value="{{ $selectedMainAccountManager->id }}" selected>{{ $selectedMainAccountManager->name }}</option>
                                         @endif
                                     </select>
-                                </div>
+                                            </div>
 
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="responsible-accounting-users-select">Responsible accounting users</label>
@@ -376,13 +376,13 @@
                                                 data-office-short-name="{{ $selectedAccountingUser->office?->office_short_name ?? '' }}">{{ $selectedAccountingUser->name }}</option>
                                         @endif
                                     </select>
-                                </div>
+                                                </div>
 
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="responsible-office-input">Responsible office</label>
                                     <input type="text" id="responsible-office-input" name="responsible_office"
                                         class="form-control-custom" value="{{ $responsibleOfficeShortName }}" readonly>
-                                </div>
+                                                </div>
 
                                 <div class="form-section-header">Company's logo</div>
                                 <div class="logo-placeholder" id="logo_drop_zone" style="cursor: pointer; position: relative;">
@@ -395,10 +395,10 @@
                                     @endif
                                     <p id="logo_text" style="font-size: 13px; margin: 0;">Drag image file here or click to browse</p>
                                     <i class="ti-camera" id="logo_icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                                    </div>
+                                                    </div>
+                                                    </div>
+                                                </div>
 
                     <div id="sop" class="tab-content-custom">
                         <div class="form-pillar-container">
@@ -411,17 +411,17 @@
                                             <option value=""></option>
                                             <option value="Yes" {{ old('send_stocklist', $customer->sop->send_stocklist ?? '') == 'Yes' ? 'selected' : '' }}>Yes</option>
                                             <option value="No" {{ old('send_stocklist', $customer->sop->send_stocklist ?? '') == 'No' ? 'selected' : '' }}>No</option>
-                                        </select>
-                                    </div>
+                                                    </select>
+                                                </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="onboard_delivery">Onboard delivery?</label>
                                         <select id="onboard_delivery" name="onboard_delivery" class="form-control-custom select2-field">
                                             <option value=""></option>
                                             <option value="Yes" {{ old('onboard_delivery', $customer->sop->onboard_delivery ?? '') == 'Yes' ? 'selected' : '' }}>Yes</option>
                                             <option value="No" {{ old('onboard_delivery', $customer->sop->onboard_delivery ?? '') == 'No' ? 'selected' : '' }}>No</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                                    </select>
+                                                </div>
+                                                </div>
                                 <div class="input-row input-row--2">
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="quotes_prior_to_instructions">Quotes prior to instructions?</label>
@@ -430,21 +430,21 @@
                                             <option value="Yes" {{ old('quotes_prior_to_instructions', $customer->sop->quotes_prior_to_instructions ?? '') == 'Yes' ? 'selected' : '' }}>Yes</option>
                                             <option value="No" {{ old('quotes_prior_to_instructions', $customer->sop->quotes_prior_to_instructions ?? '') == 'No' ? 'selected' : '' }}>No</option>
                                         </select>
-                                    </div>
+                                                </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="agreed_rate">Agreed rate?</label>
                                         <select id="agreed_rate" name="agreed_rate" class="form-control-custom select2-field">
                                             <option value=""></option>
                                             <option value="Yes" {{ old('agreed_rate', $customer->sop->agreed_rate ?? '') == 'Yes' ? 'selected' : '' }}>Yes</option>
                                             <option value="No" {{ old('agreed_rate', $customer->sop->agreed_rate ?? '') == 'No' ? 'selected' : '' }}>No</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                                        </select>
+                                                    </div>
+                                                </div>
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="invoicing_procedure">Invoicing</label>
                                     <input type="text" id="invoicing_procedure" name="invoicing_procedure" class="form-control-custom"
                                         value="{{ old('invoicing_procedure', $customer->sop->invoicing_procedure ?? '') }}">
-                                </div>
+                                                </div>
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="pending_entry">Pending entry?</label>
                                     <select id="pending_entry" name="pending_entry" class="form-control-custom select2-field">
@@ -452,12 +452,12 @@
                                         <option value="Yes" {{ old('pending_entry', $customer->sop->pending_entry ?? '') == 'Yes' ? 'selected' : '' }}>Yes</option>
                                         <option value="No" {{ old('pending_entry', $customer->sop->pending_entry ?? '') == 'No' ? 'selected' : '' }}>No</option>
                                     </select>
-                                </div>
+                                                    </div>
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="special_pending_routines">Special pending routines</label>
                                     <input type="text" id="special_pending_routines" name="special_pending_routines" class="form-control-custom"
                                         value="{{ old('special_pending_routines', $customer->sop->special_pending_routines ?? '') }}">
-                                </div>
+                                                    </div>
                             </div>
 
                             <div class="form-pillar sop-pillar">
@@ -465,28 +465,28 @@
                                 <div class="form-group-custom" style="flex: 1; display: flex; flex-direction: column;">
                                     <label class="form-label-custom" for="other_procedures_comments">Other procedures/comments</label>
                                     <textarea id="other_procedures_comments" name="other_procedures_comments" class="form-textarea-custom sop-comments-textarea" rows="10">{{ old('other_procedures_comments', $customer->sop->other_procedures_comments ?? '') }}</textarea>
-                                </div>
-                            </div>
+                                                </div>
+                                            </div>
 
                             <div class="form-pillar sop-pillar">
                                 <div class="form-section-header" style="margin-top: 0;">Imported documents</div>
                                 <div class="upload-area sop-upload-area" id="sop_drop_zone" style="cursor: pointer; position: relative;">
                                     <p id="sop_text" class="upload-text">Drag files here or click to browse</p>
                                     <i class="ti-upload upload-icon" id="sop_icon"></i>
-                                </div>
+                                                </div>
                                 <div id="sop_file_list" style="margin-top: 10px;">
                                     @foreach ($customer->documents as $doc)
                                         <div class="file-item">
                                             <i class="ti-file"></i>
                                             <a href="{{ $doc->fileUrl() }}" target="_blank" class="file-name">{{ $doc->file_name }}</a>
                                             <span class="remove-file" data-id="{{ $doc->id }}"><i class="ti-trash"></i></span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                                                </div>
+                                                        @endforeach
+                                                </div>
                                 <input type="hidden" name="removed_documents" id="removed_documents" value="">
                             </div>
                         </div>
-                    </div>
+                                                 </div>
 
                     <div id="notification-settings" class="tab-content-custom">
                         <div class="form-pillar-container">
@@ -496,20 +496,20 @@
                                     <label class="form-label-custom" for="notify_stock_items">Notify when stock items come to stock</label>
                                     <input type="text" id="notify_stock_items" name="notify_stock_items" class="form-control-custom"
                                         value="{{ old('notify_stock_items', $customer->notificationSetting->notify_stock_items ?? '') }}">
-                                </div>
-                            </div>
+                                                </div>
+                                            </div>
                             <div class="form-pillar notification-pillar">
                                 <div class="form-section-header" style="margin-top: 0;">First mile management</div>
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="send_automatic_first_mile_email" name="send_automatic_first_mile_email" class="checkbox-custom"
                                         {{ old('send_automatic_first_mile_email', $customer->notificationSetting->send_automatic_first_mile_email ?? false) ? 'checked' : '' }}>
                                     <label class="checkbox-label" for="send_automatic_first_mile_email">Send automatic first-mile email to supplier</label>
-                                </div>
+                                        </div>
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="notify_first_mile_email_sent">Notify when first mile email is sent to supplier</label>
                                     <input type="text" id="notify_first_mile_email_sent" name="notify_first_mile_email_sent" class="form-control-custom"
                                         value="{{ old('notify_first_mile_email_sent', $customer->notificationSetting->notify_first_mile_email_sent ?? '') }}">
-                                </div>
+                                    </div>
                             </div>
                             <div class="form-pillar notification-pillar">
                                 <div class="form-section-header" style="margin-top: 0;">Free storage period</div>
@@ -542,28 +542,28 @@
 
                 {{-- Contacts / Vessels tabs live outside #customerForm --}}
                 <div id="contacts" class="tab-content-custom">
-                    <div class="vessels-header">
-                        <div class="vessels-search-container">
-                            <span class="search-label">Search</span>
-                            <input type="text" id="contactSearchInput" placeholder="type here">
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <a href="{{ route('contacts.create', $customer->id) }}" class="btn-vessel-add">Add contact</a>
-                        </div>
-                    </div>
+                                        <div class="vessels-header">
+                                            <div class="vessels-search-container">
+                                                <span class="search-label">Search</span>
+                                                <input type="text" id="contactSearchInput" placeholder="type here">
+                                            </div>
+                                            <div style="display: flex; gap: 10px;">
+                                                <a href="{{ route('contacts.create', $customer->id) }}" class="btn-vessel-add">Add contact</a>
+                                            </div>
+                                        </div>
                     <div class="cust-table-wrap">
-                        <table class="custom-table" id="contactsTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Phone number</th>
-                                    <th>Description</th>
-                                    <th style="text-align: center;">Main contact</th>
+                                            <table class="custom-table" id="contactsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Email</th>
+                                                        <th>Phone number</th>
+                                                        <th>Description</th>
+                                                        <th style="text-align: center;">Main contact</th>
                                     <th style="text-align: right;"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                                 @forelse ($customer->contacts as $contact)
                                     <tr>
                                         <td>
@@ -572,104 +572,104 @@
                                         <td>{{ $contact->email ?: '—' }}</td>
                                         <td>{{ $contact->phone_number ?: '—' }}</td>
                                         <td>{{ $contact->description ? Str::limit($contact->description, 50) : '—' }}</td>
-                                        <td style="text-align: center;">
+                                                            <td style="text-align: center;">
                                             @if ($contact->is_main_contact)
                                                 <i class="ti-check" style="color: #008080; font-weight: bold;"></i>
-                                            @endif
-                                        </td>
+                                                                @endif
+                                                            </td>
                                         <td style="text-align: right; white-space: nowrap;">
-                                            <a href="{{ route('contacts.edit', $contact->id) }}">
+                                                                <a href="{{ route('contacts.edit', $contact->id) }}">
                                                 <i class="ti-pencil btn-action-pencil"></i>
-                                            </a>
+                                                                </a>
                                             <button type="button" class="btn-action-delete delete-contact" data-id="{{ $contact->id }}" aria-label="Delete contact">
                                                 <i class="ti-trash"></i>
                                             </button>
-                                        </td>
-                                    </tr>
+                                                            </td>
+                                                        </tr>
                                 @empty
                                     <tr>
                                         <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">No contacts found for this customer.</td>
                                     </tr>
                                 @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
                 <div id="vessels" class="tab-content-custom">
-                    <div class="vessels-header">
-                        <div class="vessels-search-container">
-                            <span class="search-label">Search</span>
-                            <input type="text" id="vesselSearchInput" placeholder="type here">
-                        </div>
-                        <div style="display: flex; gap: 10px;">
+                                        <div class="vessels-header">
+                                            <div class="vessels-search-container">
+                                                <span class="search-label">Search</span>
+                                                <input type="text" id="vesselSearchInput" placeholder="type here">
+                                            </div>
+                                            <div style="display: flex; gap: 10px;">
                             <button type="button" class="btn-vessel-export" aria-label="Export vessels"><i class="ti-download"></i></button>
-                            <a href="{{ route('customers.vessels.create', $customer->id) }}" class="btn-vessel-add">Add vessel</a>
-                        </div>
-                    </div>
+                                                <a href="{{ route('customers.vessels.create', $customer->id) }}" class="btn-vessel-add">Add vessel</a>
+                                            </div>
+                                        </div>
                     <div class="cust-table-wrap">
                         <table class="custom-table vessels-table" id="vesselsTable">
-                            <thead>
-                                <tr>
-                                    <th>Vessel name</th>
-                                    <th>Customer vessel code</th>
-                                    <th>IMO</th>
-                                    <th>Manager</th>
-                                    <th>Account manager</th>
-                                    <th>Status</th>
-                                    <th style="width: 50px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Vessel name</th>
+                                                        <th>Customer vessel code</th>
+                                                        <th>IMO</th>
+                                                        <th>Manager</th>
+                                                        <th>Account manager</th>
+                                                        <th>Status</th>
+                                                        <th style="width: 50px;"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                                 @forelse ($customer->vessels as $vessel)
-                                    <tr>
+                                                    <tr>
                                         <td>
                                             <a href="{{ route('customers.vessels.edit', $vessel->id) }}" class="vessel-link">{{ $vessel->vessel }}</a>
                                         </td>
-                                        <td>{{ $vessel->customer_vessel_code }}</td>
-                                        <td>{{ $vessel->vessel_imo }}</td>
-                                        <td>{{ $vessel->manager }}</td>
-                                        <td>{{ $vessel->account_manager }}</td>
-                                        <td>
+                                                        <td>{{ $vessel->customer_vessel_code }}</td>
+                                                        <td>{{ $vessel->vessel_imo }}</td>
+                                                        <td>{{ $vessel->manager }}</td>
+                                                        <td>{{ $vessel->account_manager }}</td>
+                                                        <td>
                                             @if ($vessel->inactive_vessel)
-                                                <span class="label label-danger">Inactive</span>
+                                                                <span class="label label-danger">Inactive</span>
                                             @elseif ($vessel->sanction_blocked || $vessel->financially_blocked)
-                                                <span class="label label-warning">Blocked</span>
-                                            @else
-                                                <span class="label label-success">Active</span>
-                                            @endif
-                                        </td>
+                                                                <span class="label label-warning">Blocked</span>
+                                                            @else
+                                                                <span class="label label-success">Active</span>
+                                                            @endif
+                                                        </td>
                                         <td style="text-align: right;">
                                             <a href="{{ route('customers.vessels.edit', $vessel->id) }}">
                                                 <i class="ti-pencil btn-action-pencil"></i>
                                             </a>
                                         </td>
-                                    </tr>
-                                @empty
-                                    <tr>
+                                                    </tr>
+                                                    @empty
+                                                    <tr>
                                         <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8;">No vessels found.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+                                                    </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                                    </div>
+                                                </div>
 
         <div class="customer-edit-footer" id="customer-edit-footer">
             <button type="submit" class="btn-save-custom" id="btn-save" form="customerForm">Save customer</button>
             <a href="{{ route('customers.index') }}" class="btn-cancel-custom">Cancel</a>
             <div class="audit-info">
                 @include('partials.audit-info', ['record' => $customer, 'bold' => true])
-            </div>
-        </div>
-    </div>
+                                            </div>
+                                                </div>
+                                                </div>
 
     @include('layouts.partials.pcoded-shell-end')
 
-    <input type="file" name="logo" id="logo_input" accept="image/*" style="display:none;" form="customerForm">
-    <input type="file" name="sop_documents[]" id="sop_documents_input" multiple style="display:none;" form="customerForm">
+                            <input type="file" name="logo" id="logo_input" accept="image/*" style="display:none;" form="customerForm">
+                            <input type="file" name="sop_documents[]" id="sop_documents_input" multiple style="display:none;" form="customerForm">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script>
@@ -742,7 +742,7 @@
                 $(selector).select2({
                     placeholder: placeholder,
                     allowClear: false,
-                    width: '100%',
+                width: '100%',
                     minimumInputLength: 0,
                     ajax: {
                         url: @json(url('/api/account-managers')),
@@ -964,7 +964,7 @@
             var customerId = {{ $customer->id }};
             var uploadUrl = '/customers/' + customerId + '/documents';
             var csrfToken = $('meta[name="csrf-token"]').attr('content') ||
-                $('input[name="_token"]').first().val();
+                             $('input[name="_token"]').first().val();
 
             function uploadFile(file) {
                 var fd = new FormData();

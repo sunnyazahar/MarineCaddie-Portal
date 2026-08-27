@@ -170,7 +170,7 @@ class ShipmentController extends BaseShipmentController
         return response()->json(['data' => $data]);
     }
 
-    public function markAsArrived($id, ShipmentStockSnapshotService $stockSnapshotService)
+    public function markAsArrived($id, ShipmentStockSnapshotService $stockSnapshotService, ShipmentTransitStockDuplicationService $transitStockDuplicationService)
     {
         $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
@@ -190,17 +190,13 @@ class ShipmentController extends BaseShipmentController
             ], 422);
         }
 
-        DB::transaction(function () use ($shipment, $stockSnapshotService) {
-            $stockSnapshotService->snapshotShipmentStocks($shipment);
-
-            $shipment->update(['status' => 'Completed']);
-
-            $crrIds = $shipment->crrs()->pluck('crrs.id')->all();
-            if (!empty($crrIds)) {
-                $this->shipmentRepository->updateCrrStatuses($crrIds, [
-                    'status' => Crr::STATUS_COMPLETED,
-                ]);
-            }
+        DB::transaction(function () use ($shipment, $stockSnapshotService, $transitStockDuplicationService) {
+            $this->completeShipmentWithDestinationStocks(
+                $shipment,
+                $stockSnapshotService,
+                $transitStockDuplicationService,
+                null
+            );
         });
 
         $shipment = $shipment->fresh(['stockSnapshots']);
@@ -213,17 +209,63 @@ class ShipmentController extends BaseShipmentController
         ]);
     }
 
-    public function updateStatus(Request $request, $id, ShipmentChangeLogService $changeLogService)
-    {
+    public function updateStatus(
+        Request $request,
+        $id,
+        ShipmentChangeLogService $changeLogService,
+        ShipmentStockSnapshotService $stockSnapshotService,
+        ShipmentTransitStockDuplicationService $transitStockDuplicationService
+    ) {
         $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         $validated = $request->validate([
-            'status' => ['required', Rule::in(['In process', 'In transit', 'Delivered', 'Completed', 'Cancelled'])],
+            // Create default is In transit; In process is not available as a manual status pick.
+            'status' => ['required', Rule::in(['In transit', 'Delivered', 'Completed', 'Cancelled'])],
         ]);
 
         $previousStatus = $shipment->status;
-        DB::transaction(function () use ($shipment, $validated, $previousStatus, $changeLogService) {
-            $shipment->update(['status' => $validated['status']]);
+        DB::transaction(function () use (
+            $shipment,
+            $validated,
+            $previousStatus,
+            $changeLogService,
+            $stockSnapshotService,
+            $transitStockDuplicationService
+        ) {
+            if ($validated['status'] === 'Completed' && $previousStatus !== 'Completed') {
+                $shipment->loadMissing([
+                    'crrs.packages',
+                    'crrs.costs',
+                    'crrs.documents',
+                    'flights',
+                    'seaLegs',
+                    'truckLegs',
+                    'courierLegs',
+                ]);
+
+                $this->completeShipmentWithDestinationStocks(
+                    $shipment,
+                    $stockSnapshotService,
+                    $transitStockDuplicationService,
+                    null
+                );
+            } elseif ($validated['status'] === 'In transit' && $previousStatus !== 'In transit') {
+                $shipment->loadMissing([
+                    'crrs.packages',
+                    'crrs.costs',
+                    'crrs.documents',
+                    'flights',
+                    'seaLegs',
+                    'truckLegs',
+                    'courierLegs',
+                ]);
+
+                // Create destination copies but keep shipment linked to the completed originals.
+                $transitStockDuplicationService->duplicateStocksForTransit($shipment, null, false);
+                $shipment->update(['status' => 'In transit']);
+            } else {
+                $shipment->update(['status' => $validated['status']]);
+            }
 
             if ($shipment->status === 'Cancelled') {
                 $crrIds = $shipment->crrs()->pluck('crrs.id');
@@ -450,6 +492,9 @@ class ShipmentController extends BaseShipmentController
         }
 
         $consigneeCode = $transitStockDuplicationService->resolveConsigneePartyCode($shipment->consignee) ?? '';
+        $transitDestinationStocksReady = $transitStockDuplicationService->hasDestinationStocksForShipment($shipment);
+        $transitFinalizeAllowed = $this->allowsFinalizeTransit($shipment);
+
         return view('Shipment.edit', compact(
             'shipment',
             'partyNames',
@@ -468,7 +513,9 @@ class ShipmentController extends BaseShipmentController
             'irregularityTypeOptions',
             'partyResponsibleOptions',
             'consequenceOptions',
-            'statusOptions'
+            'statusOptions',
+            'transitDestinationStocksReady',
+            'transitFinalizeAllowed'
         ));
     }
 
@@ -505,18 +552,23 @@ class ShipmentController extends BaseShipmentController
             ], 422);
         }
 
+        if ($validated['action'] === 'transit' && ! $this->allowsFinalizeTransit($shipment)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transit is not available for Release, Hand Carry, or On-board delivery.',
+            ], 422);
+        }
+
         if ($validated['action'] === 'complete') {
-            DB::transaction(function () use ($shipment, $stockSnapshotService) {
-                $stockSnapshotService->snapshotShipmentStocks($shipment);
+            $deferDestinationStocks = $this->shouldDeferDestinationStockGenerationToTransit($shipment);
 
-                $shipment->update(['status' => 'Completed']);
-
-                $crrIds = $shipment->crrs()->pluck('crrs.id')->all();
-                if (!empty($crrIds)) {
-                    $this->shipmentRepository->updateCrrStatuses($crrIds, [
-                        'status' => Crr::STATUS_COMPLETED,
-                    ]);
-                }
+            DB::transaction(function () use ($shipment, $validated, $stockSnapshotService, $transitStockDuplicationService) {
+                $this->completeShipmentWithDestinationStocks(
+                    $shipment,
+                    $stockSnapshotService,
+                    $transitStockDuplicationService,
+                    $validated['consignee_code'] ?? null
+                );
             });
 
             $shipment = $shipment->fresh(['stockSnapshots']);
@@ -524,7 +576,9 @@ class ShipmentController extends BaseShipmentController
 
             return response()->json([
                 'success' => true,
-                'message' => 'Shipment and selected stocks completed successfully.',
+                'message' => $deferDestinationStocks
+                    ? 'Shipment and selected stocks completed successfully. Use Transit to generate destination stocks.'
+                    : 'Shipment and selected stocks completed successfully. Destination stocks created.',
                 'status' => $shipment->status,
                 'stocks' => $shipment->crrs->map(fn (Crr $crr) => [
                     'id' => $crr->id,
@@ -534,23 +588,93 @@ class ShipmentController extends BaseShipmentController
         }
 
         DB::transaction(function () use ($shipment, $validated, $transitStockDuplicationService) {
+            // Create destination stock copies, but keep shipment_crr on the completed originals
+            // so the shipment edit page continues to show the old completed stocks.
             $transitStockDuplicationService->duplicateStocksForTransit(
                 $shipment,
-                $validated['consignee_code'] ?? null
+                $validated['consignee_code'] ?? null,
+                false
             );
 
+            // Finalize → Transit creates destination stocks and keeps shipment Completed
+            // (not "In transit"). Complete is still required first.
             $shipment->update([
-                'status' => 'In transit',
+                'status' => 'Completed',
             ]);
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Shipment moved to transit successfully. Duplicate stocks created.',
-            'status' => 'In transit',
+            'message' => 'Destination stocks created. Shipment status is Completed.',
+            'status' => 'Completed',
             'consignee_code' => $validated['consignee_code'] ?? null,
             'reload' => true,
         ]);
+    }
+
+    /**
+     * Shared Complete path: snapshot → optional destination stock copies → Completed + source CRRs.
+     *
+     * Office/Hub/Agent + Courier/Airfreight/Sea freight/Truck: stock copies are deferred to Transit only.
+     * Other consignee/service combinations still generate on Complete (without syncing shipment links).
+     */
+    protected function completeShipmentWithDestinationStocks(
+        Shipment $shipment,
+        ShipmentStockSnapshotService $stockSnapshotService,
+        ShipmentTransitStockDuplicationService $transitStockDuplicationService,
+        ?string $consigneeCode = null,
+    ): void {
+        $stockSnapshotService->snapshotShipmentStocks($shipment);
+
+        if (! $this->shouldDeferDestinationStockGenerationToTransit($shipment)) {
+            $transitStockDuplicationService->duplicateStocksForTransit(
+                $shipment,
+                $consigneeCode,
+                false
+            );
+        }
+
+        $shipment->update(['status' => 'Completed']);
+
+        $crrIds = $shipment->crrs()->pluck('crrs.id')->all();
+        if (!empty($crrIds)) {
+            $this->shipmentRepository->updateCrrStatuses($crrIds, [
+                'status' => Crr::STATUS_COMPLETED,
+            ]);
+        }
+    }
+
+    /**
+     * Destination stocks for office/hub/agent freight shipments are created only on Transit.
+     */
+    protected function shouldDeferDestinationStockGenerationToTransit(Shipment $shipment): bool
+    {
+        $consignee = strtolower(trim((string) ($shipment->consignee ?? '')));
+        $consigneeType = explode(':', $consignee, 2)[0] ?? '';
+
+        if (! in_array($consigneeType, ['office', 'hub', 'agent'], true)) {
+            return false;
+        }
+
+        return in_array((string) ($shipment->service ?? ''), [
+            'Courier',
+            'Airfreight',
+            'Sea freight',
+            'Truck',
+        ], true);
+    }
+
+    /**
+     * Finalize → Transit is only for freight services that may need destination copies.
+     * Release / Hand Carry / On-board delivery use Complete only.
+     */
+    protected function allowsFinalizeTransit(Shipment $shipment): bool
+    {
+        return ! in_array((string) ($shipment->service ?? ''), [
+            'Release',
+            'Hand Carry',
+            'On-board delivery',
+        ], true);
     }
 
     public function update(Request $request, $id, ShipmentPdfFingerprintService $fingerprintService, ShipmentChangeLogService $changeLogService)

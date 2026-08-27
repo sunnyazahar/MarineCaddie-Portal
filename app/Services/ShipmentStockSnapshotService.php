@@ -84,10 +84,20 @@ class ShipmentStockSnapshotService
                 ->sort()
                 ->values();
 
-            // Prefer frozen snapshot only when it still matches shipment_crr.
-            // If pivot was changed after complete, shipment_crr is the source of truth.
-            $snapshotMatchesPivot = $liveIds->isNotEmpty()
-                && $liveIds->values()->all() === $snapshotIds->values()->all();
+            // Prefer frozen snapshot only when it still matches shipment_crr by id AND stock_number.
+            // ID-only match is unsafe after DB resets / CRR id reuse / stock renames.
+            $snapshotMatchesPivot = false;
+            if ($liveIds->isNotEmpty() && $liveIds->values()->all() === $snapshotIds->values()->all()) {
+                $liveById = $shipment->crrs->keyBy(fn (Crr $crr) => (int) $crr->id);
+                $snapshotMatchesPivot = $shipment->stockSnapshots->every(function (ShipmentStockSnapshot $snapshot) use ($liveById) {
+                    $live = $liveById->get((int) $snapshot->original_crr_id);
+                    if (!$live) {
+                        return false;
+                    }
+
+                    return (string) $live->stock_number === (string) $snapshot->stock_number;
+                });
+            }
 
             if ($snapshotMatchesPivot || $liveIds->isEmpty()) {
                 $snapshots = $shipment->stockSnapshots

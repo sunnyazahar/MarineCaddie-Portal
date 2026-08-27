@@ -168,11 +168,13 @@ trait CreatesRegressionSchema
 
         Schema::create('crrs', function (Blueprint $table) {
             $table->id();
-            $table->string('stock_number')->unique();
+            $table->string('stock_number');
+            $table->unsignedBigInteger('duplicated_from_crr_id')->nullable()->index();
             $table->string('vessel_name')->nullable();
             $table->string('content')->default('Shipspares');
             $table->string('supplier')->nullable();
             $table->string('hub_agent')->nullable();
+            $table->string('hub_code')->nullable();
             $table->string('location')->nullable();
             $table->string('currency')->nullable();
             $table->decimal('customs_value', 12, 2)->nullable();
@@ -181,6 +183,8 @@ trait CreatesRegressionSchema
             $table->json('po_numbers')->nullable();
             $table->boolean('is_landed_goods')->default(false);
             $table->string('internal_shipment')->nullable();
+            $table->string('transit_type')->nullable();
+            $table->string('transit_id')->nullable();
             $table->string('priority')->nullable();
             $table->unsignedTinyInteger('status')->default(1);
             $table->json('flags')->nullable();
@@ -196,6 +200,7 @@ trait CreatesRegressionSchema
             $table->decimal('height', 10, 2)->nullable();
             $table->decimal('weight', 10, 2)->nullable();
             $table->decimal('cbm', 12, 4)->nullable();
+            $table->string('warehouse_location')->nullable();
             $table->boolean('is_dgr')->default(false);
             $table->timestamps();
         });
@@ -229,11 +234,63 @@ trait CreatesRegressionSchema
             $table->foreignId('crr_id');
         });
 
+        Schema::create('shipment_stock_snapshots', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id');
+            $table->string('shipment_number')->index();
+            $table->unsignedBigInteger('original_crr_id')->nullable()->index();
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->string('hub_code')->nullable();
+            $table->string('vessel_name')->nullable();
+            $table->json('po_numbers')->nullable();
+            $table->string('supplier')->nullable();
+            $table->string('stock_number')->nullable();
+            $table->unsignedInteger('pieces_count')->default(0);
+            $table->decimal('total_weight', 12, 2)->default(0);
+            $table->decimal('total_cbm', 12, 4)->default(0);
+            $table->decimal('customs_value', 15, 2)->nullable();
+            $table->string('currency')->nullable();
+            $table->string('status_label')->nullable();
+            $table->json('snapshot_data');
+            $table->timestamps();
+        });
+
+        Schema::create('crr_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('crr_id');
+            $table->string('file_name')->nullable();
+            $table->string('file_path')->nullable();
+            $table->string('file_type')->nullable();
+            $table->timestamps();
+        });
+
+        foreach (['shipment_flights', 'shipment_sea_legs', 'shipment_truck_legs', 'shipment_courier_legs'] as $legsTable) {
+            Schema::create($legsTable, function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('shipment_id');
+                $table->unsignedInteger('sort_order')->default(0);
+                $table->string('leg_reference')->nullable();
+                $table->string('bill_of_lading')->nullable();
+                $table->string('cmr')->nullable();
+                $table->string('airway_bill')->nullable();
+                $table->timestamps();
+            });
+        }
+
         Schema::create('shipment_irregularities', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shipment_id');
             $table->string('status')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('shipment_change_logs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id');
+            $table->foreignId('user_id')->nullable();
+            $table->string('title')->nullable();
+            $table->text('description')->nullable();
+            $table->timestamp('created_at')->nullable();
         });
 
         Schema::create('shipment_pre_alert_reminder_sends', function (Blueprint $table) {
@@ -281,9 +338,16 @@ trait CreatesRegressionSchema
             'user_hub_assignments',
             'user_office_assignments',
             'shipment_pre_alert_reminder_sends',
+            'shipment_change_logs',
             'shipment_irregularities',
+            'shipment_stock_snapshots',
+            'shipment_courier_legs',
+            'shipment_truck_legs',
+            'shipment_sea_legs',
+            'shipment_flights',
             'shipment_crr',
             'shipments',
+            'crr_documents',
             'crr_costs',
             'crr_packages',
             'crrs',

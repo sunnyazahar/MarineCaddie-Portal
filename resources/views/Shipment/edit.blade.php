@@ -590,6 +590,13 @@
         .header-inline-select {
             display: none;
             min-width: 150px;
+            position: relative;
+            z-index: 30;
+        }
+        /* Header status/flags Select2 is attached to body so it is not clipped by
+           .summary-header / .main-content-area overflow:hidden. */
+        body > .select2-container--open {
+            z-index: 10060 !important;
         }
         .header-actions {
             display: flex;
@@ -3306,7 +3313,15 @@
                                                             </div>
                                                             <div class="header-inline-select status-select-wrapper">
                                                                 <select class="select2-status-inline" name="header_status">
-                                                                    @foreach (['In process', 'In transit', 'Delivered', 'Completed', 'Cancelled'] as $statusOption)
+                                                                    @php
+                                                                        // Manual picker: create default is In transit. In process is legacy-only (shown if current).
+                                                                        $manualShipmentStatuses = ['In transit', 'Delivered', 'Completed', 'Cancelled'];
+                                                                        $headerStatusOptions = $manualShipmentStatuses;
+                                                                        if ($shipment->status && ! in_array($shipment->status, $manualShipmentStatuses, true)) {
+                                                                            array_unshift($headerStatusOptions, $shipment->status);
+                                                                        }
+                                                                    @endphp
+                                                                    @foreach ($headerStatusOptions as $statusOption)
                                                                         <option value="{{ $statusOption }}" {{ $shipment->status === $statusOption ? 'selected' : '' }}>{{ $statusOption }}</option>
                                                                     @endforeach
                                                                 </select>
@@ -4153,8 +4168,8 @@
                 <button type="button"
                     class="btn btn-premium btn-outline-custom btn-sm"
                     id="finalize-shipment-transit-btn"
-                    @disabled($shipment->status !== 'Completed')
-                    title="{{ $shipment->status !== 'Completed' ? 'Complete the shipment first' : '' }}">Transit</button>
+                    @disabled($shipment->status !== 'Completed' || empty($transitFinalizeAllowed) || !empty($transitDestinationStocksReady))
+                    title="{{ empty($transitFinalizeAllowed) ? 'Transit is not available for this service' : (!empty($transitDestinationStocksReady) ? 'Destination stocks already created' : ($shipment->status !== 'Completed' ? 'Complete the shipment first' : '')) }}">Transit</button>
             </div>
         </div>
     </div>
@@ -5876,6 +5891,7 @@
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     shipment_number: @json($shipment->shipment_number),
+                    consignee_code: $.trim($('#consignee-party-code').val()) || '',
                     action: 'complete'
                 },
                 headers: {
@@ -6177,18 +6193,20 @@
 
         function initHeaderSelect2($select, dropdownParent) {
             if ($select.hasClass('select2-hidden-accessible')) {
-                return;
+                // Re-bind if previously attached under a clipping parent.
+                $select.select2('destroy');
             }
 
             $select.select2({
                 width: '100%',
+                minimumResultsForSearch: Infinity,
                 dropdownParent: dropdownParent
             });
         }
 
         function initHeaderFlagsSelect2($select, dropdownParent) {
             if ($select.hasClass('select2-hidden-accessible')) {
-                return;
+                $select.select2('destroy');
             }
 
             $select.select2({
@@ -6206,7 +6224,8 @@
             $('#status-edit-container .status-select-wrapper').show();
 
             var $select = $('.select2-status-inline');
-            initHeaderSelect2($select, $('.main-content-area'));
+            // Body parent: correct under-field position + not clipped behind tabs.
+            initHeaderSelect2($select, $(document.body));
             $select.select2('open');
         });
 
@@ -6217,7 +6236,7 @@
             $('#flags-edit-container .flags-select-wrapper').show();
 
             var $select = $('.select2-flags-inline');
-            initHeaderFlagsSelect2($select, $('.main-content-area'));
+            initHeaderFlagsSelect2($select, $(document.body));
             $select.select2('open');
         });
 
@@ -6682,6 +6701,7 @@
 
         $('select[name="service"]').on('change', function() {
             toggleServiceDetailsPanel();
+            syncFinalizeChoiceButtonState();
         });
         toggleServiceDetailsPanel();
 
@@ -7263,17 +7283,32 @@
         function syncFinalizeChoiceButtonState() {
             var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
             var isCompleted = status === 'Completed';
+            var transitDestinationStocksReady = @json((bool) ($transitDestinationStocksReady ?? false));
+            var transitServiceAllowed = ['Release', 'Hand Carry', 'On-board delivery']
+                .indexOf(String($('select[name="service"]').val() || '')) === -1;
             var $completeBtn = $('#finalize-shipment-complete-btn');
             var $transitBtn = $('#finalize-shipment-transit-btn');
 
             $completeBtn.prop('disabled', isCompleted);
             $completeBtn.attr('title', isCompleted ? 'Shipment already completed' : '');
 
-            $transitBtn.prop('disabled', !isCompleted);
-            $transitBtn.attr('title', isCompleted ? '' : 'Complete the shipment first');
+            $transitBtn.prop('disabled', !isCompleted || !transitServiceAllowed || transitDestinationStocksReady);
+            $transitBtn.attr(
+                'title',
+                !transitServiceAllowed
+                    ? 'Transit is not available for this service'
+                    : (transitDestinationStocksReady
+                        ? 'Destination stocks already created'
+                        : (isCompleted ? '' : 'Complete the shipment first'))
+            );
         }
 
         function shouldPromptPendingTransit() {
+            var transitDestinationStocksReady = @json((bool) ($transitDestinationStocksReady ?? false));
+            if (transitDestinationStocksReady) {
+                return false;
+            }
+
             var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
             if (status !== 'Completed') {
                 return false;
@@ -7286,6 +7321,10 @@
             }
 
             var service = String($('select[name="service"]').val() || '');
+            if (['Release', 'Hand Carry', 'On-board delivery'].indexOf(service) !== -1) {
+                return false;
+            }
+
             return ['Courier', 'Airfreight', 'Sea freight', 'Truck'].indexOf(service) !== -1;
         }
 

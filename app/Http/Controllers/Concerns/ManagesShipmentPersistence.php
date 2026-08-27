@@ -17,7 +17,7 @@ trait ManagesShipmentPersistence
         $rules = [
             'departure' => 'nullable|string|max:255',
             'departure_port_code' => 'nullable|string|max:255',
-            'service' => 'nullable|string|max:255',
+            'service' => 'required|string|max:255',
             'additional_service' => 'nullable|string|max:255',
             'preferred_shipment_date' => 'nullable|string',
             'deadline_arrival' => 'nullable|string',
@@ -31,7 +31,7 @@ trait ManagesShipmentPersistence
             'consignee_district' => 'nullable|string|max:255',
             'consignee_zip' => 'nullable|string|max:255',
             'consignee_country' => 'nullable|string|max:255',
-            'consignee_port_code' => 'nullable|string|max:255',
+            'consignee_port_code' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
             'consignee_att' => 'required|string|max:255',
             'consignee_email' => 'nullable|email|max:255',
@@ -101,6 +101,8 @@ trait ManagesShipmentPersistence
 
         $validator = validator($request->all(), $rules, [], [
             'consignee_att' => 'contact person',
+            'service' => 'service',
+            'consignee_port_code' => 'consignee port code',
         ]);
 
         $validator->after(function ($validator) use ($request, $shipment) {
@@ -467,7 +469,7 @@ trait ManagesShipmentPersistence
             'skip_prealert' => $request->boolean('skip_prealert'),
             'project_logistics' => $request->boolean('project_logistics'),
             'port_agency' => $request->boolean('port_agency'),
-            'status' => $validated['status'] ?? $request->input('status', 'In process'),
+            'status' => $validated['status'] ?? $request->input('status', 'In transit'),
             'repacked_items' => array_key_exists('repacked_items', $validated)
                 ? ($validated['repacked_items'] !== null ? (int) $validated['repacked_items'] : null)
                 : null,

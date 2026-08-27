@@ -21,16 +21,49 @@ class ShipmentTransitStockDuplicationService
         private CrrDocumentRepositoryInterface $documents,
     ) {}
 
-    /**
-     * @return array<int, int> Map of original CRR id => duplicate CRR id
-     */
     public function resolveConsigneePartyCode(?string $party): ?string
     {
         return $this->resolveHubAgentFromShipmentParty($party);
     }
 
-    public function duplicateStocksForTransit(Shipment $shipment, ?string $consigneeCode = null): array
+    /**
+     * True when this shipment already has destination copies created FROM its
+     * currently linked stocks.
+     *
+     * Multi-leg safe: a linked stock that is itself a prior-leg duplicate
+     * (duplicated_from_crr_id set) does NOT count as "already transited".
+     */
+    public function hasDestinationStocksForShipment(Shipment $shipment): bool
     {
+        $linkedIds = $shipment->crrs()
+            ->pluck('crrs.id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->values()
+            ->all();
+
+        if ($linkedIds === []) {
+            return false;
+        }
+
+        return $this->transitStocks
+            ->existingDuplicates($linkedIds)
+            ->isNotEmpty();
+    }
+
+    /**
+     * Duplicate linked stocks for destination (Active copies with transit refs / hub_agent).
+     *
+     * @param  bool  $syncShipmentLinks  When true, replace shipment_crr with the duplicates.
+     *                                   When false (Complete / Transit finalize), keep completed
+     *                                   originals linked so the shipment still shows those stocks.
+     * @return array<int, int> Map of original CRR id => duplicate CRR id
+     */
+    public function duplicateStocksForTransit(
+        Shipment $shipment,
+        ?string $consigneeCode = null,
+        bool $syncShipmentLinks = true,
+    ): array {
         $shipment->loadMissing([
             'crrs.packages',
             'crrs.costs',
@@ -41,10 +74,13 @@ class ShipmentTransitStockDuplicationService
             'courierLegs',
         ]);
 
-        $shipmentNumber = $shipment->shipment_number;
-        $originalIds = $shipment->crrs->pluck('id')->all();
+        $originalIds = $shipment->crrs->pluck('id')->map(fn ($id) => (int) $id)->all();
 
-        $existingDuplicates = $this->transitStocks->existingDuplicates($originalIds, $shipmentNumber);
+        if ($originalIds === []) {
+            return [];
+        }
+
+        $existingDuplicates = $this->transitStocks->existingDuplicates($originalIds);
 
         $mapping = [];
 
@@ -55,21 +91,22 @@ class ShipmentTransitStockDuplicationService
                 continue;
             }
 
-            $duplicate = $this->duplicateCrr($original, $shipment, $shipmentNumber, $consigneeCode);
+            $duplicate = $this->duplicateCrr($original, $shipment, $consigneeCode);
             $mapping[$original->id] = $duplicate->id;
         }
 
-        if (!empty($mapping)) {
+        if ($syncShipmentLinks && $mapping !== []) {
             $shipment->crrs()->sync(array_values($mapping));
         }
 
         return $mapping;
     }
 
-    private function duplicateCrr(Crr $original, Shipment $shipment, string $shipmentNumber, ?string $consigneeCode = null): Crr
+    private function duplicateCrr(Crr $original, Shipment $shipment, ?string $consigneeCode = null): Crr
     {
-        $attributes = $original->only($original->getFillable());
-        $attributes['internal_shipment'] = $shipmentNumber;
+        $attributes = $this->duplicateableAttributes($original);
+        // Destination copies stay free of related shipment until the user attaches them later.
+        $attributes['internal_shipment'] = null;
         $attributes['duplicated_from_crr_id'] = $original->id;
         $attributes['status'] = Crr::STATUS_ACTIVE;
 
@@ -98,15 +135,14 @@ class ShipmentTransitStockDuplicationService
         $duplicate = $this->transitStocks->createCrr($attributes);
 
         foreach ($original->packages as $package) {
-            $packageAttributes = $package->only($package->getFillable());
-            $packageAttributes['warehouse_location'] = $shipmentNumber;
+            $packageAttributes = $this->duplicateableAttributes($package);
             $packageAttributes['crr_id'] = $duplicate->id;
 
             $this->transitStocks->createCrrPackage($packageAttributes);
         }
 
         foreach ($original->costs as $cost) {
-            $costAttributes = $cost->only($cost->getFillable());
+            $costAttributes = $this->duplicateableAttributes($cost);
             $costAttributes['crr_id'] = $duplicate->id;
 
             $this->transitStocks->createCrrCost($costAttributes);
@@ -117,6 +153,31 @@ class ShipmentTransitStockDuplicationService
         }
 
         return $duplicate;
+    }
+
+    /**
+     * Copy only fillable attributes that exist on the model's table.
+     *
+     * @return array<string, mixed>
+     */
+    private function duplicateableAttributes(object $model): array
+    {
+        if (! method_exists($model, 'getFillable') || ! method_exists($model, 'getTable') || ! method_exists($model, 'getAttribute')) {
+            return [];
+        }
+
+        $columns = array_flip(\Illuminate\Support\Facades\Schema::getColumnListing($model->getTable()));
+        $attributes = [];
+
+        foreach ($model->getFillable() as $field) {
+            if ($field === 'id' || ! isset($columns[$field])) {
+                continue;
+            }
+
+            $attributes[$field] = $model->getAttribute($field);
+        }
+
+        return $attributes;
     }
 
     /**

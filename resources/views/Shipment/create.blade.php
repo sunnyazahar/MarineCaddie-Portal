@@ -1163,7 +1163,7 @@
                                             <div class="card-block">
                                                 <form id="shipment-form" method="POST" action="{{ route('shipments.store') }}">
                                                     @csrf
-                                                    <input type="hidden" name="status" value="{{ old('status', 'In process') }}">
+                                                    <input type="hidden" name="status" value="{{ old('status', 'In transit') }}">
                                                     <div id="crr-ids-container"></div>
 
                                                     @if (session('success'))
@@ -1195,8 +1195,8 @@
                                                             class="form-control"
                                                         />
                                                         <div class="form-group col-md-6 mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Service</label>
-                                                            <select name="service" class="form-control select2">
+                                                            <label class="mb-0" style="font-size: 11px;">Service <span class="text-danger">*</span></label>
+                                                            <select name="service" class="form-control select2" required>
                                                                 <option></option>
                                                                 <option {{ old('service') === 'Courier' ? 'selected' : '' }}>Courier</option>
                                                                 <option {{ old('service') === 'Airfreight' ? 'selected' : '' }}>Airfreight</option>
@@ -1409,6 +1409,7 @@
                                                             wrapperClass="form-group mb-2"
                                                             labelClass="mb-0"
                                                             class="form-control"
+                                                            :required="true"
                                                         />
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Location</label>

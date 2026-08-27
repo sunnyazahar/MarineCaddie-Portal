@@ -20,7 +20,9 @@
 @endif
 
 @if ($label)
-    <label class="{{ $labelClass }}" for="{{ $fieldId }}">{{ $label }}</label>
+    <label class="{{ $labelClass }}" for="{{ $fieldId }}">
+        {{ $label }}@if ($required) <span class="text-danger">*</span>@endif
+    </label>
 @endif
 
 <select

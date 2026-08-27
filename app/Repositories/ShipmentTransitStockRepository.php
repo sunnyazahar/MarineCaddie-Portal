@@ -10,11 +10,11 @@ use Illuminate\Support\Collection;
 
 class ShipmentTransitStockRepository implements ShipmentTransitStockRepositoryInterface
 {
-    public function existingDuplicates(array $originalIds, string $shipmentNumber): Collection
+    public function existingDuplicates(array $originalIds): Collection
     {
         return Crr::query()
             ->whereIn('duplicated_from_crr_id', $originalIds)
-            ->where('internal_shipment', $shipmentNumber)
+            ->whereNotIn('id', $originalIds)
             ->get()
             ->keyBy('duplicated_from_crr_id');
     }

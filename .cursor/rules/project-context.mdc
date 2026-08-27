@@ -59,8 +59,19 @@ AJAX response must return: `{ html, pagination, total }`.
 ## Git Rules
 - **Bina user ke kehne push mat karo** — changes dikhao, push tab karo jab user bole
 
+## Shipment Finalize (Complete / Transit) — short rules
+Full detail: `PROJECT_STANDARDS.md` **§12a**.
+
+- Status picker: **In transit / Delivered / Completed / Cancelled** only (`In transit` = create default; `In process` not pickable)
+- Office/Hub/Agent + Courier/Airfreight/Sea freight/Truck → Complete does **not** create destination stocks; **Transit** creates them; shipment status stays **Completed**
+- Release / Hand Carry / On-board delivery → Finalize **Transit** button disabled (Complete only)
+- After Complete/Transit, shipment edit must keep showing **old completed stocks** (`syncShipmentLinks=false` — never replace `shipment_crr` with duplicates)
+- Pending Transit SweetAlert on edit open until destination copies exist FROM this shipment’s linked stocks (multi-leg: prior-leg duplicate linked stock must not block Transit)
+- Completed stock UI: snapshot only if id **and** stock_number match live pivot; else live `shipment_crr`
+
 ## Common mistakes to avoid
 - `table.rows.add($rows)` — DT 1.10 mein kaam nahi karta DOM nodes se
 - `hide_inactive` default `true` — saara data hide ho jata hai
 - `targets: [8]` array — DT 1.10 crash karta hai; use `targets: 8`
 - SweetAlert mein JS error silently alert ko stuck kar deta hai
+- Transit pe `shipment_crr` duplicates pe sync mat karo — completed originals dikhne chahiye
