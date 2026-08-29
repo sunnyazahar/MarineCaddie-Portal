@@ -70,7 +70,10 @@ class ShipmentManifestController extends BaseShipmentController
         $fingerprintService->prepareForFingerprint($shipment);
         $manifestCreated = false;
 
-        if ($fingerprintService->manifestFingerprint($shipment) !== $manifestFingerprintBefore) {
+        if (
+            $shipment->manifests->isEmpty()
+            || $fingerprintService->manifestFingerprint($shipment) !== $manifestFingerprintBefore
+        ) {
             try {
                 $manifest = $manifestService->generate($shipment);
                 $manifestCreated = $manifest !== null;
@@ -111,7 +114,7 @@ class ShipmentManifestController extends BaseShipmentController
         }
 
         $fingerprintService->prepareForFingerprint($shipment);
-        $preAlertFingerprintBefore = $fingerprintService->preAlertFingerprint($shipment);
+        $revisionFingerprintBefore = $fingerprintService->preAlertFingerprint($shipment);
 
         try {
             DB::transaction(function () use ($shipment, $request, $validated) {
@@ -165,8 +168,8 @@ class ShipmentManifestController extends BaseShipmentController
         $preAlertCreated = false;
 
         if (
-            $fingerprintService->preAlertFingerprint($shipment) !== $preAlertFingerprintBefore
-            || ! $shipment->preAlerts()->exists()
+            ! $shipment->preAlerts()->exists()
+            || $fingerprintService->preAlertFingerprint($shipment) !== $revisionFingerprintBefore
         ) {
             try {
                 $preAlert = $preAlertService->generate($shipment);

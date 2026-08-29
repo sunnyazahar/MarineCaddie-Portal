@@ -28,10 +28,11 @@ class CrrController extends Controller
         $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
 
         $crrs = $this->crrRepository->paginateIndex($request->all(), $perPage);
+        $hubInProgressShipmentInfo = Crr::hubInProgressShipmentInfoByHub();
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('Stock.partials.rows', compact('crrs'))->render(),
+                'html' => view('Stock.partials.rows', compact('crrs', 'hubInProgressShipmentInfo'))->render(),
                 'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $crrs])->render(),
                 'total' => $crrs->total(),
             ]);
@@ -39,7 +40,10 @@ class CrrController extends Controller
 
         $options = $this->crrRepository->indexFilterOptions();
 
-        return view('Stock.stocks', array_merge(['crrs' => $crrs], $options));
+        return view('Stock.stocks', array_merge([
+            'crrs' => $crrs,
+            'hubInProgressShipmentInfo' => $hubInProgressShipmentInfo,
+        ], $options));
     }
 
     public function store(Request $request, CrrChangeLogService $changeLogService)
@@ -695,7 +699,6 @@ class CrrController extends Controller
             $wasAccepted = (bool) $crr->accept;
             $crr->update([
                 'accept' => true,
-                'status' => Crr::STATUS_ACTIVE,
             ]);
 
             if (! $wasAccepted) {

@@ -27,6 +27,11 @@ Route::middleware('admin')->group(function () {
     Route::post('/users', [App\Http\Controllers\UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
     Route::post('/users/{user}/unblock', [App\Http\Controllers\UserController::class, 'unblock'])->name('users.unblock');
+
+    Route::get('/billing/invoicing', [App\Http\Controllers\BillingController::class, 'invoicing'])->name('billing.invoicing');
+    Route::get('/billing/invoicing/{proformaNo}/edit', [App\Http\Controllers\BillingController::class, 'editInvoice'])->name('billing.invoicing.edit');
+    Route::get('/billing/debit-notes', [App\Http\Controllers\BillingController::class, 'debitNotes'])->name('billing.debit-notes');
+    Route::get('/billing/credit-notes', [App\Http\Controllers\BillingController::class, 'creditNotes'])->name('billing.credit-notes');
 });
 Route::post('/customers', [App\Http\Controllers\CustomerController::class, 'store'])->name('customers.store');
 
@@ -103,10 +108,13 @@ Route::patch('/shipments/documents/{docId}/type', [App\Http\Controllers\Shipment
 Route::patch('/shipments/documents/{docId}/internal', [App\Http\Controllers\Shipments\ShipmentDocumentController::class, 'updateDocumentInternal'])->name('shipments.documents.update-internal');
 Route::put('/shipments/{id}', [App\Http\Controllers\ShipmentController::class, 'update'])->name('shipments.update');
 Route::post('/shipments/{id}/finalize', [App\Http\Controllers\ShipmentController::class, 'finalize'])->name('shipments.finalize');
+Route::post('/shipments/{id}/complete-pre-alert', [App\Http\Controllers\ShipmentController::class, 'completePreAlert'])->name('shipments.complete-pre-alert');
 Route::post('/shipments/{id}/mark-as-arrived', [App\Http\Controllers\ShipmentController::class, 'markAsArrived'])->name('shipments.mark-as-arrived');
 Route::post('/shipments/{id}/status', [App\Http\Controllers\ShipmentController::class, 'updateStatus'])->name('shipments.update-status');
 Route::post('/shipments/{id}/flags', [App\Http\Controllers\ShipmentController::class, 'updateFlags'])->name('shipments.update-flags');
 
+Route::get('/create-pre-alert', [App\Http\Controllers\ShipmentController::class, 'createPreAlert'])->name('create-pre-alert');
+Route::get('/transit', [App\Http\Controllers\ShipmentController::class, 'transit'])->name('transit');
 Route::get('/pre-alert-reminders', [App\Http\Controllers\ShipmentController::class, 'preAlertReminders'])->name('pre-alert-reminders');
 Route::get('/shipments/{id}/pre-alert-reminder-mail/preview', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'preAlertReminderMailPreview'])->name('shipments.pre-alert-reminder-mail.preview');
 Route::post('/shipments/{id}/pre-alert-reminder-mail/dispatch', [App\Http\Controllers\Shipments\ShipmentReminderController::class, 'sendPreAlertReminderMail'])->name('shipments.pre-alert-reminder-mail.dispatch');
@@ -325,6 +333,8 @@ Route::get('/api/ports', function (\Illuminate\Http\Request $request) {
 
     return response()->json(['results' => $ports]);
 })->name('api.ports');
+
+Route::get('/api/shipments', [App\Http\Controllers\ShipmentController::class, 'search'])->name('api.shipments');
 
 // API: combined parties search for Departure select2 (hubs, agents, customers)
 Route::get('/api/parties', function (\Illuminate\Http\Request $request) {

@@ -1,5 +1,7 @@
 @forelse($crrs as $crr)
                                                             @php
+                                                                $hubInProgressShipmentInfo = $hubInProgressShipmentInfo ?? collect();
+                                                                $shipmentColumn = $crr->stockListShipmentColumn($hubInProgressShipmentInfo);
                                                                 $status = $crr->status ?? 'Pending';
                                                                 $statusLabel = \App\Models\Crr::getStatusLabels()[$crr->status] ?? 'Unknown';
                                                                 $customerName = $crr->customerVessel?->customer?->customer_name ?? '';
@@ -79,7 +81,22 @@
                                                                 <td class="text-right">{{ $crr->customs_value ? number_format($crr->customs_value, 2) : '—' }}</td>
                                                                 <td title="{{ $crr->currency ?? '—' }}"><span class="cell-ellipsis">{{ $crr->currency ?? '—' }}</span></td>
                                                                 <td title="{{ $crr->transit_id ?? '—' }}"><span class="cell-ellipsis">{{ $crr->transit_id ?? '—' }}</span></td>
-                                                                <td title="{{ $crr->internal_shipment ?? '—' }}"><span class="cell-ellipsis">{{ $crr->internal_shipment ?? '—' }}</span></td>
+                                                                <td title="{{ $shipmentColumn['number'] !== '' ? $shipmentColumn['number'] : '—' }}">
+                                                                    @if ($shipmentColumn['inherited'] && $shipmentColumn['number'] !== '')
+                                                                        @if ($shipmentColumn['shipment_id'])
+                                                                            <a
+                                                                                href="{{ route('shipments.edit', $shipmentColumn['shipment_id']) }}"
+                                                                                class="shipment-badge"
+                                                                            >{{ $shipmentColumn['number'] }}</a>
+                                                                        @else
+                                                                            <span class="shipment-badge">{{ $shipmentColumn['number'] }}</span>
+                                                                        @endif
+                                                                    @elseif ($shipmentColumn['number'] !== '')
+                                                                        <span class="cell-ellipsis">{{ $shipmentColumn['number'] }}</span>
+                                                                    @else
+                                                                        <span class="cell-ellipsis">—</span>
+                                                                    @endif
+                                                                </td>
                                                                 <td>
                                                                     <span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span>
                                                                 </td>

@@ -75,8 +75,8 @@
                                                                 </td>
                                                                 <td title="{{ $crr->registeredBy?->name ?? '—' }}"><span class="cell-ellipsis">{{ $crr->registeredBy?->name ?? '—' }}</span></td>
                                                                 <td title="{{ $isEtl ? 'ETL' : ($crr->internal_shipment ?: '—') }}"><span class="cell-ellipsis">{{ $isEtl ? 'ETL' : ($crr->internal_shipment ?: '—') }}</span></td>
-                                                                <td><span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span></td>
-                                                                <td class="text-center">
+                                                                <td class="stock-status-cell"><span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span></td>
+                                                                <td class="text-center stock-action-cell">
                                                                     <button type="button"
                                                                         class="btn-accept accept-stock-btn"
                                                                         data-crr-id="{{ $crr->id }}"

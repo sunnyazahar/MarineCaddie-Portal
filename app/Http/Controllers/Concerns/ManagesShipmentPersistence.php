@@ -469,7 +469,7 @@ trait ManagesShipmentPersistence
             'skip_prealert' => $request->boolean('skip_prealert'),
             'project_logistics' => $request->boolean('project_logistics'),
             'port_agency' => $request->boolean('port_agency'),
-            'status' => $validated['status'] ?? $request->input('status', 'In transit'),
+            'status' => $validated['status'] ?? $request->input('status', 'In process'),
             'repacked_items' => array_key_exists('repacked_items', $validated)
                 ? ($validated['repacked_items'] !== null ? (int) $validated['repacked_items'] : null)
                 : null,
@@ -906,7 +906,21 @@ trait ManagesShipmentPersistence
         }
     }
 
+    protected function isCreatePreAlertReturn(Request $request): bool
+    {
+        return $request->input('return_to') === 'create-pre-alert';
+    }
+
     protected function generateShipmentNumber(): string
+    {
+        $prefix = $this->shipmentNumberUserPrefix();
+        $random = str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+        $monthYear = now()->format('my');
+
+        return $prefix . '-' . $random . '-' . $monthYear;
+    }
+
+    protected function shipmentNumberUserPrefix(): string
     {
         $userName = (string) (auth()->user()?->name ?? '');
         $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $userName) ?? '', 0, 3));
@@ -915,10 +929,7 @@ trait ManagesShipmentPersistence
             $prefix = str_pad($prefix, 3, 'X');
         }
 
-        $random = str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
-        $monthYear = now()->format('my');
-
-        return $prefix . '-' . $random . '-' . $monthYear;
+        return $prefix;
     }
 
     protected function irregularityHasData(array $irregularity): bool

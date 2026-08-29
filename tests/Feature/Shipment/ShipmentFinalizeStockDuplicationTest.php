@@ -237,7 +237,7 @@ class ShipmentFinalizeStockDuplicationTest extends RegressionTestCase
         );
     }
 
-    public function test_complete_still_creates_destination_stocks_for_non_deferred_service(): void
+    public function test_complete_does_not_create_destination_stocks_for_non_deferred_service(): void
     {
         $user = $this->createAdminUser();
 
@@ -267,35 +267,50 @@ class ShipmentFinalizeStockDuplicationTest extends RegressionTestCase
             'action' => 'complete',
         ])->assertOk();
 
-        $duplicate = Crr::query()
-            ->where('duplicated_from_crr_id', $original->id)
-            ->first();
-
-        $this->assertNotNull($duplicate);
-        $this->assertSame(Crr::STATUS_ACTIVE, (int) $duplicate->status);
-        $this->assertNull($duplicate->internal_shipment);
+        $this->assertSame(
+            0,
+            Crr::query()
+                ->where('duplicated_from_crr_id', $original->id)
+                ->count()
+        );
         $this->assertSame([(int) $original->id], $shipment->fresh()->crrs()->pluck('crrs.id')->map(fn ($id) => (int) $id)->all());
+        $this->assertSame(Crr::STATUS_COMPLETED, (int) $original->fresh()->status);
     }
 
-    public function test_transit_rejected_for_release_hand_carry_and_on_board(): void
+    public function test_transit_allows_release_hand_carry_and_on_board(): void
     {
         $user = $this->createAdminUser();
         $hub = Hub::create(['hub_name' => 'Amsterdam Hub', 'code' => 'AMS']);
 
         foreach (['Release', 'Hand Carry', 'On-board delivery'] as $index => $service) {
+            $original = Crr::create([
+                'stock_number' => 'AMS-NO-TRANSIT-' . $index,
+                'content' => 'Shipspares',
+                'status' => Crr::STATUS_IN_PROGRESS,
+                'accept' => false,
+            ]);
+
             $shipment = Shipment::create([
                 'shipment_number' => 'SHIP-NO-TRANSIT-' . $index,
-                'status' => 'Completed',
+                'status' => 'In process',
                 'service' => $service,
                 'consignee' => 'hub:' . $hub->id,
             ]);
+            $shipment->crrs()->attach($original->id);
 
             $this->actingAsVerified($user)->postJson(route('shipments.finalize', $shipment->id), [
                 'shipment_number' => $shipment->shipment_number,
                 'action' => 'transit',
-            ])->assertStatus(422)->assertJson([
-                'success' => false,
+            ])->assertOk()->assertJson([
+                'success' => true,
+                'status' => 'Completed',
             ]);
+
+            $this->assertNotNull(
+                Crr::query()
+                    ->where('duplicated_from_crr_id', $original->id)
+                    ->first()
+            );
         }
     }
 }

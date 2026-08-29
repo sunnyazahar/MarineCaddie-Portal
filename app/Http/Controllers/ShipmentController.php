@@ -51,6 +51,176 @@ class ShipmentController extends BaseShipmentController
         ], $options));
     }
 
+    public function createPreAlert(
+        Request $request,
+        ManifestMailService $manifestMailService,
+        PreAlertMailService $preAlertMailService,
+        CombinedPoPdfService $combinedPoPdfService,
+        ShipmentManifestService $manifestService,
+        ShipmentPreAlertService $preAlertService,
+        ShipmentStockSnapshotService $stockSnapshotService,
+        ShipmentTransitStockDuplicationService $transitStockDuplicationService
+    ) {
+        view()->share('createPreAlertMode', true);
+
+        $id = (int) $request->query('shipment', 0);
+        if ($id > 0 && Shipment::query()->whereKey($id)->exists()) {
+            return $this->edit(
+                $id,
+                $manifestMailService,
+                $preAlertMailService,
+                $combinedPoPdfService,
+                $manifestService,
+                $preAlertService,
+                $stockSnapshotService,
+                $transitStockDuplicationService
+            );
+        }
+
+        $lookup = trim((string) $request->query('q', ''));
+        if ($lookup !== '') {
+            $matched = $this->shipmentRepository->findByShipmentNumberLookup($lookup);
+            if ($matched) {
+                return redirect()->route('create-pre-alert', ['shipment' => $matched->id]);
+            }
+        }
+
+        $shipment = $this->makeBlankPreAlertShipment();
+        if ($lookup !== '') {
+            $shipment->shipment_number = $lookup;
+        }
+        $countries = CountryCache::active();
+        extract($this->shipmentRepository->shipmentEditReferenceData());
+        extract($this->irregularityFormOptions());
+
+        return view('Shipment.edit', [
+            'shipment' => $shipment,
+            'partyNames' => [],
+            'departureDisplay' => '',
+            'consigneeDisplay' => '',
+            'consigneeCode' => '',
+            'consigneePartyCodes' => $consigneePartyCodes,
+            'countries' => $countries,
+            'crrs' => $crrs,
+            'hubs' => $hubs,
+            'agents' => $agents,
+            'combinedPoDocuments' => collect(),
+            'shipmentDocumentTypeOptions' => ShipmentDocument::fileTypeOptionsWithCustom(),
+            'manifestMailPreview' => null,
+            'preAlertMailPreview' => null,
+            'irregularityTypeOptions' => $irregularityTypeOptions,
+            'partyResponsibleOptions' => $partyResponsibleOptions,
+            'consequenceOptions' => $consequenceOptions,
+            'statusOptions' => $statusOptions,
+            'transitDestinationStocksReady' => false,
+            'createPreAlertMode' => true,
+        ]);
+    }
+
+    public function transit(
+        Request $request,
+        ManifestMailService $manifestMailService,
+        PreAlertMailService $preAlertMailService,
+        CombinedPoPdfService $combinedPoPdfService,
+        ShipmentManifestService $manifestService,
+        ShipmentPreAlertService $preAlertService,
+        ShipmentStockSnapshotService $stockSnapshotService,
+        ShipmentTransitStockDuplicationService $transitStockDuplicationService
+    ) {
+        view()->share('transitMode', true);
+
+        $id = (int) $request->query('shipment', 0);
+        if ($id > 0 && Shipment::query()->whereKey($id)->exists()) {
+            return $this->edit(
+                $id,
+                $manifestMailService,
+                $preAlertMailService,
+                $combinedPoPdfService,
+                $manifestService,
+                $preAlertService,
+                $stockSnapshotService,
+                $transitStockDuplicationService
+            );
+        }
+
+        $lookup = trim((string) $request->query('q', ''));
+        if ($lookup !== '') {
+            $matched = $this->shipmentRepository->findByShipmentNumberLookup($lookup);
+            if ($matched) {
+                return redirect()->route('transit', ['shipment' => $matched->id]);
+            }
+        }
+
+        $shipment = $this->makeBlankPreAlertShipment();
+        if ($lookup !== '') {
+            $shipment->shipment_number = $lookup;
+        }
+        $countries = CountryCache::active();
+        extract($this->shipmentRepository->shipmentEditReferenceData());
+        extract($this->irregularityFormOptions());
+
+        return view('Shipment.edit', [
+            'shipment' => $shipment,
+            'partyNames' => [],
+            'departureDisplay' => '',
+            'consigneeDisplay' => '',
+            'consigneeCode' => '',
+            'consigneePartyCodes' => $consigneePartyCodes,
+            'countries' => $countries,
+            'crrs' => $crrs,
+            'hubs' => $hubs,
+            'agents' => $agents,
+            'combinedPoDocuments' => collect(),
+            'shipmentDocumentTypeOptions' => ShipmentDocument::fileTypeOptionsWithCustom(),
+            'manifestMailPreview' => null,
+            'preAlertMailPreview' => null,
+            'irregularityTypeOptions' => $irregularityTypeOptions,
+            'partyResponsibleOptions' => $partyResponsibleOptions,
+            'consequenceOptions' => $consequenceOptions,
+            'statusOptions' => $statusOptions,
+            'transitDestinationStocksReady' => false,
+            'transitMode' => true,
+        ]);
+    }
+
+    private function makeBlankPreAlertShipment(): Shipment
+    {
+        $shipment = new Shipment([
+            'shipment_number' => $this->shipmentNumberUserPrefix() . '-',
+            'status' => '',
+            'flags' => [],
+        ]);
+
+        foreach ([
+            'crrs', 'flights', 'seaLegs', 'truckLegs', 'courierLegs',
+            'releaseLegs', 'handCarryLegs', 'onBoardLegs', 'manifests',
+            'preAlerts', 'documents', 'irregularities', 'changeLogs',
+            'stockSnapshots',
+        ] as $relation) {
+            $shipment->setRelation($relation, collect());
+        }
+
+        $shipment->setRelation('creator', null);
+        $shipment->setRelation('accountManager', null);
+
+        return $shipment;
+    }
+
+    public function search(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+        $shipments = $this->shipmentRepository->searchByShipmentNumber($q);
+
+        return response()->json([
+            'results' => $shipments->map(function (Shipment $shipment) {
+                return [
+                    'id' => $shipment->id,
+                    'text' => $shipment->shipment_number,
+                ];
+            })->values(),
+        ]);
+    }
+
     public function preAlertReminders(Request $request)
     {
         $perPage = max(25, min(100, (int) $request->query('per_page', 50)));
@@ -170,7 +340,7 @@ class ShipmentController extends BaseShipmentController
         return response()->json(['data' => $data]);
     }
 
-    public function markAsArrived($id, ShipmentStockSnapshotService $stockSnapshotService, ShipmentTransitStockDuplicationService $transitStockDuplicationService)
+    public function markAsArrived($id, ShipmentStockSnapshotService $stockSnapshotService)
     {
         $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
@@ -190,12 +360,10 @@ class ShipmentController extends BaseShipmentController
             ], 422);
         }
 
-        DB::transaction(function () use ($shipment, $stockSnapshotService, $transitStockDuplicationService) {
+        DB::transaction(function () use ($shipment, $stockSnapshotService) {
             $this->completeShipmentWithDestinationStocks(
                 $shipment,
                 $stockSnapshotService,
-                $transitStockDuplicationService,
-                null
             );
         });
 
@@ -219,7 +387,7 @@ class ShipmentController extends BaseShipmentController
         $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         $validated = $request->validate([
-            // Create default is In transit; In process is not available as a manual status pick.
+            // Create default is In process; In process is not available as a manual status pick.
             'status' => ['required', Rule::in(['In transit', 'Delivered', 'Completed', 'Cancelled'])],
         ]);
 
@@ -230,7 +398,6 @@ class ShipmentController extends BaseShipmentController
             $previousStatus,
             $changeLogService,
             $stockSnapshotService,
-            $transitStockDuplicationService
         ) {
             if ($validated['status'] === 'Completed' && $previousStatus !== 'Completed') {
                 $shipment->loadMissing([
@@ -246,8 +413,6 @@ class ShipmentController extends BaseShipmentController
                 $this->completeShipmentWithDestinationStocks(
                     $shipment,
                     $stockSnapshotService,
-                    $transitStockDuplicationService,
-                    null
                 );
             } elseif ($validated['status'] === 'In transit' && $previousStatus !== 'In transit') {
                 $shipment->loadMissing([
@@ -493,7 +658,6 @@ class ShipmentController extends BaseShipmentController
 
         $consigneeCode = $transitStockDuplicationService->resolveConsigneePartyCode($shipment->consignee) ?? '';
         $transitDestinationStocksReady = $transitStockDuplicationService->hasDestinationStocksForShipment($shipment);
-        $transitFinalizeAllowed = $this->allowsFinalizeTransit($shipment);
 
         return view('Shipment.edit', compact(
             'shipment',
@@ -515,8 +679,70 @@ class ShipmentController extends BaseShipmentController
             'consequenceOptions',
             'statusOptions',
             'transitDestinationStocksReady',
-            'transitFinalizeAllowed'
         ));
+    }
+
+    public function completePreAlert(Request $request, $id, ShipmentChangeLogService $changeLogService)
+    {
+        $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['crrs', 'preAlerts']);
+
+        $validated = $request->validate([
+            'shipment_number' => 'required|string|max:255',
+        ]);
+
+        if ($validated['shipment_number'] !== $shipment->shipment_number) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Shipment number does not match.',
+            ], 422);
+        }
+
+        if (! $shipment->preAlerts()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Generate a pre-alert PDF before completing.',
+            ], 422);
+        }
+
+        if ($shipment->status !== 'In process') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pre-alert has already been completed for this shipment.',
+            ], 422);
+        }
+
+        $previousStatus = $shipment->status;
+
+        DB::transaction(function () use ($shipment) {
+            $shipment->update(['status' => 'In transit']);
+
+            $crrIds = $shipment->crrs()->pluck('crrs.id')->all();
+            if ($crrIds !== []) {
+                $this->shipmentRepository->updateCrrStatuses($crrIds, [
+                    'status' => Crr::STATUS_COMPLETED,
+                ]);
+            }
+        });
+
+        $shipment = $shipment->fresh('crrs');
+
+        if ($previousStatus !== 'In transit') {
+            $changeLogService->log(
+                $shipment,
+                'Pre-alert completed',
+                'Status changed from ' . ($previousStatus ?: 'empty') . ' to In transit'
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pre-alert completed. Shipment status is now In transit.',
+            'status' => $shipment->status,
+            'stocks' => $shipment->crrs->map(fn (Crr $crr) => [
+                'id' => $crr->id,
+                'status' => Crr::getStatusLabels()[$crr->status] ?? 'Completed',
+            ])->values(),
+        ]);
     }
 
     public function finalize(Request $request, $id, ShipmentStockSnapshotService $stockSnapshotService, ShipmentTransitStockDuplicationService $transitStockDuplicationService)
@@ -545,29 +771,11 @@ class ShipmentController extends BaseShipmentController
             ], 422);
         }
 
-        if ($validated['action'] === 'transit' && $shipment->status !== 'Completed') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Shipment must be completed before moving to transit.',
-            ], 422);
-        }
-
-        if ($validated['action'] === 'transit' && ! $this->allowsFinalizeTransit($shipment)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Transit is not available for Release, Hand Carry, or On-board delivery.',
-            ], 422);
-        }
-
         if ($validated['action'] === 'complete') {
-            $deferDestinationStocks = $this->shouldDeferDestinationStockGenerationToTransit($shipment);
-
-            DB::transaction(function () use ($shipment, $validated, $stockSnapshotService, $transitStockDuplicationService) {
+            DB::transaction(function () use ($shipment, $stockSnapshotService) {
                 $this->completeShipmentWithDestinationStocks(
                     $shipment,
                     $stockSnapshotService,
-                    $transitStockDuplicationService,
-                    $validated['consignee_code'] ?? null
                 );
             });
 
@@ -576,9 +784,7 @@ class ShipmentController extends BaseShipmentController
 
             return response()->json([
                 'success' => true,
-                'message' => $deferDestinationStocks
-                    ? 'Shipment and selected stocks completed successfully. Use Transit to generate destination stocks.'
-                    : 'Shipment and selected stocks completed successfully. Destination stocks created.',
+                'message' => 'Shipment and selected stocks completed successfully. Use Transit to generate destination stocks when needed.',
                 'status' => $shipment->status,
                 'stocks' => $shipment->crrs->map(fn (Crr $crr) => [
                     'id' => $crr->id,
@@ -613,26 +819,15 @@ class ShipmentController extends BaseShipmentController
     }
 
     /**
-     * Shared Complete path: snapshot → optional destination stock copies → Completed + source CRRs.
+     * Shared Complete path: snapshot → Completed + source CRRs (no destination stock copies).
      *
-     * Office/Hub/Agent + Courier/Airfreight/Sea freight/Truck: stock copies are deferred to Transit only.
-     * Other consignee/service combinations still generate on Complete (without syncing shipment links).
+     * Destination stock duplicates are created only on Finalize → Transit (or manual In transit status).
      */
     protected function completeShipmentWithDestinationStocks(
         Shipment $shipment,
         ShipmentStockSnapshotService $stockSnapshotService,
-        ShipmentTransitStockDuplicationService $transitStockDuplicationService,
-        ?string $consigneeCode = null,
     ): void {
         $stockSnapshotService->snapshotShipmentStocks($shipment);
-
-        if (! $this->shouldDeferDestinationStockGenerationToTransit($shipment)) {
-            $transitStockDuplicationService->duplicateStocksForTransit(
-                $shipment,
-                $consigneeCode,
-                false
-            );
-        }
 
         $shipment->update(['status' => 'Completed']);
 
@@ -642,39 +837,6 @@ class ShipmentController extends BaseShipmentController
                 'status' => Crr::STATUS_COMPLETED,
             ]);
         }
-    }
-
-    /**
-     * Destination stocks for office/hub/agent freight shipments are created only on Transit.
-     */
-    protected function shouldDeferDestinationStockGenerationToTransit(Shipment $shipment): bool
-    {
-        $consignee = strtolower(trim((string) ($shipment->consignee ?? '')));
-        $consigneeType = explode(':', $consignee, 2)[0] ?? '';
-
-        if (! in_array($consigneeType, ['office', 'hub', 'agent'], true)) {
-            return false;
-        }
-
-        return in_array((string) ($shipment->service ?? ''), [
-            'Courier',
-            'Airfreight',
-            'Sea freight',
-            'Truck',
-        ], true);
-    }
-
-    /**
-     * Finalize → Transit is only for freight services that may need destination copies.
-     * Release / Hand Carry / On-board delivery use Complete only.
-     */
-    protected function allowsFinalizeTransit(Shipment $shipment): bool
-    {
-        return ! in_array((string) ($shipment->service ?? ''), [
-            'Release',
-            'Hand Carry',
-            'On-board delivery',
-        ], true);
     }
 
     public function update(Request $request, $id, ShipmentPdfFingerprintService $fingerprintService, ShipmentChangeLogService $changeLogService)
@@ -700,7 +862,6 @@ class ShipmentController extends BaseShipmentController
         $fingerprintService->prepareForFingerprint($shipment);
         $manifestFingerprintBefore = $fingerprintService->manifestFingerprint($shipment);
         $preAlertFingerprintBefore = $fingerprintService->preAlertFingerprint($shipment);
-        $serviceDetailsFingerprintBefore = $fingerprintService->serviceDetailsFingerprint($shipment);
         $previousCrrIds = $shipment->crrs->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
 
         DB::beginTransaction();
@@ -790,14 +951,10 @@ class ShipmentController extends BaseShipmentController
             }
         }
 
-        if (
-            \App\Services\ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails($freshShipment)
-            && (
-                $stocksChanged
-                || $fingerprintService->preAlertFingerprint($freshShipment) !== $preAlertFingerprintBefore
-                || $fingerprintService->serviceDetailsFingerprint($freshShipment) !== $serviceDetailsFingerprintBefore
-            )
-        ) {
+        $shouldGeneratePreAlert = \App\Services\ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails($freshShipment)
+            && $fingerprintService->preAlertFingerprint($freshShipment) !== $preAlertFingerprintBefore;
+
+        if ($shouldGeneratePreAlert) {
             try {
                 $preAlert = app(ShipmentPreAlertService::class)->generate($freshShipment);
                 if ($preAlert) {
@@ -822,7 +979,20 @@ class ShipmentController extends BaseShipmentController
                 'message' => $message,
                 'manifest_mail_pending' => $freshShipment->needsManifestMailSend(),
                 'pre_alert_mail_pending' => $freshShipment->needsPreAlertMailSend(),
+                'has_pre_alert_pdf' => $freshShipment->preAlerts()->exists(),
             ]);
+        }
+
+        if ($request->input('return_to') === 'create-pre-alert') {
+            return redirect()
+                ->route('create-pre-alert', ['shipment' => $shipment->id])
+                ->with('success', $message);
+        }
+
+        if ($request->input('return_to') === 'transit') {
+            return redirect()
+                ->route('transit', ['shipment' => $shipment->id])
+                ->with('success', $message);
         }
 
         return redirect()

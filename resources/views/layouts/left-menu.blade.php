@@ -44,37 +44,51 @@
             </li>
         </ul>
         <ul class="pcoded-item pcoded-left-item">
-            <li class="pcoded-hasmenu {{ request()->routeIs('shipments', 'shipments.edit', 'pre-alert-reminders', 'shipment-follow-up', 'cost-follow-up', 'create-shipment') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="shipments">
+            <li class="pcoded-hasmenu {{ request()->routeIs('shipments', 'shipments.edit', 'pre-alert-reminders', 'shipment-follow-up', 'cost-follow-up', 'create-shipment', 'create-pre-alert', 'transit') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="shipments">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="icofont icofont-ship" style="font-size: 20px;"></i></span>
                     <span class="pcoded-mtext">Shipments</span>
                 </a>
                 <ul class="pcoded-submenu">
-                    <li class="{{ request()->routeIs('shipments', 'shipments.edit') ? 'active' : '' }}">
+                    <li class="{{ request()->routeIs('shipments') ? 'active' : '' }}">
                         <a href="{{route('shipments')}}">
                             <span class="pcoded-mtext">All shipments</span>
                         </a>
                     </li>
-                    <li class="{{ request()->routeIs('pre-alert-reminders') ? 'active' : '' }}">
+                <li class="{{ request()->routeIs('create-shipment') ? 'active' : '' }}">
+                        <a href="{{route('create-shipment')}}">
+                            <span class="pcoded-mtext">Create shipment</span>
+                        </a>
+                 </li>
+                 <li class="{{ request()->routeIs('create-pre-alert') ? 'active' : '' }}">
+                        <a href="{{ route('create-pre-alert') }}">
+                            <span class="pcoded-mtext">Create pre alert</span>
+                        </a>
+                    </li>
+
+                    <li class="{{ request()->routeIs('transit') ? 'active' : '' }}">
+                        <a href="{{ route('transit') }}">
+                            <span class="pcoded-mtext">Transit</span>
+                        </a>
+                    </li>
+                 <li class="{{ request()->routeIs('pre-alert-reminders') ? 'active' : '' }}">
                         <a href="{{route('pre-alert-reminders')}}">
                             <span class="pcoded-mtext">Shipment follow up</span>
                         </a>
                     </li>
+
                     <li class="{{ request()->routeIs('shipment-follow-up') ? 'active' : '' }}">
                         <a href="{{route('shipment-follow-up')}}">
                             <span class="pcoded-mtext">Delivery follow-up</span>
                         </a>
                     </li>
+
                     <li class="{{ request()->routeIs('cost-follow-up') ? 'active' : '' }}">
                         <a href="{{route('cost-follow-up')}}">
                             <span class="pcoded-mtext">Cost follow-up</span>
                         </a>
                     </li>
-                    <li class="{{ request()->routeIs('create-shipment') ? 'active' : '' }}">
-                        <a href="{{route('create-shipment')}}">
-                            <span class="pcoded-mtext">Create shipment</span>
-                        </a>
-                    </li>
+                   
                 </ul>
             </li>
             
@@ -151,6 +165,29 @@
                 </ul>
             </li>
             @if(auth()->user()?->isAdmin())
+            <li class="pcoded-hasmenu {{ request()->routeIs('billing.*') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="billing">
+                <a href="javascript:void(0)">
+                    <span class="pcoded-micon"><i class="feather icon-file-text"></i></span>
+                    <span class="pcoded-mtext">Billing</span>
+                </a>
+                <ul class="pcoded-submenu">
+                    <li class="{{ request()->routeIs('billing.invoicing') ? 'active' : '' }}">
+                        <a href="{{ route('billing.invoicing') }}">
+                            <span class="pcoded-mtext">Invoicing</span>
+                        </a>
+                    </li>
+                    <li class="{{ request()->routeIs('billing.debit-notes') ? 'active' : '' }}">
+                        <a href="{{ route('billing.debit-notes') }}">
+                            <span class="pcoded-mtext">Debit note</span>
+                        </a>
+                    </li>
+                    <li class="{{ request()->routeIs('billing.credit-notes') ? 'active' : '' }}">
+                        <a href="{{ route('billing.credit-notes') }}">
+                            <span class="pcoded-mtext">Credit note</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
             <li class="pcoded-hasmenu {{ request()->routeIs('users.*') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="users">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="feather icon-users"></i></span>

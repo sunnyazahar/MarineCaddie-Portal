@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\JsonArrayCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 
 class Crr extends Model
 {
@@ -187,6 +188,96 @@ class Crr extends Model
             ->first();
 
         return $linked ? (string) $linked : null;
+    }
+
+    /**
+     * Stock list UI: per hub code, In Progress stock shipment info (display only).
+     *
+     * @return Collection<string, array{number: string, shipment_id: int|null}>
+     */
+    public static function hubInProgressShipmentInfoByHub(): Collection
+    {
+        $inProgress = static::query()
+            ->with(['shipments' => fn ($query) => $query->select('shipments.id', 'shipments.shipment_number')])
+            ->where('status', self::STATUS_IN_PROGRESS)
+            ->whereNotNull('internal_shipment')
+            ->where('internal_shipment', '!=', '')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy(fn (self $crr) => (string) $crr->hub_code);
+
+        $infoByHub = $inProgress->map(function (Collection $group) {
+            $crr = $group->first();
+            $number = trim((string) $crr->internal_shipment);
+
+            return [
+                'number' => $number,
+                'shipment_id' => $crr->shipments->first()?->id,
+            ];
+        });
+
+        $numbersMissingId = $infoByHub
+            ->filter(fn (array $info) => empty($info['shipment_id']) && $info['number'] !== '')
+            ->pluck('number')
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($numbersMissingId === []) {
+            return $infoByHub;
+        }
+
+        $shipmentIdByNumber = Shipment::query()
+            ->whereIn('shipment_number', $numbersMissingId)
+            ->pluck('id', 'shipment_number');
+
+        return $infoByHub->map(function (array $info) use ($shipmentIdByNumber) {
+            if (empty($info['shipment_id']) && $info['number'] !== '') {
+                $info['shipment_id'] = $shipmentIdByNumber->get($info['number']);
+            }
+
+            return $info;
+        });
+    }
+
+    /**
+     * Stock list shipment column — inherits hub In Progress shipment for New / Stock rows (not saved).
+     *
+     * @return array{number: string, inherited: bool, shipment_id: int|null}
+     */
+    public function stockListShipmentColumn(Collection $hubInProgressShipmentInfo): array
+    {
+        $empty = ['number' => '', 'inherited' => false, 'shipment_id' => null];
+
+        $own = trim((string) ($this->internal_shipment ?? ''));
+        if ($own !== '') {
+            return ['number' => $own, 'inherited' => false, 'shipment_id' => null];
+        }
+
+        if (! in_array((int) $this->status, [self::STATUS_NEW, self::STATUS_ACTIVE], true)) {
+            return $empty;
+        }
+
+        $hubKey = (string) $this->hub_code;
+        if ($hubKey === '') {
+            return $empty;
+        }
+
+        $info = $hubInProgressShipmentInfo->get($hubKey);
+        if (! is_array($info)) {
+            $info = ['number' => trim((string) $info), 'shipment_id' => null];
+        }
+
+        $number = trim((string) ($info['number'] ?? ''));
+        if ($number === '') {
+            return $empty;
+        }
+
+        return [
+            'number' => $number,
+            'inherited' => true,
+            'shipment_id' => $info['shipment_id'] ?? null,
+        ];
     }
 
     public function registeredBy(): BelongsTo

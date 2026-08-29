@@ -88,6 +88,10 @@ class Shipment extends Model
 
     public function latestManifest(): ?ShipmentManifest
     {
+        if (! $this->exists) {
+            return null;
+        }
+
         if ($this->relationLoaded('manifests') && $this->manifests->isNotEmpty()) {
             return $this->manifests
                 ->sort(fn ($a, $b) => [(int) $b->version, (int) $b->id] <=> [(int) $a->version, (int) $a->id])
@@ -115,6 +119,10 @@ class Shipment extends Model
 
     public function latestPreAlert(): ?ShipmentPreAlert
     {
+        if (! $this->exists) {
+            return null;
+        }
+
         // reorder() clears the relationship's ASC version order so DESC actually wins.
         return $this->preAlerts()
             ->reorder()

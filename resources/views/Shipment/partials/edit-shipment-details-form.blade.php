@@ -1,4 +1,5 @@
 @php
+    $workflowEditMode = ($createPreAlertMode ?? false) || ($transitMode ?? false);
     $stockCount = $shipment->crrs->count();
     $totalPackages = $shipment->crrs->sum(fn ($crr) => $crr->packages->count());
     $totalWeight = $shipment->crrs->sum(fn ($crr) => $crr->packages->sum('weight'));
@@ -36,7 +37,7 @@
 
 <div class="form-grid-3 cs-pillars">
     <div class="form-col">
-        <div class="cs-pillar">
+        <div class="cs-pillar{{ $workflowEditMode ? ' cs-pillar--locked' : '' }}">
         <div class="cs-pillar__title">Departure</div>
         <div class="form-group-custom">
             <label>Departure</label>
@@ -219,7 +220,7 @@
     <div class="form-col">
         <div class="cs-pillar">
         <div class="cs-pillar__title">Account &amp; comments</div>
-        <div class="form-group-custom">
+        <div class="form-group-custom{{ $workflowEditMode ? ' cs-field--locked' : '' }}">
             <label>Special considerations for destination</label>
             <textarea name="special_considerations_destination" class="form-control" style="height: 120px;">{{ old('special_considerations_destination', $shipment->special_considerations_destination) }}</textarea>
             <div class="checkbox-fade fade-in-primary mt-1">
@@ -230,7 +231,7 @@
                 </label>
             </div>
         </div>
-        <div class="form-group-custom">
+        <div class="form-group-custom{{ $workflowEditMode ? ' cs-field--locked' : '' }}">
             <label>Comments to departure hub</label>
             <textarea name="comments_departure_hub" id="comments_departure_hub" class="form-control" style="height: 120px;">{{ old('comments_departure_hub', $shipment->comments_departure_hub) }}</textarea>
             <div class="checkbox-fade fade-in-primary mt-1">
@@ -277,12 +278,15 @@
 </div>
 
 <div class="stock-items-wrapper cs-section-shell">
+    @php
+        $lockServiceDetailsForInProcess = ($shipment->status === 'In process') && ! $workflowEditMode;
+    @endphp
     <div class="stock-tabs">
         <div class="stock-tab active" data-panel="stock-panel-items">
             <span class="stock-tab__label">Stock items</span>
             <span class="stock-tab__count" data-stock-tab-count>{{ $stockCount }}</span>
         </div>
-        <div class="stock-tab" data-panel="stock-panel-service">
+        <div class="stock-tab{{ $lockServiceDetailsForInProcess ? ' stock-tab--disabled' : '' }}" data-panel="stock-panel-service" @if($lockServiceDetailsForInProcess) title="Service details not available. Please create pre alert." @endif>
             <span class="stock-tab__label">Service details</span>
         </div>
         <div class="stock-tab" data-panel="stock-panel-irregularities">
@@ -368,7 +372,7 @@
         </div>
     </div>
 
-    <div id="stock-panel-service" class="stock-panel">
+    <div id="stock-panel-service" class="stock-panel{{ $lockServiceDetailsForInProcess ? ' stock-panel--locked' : '' }}">
         <div id="service-details-placeholder" class="text-center">Select a service type to enter service details.</div>
         <div id="service-details-airfreight" class="p-3" style="display: none;">
             <div id="airfreight-flights-container">
@@ -460,7 +464,7 @@
                         inputmode="numeric"
                         autocomplete="off"
                         value="{{ old('repacked_items', $shipment->repacked_items) }}"
-                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif
+                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true) || $lockServiceDetailsForInProcess) disabled @endif
                     >
                 </div>
                 <div class="stock-repacked-field">
@@ -473,7 +477,7 @@
                         inputmode="decimal"
                         autocomplete="off"
                         value="{{ old('repacked_weight', $shipment->repacked_weight !== null ? number_format((float) $shipment->repacked_weight, 2, '.', '') : '') }}"
-                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif
+                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true) || $lockServiceDetailsForInProcess) disabled @endif
                     >
                 </div>
             </div>

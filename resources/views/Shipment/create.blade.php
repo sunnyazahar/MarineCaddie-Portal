@@ -1163,7 +1163,7 @@
                                             <div class="card-block">
                                                 <form id="shipment-form" method="POST" action="{{ route('shipments.store') }}">
                                                     @csrf
-                                                    <input type="hidden" name="status" value="{{ old('status', 'In transit') }}">
+                                                    <input type="hidden" name="status" value="{{ old('status', 'In process') }}">
                                                     <div id="crr-ids-container"></div>
 
                                                     @if (session('success'))

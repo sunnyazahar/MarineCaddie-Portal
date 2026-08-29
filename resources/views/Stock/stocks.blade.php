@@ -203,12 +203,21 @@
             border: 1px solid #ffeeba;
         }
         .shipment-badge {
-            background-color: #ffeeba;
+            background-color: #f7f776;
             color: #333;
             padding: 2px 8px;
             border-radius: 2px;
             font-size: 10px;
             font-weight: 600;
+        }
+        .stocks-table-area a.shipment-badge {
+            text-decoration: none;
+            display: inline-block;
+            max-width: 100%;
+        }
+        .stocks-table-area a.shipment-badge:hover {
+            color: #008080;
+            text-decoration: underline;
         }
         .icon-doc-blue {
             color: #4682b4;

@@ -8,6 +8,7 @@ use App\Services\PreAlertMailService;
 use App\Services\ShipmentChangeLogService;
 use App\Services\ShipmentMailDispatchService;
 use App\Services\ShipmentManifestService;
+use App\Services\ShipmentPdfFingerprintService;
 use App\Services\ShipmentPreAlertService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -85,7 +86,7 @@ class ShipmentMailController extends BaseShipmentController
         ]);
     }
 
-    public function prepareManifestMail(Request $request, $id, ManifestMailService $manifestMailService, CombinedPoPdfService $combinedPoPdfService, ShipmentManifestService $manifestService)
+    public function prepareManifestMail(Request $request, $id, ManifestMailService $manifestMailService, CombinedPoPdfService $combinedPoPdfService, ShipmentManifestService $manifestService, ShipmentPdfFingerprintService $fingerprintService)
     {
         $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['manifests', 'documents', 'crrs']);
         $this->normalizeManifestGenerationRequest($request);
@@ -99,6 +100,9 @@ class ShipmentMailController extends BaseShipmentController
                 'errors' => $e->errors(),
             ], 422);
         }
+
+        $fingerprintService->prepareForFingerprint($shipment);
+        $manifestFingerprintBefore = $fingerprintService->manifestFingerprint($shipment);
 
         try {
             DB::transaction(function () use ($shipment, $request, $validated) {
@@ -119,15 +123,10 @@ class ShipmentMailController extends BaseShipmentController
             ], 500);
         }
 
-        $shipment = $shipment->fresh([
-            'crrs.packages',
-            'crrs.documents',
-            'crrs.customerVessel.customer',
-            'accountManager.office',
-            'creator',
-            'documents',
-            'manifests',
-        ]);
+        $shipment = $shipment->fresh(array_merge(
+            $fingerprintService->relations(),
+            ['documents', 'manifests']
+        ));
 
         if ($shipment->crrs->isEmpty()) {
             return response()->json([
@@ -137,7 +136,11 @@ class ShipmentMailController extends BaseShipmentController
         }
 
         try {
-            if ($shipment->manifests->isEmpty()) {
+            $fingerprintService->prepareForFingerprint($shipment);
+            if (
+                $shipment->manifests->isEmpty()
+                || $fingerprintService->manifestFingerprint($shipment) !== $manifestFingerprintBefore
+            ) {
                 $manifestService->generate($shipment);
                 $shipment->load('manifests');
             }
@@ -340,8 +343,8 @@ class ShipmentMailController extends BaseShipmentController
         try {
             $fingerprintService->prepareForFingerprint($shipment);
             if (
-                $fingerprintService->preAlertFingerprint($shipment) !== $preAlertFingerprintBefore
-                || ! $shipment->preAlerts()->exists()
+                ! $shipment->preAlerts()->exists()
+                || $fingerprintService->preAlertFingerprint($shipment) !== $preAlertFingerprintBefore
             ) {
                 $preAlertService->generate($shipment);
                 $shipment->load('preAlerts');

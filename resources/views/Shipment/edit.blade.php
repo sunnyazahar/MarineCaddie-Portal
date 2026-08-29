@@ -117,11 +117,20 @@
         .main-content-area {
             flex: 1 1 auto;
             min-width: 0;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             padding: 0 12px;
             padding-bottom: 0px;
+        }
+
+        #workflow-page-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         /* Summary Header */
@@ -363,11 +372,18 @@
             }
 
             .header-actions > .shipment-manifest-action > .btn-premium,
-            .header-actions > #send-prealert-btn {
+            .header-actions > #send-prealert-btn,
+            .header-actions > #complete-prealert-btn {
                 width: 100%;
             }
 
             .header-actions > #finalize-shipment-btn {
+                flex: 1 1 100%;
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .header-actions > #complete-prealert-btn {
                 flex: 1 1 100%;
                 max-width: 100%;
                 width: 100%;
@@ -547,6 +563,31 @@
             font-weight: 800 !important;
             letter-spacing: 0.02em;
         }
+        .meta-item-shipment-select {
+            min-width: 240px;
+            max-width: 280px;
+        }
+        .meta-item-shipment-select .pre-alert-shipment-input {
+            height: 34px;
+            min-height: 34px;
+            width: 100%;
+            border: 1px solid #d6e3ee;
+            border-radius: 8px;
+            background: #fff;
+            padding: 0 10px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #0e1d4a;
+        }
+        .meta-item-shipment-select .pre-alert-shipment-input::placeholder {
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        .meta-item-shipment-select .pre-alert-shipment-input:focus {
+            outline: none;
+            border-color: #0088c7;
+            box-shadow: 0 0 0 3px rgba(0, 136, 199, 0.12);
+        }
         .meta-value-with-icon {
             display: inline-flex;
             align-items: center;
@@ -580,6 +621,14 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        .header-inline-edit--locked .header-inline-display {
+            pointer-events: none;
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+        .workflow-page-body--hidden {
+            display: none !important;
         }
         .header-inline-display {
             display: flex;
@@ -683,7 +732,7 @@
             box-shadow: none;
         }
 
-        /* Footer — in-flow under form (avoids fixed+transform containing-block bugs) */
+        /* Footer — pinned to bottom of main column (form scrolls above) */
         .edit-footer {
             padding: 12px 28px;
             background: rgba(255, 255, 255, 0.98);
@@ -695,11 +744,16 @@
             position: relative;
             flex-shrink: 0;
             width: 100%;
+            margin-top: auto;
             left: auto;
             right: auto;
             bottom: auto;
             z-index: 5;
             box-shadow: 0 -8px 24px rgba(14, 29, 74, 0.06);
+        }
+
+        .main-content-area > .edit-footer {
+            margin-top: auto;
         }
 
         .edit-footer .btn-save-custom {
@@ -763,6 +817,45 @@
             overflow: visible !important;
             position: relative;
             z-index: 1;
+        }
+        .form-grid-3 .cs-pillar--locked {
+            pointer-events: none;
+            background: linear-gradient(180deg, #f4f7fa 0%, #f8fafc 48%);
+            opacity: 0.78;
+        }
+        .form-grid-3 .cs-pillar--locked::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.28);
+            cursor: not-allowed;
+            z-index: 8;
+            pointer-events: auto;
+        }
+        .form-grid-3 .cs-pillar--locked .select2-container,
+        .form-grid-3 .cs-pillar--locked .form-control-sm-custom,
+        .form-grid-3 .cs-pillar--locked .datepicker {
+            background-color: #eef2f6 !important;
+        }
+        .form-grid-3 .cs-field--locked {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.78;
+        }
+        .form-grid-3 .cs-field--locked::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.28);
+            cursor: not-allowed;
+            z-index: 8;
+            pointer-events: auto;
+        }
+        .form-grid-3 .cs-field--locked textarea,
+        .form-grid-3 .cs-field--locked .form-control {
+            background-color: #eef2f6 !important;
         }
         .form-grid-3 .cs-pillar__title {
             display: flex;
@@ -921,6 +1014,30 @@
             background: linear-gradient(145deg, #00aeef 0%, #008080 100%);
             border-color: transparent;
             color: #fff;
+        }
+        .stock-tab.stock-tab--disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        #stock-panel-service.stock-panel--locked {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.78;
+        }
+        #stock-panel-service.stock-panel--locked::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 0 0 14px 14px;
+            background: rgba(255, 255, 255, 0.28);
+            cursor: not-allowed;
+            z-index: 8;
+            pointer-events: auto;
+        }
+        #stock-panel-service.stock-panel--locked .form-control,
+        #stock-panel-service.stock-panel--locked .form-control-sm-custom,
+        #stock-panel-service.stock-panel--locked .stock-repacked-input {
+            background-color: #eef2f6 !important;
         }
         .stock-panel {
             display: none;
@@ -1776,7 +1893,8 @@
             background: #f0faff;
         }
         #send-manifest-btn.send-manifest-pending,
-        #send-prealert-btn.send-prealert-pending {
+        #send-prealert-btn.send-prealert-pending,
+        #complete-prealert-btn.complete-prealert-pending {
             position: relative;
             z-index: 1;
             background: linear-gradient(135deg, #0d9488 0%, #0f766e 55%, #115e59 100%) !important;
@@ -1790,7 +1908,8 @@
             transform-origin: center;
         }
         #send-manifest-btn.send-manifest-pending::before,
-        #send-prealert-btn.send-prealert-pending::before {
+        #send-prealert-btn.send-prealert-pending::before,
+        #complete-prealert-btn.complete-prealert-pending::before {
             content: '';
             position: absolute;
             inset: 0;
@@ -1808,7 +1927,8 @@
             pointer-events: none;
         }
         #send-manifest-btn.send-manifest-pending::after,
-        #send-prealert-btn.send-prealert-pending::after {
+        #send-prealert-btn.send-prealert-pending::after,
+        #complete-prealert-btn.complete-prealert-pending::after {
             content: '';
             position: absolute;
             inset: -5px;
@@ -1820,13 +1940,15 @@
             z-index: -1;
         }
         #send-manifest-btn.send-manifest-pending:hover,
-        #send-prealert-btn.send-prealert-pending:hover {
+        #send-prealert-btn.send-prealert-pending:hover,
+        #complete-prealert-btn.complete-prealert-pending:hover {
             background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
             border-color: rgba(255, 255, 255, 0.7) !important;
             color: #fff !important;
         }
         #send-manifest-btn:disabled,
-        #send-prealert-btn:disabled {
+        #send-prealert-btn:disabled,
+        #complete-prealert-btn:disabled {
             opacity: 0.55;
             cursor: not-allowed;
             box-shadow: none;
@@ -1835,8 +1957,10 @@
         }
         #send-manifest-btn:disabled::before,
         #send-prealert-btn:disabled::before,
+        #complete-prealert-btn:disabled::before,
         #send-manifest-btn:disabled::after,
-        #send-prealert-btn:disabled::after {
+        #send-prealert-btn:disabled::after,
+        #complete-prealert-btn:disabled::after {
             display: none;
         }
         @keyframes send-mail-btn-pulse {
@@ -3244,6 +3368,15 @@
 <!-- Pre-loader end -->
 
 @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
+                                    @php
+                                        $createPreAlertMode = $createPreAlertMode ?? false;
+                                        $transitMode = $transitMode ?? false;
+                                        $workflowEditMode = $createPreAlertMode || $transitMode;
+                                        $workflowPageUrl = $createPreAlertMode ? route('create-pre-alert') : ($transitMode ? route('transit') : '');
+                                        $workflowReturnTo = $createPreAlertMode ? 'create-pre-alert' : ($transitMode ? 'transit' : '');
+                                        $shipmentRouteId = (int) ($shipment->getKey() ?? 0);
+                                        $workflowAwaitingShipment = $workflowEditMode && $shipmentRouteId <= 0;
+                                    @endphp
                                     <div class="master-container">
                                         <!-- Main Content Area -->
                                         <div class="main-content-area">
@@ -3255,9 +3388,19 @@
                                                         <i class="icofont icofont-ship"></i>
                                                     </span>
                                                     <div class="header-meta-group">
-                                                    <div class="meta-item">
+                                                    <div class="meta-item{{ $workflowEditMode ? ' meta-item-shipment-select' : '' }}">
                                                         <span class="meta-label">Shipment no</span>
-                                                        <span class="meta-value meta-value-shipment">{{ $shipment->shipment_number }}</span>
+                                                        @if ($workflowEditMode)
+                                                            <input type="text"
+                                                                id="pre-alert-shipment-input"
+                                                                name="pre_alert_shipment_no"
+                                                                class="form-control-sm-custom pre-alert-shipment-input"
+                                                                value="{{ $shipment->shipment_number }}"
+                                                                placeholder="Shipment no"
+                                                                autocomplete="off">
+                                                        @else
+                                                            <span class="meta-value meta-value-shipment">{{ $shipment->shipment_number }}</span>
+                                                        @endif
                                                     </div>
                                                     <div class="meta-item">
                                                         <span class="meta-label">Creation date</span>
@@ -3274,15 +3417,16 @@
                                                         <span class="meta-label">Account manager</span>
                                                         <span class="meta-value text-primary">{{ $shipment->accountManager?->name ?? '—' }}</span>
                                                     </div>
+                                                    @php
+                                                        $shipmentFlags = array_values(array_intersect(
+                                                            $shipment->flags ?? \App\Models\Shipment::defaultFlags(),
+                                                            \App\Models\Shipment::availableFlags()
+                                                        ));
+                                                        $selectedShipmentFlag = $shipmentFlags[0] ?? null;
+                                                    @endphp
+                                                    @unless ($workflowEditMode)
                                                     <div class="meta-item">
                                                         <span class="meta-label">Flags</span>
-                                                        @php
-                                                            $shipmentFlags = array_values(array_intersect(
-                                                                $shipment->flags ?? \App\Models\Shipment::defaultFlags(),
-                                                                \App\Models\Shipment::availableFlags()
-                                                            ));
-                                                            $selectedShipmentFlag = $shipmentFlags[0] ?? null;
-                                                        @endphp
                                                         <div class="header-inline-edit" id="flags-edit-container">
                                                             <div class="header-inline-display flags-display">
                                                                 <div class="flags-pills" style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap;">
@@ -3304,17 +3448,22 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    @endunless
                                                     <div class="meta-item">
                                                         <span class="meta-label">Status</span>
-                                                        <div class="header-inline-edit" id="status-edit-container">
+                                                        <div class="header-inline-edit{{ $workflowAwaitingShipment ? ' header-inline-edit--locked' : '' }}" id="status-edit-container">
                                                             <div class="header-inline-display status-display">
-                                                                <span class="status-badge {{ $shipment->statusBadgeClass() }}">{{ $shipment->status }}</span>
+                                                                @if ($shipment->status)
+                                                                    <span class="status-badge {{ $shipment->statusBadgeClass() }}">{{ $shipment->status }}</span>
+                                                                @else
+                                                                    <span class="text-muted" style="font-size: 11px; font-weight: 500;">—</span>
+                                                                @endif
                                                                 <i class="ti-pencil-alt" style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
                                                             </div>
                                                             <div class="header-inline-select status-select-wrapper">
                                                                 <select class="select2-status-inline" name="header_status">
                                                                     @php
-                                                                        // Manual picker: create default is In transit. In process is legacy-only (shown if current).
+                                                                        // Manual picker: In process is create default (legacy-only in picker if current).
                                                                         $manualShipmentStatuses = ['In transit', 'Delivered', 'Completed', 'Cancelled'];
                                                                         $headerStatusOptions = $manualShipmentStatuses;
                                                                         if ($shipment->status && ! in_array($shipment->status, $manualShipmentStatuses, true)) {
@@ -3334,16 +3483,19 @@
                                                     @php
                                                         $manifestMailPending = $shipment->needsManifestMailSend();
                                                         $preAlertMailPending = $shipment->needsPreAlertMailSend();
+                                                        $hasPreAlertPdf = $shipmentRouteId > 0 && $shipment->preAlerts->isNotEmpty();
+                                                        $canCompletePreAlert = $hasPreAlertPdf && $shipment->status === 'In process';
                                                     @endphp
                                                     @php
                                                         $latestManifest = $shipment->latestManifest();
                                                         $manifestRevision = ($latestManifest && $latestManifest->version >= 2) ? ($latestManifest->version - 1) : null;
                                                     @endphp
+                                                    @unless ($workflowEditMode)
                                                     <div class="shipment-manifest-action">
                                                         <button type="button"
                                                             id="send-manifest-btn"
                                                             class="btn btn-premium btn-outline-custom{{ $manifestMailPending ? ' send-manifest-pending' : '' }}"
-                                                            data-eml-url="{{ route('shipments.manifest-mail', $shipment->id) }}"
+                                                            data-eml-url="{{ route('shipments.manifest-mail', $shipmentRouteId) }}"
                                                             data-eml-filename="manifest-mail-{{ $shipment->shipment_number }}.eml"
                                                             data-manifest-mail-pending="{{ $manifestMailPending ? '1' : '0' }}"
                                                             @disabled(! $manifestMailPending)
@@ -3352,13 +3504,28 @@
                                                             <span class="manifest-rev-badge">MI Rev - {{ $manifestRevision }}</span>
                                                         @endif
                                                     </div>
+                                                    @endunless
+                                                    @if ($transitMode)
+                                                    <button type="button"
+                                                        id="finalize-shipment-btn"
+                                                        class="btn btn-premium btn-outline-custom"
+                                                        @disabled($workflowAwaitingShipment || !empty($transitDestinationStocksReady))
+                                                        title="{{ $workflowAwaitingShipment ? 'Load a shipment first' : (!empty($transitDestinationStocksReady) ? 'Destination stocks already created' : '') }}">Transit</button>
+                                                    @else
                                                     <button type="button"
                                                         id="send-prealert-btn"
                                                         class="btn btn-premium btn-outline-custom{{ $preAlertMailPending ? ' send-prealert-pending' : '' }}"
                                                         data-pre-alert-mail-pending="{{ $preAlertMailPending ? '1' : '0' }}"
-                                                        @disabled(! $preAlertMailPending)
-                                                        title="{{ $preAlertMailPending ? 'New pre-alert ready — send email' : 'Send pre-alert after a new pre-alert is generated' }}">Send pre-alert</button>
-                                                    <button type="button" id="finalize-shipment-btn" class="btn btn-premium btn-outline-custom">Finalize shipment</button>
+                                                        @disabled($workflowAwaitingShipment || ! $preAlertMailPending)
+                                                        title="{{ $workflowAwaitingShipment ? 'Load a shipment first' : ($preAlertMailPending ? 'New pre-alert ready — send email' : 'Send pre-alert after a new pre-alert is generated') }}">Send pre-alert</button>
+                                                    <button type="button"
+                                                        id="complete-prealert-btn"
+                                                        class="btn btn-premium btn-outline-custom"
+                                                        data-has-pre-alert-pdf="{{ $hasPreAlertPdf ? '1' : '0' }}"
+                                                        data-pre-alert-completed="{{ $canCompletePreAlert ? '0' : ($hasPreAlertPdf ? '1' : '0') }}"
+                                                        @disabled($workflowAwaitingShipment || ! $canCompletePreAlert)
+                                                        title="{{ $workflowAwaitingShipment ? 'Load a shipment first' : (! $hasPreAlertPdf ? 'Generate a pre-alert PDF before completing' : ($canCompletePreAlert ? 'Complete pre-alert and set shipment to In transit' : 'Pre-alert already completed')) }}">Complete Pre alert</button>
+                                                    @endif
                                                     <div class="dropdown-more-container d-none">
                                                         <button type="button" class="btn btn-premium btn-teal" id="btn-more-actions"><i class="ti-more-alt"></i></button>
                                                         <div class="dropdown-more-menu" id="more-actions-menu">
@@ -3374,6 +3541,7 @@
                                                 </div>
                                             </div>
 
+                                            <div id="workflow-page-body" class="{{ $workflowAwaitingShipment ? 'workflow-page-body--hidden' : '' }}">
                                             <!-- Navigation Tabs -->
                                             <div class="custom-nav-tabs">
                                                 <div class="nav-tab-item active" data-target="shipment-details">Shipment details</div>
@@ -3388,9 +3556,12 @@
                                             <div class="form-scroller">
                                                 <!-- Shipment Details Tab -->
                                                 <div id="tab-shipment-details" class="tab-panel active">
-                                                <form id="shipment-edit-form" method="POST" action="{{ route('shipments.update', $shipment->id) }}" data-mc-skip-save-state>
+                                                <form id="shipment-edit-form" method="POST" action="{{ $shipmentRouteId ? route('shipments.update', $shipmentRouteId) : url()->current() }}" data-mc-skip-save-state>
                                                     @csrf
                                                     @method('PUT')
+                                                    @if ($workflowReturnTo)
+                                                        <input type="hidden" name="return_to" value="{{ $workflowReturnTo }}">
+                                                    @endif
                                                     <input type="hidden" name="account_manager" value="{{ $shipment->account_manager_id }}">
                                                     <div id="crr-ids-container">
                                                         @foreach ($shipment->crrs as $crr)
@@ -3894,6 +4065,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            </div>{{-- #workflow-page-body --}}
 
                                             <div class="edit-footer">
                                                 <button type="submit" form="shipment-edit-form" id="shipment-save-changes-btn" class="btn-save-custom" disabled>Save changes</button>
@@ -3902,7 +4074,7 @@
                                         </div>
 
                                         <!-- Right Sidebar -->
-                                        <div class="shipment-right-panel">
+                                        <div class="shipment-right-panel{{ $workflowAwaitingShipment ? ' workflow-page-body--hidden' : '' }}">
                                             <div class="sidebar-section">
                                                 <div class="sidebar-title">Customers details</div>
                                                 @php
@@ -3965,7 +4137,7 @@
                                                             <div class="doc-main">
                                                                 <a href="#"
                                                                    class="doc-name po-document-link"
-                                                                   data-pdf-url="{{ route('shipments.manifests.show', [$shipment->id, $manifest->id]) }}"
+                                                                   data-pdf-url="{{ route('shipments.manifests.show', [$shipmentRouteId, $manifest->id]) }}"
                                                                    data-title="{{ $manifest->displayLabel() }}">
                                                                     {{ ucfirst($manifest->displayLabel()) }}
                                                                 </a>
@@ -3992,7 +4164,7 @@
                                                             <div class="doc-main">
                                                                 <a href="#"
                                                                    class="doc-name po-document-link"
-                                                                   data-pdf-url="{{ route('shipments.pre-alerts.show', [$shipment->id, $preAlert->id]) }}"
+                                                                   data-pdf-url="{{ route('shipments.pre-alerts.show', [$shipmentRouteId, $preAlert->id]) }}"
                                                                    data-title="{{ $preAlert->displayLabel() }}">
                                                                     {{ ucfirst($preAlert->displayLabel()) }}
                                                                 </a>
@@ -4058,7 +4230,7 @@
                                                             <div class="doc-main">
                                                                 <a href="#"
                                                                    class="doc-name po-document-link"
-                                                                   data-pdf-url="{{ route('shipments.combined-po-documents', $shipment->id) }}"
+                                                                   data-pdf-url="{{ route('shipments.combined-po-documents', $shipmentRouteId) }}"
                                                                    data-title="Combined PO documents">
                                                                     Combined PO documents
                                                                 </a>
@@ -4168,8 +4340,8 @@
                 <button type="button"
                     class="btn btn-premium btn-outline-custom btn-sm"
                     id="finalize-shipment-transit-btn"
-                    @disabled($shipment->status !== 'Completed' || empty($transitFinalizeAllowed) || !empty($transitDestinationStocksReady))
-                    title="{{ empty($transitFinalizeAllowed) ? 'Transit is not available for this service' : (!empty($transitDestinationStocksReady) ? 'Destination stocks already created' : ($shipment->status !== 'Completed' ? 'Complete the shipment first' : '')) }}">Transit</button>
+                    @disabled(!empty($transitDestinationStocksReady))
+                    title="{{ !empty($transitDestinationStocksReady) ? 'Destination stocks already created' : '' }}">Transit</button>
             </div>
         </div>
     </div>
@@ -4339,6 +4511,11 @@
                     $shipmentEditFooter.appendTo('body');
                 }
             } else if (!$shipmentEditFooter.parent().is($shipmentEditMain)) {
+                $shipmentEditMain.append($shipmentEditFooter);
+            }
+
+            // Keep footer last in the column so margin-top: auto pins it to the bottom.
+            if ($shipmentEditFooter.parent().is($shipmentEditMain)) {
                 $shipmentEditMain.append($shipmentEditFooter);
             }
 
@@ -4575,21 +4752,23 @@
 
         var manifestMailPreview = @json($manifestMailPreview);
         var preAlertMailPreview = @json($preAlertMailPreview ?? null);
-        var manifestPrepareUrl = @json(route('shipments.manifest-mail.prepare', $shipment->id));
+        var manifestPrepareUrl = @json(route('shipments.manifest-mail.prepare', $shipmentRouteId));
         var manifestMailPending = @json((bool) $shipment->needsManifestMailSend());
         var preAlertMailPending = @json((bool) $shipment->needsPreAlertMailSend());
         var shipmentComposeSender = @json([
             'name' => auth()->user()?->name,
             'email' => auth()->user()?->email,
         ]);
-        var preAlertPrepareUrl = @json(route('shipments.pre-alert-mail.prepare', $shipment->id));
-        var manifestDeleteUrlTemplate = @json(route('shipments.manifests.delete', [$shipment->id, '__MANIFEST__']));
-        var preAlertDeleteUrlTemplate = @json(route('shipments.pre-alerts.delete', [$shipment->id, '__PREALERT__']));
-        var finalizeShipmentUrl = @json(route('shipments.finalize', $shipment->id));
+        var preAlertPrepareUrl = @json(route('shipments.pre-alert-mail.prepare', $shipmentRouteId));
+        var manifestDeleteUrlTemplate = @json(route('shipments.manifests.delete', [$shipmentRouteId, '__MANIFEST__']));
+        var preAlertDeleteUrlTemplate = @json(route('shipments.pre-alerts.delete', [$shipmentRouteId, '__PREALERT__']));
+        var finalizeShipmentUrl = @json(route('shipments.finalize', $shipmentRouteId));
+        var completePreAlertUrl = @json(route('shipments.complete-pre-alert', $shipmentRouteId));
         var shipmentsListUrl = @json(route('shipments'));
         var combinedPoDocumentCount = {{ $combinedPoDocuments->count() > 0 ? 1 : 0 }};
         var uploadedDocumentCount = {{ $shipment->documents->count() }};
         var preAlertDocumentCount = {{ $shipment->preAlerts->count() }};
+        var hasPreAlertPdf = @json((bool) ($hasPreAlertPdf ?? ($shipmentRouteId > 0 && $shipment->preAlerts->isNotEmpty())));
 
         function setManifestMailPendingState(isPending) {
             manifestMailPending = !!isPending;
@@ -4615,20 +4794,238 @@
             setManifestMailPendingState(manifestMailPending);
         }
 
-        function setPreAlertMailPendingState(isPending) {
-            preAlertMailPending = !!isPending;
-            var $btn = $('#send-prealert-btn');
-            if (!$btn.length) {
+        function syncCompletePreAlertButtonState() {
+            var $completeBtn = $('#complete-prealert-btn');
+            if (!$completeBtn.length) {
                 return;
             }
 
-            $btn
-                .toggleClass('send-prealert-pending', preAlertMailPending)
-                .attr('data-pre-alert-mail-pending', preAlertMailPending ? '1' : '0')
-                .prop('disabled', !preAlertMailPending)
-                .attr('title', preAlertMailPending
-                    ? 'New pre-alert ready — send email'
-                    : 'Send pre-alert after a new pre-alert is generated');
+            if ($completeBtn.text().trim() === 'Completing...') {
+                return;
+            }
+
+            hasPreAlertPdf = preAlertDocumentCount > 0 || $('.shipment-prealert-doc').length > 0;
+            var shipmentLoaded = @json((int) $shipmentRouteId) > 0;
+            var workflowAwaitingShipment = @json((bool) ($workflowAwaitingShipment ?? false));
+            var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
+            var isInProcess = status === 'In process';
+            var canComplete = hasPreAlertPdf && isInProcess;
+            var disabled = workflowAwaitingShipment || !shipmentLoaded || !canComplete;
+
+            $completeBtn
+                .prop('disabled', disabled)
+                .attr('data-has-pre-alert-pdf', hasPreAlertPdf ? '1' : '0')
+                .attr('data-pre-alert-completed', canComplete ? '0' : (hasPreAlertPdf ? '1' : '0'))
+                .attr('title', workflowAwaitingShipment || !shipmentLoaded
+                    ? 'Load a shipment first'
+                    : (!hasPreAlertPdf
+                        ? 'Generate a pre-alert PDF before completing'
+                        : (!isInProcess
+                            ? 'Pre-alert already completed'
+                            : 'Complete pre-alert and set shipment to In transit')));
+        }
+
+        function applyShipmentFinalizeCompleteResponse(response) {
+            var nextStatus = (response && response.status) || 'In transit';
+
+            $('.header-meta-group .status-badge')
+                .removeClass('stock-status-new stock-status-stock shipment-status-in-transit stock-status-in-progress stock-status-pending stock-status-cancelled stock-status-completed stock-status-archived stock-status-unknown')
+                .addClass('stock-status-badge ' + stockStatusBadgeClass(nextStatus))
+                .text(nextStatus);
+            $('.select2-status-inline').val(nextStatus).trigger('change.select2');
+            $('#shipment-current-status').val(nextStatus);
+
+            ((response && response.stocks) || []).forEach(function(stock) {
+                var $row = $('#stock-items-table tbody tr.selected-stock-row[data-crr-id="' + stock.id + '"]');
+                if (!$row.length) {
+                    return;
+                }
+
+                $row.find('td').eq(9).html(
+                    '<span class="stock-status-badge ' + stockStatusBadgeClass(stock.status) + '">' + stock.status + '</span>'
+                );
+
+                $('#stock-items-modal-table tbody tr[data-id="' + stock.id + '"]').remove();
+            });
+
+            syncAddStockItemsButtonState();
+            syncFinalizeChoiceButtonState();
+            syncCompletePreAlertButtonState();
+            syncServiceDetailsTabLock();
+        }
+
+        function isShipmentStatusInProcess() {
+            var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
+            return status === 'In process';
+        }
+
+        function shouldLockServiceDetailsTab() {
+            return isShipmentStatusInProcess() && !@json((bool) ($workflowEditMode ?? false));
+        }
+
+        function syncServiceDetailsTabLock() {
+            var locked = shouldLockServiceDetailsTab();
+            var $tab = $('.stock-tab[data-panel="stock-panel-service"]');
+            var $panel = $('#stock-panel-service');
+
+            $tab
+                .toggleClass('stock-tab--disabled', locked)
+                .attr('title', locked ? 'Service details not available. Please create pre alert.' : '');
+
+            $panel.toggleClass('stock-panel--locked', locked);
+
+            if (locked && $tab.hasClass('active')) {
+                activateStockPanel('stock-panel-items');
+            }
+
+            if ($panel.length) {
+                $panel.find('select').each(function() {
+                    if (locked) {
+                        $(this).on('select2:opening.serviceDetailsLock', function(e) {
+                            e.preventDefault();
+                        });
+                    } else {
+                        $(this).off('select2:opening.serviceDetailsLock');
+                    }
+                });
+            }
+
+            syncAddStockItemsButtonState();
+        }
+
+        function shouldPromptTransitAfterPreAlertComplete() {
+            if (!@json((bool) ($createPreAlertMode ?? false))) {
+                return false;
+            }
+
+            if (@json((bool) ($transitDestinationStocksReady ?? false))) {
+                return false;
+            }
+
+            return @json((int) $shipmentRouteId) > 0;
+        }
+
+        function promptTransitAfterPreAlertComplete() {
+            if (!shouldPromptTransitAfterPreAlertComplete()) {
+                return;
+            }
+
+            var message = 'Pre-alert completed. Transit is still pending for destination.';
+            var transitPageUrl = @json(route('transit', ['shipment' => $shipmentRouteId > 0 ? $shipmentRouteId : 0]));
+
+            if (typeof swal === 'function') {
+                swal({
+                    title: 'Transit required',
+                    text: message,
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Transit now',
+                    cancelButtonText: 'Later',
+                    closeOnConfirm: true
+                }, function(isConfirm) {
+                    if (!isConfirm || !transitPageUrl) {
+                        return;
+                    }
+
+                    if (typeof window.shipmentEditMarkAllowLeave === 'function') {
+                        window.shipmentEditMarkAllowLeave();
+                    }
+                    window.location.href = transitPageUrl;
+                });
+            } else if (window.confirm(message + ' Open Transit page now?')) {
+                if (typeof window.shipmentEditMarkAllowLeave === 'function') {
+                    window.shipmentEditMarkAllowLeave();
+                }
+                window.location.href = transitPageUrl;
+            }
+        }
+
+        function submitCompletePreAlert($triggerBtn) {
+            var $btn = $triggerBtn && $triggerBtn.length ? $triggerBtn : $('#complete-prealert-btn');
+            if (!$btn.length || $btn.prop('disabled')) {
+                return;
+            }
+
+            var originalText = $btn.text();
+            $btn.prop('disabled', true).text('Completing...');
+
+            $.ajax({
+                url: completePreAlertUrl,
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    shipment_number: @json($shipment->shipment_number)
+                },
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+                .done(function(response) {
+                    if (!response || !response.success) {
+                        if (typeof swal === 'function') {
+                            swal({
+                                title: 'Could not complete',
+                                text: (response && response.message) || 'Could not complete shipment.',
+                                type: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        } else {
+                            alert((response && response.message) || 'Could not complete shipment.');
+                        }
+                        $btn.prop('disabled', false).text(originalText);
+                        syncCompletePreAlertButtonState();
+                        return;
+                    }
+
+                    applyShipmentFinalizeCompleteResponse(response);
+                    $btn.text(originalText);
+
+                    if (@json((bool) ($createPreAlertMode ?? false))) {
+                        promptTransitAfterPreAlertComplete();
+                    } else if (typeof swal === 'function') {
+                        swal({
+                            title: 'Completed',
+                            text: response.message || 'Pre-alert completed. Shipment status is now In transit.',
+                            type: 'success',
+                            timer: 3000
+                        });
+                    }
+                })
+                .fail(function(xhr) {
+                    var message = 'Could not complete shipment.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+
+                    if (typeof swal === 'function') {
+                        swal({
+                            title: 'Could not complete',
+                            text: message,
+                            type: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        alert(message);
+                    }
+
+                    $btn.prop('disabled', false).text(originalText);
+                    syncCompletePreAlertButtonState();
+                });
+        }
+
+        function setPreAlertMailPendingState(isPending) {
+            preAlertMailPending = !!isPending;
+            var $btn = $('#send-prealert-btn');
+            if ($btn.length) {
+                $btn
+                    .toggleClass('send-prealert-pending', preAlertMailPending)
+                    .attr('data-pre-alert-mail-pending', preAlertMailPending ? '1' : '0')
+                    .prop('disabled', !preAlertMailPending)
+                    .attr('title', preAlertMailPending
+                        ? 'New pre-alert ready — send email'
+                        : 'Send pre-alert after a new pre-alert is generated');
+            }
         }
 
         function restoreSendPreAlertButton(originalText) {
@@ -4720,6 +5117,7 @@
                 if (response && typeof response.pre_alert_mail_pending !== 'undefined') {
                     setPreAlertMailPendingState(!!response.pre_alert_mail_pending);
                 }
+                syncCompletePreAlertButtonState();
                 prependShipmentChangeLog(response && response.change_log);
             });
         });
@@ -4729,12 +5127,12 @@
             $manifestCoreAttachmentSources = [];
             if ($latestManifest) {
                 $manifestCoreAttachmentSources[] = [
-                    'url' => route('shipments.manifests.show', [$shipment->id, $latestManifest->id]),
+                    'url' => route('shipments.manifests.show', [$shipmentRouteId, $latestManifest->id]),
                     'filename' => str_replace(' ', '-', $latestManifest->displayLabel()) . '-' . $shipment->shipment_number . '.pdf',
                 ];
             } elseif ($shipment->crrs->isNotEmpty()) {
                 $manifestCoreAttachmentSources[] = [
-                    'url' => route('shipments.combined-manifest-documents', $shipment->id),
+                    'url' => route('shipments.combined-manifest-documents', $shipmentRouteId),
                     'filename' => 'manifest-' . $shipment->shipment_number . '.pdf',
                 ];
             }
@@ -4812,7 +5210,7 @@
                 if (!hasCombined) {
                     list.push({
                         key: 'combined_po',
-                        url: @json(route('shipments.combined-po-documents', $shipment->id)),
+                        url: @json(route('shipments.combined-po-documents', $shipmentRouteId)),
                         filename: @json('combined-po-documents-' . $shipment->shipment_number . '.pdf')
                     });
                 }
@@ -5728,6 +6126,21 @@
                 });
         });
 
+        function showServiceDetailsUnavailableAlert() {
+            var text = 'Service details not available. Please create pre alert.';
+
+            if (typeof swal === 'function') {
+                swal({
+                    title: 'Service details',
+                    text: text,
+                    type: 'info',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                alert(text);
+            }
+        }
+
         function showServiceDetailsRequiredAlert(message) {
             var text = message || 'Add service details before generating a pre-alert PDF.';
 
@@ -5783,12 +6196,7 @@
             return hasData;
         }
 
-        $(document).on('click', '#send-prealert-btn', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            var $btn = $(this);
-
+        function prepareAndOpenPreAlertMail($triggerBtn, restoreCallback) {
             if (!$('#shipment-edit-form').length) {
                 alert('Shipment form is not available.');
                 return;
@@ -5800,17 +6208,12 @@
             }
 
             if (!serviceDetailsHasData()) {
-                showServiceDetailsRequiredAlert('Please fill in Service details before sending a pre-alert. The pre-alert PDF will not be generated until service details are added.');
+                showServiceDetailsRequiredAlert('Please fill in Service details before completing the pre-alert. The pre-alert PDF will not be generated until service details are added.');
                 return;
             }
 
-            if (!preAlertMailPreview) {
-                alert('Could not prepare pre-alert email preview. Please save the shipment and try again.');
-                return;
-            }
-
-            var originalText = $btn.text();
-            $btn.prop('disabled', true).text('Preparing pre-alert...');
+            var originalText = $triggerBtn.text();
+            $triggerBtn.prop('disabled', true).text('Preparing pre-alert...');
             syncCrrHiddenInputs();
 
             $.ajax({
@@ -5831,13 +6234,16 @@
                         } else {
                             alert(failMessage);
                         }
-                        restoreSendPreAlertButton(originalText);
+                        restoreCallback(originalText);
                         return;
                     }
 
                     preAlertMailPreview = response.preview;
+                    hasPreAlertPdf = true;
+                    preAlertDocumentCount = Math.max(preAlertDocumentCount, 1);
+                    syncCompletePreAlertButtonState();
                     openComposeMailModal(response, 'prealert');
-                    restoreSendPreAlertButton(originalText);
+                    restoreCallback(originalText);
                 })
                 .fail(function(xhr) {
                     var message = 'Could not prepare pre-alert email.';
@@ -5854,14 +6260,90 @@
                     } else {
                         alert(message);
                     }
-                    restoreSendPreAlertButton(originalText);
+                    restoreCallback(originalText);
                 });
+        }
+
+        $(document).on('click', '#send-prealert-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            prepareAndOpenPreAlertMail($(this), restoreSendPreAlertButton);
         });
+
+        $(document).on('click', '#complete-prealert-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var $btn = $(this);
+            if ($btn.prop('disabled')) {
+                return;
+            }
+
+            if (!hasPreAlertPdf && preAlertDocumentCount <= 0 && $('.shipment-prealert-doc').length === 0) {
+                if (typeof swal === 'function') {
+                    swal({
+                        title: 'Pre-alert required',
+                        text: 'Generate a pre-alert PDF before completing.',
+                        type: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    alert('Generate a pre-alert PDF before completing.');
+                }
+                return;
+            }
+
+            var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
+            if (status !== 'In process') {
+                if (typeof swal === 'function') {
+                    swal({
+                        title: 'Already completed',
+                        text: 'Pre-alert has already been completed for this shipment.',
+                        type: 'info',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    alert('Pre-alert has already been completed for this shipment.');
+                }
+                return;
+            }
+
+            if (typeof swal === 'function') {
+                swal({
+                    title: 'Complete Pre alert?',
+                    text: 'Shipment status will be set to In transit and selected stocks will be marked Completed. No duplicate stocks will be created.',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Complete',
+                    cancelButtonText: 'Cancel',
+                    closeOnConfirm: true
+                }, function(isConfirm) {
+                    if (!isConfirm) {
+                        return;
+                    }
+
+                    submitCompletePreAlert($btn);
+                });
+            } else {
+                if (confirm('Complete pre-alert? Shipment will be In transit and stocks Completed. No duplicate stocks will be created.')) {
+                    submitCompletePreAlert($btn);
+                }
+            }
+        });
+
+        function openFinalizeTransitModal() {
+            $('#finalize-shipment-number').val(@json($shipment->shipment_number));
+            $('#finalize-consignee-code').val($.trim($('#consignee-party-code').val()) || '');
+            $('#finalize-shipment-transit-modal').modal('show');
+        }
 
         $(document).on('click', '#finalize-shipment-btn', function(e) {
             e.preventDefault();
-            syncFinalizeChoiceButtonState();
-            $('#finalize-shipment-choice-modal').modal('show');
+            if ($(this).prop('disabled')) {
+                return;
+            }
+            openFinalizeTransitModal();
         });
 
         $(document).on('click', '#finalize-shipment-transit-btn', function() {
@@ -5869,9 +6351,7 @@
                 return;
             }
 
-            $('#finalize-shipment-number').val(@json($shipment->shipment_number));
-            $('#finalize-consignee-code').val($.trim($('#consignee-party-code').val()) || '');
-            $('#finalize-shipment-transit-modal').modal('show');
+            openFinalizeTransitModal();
         });
 
         $(document).on('click', '#finalize-shipment-complete-btn', function() {
@@ -5905,31 +6385,8 @@
                         return;
                     }
 
-                    var nextStatus = response.status || 'Completed';
-                    $('.header-meta-group .status-badge')
-                        .removeClass('stock-status-new stock-status-stock shipment-status-in-transit stock-status-in-progress stock-status-pending stock-status-cancelled stock-status-completed stock-status-archived stock-status-unknown')
-                        .addClass('stock-status-badge ' + stockStatusBadgeClass(nextStatus))
-                        .text(nextStatus);
-                    $('.select2-status-inline').val(nextStatus).trigger('change.select2');
-                    $('#shipment-current-status').val(nextStatus);
-
-                    (response.stocks || []).forEach(function(stock) {
-                        var $row = $('#stock-items-table tbody tr.selected-stock-row[data-crr-id="' + stock.id + '"]');
-                        if (!$row.length) {
-                            return;
-                        }
-
-                        $row.find('td').eq(9).html(
-                            '<span class="stock-status-badge ' + stockStatusBadgeClass(stock.status) + '">' + stock.status + '</span>'
-                        );
-
-                        $('#stock-items-modal-table tbody tr[data-id="' + stock.id + '"]').remove();
-                    });
-
-                    // Keep Complete disabled; enable Transit.
+                    applyShipmentFinalizeCompleteResponse(response);
                     $btn.text(originalText);
-                    syncAddStockItemsButtonState();
-                    syncFinalizeChoiceButtonState();
                 })
                 .fail(function(xhr) {
                     var message = 'Could not complete shipment.';
@@ -5978,6 +6435,7 @@
                         $('#shipment-current-status').val(response.status);
                         syncAddStockItemsButtonState();
                         syncFinalizeChoiceButtonState();
+                        syncServiceDetailsTabLock();
                     }
 
                     $('#finalize-shipment-transit-modal').modal('hide');
@@ -6001,12 +6459,6 @@
                 });
         });
 
-        $('#finalize-shipment-transit-modal').on('hidden.bs.modal', function() {
-            if (!$('#finalize-shipment-choice-modal').hasClass('show')) {
-                $('#finalize-shipment-choice-modal').modal('show');
-            }
-        });
-
         // Tab Switching Logic for Shipment Tabs
         $('.nav-tab-item').on('click', function() {
             var target = $(this).data('target');
@@ -6023,19 +6475,60 @@
         });
 
         // Stock items / Service details / Irregularities tabs
-        $('.stock-tab').on('click', function() {
-            var panelId = $(this).data('panel');
+        function activateStockPanel(panelId) {
+            var $tab = $('.stock-tab[data-panel="' + panelId + '"]');
             var $panel = $('#' + panelId);
+            if (!$tab.length || !$panel.length) {
+                return;
+            }
 
             $('.stock-tab').removeClass('active');
-            $(this).addClass('active');
-
+            $tab.addClass('active');
             $('.stock-panel').removeClass('active');
-            if ($panel.length) {
-                void $panel[0].offsetWidth;
-                $panel.addClass('active');
+            void $panel[0].offsetWidth;
+            $panel.addClass('active');
+            if (typeof window.mcPulseTabPane === 'function') {
+                window.mcPulseTabPane($panel[0]);
             }
+        }
+
+        function scrollFormToServiceDetails() {
+            var $target = $('.stock-items-wrapper');
+            if (!$target.length) {
+                return;
+            }
+
+            var $scroller = $('.form-scroller');
+            var canScrollScroller = $scroller.length
+                && $scroller.css('overflow-y') === 'auto'
+                && $scroller[0].scrollHeight > $scroller[0].clientHeight + 8;
+
+            if (canScrollScroller) {
+                var top = $scroller.scrollTop() + $target.offset().top - $scroller.offset().top - 8;
+                $scroller.stop(true).animate({ scrollTop: Math.max(0, top) }, 550);
+                return;
+            }
+
+            $('html, body').stop(true).animate({
+                scrollTop: Math.max(0, $target.offset().top - 72)
+            }, 550);
+        }
+
+        $('.stock-tab').on('click', function() {
+            if ($(this).hasClass('stock-tab--disabled')) {
+                showServiceDetailsUnavailableAlert();
+                return;
+            }
+
+            activateStockPanel($(this).data('panel'));
         });
+
+        if (@json((bool) ($createPreAlertMode ?? false)) && @json((int) $shipmentRouteId) > 0) {
+            window.setTimeout(function() {
+                activateStockPanel('stock-panel-service');
+                scrollFormToServiceDetails();
+            }, 280);
+        }
 
         function formatParty(item) {
             if (!item.id) return item.text;
@@ -6104,6 +6597,74 @@
             setPortCodeSelect($('#departure-port-code'), data.port_code || '');
         }
 
+        if ($('#pre-alert-shipment-input').length) {
+            (function bindWorkflowShipmentSearch() {
+                var $input = $('#pre-alert-shipment-input');
+                var workflowPageUrl = @json($workflowPageUrl);
+                var apiUrl = @json(route('api.shipments'));
+                var currentId = @json($shipmentRouteId);
+
+                function queryValue() {
+                    return $.trim($input.val() || '');
+                }
+
+                function canSearch(q) {
+                    if (!q || /^[A-Za-z0-9]{1,3}-$/.test(q)) {
+                        return false;
+                    }
+                    if (/^[A-Za-z0-9]{2,3}-/.test(q)) {
+                        return q.length >= 6;
+                    }
+                    return q.length >= 5;
+                }
+
+                function loadShipment(id) {
+                    id = parseInt(id, 10);
+                    if (!id || id === parseInt(currentId, 10)) {
+                        return;
+                    }
+                    window.location.href = workflowPageUrl + '?shipment=' + encodeURIComponent(id);
+                }
+
+                $input.on('keydown', function(e) {
+                    if (e.key !== 'Enter') {
+                        return;
+                    }
+                    e.preventDefault();
+                    var q = queryValue();
+                    if (!canSearch(q)) {
+                        return;
+                    }
+                    $.getJSON(apiUrl, { q: q }).done(function(data) {
+                        var items = data.results || [];
+                        if (items.length) {
+                            loadShipment(items[0].id);
+                            return;
+                        }
+                        if (typeof swal === 'function') {
+                            swal({
+                                title: 'Shipment not found',
+                                text: 'No shipment matches "' + q + '".',
+                                type: 'warning'
+                            });
+                        }
+                    });
+                });
+
+                if (!currentId && $input[0] && $input[0].setSelectionRange) {
+                    var val = $input.val() || '';
+                    $input[0].setSelectionRange(val.length, val.length);
+                }
+            })();
+        }
+
+        if (!@json((bool) $shipmentRouteId)) {
+            $('#shipment-edit-form').on('submit', function(e) {
+                e.preventDefault();
+            });
+            $('#send-manifest-btn, #send-prealert-btn, #complete-prealert-btn, #finalize-shipment-btn').prop('disabled', true);
+        }
+
         $('#departure-select').select2({
             placeholder: 'Type departure',
             allowClear: false,
@@ -6122,6 +6683,13 @@
         }).on('select2:clear', function() {
             setPortCodeSelect($('#departure-port-code'), '');
         });
+
+        if ($('.cs-pillar--locked, .cs-field--locked').length) {
+            $('.cs-pillar--locked :input, .cs-field--locked :input').attr('tabindex', '-1');
+            $('.cs-pillar--locked select, .cs-field--locked select').on('select2:opening', function(e) {
+                e.preventDefault();
+            });
+        }
 
         $('#consignee-select').select2({
             placeholder: 'Type consignee',
@@ -6146,18 +6714,24 @@
             setPortCodeSelect($('#consignee-port-code'), data.port_code || '');
             $('#consignee-email').val(data.email || '');
             $('#consignee-att').val(data.contact_person || '');
-            $('textarea[name="special_considerations_destination"]').val(data.special_considerations || '');
+            var $specialConsiderations = $('textarea[name="special_considerations_destination"]');
+            if (!$specialConsiderations.closest('.cs-field--locked, .cs-pillar--locked').length) {
+                $specialConsiderations.val(data.special_considerations || '');
+            }
             applyConsigneeCode(data);
         }).on('select2:clear', function() {
             $('#consignee-address, #consignee-city, #consignee-district, #consignee-zip, #location, #consignee-email, #consignee-att').val('');
             setPortCodeSelect($('#consignee-port-code'), '');
             $('#consignee-country').val('').trigger('change');
             $('#consignee-party-code').val('');
-            $('textarea[name="special_considerations_destination"]').val('');
+            var $specialConsiderationsClear = $('textarea[name="special_considerations_destination"]');
+            if (!$specialConsiderationsClear.closest('.cs-field--locked, .cs-pillar--locked').length) {
+                $specialConsiderationsClear.val('');
+            }
         });
 
-        var shipmentUpdateStatusUrl = @json(route('shipments.update-status', $shipment->id));
-        var shipmentUpdateFlagsUrl = @json(route('shipments.update-flags', $shipment->id));
+        var shipmentUpdateStatusUrl = @json(route('shipments.update-status', $shipmentRouteId));
+        var shipmentUpdateFlagsUrl = @json(route('shipments.update-flags', $shipmentRouteId));
         var stockEditUrlTemplate = {{ Illuminate\Support\Js::from(route('stocks.edit', ['id' => '__CRR_ID__'])) }};
         var lastHeaderStatus = @json($shipment->status);
         var lastHeaderFlags = @json(array_slice($shipmentFlags, 0, 1));
@@ -6218,6 +6792,9 @@
         }
 
         $('#status-edit-container .status-display').on('click', function(e) {
+            if ($('#status-edit-container').hasClass('header-inline-edit--locked')) {
+                return;
+            }
             e.stopPropagation();
             closeHeaderInlineEditors('#status-edit-container');
             $(this).hide();
@@ -7173,7 +7750,7 @@
             }
 
             var $field = $('#comments_departure_hub, textarea[name="comments_departure_hub"]').first();
-            if (!$field.length) {
+            if (!$field.length || $field.closest('.cs-field--locked, .cs-pillar--locked').length) {
                 return;
             }
 
@@ -7246,8 +7823,9 @@
         function syncAddStockItemsButtonState() {
             var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
             var isLocked = status === 'Completed' || status === 'Cancelled';
+            var serviceDetailsLocked = status === 'In process' && !@json((bool) ($workflowEditMode ?? false));
             $('#add-stock-items-btn').prop('disabled', isLocked);
-            $('#repacked_items, #repacked_weight').prop('disabled', isLocked);
+            $('#repacked_items, #repacked_weight').prop('disabled', isLocked || serviceDetailsLocked);
         }
 
         $('#repacked_items').on('input', function() {
@@ -7284,91 +7862,34 @@
             var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
             var isCompleted = status === 'Completed';
             var transitDestinationStocksReady = @json((bool) ($transitDestinationStocksReady ?? false));
-            var transitServiceAllowed = ['Release', 'Hand Carry', 'On-board delivery']
-                .indexOf(String($('select[name="service"]').val() || '')) === -1;
             var $completeBtn = $('#finalize-shipment-complete-btn');
             var $transitBtn = $('#finalize-shipment-transit-btn');
 
             $completeBtn.prop('disabled', isCompleted);
             $completeBtn.attr('title', isCompleted ? 'Shipment already completed' : '');
 
-            $transitBtn.prop('disabled', !isCompleted || !transitServiceAllowed || transitDestinationStocksReady);
+            var $finalizeBtn = $('#finalize-shipment-btn');
+            var shipmentLoaded = @json((int) $shipmentRouteId) > 0;
+            var workflowAwaitingShipment = @json((bool) ($workflowAwaitingShipment ?? false));
+            $finalizeBtn.prop('disabled', workflowAwaitingShipment || !shipmentLoaded || transitDestinationStocksReady);
+            $finalizeBtn.attr(
+                'title',
+                workflowAwaitingShipment || !shipmentLoaded
+                    ? 'Load a shipment first'
+                    : (transitDestinationStocksReady ? 'Destination stocks already created' : '')
+            );
+
+            $transitBtn.prop('disabled', transitDestinationStocksReady);
             $transitBtn.attr(
                 'title',
-                !transitServiceAllowed
-                    ? 'Transit is not available for this service'
-                    : (transitDestinationStocksReady
-                        ? 'Destination stocks already created'
-                        : (isCompleted ? '' : 'Complete the shipment first'))
+                transitDestinationStocksReady ? 'Destination stocks already created' : ''
             );
-        }
-
-        function shouldPromptPendingTransit() {
-            var transitDestinationStocksReady = @json((bool) ($transitDestinationStocksReady ?? false));
-            if (transitDestinationStocksReady) {
-                return false;
-            }
-
-            var status = ($('#shipment-current-status').val() || $('.header-meta-group .status-badge').text().trim());
-            if (status !== 'Completed') {
-                return false;
-            }
-
-            var consignee = String($('#consignee-select').val() || '').toLowerCase();
-            var consigneeType = consignee.split(':')[0];
-            if (['office', 'hub', 'agent'].indexOf(consigneeType) === -1) {
-                return false;
-            }
-
-            var service = String($('select[name="service"]').val() || '');
-            if (['Release', 'Hand Carry', 'On-board delivery'].indexOf(service) !== -1) {
-                return false;
-            }
-
-            return ['Courier', 'Airfreight', 'Sea freight', 'Truck'].indexOf(service) !== -1;
-        }
-
-        function promptPendingTransitOnEditOpen() {
-            if (!shouldPromptPendingTransit()) {
-                return;
-            }
-
-            // Avoid stacking on top of validation / server error alerts.
-            if (serverErrors.length || serverErrorMessage) {
-                return;
-            }
-
-            var message = 'This shipment is marked as Completed. Transit is still pending for destination.';
-
-            if (typeof swal === 'function') {
-                swal({
-                    title: 'Transit required',
-                    text: message,
-                    type: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Transit now',
-                    cancelButtonText: 'Later',
-                    closeOnConfirm: true
-                }, function(isConfirm) {
-                    if (!isConfirm) {
-                        return;
-                    }
-
-                    // Let SweetAlert close before opening Bootstrap modal.
-                    setTimeout(function() {
-                        syncFinalizeChoiceButtonState();
-                        $('#finalize-shipment-transit-btn').trigger('click');
-                    }, 150);
-                });
-            } else if (window.confirm(message)) {
-                syncFinalizeChoiceButtonState();
-                $('#finalize-shipment-transit-btn').trigger('click');
-            }
         }
 
         syncAddStockItemsButtonState();
         syncFinalizeChoiceButtonState();
-        promptPendingTransitOnEditOpen();
+        syncCompletePreAlertButtonState();
+        syncServiceDetailsTabLock();
 
         $('#add-stock-items-btn').on('click', function() {
             if ($(this).prop('disabled')) {
@@ -7809,7 +8330,7 @@
             formData.append('_token', '{{ csrf_token() }}');
 
             $.ajax({
-                url: '{{ route('shipments.documents.upload', $shipment->id) }}',
+                url: '{{ route('shipments.documents.upload', $shipmentRouteId) }}',
                 type: 'POST',
                 data: formData,
                 processData: false,

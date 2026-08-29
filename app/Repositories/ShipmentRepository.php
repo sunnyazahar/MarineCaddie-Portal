@@ -28,6 +28,7 @@ use App\Repositories\Contracts\ShipmentRepositoryInterface;
 use App\Support\ListSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 
 class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInterface
@@ -239,6 +240,56 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
     public function shipmentNumberExists(string $shipmentNumber): bool
     {
         return $this->query()->where('shipment_number', $shipmentNumber)->exists();
+    }
+
+    public function searchByShipmentNumber(string $q, int $limit = 40): EloquentCollection
+    {
+        $pattern = $this->shipmentNumberLookupPattern(trim($q));
+        if ($pattern === null) {
+            return new EloquentCollection();
+        }
+
+        return $this->query()
+            ->where('shipment_number', 'like', $pattern)
+            ->orderByDesc('id')
+            ->limit(max(1, $limit))
+            ->get(['id', 'shipment_number']);
+    }
+
+    public function findByShipmentNumberLookup(string $q): ?Shipment
+    {
+        $q = trim($q);
+        if ($q === '') {
+            return null;
+        }
+
+        $exact = $this->query()
+            ->where('shipment_number', $q)
+            ->orderByDesc('id')
+            ->first();
+
+        if ($exact) {
+            return $exact;
+        }
+
+        return $this->searchByShipmentNumber($q, 1)->first();
+    }
+
+    private function shipmentNumberLookupPattern(string $q): ?string
+    {
+        if ($q === '' || preg_match('/^[A-Za-z0-9]{1,3}-$/', $q)) {
+            return null;
+        }
+
+        if (preg_match('/^[A-Za-z0-9]{2,3}-/', $q)) {
+            return ListSearch::prefix($q, 6);
+        }
+
+        if (preg_match('/^\d{5,}$/', $q)) {
+            return '%-' . addcslashes($q, "%_\\") . '-%';
+        }
+
+        return ListSearch::contains($q, 5);
     }
 
     public function createShipment(array $attributes): Shipment

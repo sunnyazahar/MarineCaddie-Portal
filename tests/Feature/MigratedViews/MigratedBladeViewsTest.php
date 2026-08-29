@@ -1282,14 +1282,30 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString(':required="true"', $contents);
     }
 
-    public function test_shipment_edit_prompts_pending_transit_on_open(): void
+    public function test_shipment_edit_does_not_prompt_pending_transit_on_open(): void
     {
         $contents = file_get_contents(resource_path('views/Shipment/edit.blade.php'));
 
-        $this->assertStringContainsString('function promptPendingTransitOnEditOpen()', $contents);
-        $this->assertStringContainsString("['office', 'hub', 'agent']", $contents);
-        $this->assertStringContainsString("['Courier', 'Airfreight', 'Sea freight', 'Truck']", $contents);
-        $this->assertStringContainsString('promptPendingTransitOnEditOpen();', $contents);
+        $this->assertStringNotContainsString('promptPendingTransitOnEditOpen();', $contents);
+        $this->assertStringNotContainsString('function promptPendingTransitOnEditOpen()', $contents);
+        $this->assertStringContainsString('function promptTransitAfterPreAlertComplete()', $contents);
+        $this->assertStringContainsString('promptTransitAfterPreAlertComplete();', $contents);
+        $this->assertStringContainsString('createPreAlertMode', $contents);
+        $this->assertStringContainsString('Transit required', $contents);
+        $this->assertStringContainsString('function syncServiceDetailsTabLock()', $contents);
+        $this->assertStringContainsString('function showServiceDetailsUnavailableAlert()', $contents);
+        $this->assertStringContainsString('Service details not available. Please create pre alert.', $contents);
+    }
+
+    public function test_shipment_edit_service_details_locked_when_in_process(): void
+    {
+        $form = file_get_contents(resource_path('views/Shipment/partials/edit-shipment-details-form.blade.php'));
+
+        $this->assertStringContainsString('lockServiceDetailsForInProcess', $form);
+        $this->assertStringContainsString('workflowEditMode', $form);
+        $this->assertStringContainsString('transitMode', $form);
+        $this->assertStringContainsString('stock-tab--disabled', $form);
+        $this->assertStringContainsString('stock-panel--locked', $form);
     }
 
     public function test_shipment_edit_status_picker_excludes_system_statuses(): void
@@ -1301,6 +1317,49 @@ class MigratedBladeViewsTest extends RegressionTestCase
             "['In process', 'In transit', 'Delivered', 'Completed', 'Cancelled']",
             $contents
         );
+    }
+
+    public function test_shipment_edit_uses_complete_pre_alert_action_instead_of_finalize(): void
+    {
+        $contents = file_get_contents(resource_path('views/Shipment/edit.blade.php'));
+
+        $this->assertStringContainsString('id="complete-prealert-btn"', $contents);
+        $this->assertStringContainsString('Complete Pre alert', $contents);
+        $this->assertStringContainsString('$canCompletePreAlert', $contents);
+        $this->assertMatchesRegularExpression('/@disabled\(\$workflowAwaitingShipment \|\| ! \$canCompletePreAlert\)/', $contents);
+        $this->assertStringContainsString('Pre-alert already completed', $contents);
+        $this->assertStringContainsString('Generate a pre-alert PDF before completing', $contents);
+        $this->assertStringContainsString('title: \'Complete Pre alert?\'', $contents);
+        $this->assertStringContainsString('function submitCompletePreAlert', $contents);
+        $this->assertStringContainsString('complete-pre-alert', $contents);
+        $this->assertStringContainsString('In transit and selected stocks will be marked Completed', $contents);
+    }
+
+    public function test_shipment_transit_page_uses_finalize_shipment_header_action(): void
+    {
+        $contents = file_get_contents(resource_path('views/Shipment/edit.blade.php'));
+
+        $this->assertStringContainsString('@if ($transitMode)', $contents);
+        $this->assertStringContainsString('id="finalize-shipment-btn"', $contents);
+        $this->assertMatchesRegularExpression('/@if\s*\(\s*\$transitMode\s*\).*?>Transit<\/button>/s', $contents);
+        $this->assertStringContainsString('$(document).on(\'click\', \'#finalize-shipment-btn\'', $contents);
+        $this->assertStringContainsString('function openFinalizeTransitModal()', $contents);
+        $this->assertStringContainsString('finalize-shipment-transit-modal', $contents);
+    }
+
+    public function test_shipment_transit_page_reuses_workflow_edit_mode(): void
+    {
+        $contents = file_get_contents(resource_path('views/Shipment/edit.blade.php'));
+
+        $this->assertStringContainsString('$transitMode', $contents);
+        $this->assertStringContainsString('$workflowEditMode', $contents);
+        $this->assertStringContainsString('$workflowAwaitingShipment', $contents);
+        $this->assertStringContainsString('id="workflow-page-body"', $contents);
+        $this->assertStringContainsString('workflow-page-body--hidden', $contents);
+        $this->assertStringContainsString('header-inline-edit--locked', $contents);
+        $this->assertStringContainsString('route(\'transit\')', $contents);
+        $this->assertStringContainsString("'transit'", $contents);
+        $this->assertStringContainsString('bindWorkflowShipmentSearch', $contents);
     }
 
     public function test_shipment_irregularity_fields_use_indexed_array_names(): void

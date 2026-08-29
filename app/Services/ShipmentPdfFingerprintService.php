@@ -12,22 +12,32 @@ class ShipmentPdfFingerprintService
         private ShipmentStockSnapshotService $stockSnapshotService,
     ) {}
 
+    /**
+     * New manifest PDF only when:
+     * 1. stock items are added or removed
+     * 2. consignee name / address / country / port code change
+     * 3. departure service / additional service change
+     */
     public function manifestFingerprint(Shipment $shipment): string
     {
-        return $this->hash($this->manifestPayload($shipment));
-    }
-
-    public function preAlertFingerprint(Shipment $shipment): string
-    {
-        return $this->hash(array_merge(
-            $this->manifestPayload($shipment),
-            ['service_details' => $this->serviceDetailsPayload($shipment)],
-        ));
+        return $this->hash($this->manifestRevisionPayload($shipment));
     }
 
     /**
-     * Fingerprint for deciding whether a new pre-alert should be generated.
-     * Includes service type, additional service, service-detail legs, and repacked fields.
+     * New pre-alert PDF only when:
+     * 1. stock items are added or removed
+     * 2. service details tab data changes (legs, repacked fields; service type for leg shape)
+     * 3. consignee name / address / country / port code change
+     *
+     * Same rules on shipments/edit and create-pre-alert.
+     */
+    public function preAlertFingerprint(Shipment $shipment): string
+    {
+        return $this->hash($this->preAlertRevisionPayload($shipment));
+    }
+
+    /**
+     * Fingerprint for service-details-only comparisons (legacy helper).
      */
     public function serviceDetailsFingerprint(Shipment $shipment): string
     {
@@ -76,6 +86,48 @@ class ShipmentPdfFingerprintService
             'shipment' => $this->normalizeShipmentAttributes($shipment),
             'stocks' => $this->normalizeStocks($shipment->crrs),
         ];
+    }
+
+    private function manifestRevisionPayload(Shipment $shipment): array
+    {
+        return [
+            'service' => $this->normalizeValue($shipment->service),
+            'additional_service' => $this->normalizeValue($shipment->additional_service),
+            'consignee' => $this->normalizeValue($shipment->consignee),
+            'consignee_address' => $this->normalizeValue($shipment->consignee_address),
+            'consignee_country' => $this->normalizeValue($shipment->consignee_country),
+            'consignee_port_code' => $this->normalizeValue($shipment->consignee_port_code),
+            'stock_ids' => $this->revisionStockIds($shipment),
+        ];
+    }
+
+    private function preAlertRevisionPayload(Shipment $shipment): array
+    {
+        return [
+            'stock_ids' => $this->revisionStockIds($shipment),
+            'consignee' => $this->normalizeValue($shipment->consignee),
+            'consignee_address' => $this->normalizeValue($shipment->consignee_address),
+            'consignee_country' => $this->normalizeValue($shipment->consignee_country),
+            'consignee_port_code' => $this->normalizeValue($shipment->consignee_port_code),
+            'service' => $this->normalizeValue($shipment->service),
+            'service_details' => $this->serviceDetailsPayload($shipment),
+            'repacked_items' => $this->normalizeValue($shipment->repacked_items),
+            'repacked_weight' => $this->normalizeValue($shipment->repacked_weight),
+        ];
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function revisionStockIds(Shipment $shipment): array
+    {
+        return $shipment->crrs
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->sort()
+            ->values()
+            ->all();
     }
 
     private function normalizeShipmentAttributes(Shipment $shipment): array

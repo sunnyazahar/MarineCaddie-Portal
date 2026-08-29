@@ -1,387 +1,311 @@
 @extends('layouts.app')
 
 @section('styles')
-
-    <!-- Date-range picker css  -->
+    @include('partials.list-pagination-footer-styles')
 
     <style>
         /* High Density Table Styles */
-        #offices-table {
+        #invoicing-table {
             width: 100% !important;
+            min-width: 2660px !important;
             border-collapse: separate !important;
             border-spacing: 0 !important;
+            table-layout: fixed !important;
         }
-        #offices-table thead th {
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 100 !important;
-            background-color: #fdfdfd !important;
-            color: #374151;
-            font-size: 11px;
-            padding: 10px 8px;
-            border-bottom: 2px solid #dee2e6 !important;
-            border-top: 1px solid #e5e7eb !important;
-            white-space: nowrap;
-            text-transform: none;
-            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); 
-        }
-        #offices-table tbody td {
+        #invoicing-table tbody td {
             padding: 6px 8px !important;
-            font-size: 11px;
+            font-size: 13px;
             color: #1f2937;
             border-bottom: 1px solid #f3f4f6;
             vertical-align: middle;
             white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 0;
         }
-        #offices-table th, #offices-table td {
-            white-space: nowrap !important; 
+        #invoicing-table tbody td.invoicing-action-cell,
+        #invoicing-table tbody td.invoicing-checkbox-cell,
+        #invoicing-table tbody td.dataTables_empty {
+            overflow: visible !important;
+            text-overflow: clip !important;
+            max-width: none;
         }
-        .btn-teal {
-            background-color: #008080;
-            border-color: #008080;
-            color: white;
+        .office-table thead {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+            background-color: #fdfdfd !important;
         }
-        .btn-teal:hover {
-            background-color: #006666;
-            border-color: #006666;
-        }
-        .btn-outline-teal {
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-outline-teal:hover {
-            background-color: #008080;
-            color: white;
-        }
-        .filter-group {
-            display: flex;
-            align-items: center;
-            border: 1px solid #e2e8f0;
-            padding: 0;
-            border-radius: 4px;
-            height: 32px;
-            background: #fff;
-            overflow: hidden;
-            width: 100%;
-        }
-        .filter-group .filter-label {
-            font-size: 11px;
-            color: #64748b;
-            margin-bottom: 0;
-            padding: 0 10px;
+        .office-table thead th,
+        #invoicing-table thead th {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 21 !important;
+            background-color: #fdfdfd !important;
+            color: #374151;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 8px;
+            border-bottom: 2px solid #dee2e6 !important;
+            border-top: 1px solid #e5e7eb !important;
             white-space: nowrap;
-            font-weight: 500;
-            border-right: 1px solid #e2e8f0;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            background: #f8fafc;
-            min-width: fit-content;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+            vertical-align: middle;
+            overflow: visible !important;
+            text-overflow: clip !important;
         }
-        .filter-group .filter-input {
-            border: none !important;
-            box-shadow: none !important;
-            height: 100% !important;
-            font-size: 11px;
-            padding: 0 10px !important;
-            background: transparent !important;
-            width: 100%;
-            color: #1e293b;
+        #invoicing-table thead th:first-child:after,
+        #invoicing-table thead th:first-child:before {
+            display: none !important;
+            content: none !important;
         }
-        .filter-group .select2-container--default .select2-selection--single,
-        .filter-group .select2-container--default .select2-selection--multiple {
-            border: none !important;
-            background: transparent !important;
-            height: 30px !important;
+        #invoicing-table th:nth-child(1),
+        #invoicing-table td:nth-child(1) { width: 40px; min-width: 40px; }
+        #invoicing-table th.invoicing-checkbox-cell,
+        #invoicing-table td.invoicing-checkbox-cell {
+            overflow: visible !important;
+            text-overflow: clip !important;
+            max-width: none;
+            text-align: center;
+            vertical-align: middle;
         }
-        .filter-group .select2-container--default .select2-selection--single .select2-selection__rendered {
+        #invoicing-table thead th.invoicing-checkbox-cell {
+            position: sticky !important;
+            left: 0 !important;
+            top: 0 !important;
+            z-index: 31 !important;
+            background-color: #fdfdfd !important;
+            box-shadow: 8px 0 10px -6px rgba(15, 23, 42, 0.14), 0 2px 2px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+        #invoicing-table tbody td.invoicing-checkbox-cell {
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 13 !important;
+            background-color: #fff !important;
+            box-shadow: 8px 0 10px -6px rgba(15, 23, 42, 0.1);
             padding-left: 10px !important;
-            font-size: 11px !important;
-            color: #1e293b !important;
         }
-        .filter-group .select2-container--default .select2-selection--multiple .select2-selection__rendered,
-        .filter-group .select2-container--default .select2-search--inline .select2-search__field {
-            font-size: 11px !important;
-            padding-left: 5px !important;
+        #invoicing-table tbody tr:hover td.invoicing-checkbox-cell {
+            background-color: #fff !important;
         }
-        .filter-group .select2-container--default .select2-search--inline .select2-search__field::placeholder {
-            font-size: 11px !important;
-            color: #94a3b8 !important;
+        #invoicing-table th:nth-child(2),
+        #invoicing-table td:nth-child(2) { width: 105px; min-width: 105px; }
+        #invoicing-table th:nth-child(3),
+        #invoicing-table td:nth-child(3) { width: 115px; min-width: 115px; }
+        #invoicing-table th:nth-child(4),
+        #invoicing-table td:nth-child(4) { width: 100px; min-width: 100px; }
+        #invoicing-table th:nth-child(5),
+        #invoicing-table td:nth-child(5) { width: 105px; min-width: 105px; }
+        #invoicing-table th:nth-child(6),
+        #invoicing-table td:nth-child(6) { width: 85px; min-width: 85px; }
+        #invoicing-table th:nth-child(7),
+        #invoicing-table td:nth-child(7) { width: 85px; min-width: 85px; }
+        #invoicing-table th:nth-child(8),
+        #invoicing-table td:nth-child(8) { width: 160px; min-width: 160px; }
+        #invoicing-table th:nth-child(9),
+        #invoicing-table td:nth-child(9) { width: 180px; min-width: 180px; }
+        #invoicing-table th:nth-child(10),
+        #invoicing-table td:nth-child(10) { width: 260px; min-width: 260px; }
+        #invoicing-table th:nth-child(11),
+        #invoicing-table td:nth-child(11) { width: 115px; min-width: 115px; }
+        #invoicing-table th:nth-child(12),
+        #invoicing-table td:nth-child(12) { width: 125px; min-width: 125px; }
+        #invoicing-table th:nth-child(13),
+        #invoicing-table td:nth-child(13) { width: 200px; min-width: 200px; }
+        #invoicing-table th:nth-child(14),
+        #invoicing-table td:nth-child(14) { width: 80px; min-width: 80px; }
+        #invoicing-table th:nth-child(15),
+        #invoicing-table td:nth-child(15) { width: 95px; min-width: 95px; }
+        #invoicing-table th:nth-child(16),
+        #invoicing-table td:nth-child(16) { width: 75px; min-width: 75px; }
+        #invoicing-table th:nth-child(17),
+        #invoicing-table td:nth-child(17) { width: 100px; min-width: 100px; }
+        #invoicing-table th:nth-child(18),
+        #invoicing-table td:nth-child(18) { width: 70px; min-width: 70px; }
+        #invoicing-table th:nth-child(19),
+        #invoicing-table td:nth-child(19) { width: 95px; min-width: 95px; }
+        #invoicing-table th:nth-child(20),
+        #invoicing-table td:nth-child(20) { width: 130px; min-width: 130px; }
+        #invoicing-table th:nth-child(21),
+        #invoicing-table td:nth-child(21) { width: 152px; min-width: 152px; }
+        #invoicing-table thead th.invoicing-action-cell {
+            position: sticky !important;
+            right: 0 !important;
+            top: 0 !important;
+            z-index: 30 !important;
+            background-color: #fdfdfd !important;
+            box-shadow: -8px 0 10px -6px rgba(15, 23, 42, 0.14), 0 2px 2px -1px rgba(0, 0, 0, 0.1) !important;
         }
-        .filter-group i {
-            color: #64748b;
-            font-size: 14px;
+        #invoicing-table tbody td.invoicing-action-cell {
+            position: sticky !important;
+            right: 0 !important;
+            z-index: 12 !important;
+            background-color: #fff !important;
+            box-shadow: -8px 0 10px -6px rgba(15, 23, 42, 0.1);
+            padding-right: 10px !important;
         }
-        .custom-col {
-            padding: 2px;
-            margin-bottom: 0;
+        #invoicing-table tbody tr:hover td.invoicing-action-cell {
+            background-color: #fff !important;
         }
-        .btn-filter-icon {
-            border: 1px solid #e2e8f0;
-            background: #fff;
-            color: #008080;
-            height: 32px;
+        .invoicing-row-actions {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            vertical-align: middle;
+        }
+        .invoicing-row-action {
             width: 32px;
-            display: flex;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
-            padding: 0;
-            margin-right: 8px;
-        }
-        .btn-export-download {
-            border: 1px solid #e2e8f0;
-            background: #fff;
-            color: #64748b;
-            height: 32px;
-            padding: 0 15px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            font-size: 16px;
-        }
-        .btn-reports {
-            border: 1px solid #008080;
-            color: #008080;
-            background: #fff;
-            height: 32px;
-            padding: 0 20px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            font-size: 11px;
-            font-weight: 500;
-        }
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            height: 32px;
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 500;
-            padding: 0 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
-            background: #fff;
-        }
-        .checkbox-container input[type="checkbox"] {
-            margin-left: 10px;
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            accent-color: #008080;
-        }
-        .clear-filters {
-            font-size: 11px;
-            color: #008080;
             text-decoration: none;
-            cursor: pointer;
-            height: 32px;
+            flex-shrink: 0;
+            transition: transform 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+        }
+        .invoicing-row-action i {
+            font-size: 15px;
+            line-height: 1;
+            color: inherit;
+        }
+        .invoicing-row-action:hover,
+        .invoicing-row-action:focus {
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+        }
+        .invoicing-row-action--edit {
+            background-color: #fffbeb;
+            border-color: #fcd34d;
+            color: #b45309;
+        }
+        .invoicing-row-action--edit:hover,
+        .invoicing-row-action--edit:focus {
+            background-color: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+        .invoicing-row-action--print {
+            background-color: #ecfdf5;
+            border-color: #6ee7b7;
+            color: #047857;
+        }
+        .invoicing-row-action--print:hover,
+        .invoicing-row-action--print:focus {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .invoicing-row-action--copy {
+            background-color: #eff6ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+        .invoicing-row-action--copy:hover,
+        .invoicing-row-action--copy:focus {
+            background-color: #dbeafe;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+        .invoicing-row-action--delete {
+            background-color: #fef2f2;
+            border-color: #fca5a5;
+            color: #b91c1c;
+        }
+        .invoicing-row-action--delete:hover,
+        .invoicing-row-action--delete:focus {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        #invoicing-table th, #invoicing-table td {
+            white-space: nowrap !important;
+        }
+
+        body.billing-invoicing-list-page {
+            overflow: hidden !important;
+            height: var(--mc-app-vh, 100vh);
+        }
+        body.billing-invoicing-list-page .pcoded-content {
+            overflow: hidden !important;
+        }
+        body.billing-invoicing-list-page .pcoded-inner-content,
+        body.billing-invoicing-list-page .main-body,
+        body.billing-invoicing-list-page .page-wrapper,
+        body.billing-invoicing-list-page .page-body {
+            height: 100%;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .billing-invoicing-list-card {
             display: flex;
-            align-items: center;
-            padding: 0 10px;
-            font-weight: 500;
+            flex-direction: column;
+            height: calc(var(--mc-app-vh, 100vh) - var(--mc-header-h, 64px));
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
+            overflow: hidden;
         }
-        .btn-filter-toggle {
-            height: 32px;
-            width: 32px;
-            padding: 0;
+        .billing-invoicing-list-card > .card-block {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: #008080;
-            border: 1px solid #e2e8f0;
-            background-color: #fff;
-            border-radius: 4px;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            padding: 8px 12px 0 !important;
         }
-        .btn-filter-toggle:hover, .btn-filter-toggle:focus {
-            background-color: #f8fafc;
-            color: #006666;
-            border-color: #cbd5e1;
+        .billing-invoicing-list-card > .card-block > .list-page-header {
+            flex-shrink: 0;
         }
-        /* Bootstrap Multiselect adjustments */
-        .multiselect-native-select .btn-group {
-            width: 32px;
+        .billing-table-area {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        .multiselect-container {
-            font-size: 11px;
-            min-width: 200px;
-        }
-        .filter-input {
-            height: 30px;
-            font-size: 11px;
-            border-radius: 2px;
-        }
-        .label {
-            border-radius: 4px;
-            font-size: 100%;
-        }
-        /* Bootstrap Multiselect Custom Styling */
-        .multiselect-native-select .btn-group {
-            width: 100%;
-        }
-        .multiselect-native-select .multiselect {
-            width: 100%;
-            text-align: left;
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 11px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .multiselect-native-select .multiselect-container {
-            width: 235px;
-            font-size: 11px;
-        }
-        .multiselect-native-select .multiselect-container li a label {
-            padding: 5px 10px 5px 0;
+        .billing-table-area .table-scroll-wrapper {
+            flex: 1;
+            min-height: 0;
+            overflow: auto !important;
             display: block;
-            margin: 0;
-            cursor: pointer;
-        }
-        .multiselect-native-select .multiselect-selected .form-check-label {
-            color: #008080;
-            font-weight: bold;
-        }
-        .multiselect-item.multiselect-all label {
-            font-weight: bold;
-            color: #333;
-        }
-        input.form-control.multiselect-search {
-            font-size: 11px;
-        }
-        .multiselect-container .input-group {
-            margin: 2px;
-        }
-        .input-group-addon {
-            background-color: #01a9ac;
-            color: #fff;
-            max-height: 31px;
-        }
-        .multiselect-container>li {
-            padding: 0px 5px;
-        }
-        .multiselect-item .input-group {
-            width: 114%;
-        }
-        /* Select2 Custom Styling */
-        .select2-container--default .select2-selection--single {
-            background-color: #fff !important;
-            border: 1px solid #ced4da !important;
-            height: 30px !important;
-            display: flex !important;
-            align-items: center !important;
-            outline: none !important;
-        }
-        .select2-container--default .select2-selection--multiple {
-            background-color: #fff !important;
-            border: 1px solid #ced4da !important;
-            min-height: 30px !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            background-color: transparent !important;
-            color: #4b5563 !important;
-            line-height: normal !important;
-            padding-left: 10px !important;
-            padding-right: 25px !important;
-            width: 100% !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 28px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            right: 8px !important;
-            width: 20px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow b {
-            border-color: #666 transparent transparent transparent !important;
-            border-style: solid !important;
-            border-width: 5px 4px 0 4px !important;
-            height: 0 !important;
-            left: 50% !important;
-            margin-left: -4px !important;
-            margin-top: -2px !important;
-            position: absolute !important;
-            top: 50% !important;
-            width: 0 !important;
-        }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            background-color: #f3f4f6 !important;
-            border: 1px solid #ced4da !important;
-            color: #4b5563 !important;
-            font-size: 10px !important;
-            margin-top: 4px !important;
-            padding: 1px 5px !important;
-        }
-        /* Filter Toggle Button Styling */
-        .btn-filter-toggle {
-            height: 30px;
-            padding: 4px 10px;
-            font-size: 14px;
-            color: #008080;
-            border-color: #008080;
-            background-color: transparent;
-        }
-        .btn-filter-toggle:hover, .btn-filter-toggle:focus, .btn-filter-toggle:active {
-            background-color: #008080 !important;
-            color: white !important;
-            border-color: #008080 !important;
-        }
-        
-        .table-scroll-wrapper {
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: calc(100vh - 150px);
             width: 100%;
             position: relative;
+            padding-top: 2px;
         }
-        .pagination-sticky-footer {
-            position: sticky;
-            bottom: 0;
-            padding: 10px 20px;
-            background: #ffffff;
-            border-top: 1px solid #e9ecef;
-            z-index: 10;
-            margin-top: 0 !important;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
+        #invoicing-pagination.pagination-sticky-footer {
+            flex-shrink: 0;
         }
-        .dataTables_wrapper .dataTables_paginate {
-            margin-top: 0 !important;
-            padding: 0;
-            display: flex;
-            justify-content: flex-end;
+        @media (max-width: 991.98px) {
+            body.billing-invoicing-list-page {
+                height: var(--mc-app-vh, 100svh) !important;
+                max-height: var(--mc-app-vh, 100svh) !important;
+            }
+            .billing-invoicing-list-card {
+                height: calc(var(--mc-app-vh, 100svh) - var(--mc-header-h, 4rem) - env(safe-area-inset-top, 0px)) !important;
+                max-height: calc(var(--mc-app-vh, 100svh) - var(--mc-header-h, 4rem) - env(safe-area-inset-top, 0px)) !important;
+            }
         }
-        /* Reduce gap/margin between sidebar and content */
-        .pcoded-inner-content {
-            padding: 5px !important;
-        }
-        .main-body .page-wrapper {
-            padding: 5px !important;
-        }
-        td a {
-            color: #008080 !important;
-            font-weight: 500;
-        }
-        .badge-ready-billing {
-            background-color: #dcfce7 !important;
-            color: #166534 !important;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            display: inline-block;
-            border: none;
+
+        /* Beat page-local gutters on invoicing list shell */
+        body.billing-invoicing-list-page .pcoded-inner-content,
+        body.billing-invoicing-list-page .main-body .page-wrapper {
+            padding: 0 !important;
         }
         .table-checkbox {
             width: 16px;
             height: 16px;
             cursor: pointer;
+            accent-color: #008080;
+            vertical-align: middle;
         }
           .status-paid { background-color: #dbeafe; color: #1e40af; }
         
@@ -389,487 +313,202 @@
 @endsection
 
 @section('content')
-<!-- Pre-loader start -->
     <div class="theme-loader">
         <div class="ball-scale">
-            <div class='contain'>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
-                <div class="ring">
-                    <div class="frame"></div>
-                </div>
+            <div class="contain">
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
+                <div class="ring"><div class="frame"></div></div>
             </div>
         </div>
     </div>
-    <!-- Pre-loader end -->
-    <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
 
-          @include('layouts.top-menu')
-                @include('layouts.left-menu')
-                     <!-- Page-body start -->
-                      <br>
-                      <div class="pcoded-content">
-                        <div class="pcoded-inner-content">
-                        <!-- Main-body start -->
-                            <div class="main-body">
-                                <div class="page-wrapper">
-                                    <!-- Page-header start -->
-                                    <div class="page-header">
-                                        
-                                    </div>
-                                    <!-- Page-header end -->
+    @include('layouts.partials.pcoded-shell-start', ['pageWrapperClass' => 'p-0'])
 
-                                    <!-- Page-body start -->
-                                    <div class="page-body">
-                                        <!-- Base Style - Compact start -->
-                                        <div class="card">
-                                            <div class="card-block p-1 mt-2">
-                                                <div class="container-fluid p-0">
-                                                    <!-- Row 1 -->
-                                                    <div class="row no-gutters filter-row">
-                                                        <div class="col-auto mr-2">
-                                                            <select id="filter-multiselect" multiple="multiple">
-                                                                <option value="Office" selected>Office</option>
-                                                                <option value="Customer" selected>Customer</option>
-                                                                <option value="Vessel" selected>Vessel</option>
-                                                                <option value="Status" selected>Status</option>
-                                                                <option value="Shipment no" selected>Shipment no</option>
-                                                                <option value="PO no" selected>PO no</option>
-                                                                <option value="Service reference" selected>Service reference</option>
-                                                                <option value="Departure" selected>Departure</option>
-                                                                <option value="Consignee" selected>Consignee</option>
-                                                                <option value="Destination" selected>Destination</option>
-                                                                <option value="Account manager" selected>Account manager</option>
-                                                                <option value="Remarks" selected>Remarks</option>
-                                                                <option value="Closed date" selected>Closed date</option>
-                                                                <option value="Service" selected>Service</option>
-                                                                <option value="Cost product" selected>Cost product</option>
-                                                                <option value="Customer reference" selected>Customer reference</option>
-                                                                <option value="Ready for billing date" selected>Ready for billing date</option>
-                                                                <option value="Chargeable status" selected>Chargeable status</option>
-                                                            </select>
-                                                        </div>
-                                                        <div id="col-Office" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Office</span>
-                                                                <select class="form-control filter-input select2">
-                                                                    <option selected>SIN - Marinetrans Singap...</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Customer" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Customer</span>
-                                                                <select class="form-control filter-input select2">
-                                                                    <option>Click here</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Vessel" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Vessel</span>
-                                                                <select class="form-control filter-input select2">
-                                                                    <option>Click here</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Status" class="custom-col" style="flex: 0 0 180px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Status</span>
-                                                                <select class="form-control filter-input select2">
-                                                                    <option>Click here</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Shipment-no" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Shipment no</span>
-                                                                <input type="text" class="form-control filter-input" placeholder="type here">
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-PO-no" class="custom-col" style="flex: 0 0 180px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">PO no</span>
-                                                                <input type="text" class="form-control filter-input" placeholder="type here">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-auto ml-auto d-flex">
-                                                            <button class="btn btn-export-download mr-1"><i class="ti-download"></i></button>
-                                                            <button class="btn btn-reports">Reports</button>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Row 2 -->
-                                                    <div class="row no-gutters filter-row">
-                                                        <div id="col-Service-reference" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Service reference</span>
-                                                                <input type="text" class="form-control filter-input" placeholder="type here">
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Departure" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Departure</span>
-                                                                <select class="form-control filter-input select2">
-                                                                    <option>Click here</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Consignee" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Consignee</span>
-                                                                <input type="text" class="form-control filter-input" placeholder="type here">
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Destination" class="custom-col" style="flex: 0 0 220px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Destination</span>
-                                                                <input type="text" class="form-control filter-input" placeholder="type here">
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Account-manager" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Account manager</span>
-                                                                <select class="form-control filter-input select2">
-                                                                    <option>Click here</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Remarks" class="custom-col" style="flex: 0 0 220px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Remarks</span>
-                                                                <input type="text" class="form-control filter-input" placeholder="type here">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <!-- Row 3 -->
-                                                    <div class="row no-gutters filter-row">
-                                                        <div id="col-Closed-date" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Closed date</span>
-                                                                <div class="input-group p-0 m-0" style="border: none;">
-                                                                    <input type="text" class="form-control filter-input datepicker" placeholder="">
-                                                                    <div class="input-group-append">
-                                                                        <span class="input-group-text bg-transparent border-0"><i class="ti-calendar"></i></span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Service" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Service</span>
-                                                                <select class="form-control filter-input select2">
-                                                                    <option>Click here</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Cost-product" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Cost product</span>
-                                                                <select class="form-control filter-input select2">
-                                                                    <option>Click here</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Customer-reference" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Customer reference</span>
-                                                                <input type="text" class="form-control filter-input" placeholder="type here">
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Ready-for-billing-date" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Ready for billing date</span>
-                                                                <div class="input-group p-0 m-0" style="border: none;">
-                                                                    <input type="text" class="form-control filter-input datepicker" placeholder="">
-                                                                    <div class="input-group-append">
-                                                                        <span class="input-group-text bg-transparent border-0"><i class="ti-calendar"></i></span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Row 4 -->
-                                                    <div class="row no-gutters filter-row">
-                                                        <div id="col-Chargeable-status" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Chargeable status</span>
-                                                                <select class="form-control filter-input select2">
-                                                                    <option>Click here</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Has-unbilled-charges" class="custom-col" style="flex: 0 0 160px;">
-                                                            <div class="checkbox-container">
-                                                                <span>Has unbilled charges</span>
-                                                                <input type="checkbox">
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Economic-date" class="custom-col" style="flex: 0 0 220px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Economic date</span>
-                                                                <div class="input-group p-0 m-0" style="border: none;">
-                                                                    <input type="text" class="form-control filter-input datepicker" placeholder="">
-                                                                    <div class="input-group-append">
-                                                                        <span class="input-group-text bg-transparent border-0"><i class="ti-calendar"></i></span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Inc-invoice-no" class="custom-col" style="flex: 0 0 200px;">
-                                                            <div class="filter-group">
-                                                                <span class="filter-label">Inc. invoice no</span>
-                                                                <input type="text" class="form-control filter-input" placeholder="type here">
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Port-agency" class="custom-col" style="flex: 0 0 130px;">
-                                                            <div class="checkbox-container">
-                                                                <span>Port agency</span>
-                                                                <input type="checkbox">
-                                                            </div>
-                                                        </div>
-                                                        <div id="col-Project-logistics" class="custom-col" style="flex: 0 0 250px;">
-                                                            <div class="checkbox-container">
-                                                                <span>Project logistics</span>
-                                                                <input type="checkbox">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-auto">
-                                                            <a class="clear-filters">Clear filters</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                                    <table id="offices-table" class="table table-hover">
-                                                        <thead>
-                                                            <tr>
-                                                                <th style="width: 30px;"><input type="checkbox" class="table-checkbox"></th>
-                                                                <th>Invoice no</th>
-                                                                <th>Type</th>
-                                                                <th>Recipient</th>
-                                                                <th>Vessels</th>
-                                                                <th>Invoice date</th>
-                                                                <th>Due date</th>
-                                                                <th class="text-right">Gross value</th>
-                                                                <th>Currency</th>
-                                                                <th>Shipment no</th>
-                                                                <th>Status</th>
-                                                                <th>Approver</th>
-                                                                <th>Aggr. invoice no</th>
-                                                                <th class="text-right">Profit USD</th>
-                                                                <th class="text-right">Profit %</th>
-                                                                <th style="width: 30px;"></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach([
-                                                                ['no' => 'SIN-117868-D', 'type' => 'Invoice', 'recipient' => 'Allseas Engineering BV', 'vessel' => '', 'idate' => '26.03.2026', 'ddate' => '25.05.2026', 'gross' => '215.89', 'cur' => 'EUR', 'ship' => '', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '65.96', 'profit_pct' => '26.5%'],
-                                                                ['no' => 'SIN-116037-S', 'type' => 'Sub invoice', 'recipient' => 'Allseas Engineering BV', 'vessel' => '', 'idate' => '17.03.2026', 'ddate' => '16.05.2026', 'gross' => '1 863.89', 'cur' => 'EUR', 'ship' => '', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '800.22', 'profit_pct' => '37.3%'],
-                                                                ['no' => 'SIN-117670-D', 'type' => 'Invoice', 'recipient' => 'TATA NYK SHIPPING PTE LTD', 'vessel' => '', 'idate' => '16.03.2026', 'ddate' => '15.04.2026', 'gross' => '3 000.00', 'cur' => 'SGD', 'ship' => '', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '2 353.25', 'profit_pct' => '100%'],
-                                                                ['no' => 'SIN-118305-D', 'type' => 'Invoice', 'recipient' => 'Xt Management Ltd.', 'vessel' => 'Green Sea', 'idate' => '14.03.2026', 'ddate' => '13.04.2026', 'gross' => '1 390.00', 'cur' => 'USD', 'ship' => 'KUN6374603-326', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '1 390.00', 'profit_pct' => '100%'],
-                                                                ['no' => 'SIN-118304-D', 'type' => 'Invoice', 'recipient' => 'Xt Management Ltd.', 'vessel' => 'Green Sea', 'idate' => '14.03.2026', 'ddate' => '13.04.2026', 'gross' => '885.00', 'cur' => 'USD', 'ship' => 'KUN6374603-326', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '-450.46', 'profit_pct' => '-50.9%'],
-                                                                ['no' => 'SIN-117871-S', 'type' => 'Sub invoice', 'recipient' => 'BERNHARD SCHULTE SHIP MAN...', 'vessel' => 'Adam Schulte', 'idate' => '14.03.2026', 'ddate' => '28.04.2026', 'gross' => '675.00', 'cur' => 'USD', 'ship' => 'SUR6374286-226', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '369.59', 'profit_pct' => '54.8%'],
-                                                                ['no' => 'SIN-117853-S', 'type' => 'Sub invoice', 'recipient' => 'Seaspan Ship Management Ltd', 'vessel' => 'Seaspan Bellwether', 'idate' => '14.03.2026', 'ddate' => '13.04.2026', 'gross' => '100.00', 'cur' => 'USD', 'ship' => 'PRI6361574-126', 'status' => 'Draft', 'approver' => '', 'aggr' => 'SIN-117755-D', 'profit' => '100.00', 'profit_pct' => '100%'],
-                                                                ['no' => 'SIN-118211-D', 'type' => 'Invoice', 'recipient' => 'Fleet Management Ltd.', 'vessel' => 'YM THRONE', 'idate' => '13.03.2026', 'ddate' => '12.04.2026', 'gross' => '800.00', 'cur' => 'USD', 'ship' => 'MOH6376691-326', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '254.61', 'profit_pct' => '31.8%'],
-                                                                ['no' => 'SIN-118199-D', 'type' => 'Invoice', 'recipient' => 'Fleet Management Ltd.', 'vessel' => 'YM THRONE', 'idate' => '12.03.2026', 'ddate' => '11.04.2026', 'gross' => '2 825.00', 'cur' => 'USD', 'ship' => 'MOH6369185-226', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '732.43', 'profit_pct' => '25.9%'],
-                                                                ['no' => 'SIN-118195-D', 'type' => 'Invoice', 'recipient' => 'Fleet Management Ltd.', 'vessel' => 'MOUNT CAMERON', 'idate' => '12.03.2026', 'ddate' => '11.04.2026', 'gross' => '5 647.74', 'cur' => 'USD', 'ship' => 'MOH6365902-226', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '2 118.07', 'profit_pct' => '37.5%'],
-                                                                ['no' => 'SIN-118194-D', 'type' => 'Invoice', 'recipient' => 'Fleet Management Ltd.', 'vessel' => 'CANG HAI', 'idate' => '12.03.2026', 'ddate' => '11.04.2026', 'gross' => '6 448.91', 'cur' => 'USD', 'ship' => 'MOH6365902-226', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '1 534.54', 'profit_pct' => '23.8%'],
-                                                                ['no' => 'SIN-118189-D', 'type' => 'Invoice', 'recipient' => 'Fleet Management Ltd.', 'vessel' => 'Mari Innovator', 'idate' => '12.03.2026', 'ddate' => '11.04.2026', 'gross' => '953.00', 'cur' => 'USD', 'ship' => 'MOH6371632-226', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '216.49', 'profit_pct' => '22.7%'],
-                                                                ['no' => 'SIN-118188-D', 'type' => 'Invoice', 'recipient' => 'Fleet Management Ltd.', 'vessel' => 'Benromach', 'idate' => '12.03.2026', 'ddate' => '11.04.2026', 'gross' => '13 750.00', 'cur' => 'USD', 'ship' => 'MOH6366291-226', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '5 492.99', 'profit_pct' => '40%'],
-                                                                ['no' => 'SIN-118187-D', 'type' => 'Invoice', 'recipient' => 'Fleet Management Ltd.', 'vessel' => 'FLORENCE', 'idate' => '12.03.2026', 'ddate' => '11.04.2026', 'gross' => '205.00', 'cur' => 'USD', 'ship' => 'MOH6373867-226', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '55.00', 'profit_pct' => '26.8%'],
-                                                                ['no' => 'SIN-118185-D', 'type' => 'Invoice', 'recipient' => 'Fleet Management Ltd.', 'vessel' => 'CANG HAI', 'idate' => '12.03.2026', 'ddate' => '11.04.2026', 'gross' => '1 567.89', 'cur' => 'USD', 'ship' => 'MOH6364450-126', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '358.09', 'profit_pct' => '22.8%'],
-                                                                ['no' => 'SIN-118161-D', 'type' => 'Aggregated invoice', 'recipient' => 'Integrated Maritime Management...', 'vessel' => 'ODETTE', 'idate' => '12.03.2026', 'ddate' => '11.04.2026', 'gross' => '7 257.08', 'cur' => 'USD', 'ship' => '', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '1 126.00', 'profit_pct' => '15.5%'],
-                                                                ['no' => 'SIN-118137-D', 'type' => 'Aggregated invoice', 'recipient' => 'Allseas Engineering BV', 'vessel' => '', 'idate' => '12.03.2026', 'ddate' => '11.05.2026', 'gross' => '7 655.62', 'cur' => 'SGD', 'ship' => '', 'status' => 'Draft', 'approver' => '', 'aggr' => '', 'profit' => '1 509.10', 'profit_pct' => '25.2%'],
-                                                            ] as $row)
-                                                            <tr>
-                                                                <td><input type="checkbox" class="table-checkbox"></td>
-                                                                <td><a href="#">{{ $row['no'] }}</a></td>
-                                                                <td>{{ $row['type'] }}</td>
-                                                                <td>{{ $row['recipient'] }}</td>
-                                                                <td>{{ $row['vessel'] }}</td>
-                                                                <td>{{ $row['idate'] }}</td>
-                                                                <td>{{ $row['ddate'] }}</td>
-                                                                <td class="text-right">{{ $row['gross'] }}</td>
-                                                                <td>{{ $row['cur'] }}</td>
-                                                                <td>{{ $row['ship'] }}</td>
-                                                                <td>{{ $row['status'] }}</td>
-                                                                <td>{{ $row['approver'] }}</td>
-                                                                <td>@if($row['aggr']) <a href="#">{{ $row['aggr'] }}</a> @endif</td>
-                                                                <td class="text-right">{{ $row['profit'] }}</td>
-                                                                <td class="text-right">{{ $row['profit_pct'] }}</td>
-                                                                <td class="text-center">
-                                                                    <a href="#" style="color: #94a3b8 !important;" title="Delete">
-                                                                        <i class="ti-trash" style="font-size: 14px;"></i>
-                                                                    </a>
-                                                                </td>
-                                                            </tr>
-                                                            @endforeach
-                                                        </tbody>
-                                                    </table>
-                                            </div>
-                                        </div>
-                                        <!-- Base Style - Compact end -->
-                                    </div>
-                                    <!-- Page-body end -->
+    <div class="card billing-invoicing-list-card">
+        <div class="card-block">
+            <x-lists.page-header
+                title="Invoicing"
+                subtitle="Search and manage proforma invoices"
+                icon="ti-receipt"
+                :count="$invoices->total()"
+                countLabel="invoices"
+            />
+            <div class="billing-table-area">
+                <div id="invoicing-table-scroll" class="table-scroll-wrapper">
+                <table id="invoicing-table" class="office-table">
+                    <colgroup>
+                        <col style="width: 40px">
+                        <col style="width: 105px">
+                        <col style="width: 115px">
+                        <col style="width: 100px">
+                        <col style="width: 105px">
+                        <col style="width: 85px">
+                        <col style="width: 85px">
+                        <col style="width: 160px">
+                        <col style="width: 180px">
+                        <col style="width: 260px">
+                        <col style="width: 115px">
+                        <col style="width: 125px">
+                        <col style="width: 200px">
+                        <col style="width: 80px">
+                        <col style="width: 95px">
+                        <col style="width: 75px">
+                        <col style="width: 100px">
+                        <col style="width: 70px">
+                        <col style="width: 95px">
+                        <col style="width: 130px">
+                        <col style="width: 152px">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th class="invoicing-checkbox-cell">
+                                <input type="checkbox" id="invoicing-check-all" class="table-checkbox" aria-label="Select all on this page">
+                            </th>
+                            <th>Service Type</th>
+                            <th>EInvoice Status</th>
+                            <th>Proforma No</th>
+                            <th>Proforma Date</th>
+                            <th>Job No</th>
+                            <th>Job Date</th>
+                            <th>Shipper Name</th>
+                            <th>Consignee Name</th>
+                            <th>Party Name</th>
+                            <th>Port of Loading</th>
+                            <th>Port of Discharge</th>
+                            <th>Client Ref No</th>
+                            <th>SB / BE No</th>
+                            <th>MBL No</th>
+                            <th>Gross Wt.</th>
+                            <th>Chargeable Wt.</th>
+                            <th>Currency</th>
+                            <th>GST Amount</th>
+                            <th>Net Invoice Amount</th>
+                            <th class="invoicing-action-cell">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($invoices as $row)
+                        <tr>
+                            <td class="invoicing-checkbox-cell">
+                                <input type="checkbox" class="table-checkbox invoicing-row-checkbox" value="{{ $row['proforma_no'] }}" aria-label="Select row">
+                            </td>
+                            <td title="{{ $row['service_type'] }}">{{ $row['service_type'] }}</td>
+                            <td title="{{ $row['einvoice_status'] }}">{{ $row['einvoice_status'] }}</td>
+                            <td title="{{ $row['proforma_no'] }}">{{ $row['proforma_no'] }}</td>
+                            <td title="{{ $row['proforma_date'] }}">{{ $row['proforma_date'] }}</td>
+                            <td title="{{ $row['job_no'] }}">{{ $row['job_no'] }}</td>
+                            <td title="{{ $row['job_date'] }}">{{ $row['job_date'] }}</td>
+                            <td title="{{ $row['shipper_name'] }}">{{ $row['shipper_name'] }}</td>
+                            <td title="{{ $row['consignee_name'] }}">{{ $row['consignee_name'] }}</td>
+                            <td title="{{ $row['party_name'] }}">{{ $row['party_name'] }}</td>
+                            <td title="{{ $row['port_of_loading'] }}">{{ $row['port_of_loading'] }}</td>
+                            <td title="{{ $row['port_of_discharge'] }}">{{ $row['port_of_discharge'] }}</td>
+                            <td title="{{ $row['client_ref_no'] }}">{{ $row['client_ref_no'] }}</td>
+                            <td title="{{ $row['sb_be_no'] }}">{{ $row['sb_be_no'] }}</td>
+                            <td title="{{ $row['mbl_no'] }}">{{ $row['mbl_no'] }}</td>
+                            <td class="text-right" title="{{ $row['gross_wt'] }}">{{ $row['gross_wt'] }}</td>
+                            <td class="text-right" title="{{ $row['chargeable_wt'] }}">{{ $row['chargeable_wt'] }}</td>
+                            <td title="{{ $row['currency'] }}">{{ $row['currency'] }}</td>
+                            <td class="text-right" title="{{ $row['gst_amount'] }}">{{ $row['gst_amount'] }}</td>
+                            <td class="text-right" title="{{ $row['net_invoice_amount'] }}">{{ $row['net_invoice_amount'] }}</td>
+                            <td class="invoicing-action-cell">
+                                <div class="invoicing-row-actions" role="group" aria-label="Invoice actions">
+                                    <a href="{{ route('billing.invoicing.edit', ['proformaNo' => $row['proforma_no']]) }}" class="invoicing-row-action invoicing-row-action--edit" title="Edit invoice" aria-label="Edit invoice">
+                                        <i class="feather icon-edit"></i>
+                                    </a>
+                                    <a href="javascript:void(0)" class="invoicing-row-action invoicing-row-action--print" title="Print invoice" aria-label="Print invoice">
+                                        <i class="feather icon-printer"></i>
+                                    </a>
+                                    <a href="javascript:void(0)" class="invoicing-row-action invoicing-row-action--copy" title="Print copy" aria-label="Print copy">
+                                        <i class="feather icon-copy"></i>
+                                    </a>
+                                    <a href="javascript:void(0)" class="invoicing-row-action invoicing-row-action--delete" title="Delete invoice" aria-label="Delete invoice">
+                                        <i class="feather icon-trash-2"></i>
+                                    </a>
                                 </div>
-                            </div>
-                            <div id="styleSelector">
-
-                            </div>
-                        </div>
-                    </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
                 </div>
+            </div>
+            <div id="invoicing-pagination" class="pagination-sticky-footer">
+                @include('partials.list-pagination-footer-inner', ['paginator' => $invoices])
             </div>
         </div>
     </div>
 
+    @include('layouts.partials.pcoded-shell-end')
+@endsection
 
-    <!-- date-range-picker js -->
-
+@push('scripts')
     <script>
         $(document).ready(function() {
-            // Initialize Select2 for standard filters
-            $('.select2').select2({
-                placeholder: "Click here",
-                allowClear: true,
-                width: '100%'
-            });
+            $('body').addClass('billing-invoicing-list-page');
 
-            // Initialize Datepickers
-            $('.datepicker').datepicker({
-                dateFormat: 'dd.mm.yy',
-                showOtherMonths: true,
-                selectOtherMonths: true,
-                changeMonth: true,
-                changeYear: true
-            });
+            function syncInvoicingCheckAll() {
+                var $rows = $('#invoicing-table tbody .invoicing-row-checkbox');
+                var $checkAll = $('#invoicing-check-all');
+                var checked = $rows.filter(':checked').length;
+                var total = $rows.length;
 
-            // Trigger datepicker on icon click
-            $('.input-group-text i.ti-calendar').on('click', function() {
-                $(this).closest('.input-group').find('input.datepicker').focus();
-            });
-
-            // Initialize Bootstrap Multiselect for special filter toggle
-            $('#filter-multiselect').multiselect({
-                includeSelectAllOption: true,
-                enableFiltering: true,
-                buttonWidth: '100%',
-                maxHeight: 200,
-                nonSelectedText: '',
-                allSelectedText: '',
-                nSelectedText: '',
-                numberDisplayed: 0,
-                buttonClass: 'btn btn-filter-toggle',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><i class="ti-filter"></i></button>'
-                },
-                onChange: function(option, checked) {
-                    toggleFilterVisibility();
-                },
-                onSelectAll: function() {
-                    toggleFilterVisibility();
-                },
-                onDeselectAll: function() {
-                    toggleFilterVisibility();
+                if (total === 0) {
+                    $checkAll.prop('checked', false).prop('indeterminate', false);
+                    return;
                 }
+
+                $checkAll.prop('checked', checked === total);
+                $checkAll.prop('indeterminate', checked > 0 && checked < total);
+            }
+
+            $('#invoicing-check-all').on('change', function() {
+                var isChecked = $(this).prop('checked');
+                $('#invoicing-table tbody .invoicing-row-checkbox').prop('checked', isChecked);
+                $(this).prop('indeterminate', false);
             });
 
-            function toggleFilterVisibility() {
-                var selectedOptions = $('#filter-multiselect option:selected');
-                var selectedValues = [];
-                selectedOptions.each(function() {
-                    selectedValues.push($(this).val());
-                });
+            $(document).on('change', '#invoicing-table tbody .invoicing-row-checkbox', function() {
+                syncInvoicingCheckAll();
+            });
 
-                var allFilters = [
-                    {val: 'Office', id: 'col-Office'},
-                    {val: 'Customer', id: 'col-Customer'},
-                    {val: 'Vessel', id: 'col-Vessel'},
-                    {val: 'Status', id: 'col-Status'},
-                    {val: 'Shipment no', id: 'col-Shipment-no'},
-                    {val: 'PO no', id: 'col-PO-no'},
-                    {val: 'Service reference', id: 'col-Service-reference'},
-                    {val: 'Departure', id: 'col-Departure'},
-                    {val: 'Consignee', id: 'col-Consignee'},
-                    {val: 'Destination', id: 'col-Destination'},
-                    {val: 'Account manager', id: 'col-Account-manager'},
-                    {val: 'Remarks', id: 'col-Remarks'},
-                    {val: 'Closed date', id: 'col-Closed-date'},
-                    {val: 'Service', id: 'col-Service'},
-                    {val: 'Cost product', id: 'col-Cost-product'},
-                    {val: 'Customer reference', id: 'col-Customer-reference'},
-                    {val: 'Ready for billing date', id: 'col-Ready-for-billing-date'},
-                    {val: 'Chargeable status', id: 'col-Chargeable-status'},
-                    {val: 'Has unbilled charges', id: 'col-Has-unbilled-charges'},
-                    {val: 'Economic date', id: 'col-Economic-date'},
-                    {val: 'Inc. invoice no', id: 'col-Inc-invoice-no'},
-                    {val: 'Port agency', id: 'col-Port-agency'},
-                    {val: 'Project logistics', id: 'col-Project-logistics'}
-                ];
+            syncInvoicingCheckAll();
 
-                allFilters.forEach(function(filter) {
-                    if (selectedValues.includes(filter.val)) {
-                        $('#' + filter.id).show();
-                    } else {
-                        $('#' + filter.id).hide();
-                    }
+            function getInvoicingTableScrollHeight() {
+                var isMobile = window.matchMedia('(max-width: 991.98px)').matches;
+                var $tableArea = $('.billing-table-area');
+                var areaHeight = $tableArea.length ? $tableArea.innerHeight() : 0;
+                var available = areaHeight - 2;
+
+                if (isMobile) {
+                    var paginationHeight = $('#invoicing-pagination').outerHeight() || 52;
+                    var topOffset = $tableArea.length && $tableArea.offset()
+                        ? $tableArea.offset().top
+                        : 160;
+                    available = window.innerHeight - topOffset - paginationHeight;
+                    return Math.max(260, available);
+                }
+
+                if (available < 180) {
+                    var topOffsetFallback = $tableArea.length ? $tableArea.offset().top : 220;
+                    var paginationHeightFallback = $('#invoicing-pagination').outerHeight() || 52;
+                    available = window.innerHeight - topOffsetFallback - paginationHeightFallback;
+                }
+
+                return Math.max(180, available);
+            }
+
+            function adjustInvoicingTableLayout() {
+                var height = getInvoicingTableScrollHeight();
+                $('#invoicing-table-scroll').css({
+                    height: height + 'px',
+                    maxHeight: height + 'px',
                 });
             }
-            
-            toggleFilterVisibility();
 
-            var table = $('#offices-table').DataTable({
-                "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
-                "lengthChange": false,
-                "pageLength": 100,
-                "responsive": false,
-                "searching": true,
-                "ordering": true,
-                "autoWidth": false,
-                "language": {
-                    "paginate": {
-                        "previous": "<",
-                        "next": ">"
-                    }
-                }
-            });
-
-            $('.clear-filters').on('click', function() {
-                $('.select2').val(null).trigger('change');
-                $('.filter-input:not(select)').val('').trigger('change');
-                $('input[type="checkbox"]').prop('checked', false);
-                table.columns().search('').draw();
-            });
+            $(window).on('resize', adjustInvoicingTableLayout);
+            setTimeout(adjustInvoicingTableLayout, 50);
         });
     </script>
-@endsection
+@endpush

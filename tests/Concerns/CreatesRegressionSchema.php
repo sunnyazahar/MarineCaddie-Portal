@@ -192,6 +192,15 @@ trait CreatesRegressionSchema
             $table->timestamps();
         });
 
+        Schema::create('crr_change_logs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('crr_id');
+            $table->foreignId('user_id')->nullable();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->timestamp('created_at')->useCurrent();
+        });
+
         Schema::create('crr_packages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('crr_id');
@@ -293,6 +302,16 @@ trait CreatesRegressionSchema
             $table->timestamp('created_at')->nullable();
         });
 
+        Schema::create('shipment_pre_alerts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id');
+            $table->unsignedInteger('version');
+            $table->string('file_name');
+            $table->string('file_path');
+            $table->string('form_hash', 64)->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('shipment_pre_alert_reminder_sends', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shipment_id');
@@ -338,6 +357,7 @@ trait CreatesRegressionSchema
             'user_hub_assignments',
             'user_office_assignments',
             'shipment_pre_alert_reminder_sends',
+            'shipment_pre_alerts',
             'shipment_change_logs',
             'shipment_irregularities',
             'shipment_stock_snapshots',
@@ -348,6 +368,7 @@ trait CreatesRegressionSchema
             'shipment_crr',
             'shipments',
             'crr_documents',
+            'crr_change_logs',
             'crr_costs',
             'crr_packages',
             'crrs',

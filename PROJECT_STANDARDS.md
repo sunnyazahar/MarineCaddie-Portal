@@ -21,6 +21,8 @@
 11. [Repository Pattern](#11-repository-pattern)
 12. [Services vs Controllers](#12-services-vs-controllers)
 12a. [Shipment Finalize — Complete / Transit / Destination Stocks](#12a-shipment-finalize--complete--transit--destination-stocks)
+12b. [Shipment Manifest & Pre-alert PDF Revision Rules](#12b-shipment-manifest--pre-alert-pdf-revision-rules)
+12c. [Stocks List & Stock Follow-up](#12c-stocks-list--stock-follow-up)
 13. [Validation & Mass Assignment](#13-validation--mass-assignment)
 14. [Database & Query Rules](#14-database--query-rules)
 15. [File Storage](#15-file-storage)
@@ -135,7 +137,10 @@ scripts/                  — Local QA helpers (not for production runtime)
 | Module | List URL | Notes |
 |---|---|---|
 | Shipments | `/shipments` | Heavy edit page, manifests, pre-alerts, mail |
+| Shipments — Create pre alert | `/create-pre-alert` | Workflow edit (`?shipment={id}`); Complete Pre alert → optional Transit prompt |
+| Shipments — Transit | `/transit` | Same workflow shell; header **Transit** opens finalize transit modal (no Complete/Transit choice modal) |
 | Stocks (CRR) | `/stocks` | Create via `/stocks/create-crr`, edit tabs |
+| Stock follow-up | `/stock-follow-up` | Unaccepted stocks (`accept = false`); **Accept** button |
 | Dashboard | `/dashboard` | Operations overview |
 
 ### Middleware layers (in order)
@@ -819,7 +824,7 @@ public function index(Request $request)
 
 Use **Services** when logic involves:
 
-- PDF generation (manifest, pre-alert, combined PO)
+- PDF generation (manifest, pre-alert, combined PO) — revision fingerprints: **§12b**
 - Mail preview + send (ManifestMailService, PreAlertMailService)
 - Linked stock → shipment manifest regen (`LinkedStockShipmentManifestService`: after CRR update/status/flags/accept, create a new manifest on linked shipments except `Completed` / `Cancelled`)
 - Shipment Complete/Transit destination stock copies (`ShipmentTransitStockDuplicationService` — see **§12a**)
@@ -854,41 +859,50 @@ Manual options only:
 - **Completed**
 - **Cancelled**
 
-`In process` is **not** offered in the picker. New shipments default to **`In transit`** on create (hidden field + `buildShipmentAttributes` fallback). If an older shipment is still `In process`, the current value is shown so the select does not blank out, but users cannot re-select it from the list.
+`In process` is **not** offered in the picker. New shipments default to **`In process`** on create (hidden field + `buildShipmentAttributes` fallback). If an older shipment is still `In process`, the current value is shown so the select does not blank out, but users cannot re-select it from the list.
 
 Select2 for status/flags: `dropdownParent: $(document.body)` + high z-index so the menu is not clipped by `.summary-header` / `.main-content-area` `overflow: hidden`.
 
-### When destination stocks are deferred to Transit only
+### Complete never creates destination stock copies
 
-If **all** of these are true:
+**Finalize → Complete**, **Mark as arrived**, and header status → **Completed** all use `completeShipmentWithDestinationStocks()`:
 
-1. Consignee type = `office` / `hub` / `agent` (`consignee` like `hub:1`)
-2. Service = `Courier` / `Airfreight` / `Sea freight` / `Truck`
+- Stock snapshot (if not already present)
+- Shipment status → **`Completed`**
+- Linked CRRs → **Completed**
+- **No** `duplicateStocksForTransit()` — destination copies are **not** created on Complete
 
-Then:
+Destination duplicates are created only on:
+
+- **Finalize → Transit** (after Complete, when allowed)
+- Header status manually set to **In transit** (`updateStatus`)
+
+For office/hub/agent + Courier/Airfreight/Sea freight/Truck:
 
 | Action | Shipment status | Original linked stocks | New duplicate stocks |
 |---|---|---|---|
-| **Complete** | `Completed` | Marked Completed; stay on `shipment_crr` | **Not created** |
+| **Complete** / Mark as arrived | `Completed` | Marked Completed; stay on `shipment_crr` | **Not created** |
 | **Transit** (after Complete) | stays **`Completed`** | Stay linked (still shown on edit) | **Created** (Active copies) |
 
-Helper: `shouldDeferDestinationStockGenerationToTransit($shipment)`.
+Multi-leg: same `stock_number` may exist many times. Each new shipment number gets its own destination copy created **from that shipment’s linked CRRs** on **Transit**. A linked stock that is itself a prior-leg duplicate must not block Transit.
 
-Pending Transit reminder (edit page open): SweetAlert when Completed + office/hub/agent + freight services + destination stocks **not yet** created for **this shipment’s linked stocks**. Skip if `hasDestinationStocksForShipment()` is true.
+**Create pre alert:** after **Complete Pre alert** succeeds, SweetAlert **Transit required** on that page only (`promptTransitAfterPreAlertComplete`) — **Transit now** opens `/transit?shipment={id}`. Not shown on shipment edit open or after complete on the regular edit page.
 
-Multi-leg: same `stock_number` may exist many times. Each new shipment number gets its own destination copy created **from that shipment’s linked CRRs**. A linked stock that is itself a prior-leg duplicate must not block Transit.
+**Complete Pre alert** (`POST /shipments/{id}/complete-pre-alert`): shipment **In process** → **In transit**; linked CRRs → **Completed**; requires pre-alert PDF; **no** destination stock duplicates.
 
-### Other Complete cases (not deferred)
+### Transit & create-pre-alert workflow pages
 
-Example: hub + `Release` / Hand Carry / On-board, or non office/hub/agent consignee.
+Shared view: `Shipment/edit.blade.php` with `$createPreAlertMode`, `$transitMode`, `$workflowEditMode`.
 
-- **Complete** still creates destination stock copies (`syncShipmentLinks=false`)
-- Same shared helper; only the defer check differs
-- Finalize modal **Transit** button is **disabled** for `Release` / `Hand Carry` / `On-board delivery` (Complete only). Backend also rejects `action=transit` for those services.
+- Until user loads a shipment (`?shipment={id}` or lookup `q=`): **header only** — `#workflow-page-body` hidden; status + action buttons disabled.
+- **Save/Cancel footer** (`edit-footer`) sits **outside** hidden body; pinned at bottom via flex (`syncShipmentEditFooterPlacement()`).
+- **Transit page** (`/transit`): header has **Transit** (not “Finalize shipment”); opens `#finalize-shipment-transit-modal` via `openFinalizeTransitModal()` — no Complete/Transit choice modal. No Send pre-alert / Complete Pre alert in header.
+- **Finalize → Transit** button disabled only when `transitDestinationStocksReady` (destination copies already exist). No service-type or “must be Completed first” gate on the UI button.
+- Left menu: **Transit** submenu under Shipments, below All shipments.
 
 ### What duplicate stocks copy (`duplicateStocksForTransit`)
 
-Always the **same generation rules** (Complete when not deferred, and Transit):
+Generation rules for **Transit** (and manual **In transit** status):
 
 - New CRR: `duplicated_from_crr_id`, `internal_shipment` = null (no shipment number on Complete/Transit copies), `status` = Active
 - `hub_agent` from consignee code / party (`office`/`hub`/`agent`)
@@ -896,7 +910,7 @@ Always the **same generation rules** (Complete when not deferred, and Transit):
 - Delivery dates from `deadline_arrival`
 - Packages (warehouse_location → shipment number), costs, documents (file copy via `PrivateDisk`)
 
-**Critical:** `syncShipmentLinks` must be **`false`** for Finalize Complete **and** Finalize Transit so the shipment keeps showing the **old completed stocks**. Duplicates exist separately for destination / stock list; they must **not** replace `shipment_crr`.
+**Critical:** `syncShipmentLinks` must be **`false`** for Finalize Transit (and manual In transit) so the shipment keeps showing the **old completed stocks**. Duplicates exist separately for destination / stock list; they must **not** replace `shipment_crr`.
 
 ### Completed shipment stock display (snapshots)
 
@@ -912,14 +926,104 @@ Always the **same generation rules** (Complete when not deferred, and Transit):
 | Finalize → Complete | `completeShipmentWithDestinationStocks()` |
 | Mark as arrived | same Complete helper |
 | Header status → Completed | same Complete helper |
-| Finalize → Transit | requires Completed first; duplicates + status stays Completed; no link sync |
+| Finalize → Transit | duplicates + status stays Completed; no link sync; UI disabled only if destination stocks already exist |
 | Header status → In transit | may create duplicates with `sync=false`; status becomes `In transit` |
 
 ### Tests
 
 - `tests/Feature/Shipment/ShipmentFinalizeStockDuplicationTest.php`
 - `tests/Unit/ShipmentStockSnapshotResolveTest.php`
-- Blade markers: pending transit prompt + status picker exclusions in `MigratedBladeViewsTest`
+- Blade markers: status picker exclusions in `MigratedBladeViewsTest`
+
+---
+
+## 12b. Shipment Manifest & Pre-alert PDF Revision Rules
+
+> Service: `App\Services\ShipmentPdfFingerprintService`  
+> Applies to **`/shipments/edit/{id}`** and **`/create-pre-alert`** (same fingerprint logic on both pages).
+
+A **new PDF revision** is created only when the relevant fingerprint changes after save, mail prepare, or explicit generate endpoints. Comments, dates, stock field edits (weight/supplier/content), departure party/port, and other administrative fields do **not** trigger a revision.
+
+### Manifest PDF — new revision when
+
+1. **Stock add/remove** — linked stock IDs on the shipment change.
+2. **Consignee** — name (`consignee`), address, country, port code.
+3. **Departure** — service type, additional service.
+
+Fingerprint: `manifestFingerprint()` → `manifestRevisionPayload()`.
+
+### Pre-alert PDF — new revision when
+
+1. **Stock add/remove** — linked stock IDs on the shipment change.
+2. **Service details tab** — service-type legs (flights, sea legs, truck legs, etc.), repacked items/weight; service type included so leg shape is compared correctly.
+3. **Consignee** — name (`consignee`), address, country, port code.
+
+Fingerprint: `preAlertFingerprint()` → `preAlertRevisionPayload()`.
+
+Pre-alert generation still requires service details to be present (`ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails()`).
+
+### Controller paths (must stay aligned)
+
+| Trigger | Manifest | Pre-alert |
+|---|---|---|
+| Shipment save (`ShipmentController::update`) | fingerprint compare | fingerprint compare |
+| `POST …/manifests/generate` | fingerprint compare | — |
+| `POST …/pre-alerts/generate` | — | fingerprint compare |
+| `POST …/manifest-mail/prepare` | fingerprint compare (or first PDF if none) | — |
+| `POST …/pre-alert-mail/prepare` | — | fingerprint compare (or first PDF if none) |
+| Edit page open (no PDF yet) | auto-generate first manifest | auto-generate first pre-alert when service details exist |
+
+Create-pre-alert save stays on create-pre-alert via hidden `return_to=create-pre-alert`; AJAX prepare endpoints receive the same field via `serializeShipmentFormForAjax()`.
+
+### Tests
+
+- `tests/Unit/ShipmentPdfFingerprintServiceTest.php` — manifest + pre-alert fingerprint cases
+
+---
+
+## 12c. Stocks List & Stock Follow-up
+
+### Stocks list (`/stocks`) — inherited shipment column (display only)
+
+When the same **hub** has an **In Progress** stock with `internal_shipment` set, **New** / **Stock** rows in that hub with empty `internal_shipment` show that shipment number in the **Shipment** column — **UI only**, DB not updated.
+
+| Piece | Location |
+|---|---|
+| Hub map (number + `shipment_id`) | `Crr::hubInProgressShipmentInfoByHub()` |
+| Per-row display | `Crr::stockListShipmentColumn()` |
+| Rows partial | `Stock/partials/rows.blade.php` |
+| Controller passes | `$hubInProgressShipmentInfo` in `CrrController::index()` |
+
+**UI rules:**
+
+- Inherited value: yellow badge `#f7f776` (`shipment-badge`), link to `shipments.edit` when `shipment_id` resolved (pivot or `shipment_number` lookup).
+- Row `data-shipment` stays the **DB** `internal_shipment` (filters / bulk actions use real data).
+- Own `internal_shipment` on row → plain text, no badge inheritance.
+
+**Tests:** `tests/Unit/CrrStockListShipmentDisplayTest.php`
+
+### Stock follow-up (`/stock-follow-up`) — Accept
+
+Route: `POST /stocks/{id}/accept` (`stocks.crr.update-accept`) → `CrrController::updateAccept()`.
+
+List scope: `Crr::scopeStockFollowUp()` — `accept = false` and `status != Completed`.
+
+**Accept sets only `accept = true`.** It does **not** change `status` (New stays New, Stock stays Stock, etc.). Row disappears from follow-up because `accept` is no longer false.
+
+On first accept (side effects unchanged):
+
+- Change log: “Stock accepted”
+- Account manager email (`CrrAccountManagerNotifyService`) when AM email exists
+- Linked shipment manifest regen (`LinkedStockShipmentManifestService`)
+
+Same endpoint used from stock edit **Accept CRR** button.
+
+**Tests:** `tests/Feature/Stock/StockAcceptTest.php`
+
+### Stock follow-up table UI
+
+- Status + Accept columns: classes `stock-status-cell`, `stock-action-cell` — **no** `text-overflow: ellipsis` on those `td` (badge + button were showing phantom `...`).
+- Text truncation stays on `.cell-ellipsis` inner spans for other columns.
 
 ---
 
@@ -1260,7 +1364,10 @@ Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | ta
 | Transit syncing duplicates onto `shipment_crr` | Keep `syncShipmentLinks=false` on Finalize Complete/Transit — shipment must show completed originals |
 | Complete creating hub/freight destination stocks | Office/Hub/Agent + Courier/Air/Sea/Truck → defer to Transit only |
 | Snapshot showing wrong stock number | Match snapshot by id **and** stock_number; else use live pivot |
+| Accept changing stock status to Stock | Accept only sets `accept = true` — status unchanged (§12c) |
+| Inherited shipment saved to DB from stocks list | Display-only via `stockListShipmentColumn()` — `data-shipment` = DB value (§12c) |
+| Phantom `...` before Accept on stock-follow-up | No ellipsis on `stock-status-cell` / `stock-action-cell` (§12c) |
 
 ---
 
-*Last updated: Shipment Finalize Complete/Transit destination-stock rules (§12a), stock snapshot resolve, status picker (no In process), pending Transit prompt, stock Excel `.xlsx` export.*
+*Last updated: 2026-08-29 — §12c stocks list inherited shipment + Accept rules; §12a Transit/create-pre-alert workflow pages + Complete Pre alert endpoint; Accept no longer changes status.*

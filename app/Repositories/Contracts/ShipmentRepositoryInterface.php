@@ -37,6 +37,10 @@ interface ShipmentRepositoryInterface
 
     public function shipmentNumberExists(string $shipmentNumber): bool;
 
+    public function searchByShipmentNumber(string $q, int $limit = 40): EloquentCollection;
+
+    public function findByShipmentNumberLookup(string $q): ?Shipment;
+
     public function createShipment(array $attributes): Shipment;
 
     public function createPreAlertReminderSend(int $shipmentId, ?int $userId): void;

@@ -190,6 +190,14 @@ class BreadcrumbBuilder
                 ['label' => 'Shipments', 'url' => route('shipments')],
                 ['label' => 'Create shipment', 'url' => null],
             ],
+            'create-pre-alert' => [
+                ['label' => 'Shipments', 'url' => route('shipments')],
+                ['label' => 'Create pre alert', 'url' => null],
+            ],
+            'transit' => [
+                ['label' => 'Shipments', 'url' => route('shipments')],
+                ['label' => 'Transit', 'url' => null],
+            ],
             'pre-alert-reminders' => [
                 ['label' => 'Shipments', 'url' => route('shipments')],
                 ['label' => 'Shipment follow up', 'url' => null],
@@ -223,6 +231,23 @@ class BreadcrumbBuilder
             'accounting' => [
                 ['label' => 'Billing', 'url' => null],
                 ['label' => 'Accounting', 'url' => null],
+            ],
+            'billing.invoicing' => [
+                ['label' => 'Billing', 'url' => null],
+                ['label' => 'Invoicing', 'url' => null],
+            ],
+            'billing.invoicing.edit' => [
+                ['label' => 'Billing', 'url' => null],
+                ['label' => 'Invoicing', 'url' => route('billing.invoicing')],
+                ['label' => 'Edit proforma invoice', 'url' => null],
+            ],
+            'billing.debit-notes' => [
+                ['label' => 'Billing', 'url' => null],
+                ['label' => 'Debit note', 'url' => null],
+            ],
+            'billing.credit-notes' => [
+                ['label' => 'Billing', 'url' => null],
+                ['label' => 'Credit note', 'url' => null],
             ],
 
             // Administration - Offices
@@ -387,8 +412,8 @@ class BreadcrumbBuilder
     {
         return match ($section) {
             'stocks', 'stock-follow-up', 'pickup-work-list', 'create-crr', 'etl-stock-items' => 'Stocks',
-            'shipments', 'create-shipment', 'pre-alert-reminders', 'shipment-follow-up', 'cost-follow-up' => 'Shipments',
-            'billable-shipments', 'all-invoices', 'all-incoming-invoices', 'all-costs', 'accounting' => 'Billing',
+            'shipments', 'create-shipment', 'create-pre-alert', 'transit', 'pre-alert-reminders', 'shipment-follow-up', 'cost-follow-up' => 'Shipments',
+            'billable-shipments', 'all-invoices', 'all-incoming-invoices', 'all-costs', 'accounting', 'billing.invoicing', 'billing.debit-notes', 'billing.credit-notes' => 'Billing',
             'offices', 'hub', 'agents', 'other-companies', 'suppliers', 'customers', 'vessels', 'contacts', 'administration' => 'Administration',
             default => $section !== '' ? self::humanize($section) : null,
         };

@@ -94,9 +94,12 @@
             color: #4b5563;
             border-bottom: 1px solid #f3f4f6;
             vertical-align: middle;
-            overflow: hidden;
-            text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .office-table td.stock-status-cell,
+        .office-table td.stock-action-cell {
+            overflow: visible;
+            text-overflow: clip;
         }
         .btn-teal {
             background-color: #008080;
@@ -418,6 +421,10 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             width: 100%;
+        }
+        .office-table td:not(.stock-status-cell):not(.stock-action-cell):not(.stock-no-cell) {
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .office-table td.stock-no-cell {
             overflow: hidden;
