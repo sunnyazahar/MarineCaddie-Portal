@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Agent;
 use App\Models\Contact;
 use App\Models\Customer;
+use App\Models\CustomerResponsible;
 use App\Models\Crr;
 use App\Models\Hub;
 use App\Models\Office;
@@ -81,10 +82,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
         $statuses = $this->query()->whereNotNull('status')->distinct()->orderBy('status')->pluck('status');
         $departureOptions = $this->query()->whereNotNull('departure_port_code')->distinct()->orderBy('departure_port_code')->pluck('departure_port_code');
 
-        $accountManagers = Contact::query()
-            ->whereIn('id', $this->query()->whereNotNull('account_manager_id')->distinct()->pluck('account_manager_id'))
-            ->orderBy('name')
-            ->get(['id', 'name', 'office_id']);
+        $accountManagers = $this->customerAccountManagers();
 
         $creators = User::query()
             ->whereIn('id', $this->query()->whereNotNull('created_by')->distinct()->pluck('created_by'))
@@ -214,10 +212,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
 
         $statuses = (clone $baseQuery)->whereNotNull('status')->distinct()->orderBy('status')->pluck('status');
 
-        $accountManagers = Contact::query()
-            ->whereIn('id', (clone $baseQuery)->whereNotNull('account_manager_id')->distinct()->pluck('account_manager_id'))
-            ->orderBy('name')
-            ->get();
+        $accountManagers = $this->customerAccountManagers();
 
         $creators = User::query()
             ->whereIn('id', (clone $baseQuery)->whereNotNull('created_by')->distinct()->pluck('created_by'))
@@ -597,6 +592,22 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
                     }
                 });
             });
+    }
+
+    private function customerAccountManagers(): EloquentCollection
+    {
+        return Contact::query()
+            ->whereIn(
+                'id',
+                CustomerResponsible::query()
+                    ->whereNotNull('account_manager_id')
+                    ->distinct()
+                    ->pluck('account_manager_id')
+            )
+            ->whereNotNull('name')
+            ->where('name', '!=', '')
+            ->orderBy('name')
+            ->get(['id', 'name', 'office_id']);
     }
 
     private function consigneeKeysMatching(string $term): array

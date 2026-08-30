@@ -3,10 +3,12 @@
 namespace App\Repositories;
 
 use App\Models\Agent;
+use App\Models\Contact;
 use App\Models\Crr;
 use App\Models\CrrCost;
 use App\Models\CrrDocument;
 use App\Models\CrrPackage;
+use App\Models\CustomerResponsible;
 use App\Models\CustomerVessel;
 use App\Models\Hub;
 use App\Repositories\Contracts\CrrRepositoryInterface;
@@ -56,12 +58,7 @@ class CrrRepository extends BaseRepository implements CrrRepositoryInterface
             ->orderBy('vessel_name')
             ->pluck('vessel_name');
 
-        $accountManagers = DB::table('contacts')
-            ->whereNotNull('name')
-            ->where('name', '!=', '')
-            ->distinct()
-            ->orderBy('name')
-            ->pluck('name');
+        $accountManagers = $this->customerAccountManagerNames();
 
         $offices = DB::table('offices')
             ->whereNotNull('office_name')
@@ -112,12 +109,7 @@ class CrrRepository extends BaseRepository implements CrrRepositoryInterface
             ->orderBy('customer_name')
             ->pluck('customer_name');
 
-        $accountManagers = DB::table('contacts')
-            ->whereNotNull('name')
-            ->where('name', '!=', '')
-            ->distinct()
-            ->orderBy('name')
-            ->pluck('name');
+        $accountManagers = $this->customerAccountManagerNames();
 
         return compact('customers', 'accountManagers');
     }
@@ -144,12 +136,7 @@ class CrrRepository extends BaseRepository implements CrrRepositoryInterface
 
     public function pickupWorkListFilterOptions(Collection $handledByMap): array
     {
-        $accountManagers = DB::table('contacts')
-            ->whereNotNull('name')
-            ->where('name', '!=', '')
-            ->distinct()
-            ->orderBy('name')
-            ->pluck('name');
+        $accountManagers = $this->customerAccountManagerNames();
 
         $vessels = $this->query()
             ->pickupWorkList()
@@ -319,6 +306,23 @@ class CrrRepository extends BaseRepository implements CrrRepositoryInterface
     public function findDocumentOrFail(int $docId): CrrDocument
     {
         return CrrDocument::query()->findOrFail($docId);
+    }
+
+    private function customerAccountManagerNames(): Collection
+    {
+        return Contact::query()
+            ->whereIn(
+                'id',
+                CustomerResponsible::query()
+                    ->whereNotNull('account_manager_id')
+                    ->distinct()
+                    ->pluck('account_manager_id')
+            )
+            ->whereNotNull('name')
+            ->where('name', '!=', '')
+            ->orderBy('name')
+            ->pluck('name')
+            ->values();
     }
 
     private function applyStockIndexFilters(Builder $query, array $filters): void
