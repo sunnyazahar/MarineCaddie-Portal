@@ -44,7 +44,7 @@
                                                                 data-dgr="{{ $hasDgr ? 'Yes' : '' }}"
                                                                 data-oversized="{{ $isOversized ? 'Yes' : '' }}"
                                                             >
-                                                                <td class="text-center"><input type="checkbox" class="row-checkbox" value="{{ $crr->id }}"></td>
+                                                                <td class="text-center stock-col-check"><input type="checkbox" class="row-checkbox" value="{{ $crr->id }}"></td>
                                                                 <td title="{{ $crr->hub_code ?? '—' }}"><span class="cell-ellipsis">{{ $crr->hub_code ?? '—' }}</span></td>
                                                                 <td class="stock-no-cell">
                                                                     <div class="stock-no-row">
@@ -97,7 +97,7 @@
                                                                         <span class="cell-ellipsis">—</span>
                                                                     @endif
                                                                 </td>
-                                                                <td>
+                                                                <td class="stock-col-status">
                                                                     <span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span>
                                                                 </td>
                                                             </tr>

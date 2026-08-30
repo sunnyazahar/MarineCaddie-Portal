@@ -522,6 +522,39 @@
         .office-table td:nth-child(14) { width: 150px; min-width: 150px; }
         .office-table th:nth-child(15),
         .office-table td:nth-child(15) { width: 120px; min-width: 120px; }
+
+        /* Freeze checkbox (left) + Status (right) during horizontal scroll */
+        .office-table thead th.stock-col-check,
+        .office-table tbody td.stock-col-check {
+            position: sticky !important;
+            left: 0 !important;
+            background-color: #fff !important;
+            box-shadow: 2px 0 4px -2px rgba(15, 23, 42, 0.12);
+        }
+        .office-table thead th.stock-col-check {
+            top: 0 !important;
+            z-index: 32 !important;
+            background-color: #fdfdfd !important;
+        }
+        .office-table tbody td.stock-col-check {
+            z-index: 12 !important;
+        }
+        .office-table thead th.stock-col-status,
+        .office-table tbody td.stock-col-status {
+            position: sticky !important;
+            right: 0 !important;
+            background-color: #fff !important;
+            box-shadow: -2px 0 4px -2px rgba(15, 23, 42, 0.12);
+        }
+        .office-table thead th.stock-col-status {
+            top: 0 !important;
+            z-index: 32 !important;
+            background-color: #fdfdfd !important;
+        }
+        .office-table tbody td.stock-col-status {
+            z-index: 12 !important;
+        }
+
         .office-table thead {
             position: sticky !important;
             top: 0 !important;
@@ -1120,24 +1153,24 @@
                                                         class="office-table">
                                                         <colgroup>
                                                             <col style="width: 40px">
-                                                            <col style="width: 90px">
-                                                            <col style="width: 180px">
-                                                            <col style="width: 240px">
-                                                            <col style="width: 180px">
+                                                            <col style="width: 50px">
+                                                            <col style="width: 100px">
+                                                            <col style="width: 140px">
+                                                            <col style="width: 140px">
                                                             <col style="width: 110px">
                                                             <col style="width: 200px">
                                                             <col style="width: 200px">
                                                             <col style="width: 60px">
-                                                            <col style="width: 90px">
-                                                            <col style="width: 100px">
+                                                            <col style="width: 70px">
+                                                            <col style="width: 70px">
                                                             <col style="width: 60px">
                                                             <col style="width: 130px">
-                                                            <col style="width: 150px">
-                                                            <col style="width: 120px">
+                                                            <col style="width: 100px">
+                                                            <col style="width: 100px">
                                                         </colgroup>
                                                         <thead>
                                                             <tr>
-                                                                <th><input type="checkbox"></th>
+                                                                <th class="stock-col-check"><input type="checkbox"></th>
                                                                 <th>Hub</th>
                                                                 <th>Stock no</th>
                                                                 <th>Customer</th>
@@ -1151,7 +1184,7 @@
                                                                 <th>Cur.</th>
                                                                 <th>Transit id</th>
                                                                 <th>Shipment</th>
-                                                                <th>Status</th>
+                                                                <th class="stock-col-status">Status</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>

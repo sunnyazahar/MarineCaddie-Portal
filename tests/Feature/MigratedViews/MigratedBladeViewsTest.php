@@ -243,6 +243,8 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'icofont-file-excel',
             'data-format="pdf"',
             'data-format="excel"',
+            'stock-col-check',
+            'stock-col-status',
         ]);
     }
 
