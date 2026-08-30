@@ -267,6 +267,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
             'list-pagination-meta',
             'data-list-page-header="1"',
             'Stock follow-up',
+            'stock-col-accept',
         ]);
     }
 

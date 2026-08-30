@@ -697,9 +697,16 @@ class CrrController extends Controller
         try {
             $crr = $this->crrRepository->findOrFail((int) $id);
             $wasAccepted = (bool) $crr->accept;
-            $crr->update([
+            $attributes = [
                 'accept' => true,
-            ]);
+            ];
+
+            // Accept on New stocks promotes them to Stock; other statuses stay unchanged.
+            if ((int) $crr->status === Crr::STATUS_NEW) {
+                $attributes['status'] = Crr::STATUS_ACTIVE;
+            }
+
+            $crr->update($attributes);
 
             if (! $wasAccepted) {
                 $changeLogService->logAccepted($crr);

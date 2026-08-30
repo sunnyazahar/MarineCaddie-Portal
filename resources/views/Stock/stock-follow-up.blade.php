@@ -414,6 +414,24 @@
         .office-table td:nth-child(13) { width: 110px; min-width: 110px; }
         .office-table th:nth-child(14),
         .office-table td:nth-child(14) { width: 90px; min-width: 90px; }
+
+        /* Freeze Accept column during horizontal scroll */
+        .office-table thead th.stock-col-accept,
+        .office-table tbody td.stock-action-cell {
+            position: sticky !important;
+            right: 0 !important;
+            background-color: #fff !important;
+            box-shadow: -2px 0 4px -2px rgba(15, 23, 42, 0.12);
+        }
+        .office-table thead th.stock-col-accept {
+            top: 0 !important;
+            z-index: 32 !important;
+            background-color: #fdfdfd !important;
+        }
+        .office-table tbody td.stock-action-cell {
+            z-index: 12 !important;
+        }
+
         .office-table .cell-ellipsis {
             display: block;
             min-width: 0;
@@ -604,7 +622,7 @@
                                                                 <th>Reg.by</th>
                                                                 <th>ETL</th>
                                                                 <th>Status</th>
-                                                                <th></th>
+                                                                <th class="stock-col-accept"></th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>

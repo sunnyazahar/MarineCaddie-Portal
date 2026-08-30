@@ -74,7 +74,7 @@ Full detail: `PROJECT_STANDARDS.md` **§12a**.
 Full detail: `PROJECT_STANDARDS.md` **§12c**.
 
 - **Stocks list** (`/stocks`): same hub + In Progress stock with shipment → New/Stock rows show inherited shipment in column (**display only**, badge `#f7f776` + link); `data-shipment` = DB
-- **Stock follow-up Accept**: only `accept = true` — **status does not change**; row leaves follow-up list
+- **Stock follow-up Accept**: `accept = true`; if status is **New** → **Stock**, otherwise status unchanged; row leaves follow-up list
 - Follow-up Status/Accept columns: no `text-overflow: ellipsis` on those cells (phantom `...` fix)
 
 ## Common mistakes to avoid

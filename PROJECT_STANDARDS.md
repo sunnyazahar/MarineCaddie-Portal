@@ -1008,7 +1008,7 @@ Route: `POST /stocks/{id}/accept` (`stocks.crr.update-accept`) → `CrrControlle
 
 List scope: `Crr::scopeStockFollowUp()` — `accept = false` and `status != Completed`.
 
-**Accept sets only `accept = true`.** It does **not** change `status` (New stays New, Stock stays Stock, etc.). Row disappears from follow-up because `accept` is no longer false.
+**Accept sets `accept = true`.** If status is **New**, it also becomes **Stock** (`STATUS_ACTIVE`). Any other status is unchanged. Row leaves follow-up because `accept` is no longer false.
 
 On first accept (side effects unchanged):
 
@@ -1364,7 +1364,7 @@ Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | ta
 | Transit syncing duplicates onto `shipment_crr` | Keep `syncShipmentLinks=false` on Finalize Complete/Transit — shipment must show completed originals |
 | Complete creating hub/freight destination stocks | Office/Hub/Agent + Courier/Air/Sea/Truck → defer to Transit only |
 | Snapshot showing wrong stock number | Match snapshot by id **and** stock_number; else use live pivot |
-| Accept changing stock status to Stock | Accept only sets `accept = true` — status unchanged (§12c) |
+| Accept changing non-New stock status | Accept sets `accept = true`; only **New** → **Stock** (§12c) |
 | Inherited shipment saved to DB from stocks list | Display-only via `stockListShipmentColumn()` — `data-shipment` = DB value (§12c) |
 | Phantom `...` before Accept on stock-follow-up | No ellipsis on `stock-status-cell` / `stock-action-cell` (§12c) |
 
