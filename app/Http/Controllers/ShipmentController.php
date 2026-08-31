@@ -9,6 +9,7 @@ use App\Support\ListSearch;
 use App\Models\Crr;
 use App\Models\Shipment;
 use App\Models\ShipmentDocument;
+use App\Services\CancelledShipmentMailService;
 use App\Services\CombinedPoPdfService;
 use App\Services\ManifestMailService;
 use App\Services\PreAlertMailService;
@@ -382,7 +383,8 @@ class ShipmentController extends BaseShipmentController
         $id,
         ShipmentChangeLogService $changeLogService,
         ShipmentStockSnapshotService $stockSnapshotService,
-        ShipmentTransitStockDuplicationService $transitStockDuplicationService
+        ShipmentTransitStockDuplicationService $transitStockDuplicationService,
+        CancelledShipmentMailService $cancelledShipmentMailService,
     ) {
         $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
@@ -485,6 +487,10 @@ class ShipmentController extends BaseShipmentController
                     $shipment
                 );
             }
+        }
+
+        if ($previousStatus !== 'Cancelled' && $shipment->status === 'Cancelled') {
+            $cancelledShipmentMailService->notify($shipment->fresh());
         }
 
         return response()->json([

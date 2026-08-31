@@ -142,6 +142,8 @@ trait CreatesRegressionSchema
         Schema::create('contacts', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
+            $table->string('email')->nullable();
+            $table->string('phone_number')->nullable();
             $table->foreignId('office_id')->nullable();
             $table->timestamps();
         });
@@ -227,8 +229,15 @@ trait CreatesRegressionSchema
             $table->id();
             $table->string('shipment_number')->unique();
             $table->string('departure')->nullable();
+            $table->string('departure_port_code')->nullable();
             $table->string('consignee')->nullable();
+            $table->string('consignee_port_code')->nullable();
+            $table->string('consignee_city')->nullable();
+            $table->string('consignee_country')->nullable();
             $table->string('service')->nullable();
+            $table->string('additional_service')->nullable();
+            $table->unsignedInteger('repacked_items')->nullable();
+            $table->decimal('repacked_weight', 12, 2)->nullable();
             $table->date('deadline_arrival')->nullable();
             $table->date('pre_alert_reminder')->nullable();
             $table->foreignId('account_manager_id')->nullable();
@@ -273,7 +282,19 @@ trait CreatesRegressionSchema
             $table->timestamps();
         });
 
-        foreach (['shipment_flights', 'shipment_sea_legs', 'shipment_truck_legs', 'shipment_courier_legs'] as $legsTable) {
+        Schema::create('shipment_flights', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->string('leg_reference')->nullable();
+            $table->string('flight_number')->nullable();
+            $table->date('departure_date')->nullable();
+            $table->date('arrival_date')->nullable();
+            $table->string('arrival_time', 5)->nullable();
+            $table->timestamps();
+        });
+
+        foreach (['shipment_sea_legs', 'shipment_truck_legs', 'shipment_courier_legs'] as $legsTable) {
             Schema::create($legsTable, function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('shipment_id');
@@ -282,9 +303,49 @@ trait CreatesRegressionSchema
                 $table->string('bill_of_lading')->nullable();
                 $table->string('cmr')->nullable();
                 $table->string('airway_bill')->nullable();
+                $table->string('flight_number')->nullable();
+                $table->string('transport_vessel_name')->nullable();
+                $table->string('freight_company')->nullable();
+                $table->string('carrier')->nullable();
+                $table->date('departure_date')->nullable();
+                $table->date('arrival_date')->nullable();
+                $table->date('etd')->nullable();
+                $table->date('eta')->nullable();
+                $table->string('arrival_time', 5)->nullable();
                 $table->timestamps();
             });
         }
+
+        Schema::create('shipment_release_legs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->string('freight_company')->nullable();
+            $table->date('delivery_date')->nullable();
+            $table->string('delivery_time', 5)->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('shipment_hand_carry_legs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->string('contact_name')->nullable();
+            $table->date('departure_date')->nullable();
+            $table->date('arrival_date')->nullable();
+            $table->string('arrival_time', 5)->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('shipment_on_board_legs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->date('departure_date')->nullable();
+            $table->date('delivery_date')->nullable();
+            $table->string('delivery_time', 5)->nullable();
+            $table->timestamps();
+        });
 
         Schema::create('shipment_irregularities', function (Blueprint $table) {
             $table->id();
@@ -364,6 +425,9 @@ trait CreatesRegressionSchema
             'shipment_courier_legs',
             'shipment_truck_legs',
             'shipment_sea_legs',
+            'shipment_on_board_legs',
+            'shipment_hand_carry_legs',
+            'shipment_release_legs',
             'shipment_flights',
             'shipment_crr',
             'shipments',
