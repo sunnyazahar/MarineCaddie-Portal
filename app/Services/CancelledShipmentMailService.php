@@ -3,10 +3,7 @@
 namespace App\Services;
 
 use App\Mail\CancelledShipmentMail;
-use App\Models\Agent;
 use App\Models\Contact;
-use App\Models\Hub;
-use App\Models\Office;
 use App\Models\Shipment;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -32,11 +29,12 @@ class CancelledShipmentMailService
             'onBoardLegs',
         ]);
 
-        $accountManager = $this->resolveDepartureAccountManager($shipment);
-        $email = trim((string) ($accountManager?->email ?? ''));
+        $partyNames = Shipment::batchResolvePartyNames(collect([$shipment]));
+        $departureParty = $this->manifestPdfBuilder->resolvePartyContact($shipment->departure, $partyNames);
+        $departureEmail = trim((string) ($departureParty['email'] ?? ''));
 
-        if ($accountManager === null || $email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            Log::info('Cancelled shipment email skipped: no departure account manager email', [
+        if ($departureEmail === '' || ! filter_var($departureEmail, FILTER_VALIDATE_EMAIL)) {
+            Log::info('Cancelled shipment email skipped: no departure party email', [
                 'shipment_id' => $shipment->id,
                 'shipment_number' => $shipment->shipment_number,
             ]);
@@ -44,16 +42,20 @@ class CancelledShipmentMailService
             return false;
         }
 
-        $partyNames = Shipment::batchResolvePartyNames(collect([$shipment]));
-        $departurePartyName = $this->resolveDeparturePartyName($shipment, $partyNames);
+        $accountManager = $this->resolveDepartureAccountManager($shipment);
+        $departurePartyName = trim((string) ($departureParty['name'] ?? ''));
         $subject = $this->buildSubject($shipment);
         $body = $this->buildBody($shipment, $departurePartyName, $accountManager);
+        $ccAddresses = $this->buildCcAddresses($accountManager, $departureEmail);
 
         try {
-            Mail::to($email)->send(new CancelledShipmentMail(
+            Mail::send(new CancelledShipmentMail(
                 $subject,
                 $body,
                 $accountManager,
+                $departureEmail,
+                $departurePartyName,
+                $ccAddresses,
             ));
 
             return true;
@@ -61,7 +63,7 @@ class CancelledShipmentMailService
             Log::warning('Cancelled shipment email failed: ' . $e->getMessage(), [
                 'shipment_id' => $shipment->id,
                 'shipment_number' => $shipment->shipment_number,
-                'email' => $email,
+                'email' => $departureEmail,
             ]);
 
             return false;
@@ -95,10 +97,29 @@ class CancelledShipmentMailService
         );
     }
 
+  /**
+     * @return array<int, array{name?: string, email: string}>
+     */
+    private function buildCcAddresses(?Contact $accountManager, string $departureEmail): array
+    {
+        $accountManagerEmail = trim((string) ($accountManager?->email ?? ''));
+
+        if ($accountManagerEmail === ''
+            || ! filter_var($accountManagerEmail, FILTER_VALIDATE_EMAIL)
+            || strcasecmp($accountManagerEmail, $departureEmail) === 0) {
+            return [];
+        }
+
+        return [[
+            'name' => $accountManager->name ?? '',
+            'email' => $accountManagerEmail,
+        ]];
+    }
+
     private function buildBody(
         Shipment $shipment,
         string $departurePartyName,
-        Contact $accountManager,
+        ?Contact $accountManager,
     ): string {
         $portCode = trim((string) ($shipment->departure_port_code ?: ''));
         $city = $this->manifestPdfBuilder->formatPortCity($shipment->departure_port_code);
@@ -155,8 +176,8 @@ class CancelledShipmentMailService
         $lines[] = '';
         $lines[] = 'Best regards,';
         $lines[] = '';
-        $lines[] = trim((string) ($accountManager->name ?: 'Account Manager'));
-        $phone = trim((string) ($accountManager->phone_number ?? ''));
+        $lines[] = trim((string) ($accountManager?->name ?: 'Account Manager'));
+        $phone = trim((string) ($accountManager?->phone_number ?? ''));
         if ($phone !== '') {
             $lines[] = $phone;
         }
@@ -164,31 +185,5 @@ class CancelledShipmentMailService
         $lines[] = 'Marinecaddie';
 
         return implode("\r\n", $lines);
-    }
-
-    /**
-     * @param  array<string, string>  $partyNames
-     */
-    private function resolveDeparturePartyName(Shipment $shipment, array $partyNames): string
-    {
-        $composite = $shipment->departure;
-
-        if (! $composite) {
-            return '';
-        }
-
-        if (! str_contains($composite, ':')) {
-            return $partyNames[$composite] ?? $composite;
-        }
-
-        [$type, $id] = explode(':', $composite, 2);
-        $id = (int) $id;
-
-        return match ($type) {
-            'agent' => Agent::find($id)?->agent_name ?? ($partyNames[$composite] ?? ''),
-            'hub' => Hub::find($id)?->hub_name ?? ($partyNames[$composite] ?? ''),
-            'office' => Office::find($id)?->office_name ?? ($partyNames[$composite] ?? ''),
-            default => $partyNames[$composite] ?? $composite,
-        };
     }
 }

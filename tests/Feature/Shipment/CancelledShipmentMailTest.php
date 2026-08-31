@@ -15,7 +15,7 @@ use Tests\RegressionTestCase;
 
 class CancelledShipmentMailTest extends RegressionTestCase
 {
-    public function test_cancelled_status_sends_email_to_departure_account_manager(): void
+    public function test_cancelled_status_sends_email_to_departure_party_with_account_manager_cc(): void
     {
         Mail::fake();
 
@@ -30,6 +30,7 @@ class CancelledShipmentMailTest extends RegressionTestCase
         $agent = Agent::create([
             'agent_name' => 'Oakland Agent',
             'code' => 'OAK-AG',
+            'email' => 'oakland.agent@marinecaddie.test',
             'city' => 'Oakland',
             'is_active' => true,
         ]);
@@ -83,8 +84,9 @@ class CancelledShipmentMailTest extends RegressionTestCase
             'status' => 'Cancelled',
         ]);
 
-        Mail::assertSent(CancelledShipmentMail::class, function (CancelledShipmentMail $mail) use ($accountManager, $shipment) {
-            $this->assertTrue($mail->hasTo($accountManager->email));
+        Mail::assertSent(CancelledShipmentMail::class, function (CancelledShipmentMail $mail) use ($accountManager, $agent) {
+            $this->assertTrue($mail->hasTo($agent->email));
+            $this->assertTrue($mail->hasCc($accountManager->email));
 
             $expectedSubject = 'Cancelled shipment MOR6429949-826/ From Oakland to London/ Airfreight';
             $this->assertSame($expectedSubject, $mail->mailSubject);
@@ -131,21 +133,28 @@ class CancelledShipmentMailTest extends RegressionTestCase
         Mail::assertNothingSent();
     }
 
-    public function test_cancelled_status_skips_email_when_departure_account_manager_email_missing(): void
+    public function test_cancelled_status_skips_email_when_departure_party_email_missing(): void
     {
         Mail::fake();
 
         $user = $this->createAdminUser();
 
         $accountManager = Contact::create([
-            'name' => 'No Email AM',
-            'email' => null,
+            'name' => 'Jayaram Konar',
+            'email' => 'jayaram@marinecaddie.test',
+        ]);
+
+        $agent = Agent::create([
+            'agent_name' => 'No Email Agent',
+            'code' => 'NO-EMAIL',
+            'is_active' => true,
         ]);
 
         $shipment = Shipment::create([
             'shipment_number' => 'MOR-CXL-3',
             'status' => 'In process',
             'service' => 'Airfreight',
+            'departure' => 'agent:' . $agent->id,
             'account_manager_id' => $accountManager->id,
         ]);
 

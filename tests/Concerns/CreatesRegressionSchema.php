@@ -106,6 +106,7 @@ trait CreatesRegressionSchema
             $table->id();
             $table->string('agent_name');
             $table->string('code')->nullable();
+            $table->string('email')->nullable();
             $table->string('contact_person')->nullable();
             $table->text('agent_address')->nullable();
             $table->string('city')->nullable();
@@ -145,6 +146,7 @@ trait CreatesRegressionSchema
             $table->string('email')->nullable();
             $table->string('phone_number')->nullable();
             $table->foreignId('office_id')->nullable();
+            $table->unsignedBigInteger('agent_id')->nullable();
             $table->timestamps();
         });
 
