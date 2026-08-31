@@ -86,7 +86,7 @@ class CancelledShipmentMailTest extends RegressionTestCase
         Mail::assertSent(CancelledShipmentMail::class, function (CancelledShipmentMail $mail) use ($accountManager, $shipment) {
             $this->assertTrue($mail->hasTo($accountManager->email));
 
-            $expectedSubject = 'Cancelled shipment MOR6429949-826 / OAK / Airfreight';
+            $expectedSubject = 'Cancelled shipment MOR6429949-826/ From Oakland to London/ Airfreight';
             $this->assertSame($expectedSubject, $mail->mailSubject);
 
             $body = preg_replace("/\r\n|\r|\n/", "\n", $mail->body) ?? '';

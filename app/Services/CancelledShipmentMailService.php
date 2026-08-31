@@ -79,13 +79,18 @@ class CancelledShipmentMailService
 
     private function buildSubject(Shipment $shipment): string
     {
-        $portCode = trim((string) ($shipment->departure_port_code ?: ''));
+        $fromCity = $this->manifestPdfBuilder->formatPortCity($shipment->departure_port_code);
+        $toCity = $this->manifestPdfBuilder->formatPortCity(
+            $shipment->consignee_port_code,
+            $shipment->consignee_city,
+        );
         $service = trim((string) ($shipment->service ?: '—'));
 
         return sprintf(
-            'Cancelled shipment %s / %s / %s',
+            'Cancelled shipment %s/ From %s to %s/ %s',
             $shipment->shipment_number,
-            $portCode !== '' ? $portCode : '—',
+            $fromCity !== '—' ? $fromCity : '—',
+            $toCity !== '—' ? $toCity : '—',
             $service !== '' ? $service : '—',
         );
     }
