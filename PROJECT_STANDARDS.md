@@ -23,6 +23,7 @@
 12a. [Shipment Finalize — Complete / Transit / Destination Stocks](#12a-shipment-finalize--complete--transit--destination-stocks)
 12b. [Shipment Manifest & Pre-alert PDF Revision Rules](#12b-shipment-manifest--pre-alert-pdf-revision-rules)
 12c. [Stocks List & Stock Follow-up](#12c-stocks-list--stock-follow-up)
+12d. [Invoicing & Proforma Invoice](#12d-invoicing--proforma-invoice)
 13. [Validation & Mass Assignment](#13-validation--mass-assignment)
 14. [Database & Query Rules](#14-database--query-rules)
 15. [File Storage](#15-file-storage)
@@ -1024,6 +1025,29 @@ Same endpoint used from stock edit **Accept CRR** button.
 
 - Status + Accept columns: classes `stock-status-cell`, `stock-action-cell` — **no** `text-overflow: ellipsis` on those `td` (badge + button were showing phantom `...`).
 - Text truncation stays on `.cell-ellipsis` inner spans for other columns.
+
+---
+
+## 12d. Invoicing & Proforma Invoice
+
+Routes: `/billing/invoicing`, `/billing/invoicing/{proformaNo}/edit`, PDF print.
+
+### One customer per shipment (linked stocks)
+
+**Rule:** A shipment’s linked stocks (`shipment_crr` / pivot) are always for **one customer only** — multiple CRR rows on the same `shipment_number` do not mix customers.
+
+| Implication | Detail |
+|---|---|
+| Billing Party | `customer.invoiceDetail.invoice_recipient_name` from any linked stock’s customer (same for all) |
+| Bill To Pos | `customer.invoiceAddress.country` from that customer’s Invoice details |
+| Invoicing list status | `partial_payment` → **Partially paid**; `full_payment` (or legacy null) → **Billed**; no proforma → **Ready for billing** |
+| Code | `InvoicingShipmentRowMapper` resolves via first linked CRR’s customer — no comma-joined multi-customer UI |
+
+Do not build invoicing edit/PDF fields assuming multiple customers per shipment unless product rules change.
+
+**Mapper:** `app/Services/InvoicingShipmentRowMapper.php`
+
+**Tests:** `tests/Feature/Billing/`
 
 ---
 

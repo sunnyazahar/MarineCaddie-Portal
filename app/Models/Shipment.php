@@ -45,6 +45,8 @@ class Shipment extends Model
         'status',
         'repacked_items',
         'repacked_weight',
+        'stock_repacked_items',
+        'stock_repacked_weight',
         'flags',
         'created_by',
     ];
@@ -64,11 +66,18 @@ class Shipment extends Model
         'port_agency' => 'boolean',
         'repacked_items' => 'integer',
         'repacked_weight' => 'decimal:2',
+        'stock_repacked_items' => 'integer',
+        'stock_repacked_weight' => 'decimal:2',
     ];
 
     public function crrs(): BelongsToMany
     {
         return $this->belongsToMany(Crr::class, 'shipment_crr');
+    }
+
+    public function proformaInvoice(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ProformaInvoice::class);
     }
 
     public function irregularities(): HasMany

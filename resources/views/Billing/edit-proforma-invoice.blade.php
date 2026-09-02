@@ -22,6 +22,7 @@
 
         .proforma-edit-card > .card-block {
             padding: 8px 12px 20px !important;
+            padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
         }
 
         .proforma-edit-body {
@@ -114,6 +115,29 @@
             text-align: right;
             margin: 0;
             line-height: 1.25;
+        }
+
+        .proforma-radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            min-height: 34px;
+        }
+
+        .proforma-radio-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #0e1d4a;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .proforma-radio-option input[type="radio"] {
+            margin: 0;
         }
 
         #proforma-edit-form .proforma-field-input .form-control {
@@ -438,6 +462,71 @@
             padding-right: 4px;
         }
 
+        .proforma-net-payable-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            padding: 12px 14px;
+            margin-top: 8px;
+            border: 1px solid #c5d4e3;
+            background: #f8fafc;
+        }
+
+        .proforma-net-payable-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 16px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .proforma-net-payable-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: #1e3a5f;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            flex: 0 0 auto;
+            min-width: 148px;
+            text-align: right;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .proforma-net-payable-row .form-control {
+            flex: 0 0 120px;
+            width: 120px;
+            min-width: 120px;
+            height: 34px;
+            min-height: 34px;
+            padding: 0 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e3a5f;
+            border: 1px solid #d6e3ee;
+            border-radius: 8px;
+            text-align: right;
+            background: #fff;
+        }
+
+        .proforma-net-payable-row .form-control[readonly] {
+            background: #f1f5f9;
+            color: #0e1d4a;
+        }
+
+        .proforma-net-payable-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: #1e3a5f;
+            flex: 0 0 120px;
+            width: 120px;
+            min-width: 120px;
+            text-align: right;
+        }
+
         .proforma-field-input--with-addon .select2-container {
             flex: 1 1 auto;
             min-width: 0;
@@ -505,6 +594,10 @@
             box-shadow: 0 0 0 2px rgba(0, 136, 199, 0.12);
         }
 
+        #proforma-line-items-table select.line-qty-type[data-qty-type-blank="1"] + .select2-container .select2-selection__placeholder {
+            color: transparent;
+        }
+
         .proforma-select2-dropdown {
             border: 1px solid #d6e3ee;
             border-radius: 8px;
@@ -557,6 +650,98 @@
         body.proforma-edit-page .select2-results__option[aria-selected="true"]:has(.port-option) .port-option div {
             color: #fff !important;
         }
+
+        .proforma-form-actions {
+            position: fixed !important;
+            left: var(--spacing-sidebar, 13.25rem) !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: auto !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+            padding: 0 !important;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(8px);
+            border-top: 2px solid #008080;
+            box-shadow: 0 -3px 12px rgba(15, 23, 42, 0.08);
+            z-index: 1040;
+        }
+
+        .proforma-form-actions__inner {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            padding: 12px 12px max(12px, env(safe-area-inset-bottom, 0px));
+        }
+
+        @media (max-width: 991.98px) {
+            body.proforma-edit-page .proforma-form-actions {
+                left: 0 !important;
+                right: 0 !important;
+            }
+
+            body.proforma-edit-page .proforma-form-actions__inner {
+                padding-left: max(12px, env(safe-area-inset-left, 0px));
+                padding-right: max(12px, env(safe-area-inset-right, 0px));
+            }
+        }
+
+        .proforma-form-actions .btn {
+            flex: 0 0 auto;
+            min-width: 148px;
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 9px 18px;
+            border-radius: 8px;
+        }
+
+        .proforma-form-actions .btn-generate-invoice {
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+            border: none;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.24);
+        }
+
+        .proforma-form-actions .btn-generate-invoice:hover:not(:disabled) {
+            color: #fff;
+            filter: brightness(1.05);
+        }
+
+        .proforma-form-actions .btn-generate-invoice:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .proforma-form-actions .btn-update-invoice {
+            background: #fff;
+            border: 1px solid #008080;
+            color: #008080;
+        }
+
+        .proforma-form-actions .btn-update-invoice:hover {
+            background: #f0fafa;
+            color: #006666;
+            border-color: #006666;
+        }
+
+        .proforma-form-actions .btn-credit-note {
+            background: #fff;
+            border: 1px solid #d6e3ee;
+            color: #0e1d4a;
+        }
+
+        .proforma-form-actions .btn-credit-note:hover {
+            background: #f8fafc;
+            border-color: #b7d9e8;
+            color: #0e1d4a;
+        }
     </style>
 @endsection
 
@@ -577,7 +762,7 @@
         <div class="card-block">
             <x-lists.page-header
                 title="Edit Proforma Invoice"
-                :subtitle="$invoice['proforma_no']"
+                :subtitle="$invoice['job_no']"
                 icon="ti-receipt"
             >
                 <x-slot:actions>
@@ -589,6 +774,8 @@
 
             <div class="proforma-edit-body">
             <form id="proforma-edit-form" method="post" action="javascript:void(0)">
+                @csrf
+                <input type="hidden" name="shipment_id" id="shipment_id" value="{{ $shipmentId }}">
                 <div class="proforma-form-panel">
                     <div class="proforma-form-grid">
                     <div class="proforma-form-pillar">
@@ -607,57 +794,59 @@
 
                         <div class="proforma-field-row">
                             <label for="shipper-select">Select Shipper</label>
-                            <div class="proforma-field-input proforma-field-input--with-addon">
+                            <div class="proforma-field-input">
                                 <select id="shipper-select" name="shipper" class="form-control form-control-sm select2-departure">
                                     @if (!empty($invoice['shipper_departure']))
                                         <option value="{{ $invoice['shipper_departure'] }}" selected>{{ $invoice['shipper_departure_display'] }}</option>
                                     @endif
                                 </select>
-                                <button type="button" class="proforma-field-addon" title="Add shipper" aria-label="Add shipper"><i class="feather icon-plus"></i></button>
                             </div>
                         </div>
 
                         <div class="proforma-field-row">
                             <label for="consignee-select">Select Consignee</label>
-                            <div class="proforma-field-input proforma-field-input--with-addon">
+                            <div class="proforma-field-input">
                                 <select id="consignee-select" name="consignee" class="form-control form-control-sm select2-consignee">
                                     @if (!empty($invoice['consignee']))
                                         <option value="{{ $invoice['consignee'] }}" selected>{{ $invoice['consignee_display'] }}</option>
                                     @endif
                                 </select>
-                                <button type="button" class="proforma-field-addon" title="Add consignee" aria-label="Add consignee"><i class="feather icon-plus"></i></button>
                             </div>
                         </div>
 
                         <div class="proforma-field-row">
-                            <label for="billing-party-select">Billing Party</label>
-                            <div class="proforma-field-input proforma-field-input--with-addon">
-                                <select id="billing-party-select" name="billing_party" class="form-control form-control-sm select2-departure">
-                                    @if (!empty($invoice['billing_party']))
-                                        <option value="{{ $invoice['billing_party'] }}" selected>{{ $invoice['billing_party_display'] }}</option>
-                                    @endif
-                                </select>
-                                <button type="button" class="proforma-field-addon" title="Add billing party" aria-label="Add billing party"><i class="feather icon-plus"></i></button>
+                            <label for="billing-party">Billing Party</label>
+                            <div class="proforma-field-input">
+                                <input
+                                    type="text"
+                                    id="billing-party"
+                                    name="billing_party"
+                                    class="form-control form-control-sm proforma-readonly"
+                                    value="{{ $invoice['billing_party_display'] }}"
+                                    readonly
+                                >
                             </div>
                         </div>
 
                         <div class="proforma-field-row">
                             <label for="bill_to_pos">Bill To Pos</label>
                             <div class="proforma-field-input">
-                                <select id="bill_to_pos" name="bill_to_pos" class="form-control form-control-sm">
-                                    <option value="" disabled @selected(empty($invoice['bill_to_pos']))>Select bill to</option>
-                                    @foreach ($billToPosOptions as $company)
-                                        <option value="{{ $company->id }}" @selected((string) $invoice['bill_to_pos'] === (string) $company->id)>
-                                            {{ $company->company_name }}{{ $company->code ? ' (' . $company->code . ')' : '' }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <x-forms.country-select
+                                    name="bill_to_pos"
+                                    id="bill_to_pos"
+                                    :value="$invoice['bill_to_pos']"
+                                    :selectedText="$invoice['bill_to_pos_display']"
+                                    :ajax="true"
+                                    wrapperClass=""
+                                    class="form-control form-control-sm"
+                                    placeholder="Search country"
+                                />
                             </div>
                         </div>
 
                         <div class="proforma-field-row">
                             <label for="airport_of_loading">Airport Of Loading</label>
-                            <div class="proforma-field-input proforma-field-input--with-addon">
+                            <div class="proforma-field-input">
                                 <x-forms.port-select
                                     name="airport_of_loading"
                                     id="airport_of_loading"
@@ -666,7 +855,6 @@
                                     class="form-control form-control-sm"
                                     placeholder="Search port code"
                                 />
-                                <button type="button" class="proforma-field-addon" title="Add port" aria-label="Add port"><i class="feather icon-plus"></i></button>
                             </div>
                         </div>
 
@@ -725,8 +913,9 @@
                             <label for="type_of_supply">Type of Supply</label>
                             <div class="proforma-field-input">
                                 <select id="type_of_supply" name="type_of_supply" class="form-control form-control-sm">
-                                    @foreach (['Export', 'Import', 'Domestic'] as $supplyType)
-                                        <option value="{{ $supplyType }}" @selected($invoice['type_of_supply'] === $supplyType)>{{ $supplyType }}</option>
+                                    <option value="" disabled @selected(empty($invoice['type_of_supply']))>Select service</option>
+                                    @foreach ($serviceOptions as $serviceOption)
+                                        <option value="{{ $serviceOption }}" @selected($invoice['type_of_supply'] === $serviceOption)>{{ $serviceOption }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -736,14 +925,14 @@
                     <div class="proforma-form-pillar">
                         <h3 class="proforma-pillar__title">Invoice reference</h3>
                         <div class="proforma-field-row">
-                            <label for="proforma_no">Proforma No.</label>
+                            <label for="proforma_no">Invoice No.</label>
                             <div class="proforma-field-input">
                                 <input type="text" id="proforma_no" name="proforma_no" class="form-control form-control-sm proforma-readonly" value="{{ $invoice['proforma_no'] }}" readonly>
                             </div>
                         </div>
 
                         <div class="proforma-field-row">
-                            <label for="proforma_date">Proforma Date</label>
+                            <label for="proforma_date">Invoice Date</label>
                             <div class="proforma-field-input">
                                 <input type="text" id="proforma_date" name="proforma_date" class="form-control form-control-sm datepicker" value="{{ $invoice['proforma_date'] }}">
                             </div>
@@ -775,11 +964,10 @@
 
                         <div class="proforma-field-row">
                             <label for="airport_of_destination">Airport Of Destination</label>
-                            <div class="proforma-field-input proforma-field-input--with-addon">
+                            <div class="proforma-field-input">
                                 <select id="airport_of_destination" name="airport_of_destination" class="form-control form-control-sm">
                                     <option value="{{ $invoice['airport_of_destination'] }}" selected>{{ $invoice['airport_of_destination'] }}</option>
                                 </select>
-                                <button type="button" class="proforma-field-addon" title="Add port" aria-label="Add port"><i class="feather icon-plus"></i></button>
                             </div>
                         </div>
 
@@ -787,16 +975,6 @@
                             <label for="destination_date">Destination Date</label>
                             <div class="proforma-field-input">
                                 <input type="text" id="destination_date" name="destination_date" class="form-control form-control-sm datepicker" value="{{ $invoice['destination_date'] }}">
-                            </div>
-                        </div>
-
-                        <div class="proforma-field-row">
-                            <label>SB / BE No. &amp; Date</label>
-                            <div class="proforma-field-input">
-                                <div class="proforma-split-field">
-                                    <input type="text" name="sb_be_no" class="form-control form-control-sm" value="{{ $invoice['sb_be_no'] }}">
-                                    <input type="text" name="sb_be_date" class="form-control form-control-sm datepicker" value="{{ $invoice['sb_be_date'] }}">
-                                </div>
                             </div>
                         </div>
 
@@ -830,10 +1008,11 @@
                         <div class="proforma-field-row">
                             <label for="currency">Currency</label>
                             <div class="proforma-field-input">
-                                <select id="currency" name="currency" class="form-control form-control-sm">
-                                    @foreach (['USD', 'EUR', 'SGD', 'INR'] as $curr)
-                                        <option value="{{ $curr }}" @selected($invoice['currency'] === $curr)>{{ $curr }}</option>
-                                    @endforeach
+                                <select id="currency" name="currency" class="form-control form-control-sm select2-currency-ajax" data-placeholder="Search currency">
+                                    <option value=""></option>
+                                    @if (! empty($invoice['currency']))
+                                        <option value="{{ $invoice['currency'] }}" selected>{{ $invoice['currency'] }}</option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
@@ -846,6 +1025,33 @@
                                         <option value="{{ $status }}" @selected($invoice['einvoice_status'] === $status)>{{ $status }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                        </div>
+
+                        <div class="proforma-field-row">
+                            <label>Payment</label>
+                            <div class="proforma-field-input">
+                                <div class="proforma-radio-group">
+                                    <label class="proforma-radio-option">
+                                        <input
+                                            type="radio"
+                                            name="payment_type"
+                                            value="partial_payment"
+                                            required
+                                            @checked(($invoice['payment_type'] ?? '') === 'partial_payment')
+                                        >
+                                        Partially payment
+                                    </label>
+                                    <label class="proforma-radio-option">
+                                        <input
+                                            type="radio"
+                                            name="payment_type"
+                                            value="full_payment"
+                                            @checked(($invoice['payment_type'] ?? '') === 'full_payment')
+                                        >
+                                        Full payment
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -869,6 +1075,7 @@
                                     <th style="width: 72px;">HSN Code</th>
                                     <th style="width: 120px;">Remarks</th>
                                     <th style="width: 52px;">Qty</th>
+                                    <th style="width: 62px;">Type</th>
                                     <th style="width: 72px;">Rate</th>
                                     <th style="width: 62px;">Curr</th>
                                     <th style="width: 88px;">Amount (Currency)</th>
@@ -876,12 +1083,8 @@
                                     <th style="width: 62px;">Tax Type</th>
                                     <th style="width: 88px;">Non-Taxable Value</th>
                                     <th style="width: 88px;">Taxable Value</th>
-                                    <th style="width: 52px;">IGST %</th>
-                                    <th style="width: 72px;">IGST Amt</th>
-                                    <th style="width: 52px;">CGST %</th>
-                                    <th style="width: 72px;">CGST Amt</th>
-                                    <th style="width: 52px;">SGST %</th>
-                                    <th style="width: 72px;">SGST Amt</th>
+                                    <th style="width: 52px;">VAT %</th>
+                                    <th style="width: 72px;">VAT Amt</th>
                                     <th class="proforma-line-action-cell">Action</th>
                                 </tr>
                             </thead>
@@ -892,12 +1095,35 @@
                                         <td><input type="text" name="line_items[{{ $index }}][hsn]" class="form-control form-control-sm" value="{{ $item['hsn'] }}"></td>
                                         <td><input type="text" name="line_items[{{ $index }}][remarks]" class="form-control form-control-sm" value="{{ $item['remarks'] }}"></td>
                                         <td><input type="text" name="line_items[{{ $index }}][qty]" class="form-control form-control-sm line-qty text-right" value="{{ $item['qty'] }}"></td>
+                                        <td>
+                                            @php
+                                                $qtyTypeOptions = ['KG', 'Pcs', 'Job', 'SET', 'TRI'];
+                                                $savedQtyType = empty($invoice['is_saved'])
+                                                    ? ''
+                                                    : (string) ($item['qty_type'] ?? '');
+                                                $isBlankQtyType = $savedQtyType === '';
+                                            @endphp
+                                            <select
+                                                name="line_items[{{ $index }}][qty_type]"
+                                                class="form-control form-control-sm line-qty-type"
+                                                @if ($isBlankQtyType) data-qty-type-blank="1" @endif
+                                            >
+                                                <option value="" @selected($isBlankQtyType)></option>
+                                                @foreach ($qtyTypeOptions as $qtyType)
+                                                    <option value="{{ $qtyType }}" @selected(!$isBlankQtyType && $savedQtyType === $qtyType)>{{ $qtyType }}</option>
+                                                @endforeach
+                                                @if ($savedQtyType !== '' && ! in_array($savedQtyType, $qtyTypeOptions, true))
+                                                    <option value="{{ $savedQtyType }}" selected>{{ $savedQtyType }}</option>
+                                                @endif
+                                            </select>
+                                        </td>
                                         <td><input type="text" name="line_items[{{ $index }}][rate]" class="form-control form-control-sm line-rate text-right" value="{{ $item['rate'] }}"></td>
                                         <td>
-                                            <select name="line_items[{{ $index }}][currency]" class="form-control form-control-sm line-currency">
-                                                @foreach (['USD', 'EUR', 'SGD', 'INR'] as $curr)
-                                                    <option value="{{ $curr }}" @selected($item['currency'] === $curr)>{{ $curr }}</option>
-                                                @endforeach
+                                            <select name="line_items[{{ $index }}][currency]" class="form-control form-control-sm line-currency select2-currency-ajax" data-placeholder="Curr">
+                                                <option value=""></option>
+                                                @if (! empty($item['currency']))
+                                                    <option value="{{ $item['currency'] }}" selected>{{ $item['currency'] }}</option>
+                                                @endif
                                             </select>
                                         </td>
                                         <td><input type="text" name="line_items[{{ $index }}][amount]" class="form-control form-control-sm line-amount proforma-readonly text-right" value="{{ $item['amount'] }}" readonly></td>
@@ -918,23 +1144,7 @@
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td><input type="text" name="line_items[{{ $index }}][igst_amt]" class="form-control form-control-sm line-igst-amt text-right" value="{{ $item['igst_amt'] }}"></td>
-                                        <td>
-                                            <select name="line_items[{{ $index }}][cgst_pct]" class="form-control form-control-sm line-cgst-pct">
-                                                @foreach (['0', '2.5', '6', '9', '14'] as $pct)
-                                                    <option value="{{ $pct }}" @selected($item['cgst_pct'] === $pct)>{{ $pct }}</option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        <td><input type="text" name="line_items[{{ $index }}][cgst_amt]" class="form-control form-control-sm line-cgst-amt text-right" value="{{ $item['cgst_amt'] }}"></td>
-                                        <td>
-                                            <select name="line_items[{{ $index }}][sgst_pct]" class="form-control form-control-sm line-sgst-pct">
-                                                @foreach (['0', '2.5', '6', '9', '14'] as $pct)
-                                                    <option value="{{ $pct }}" @selected($item['sgst_pct'] === $pct)>{{ $pct }}</option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        <td><input type="text" name="line_items[{{ $index }}][sgst_amt]" class="form-control form-control-sm line-sgst-amt text-right" value="{{ $item['sgst_amt'] }}"></td>
+                                        <td><input type="text" name="line_items[{{ $index }}][igst_amt]" class="form-control form-control-sm line-igst-amt proforma-readonly text-right" value="{{ $item['igst_amt'] }}" readonly></td>
                                         <td class="proforma-line-action-cell">
                                             @if ($index === 0)
                                                 <button type="button" class="proforma-line-btn proforma-line-btn--add proforma-line-add" title="Add row" aria-label="Add row"><i class="feather icon-plus"></i></button>
@@ -947,26 +1157,74 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="6" class="proforma-subtotal-label">SubTotal</td>
+                                    <td colspan="7" class="proforma-subtotal-label">SubTotal</td>
                                     <td class="proforma-subtotal-value" id="proforma-subtotal-amount">0.00</td>
                                     <td></td>
                                     <td></td>
                                     <td class="proforma-subtotal-value" id="proforma-subtotal-non-taxable">0.00</td>
                                     <td class="proforma-subtotal-value" id="proforma-subtotal-taxable">0.00</td>
                                     <td></td>
-                                    <td class="proforma-subtotal-value" id="proforma-subtotal-igst">0.00</td>
-                                    <td></td>
-                                    <td class="proforma-subtotal-value" id="proforma-subtotal-cgst">0.00</td>
-                                    <td></td>
-                                    <td class="proforma-subtotal-value" id="proforma-subtotal-sgst">0.00</td>
+                                    <td class="proforma-subtotal-value" id="proforma-subtotal-vat">0.00</td>
                                     <td class="proforma-line-action-cell"></td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
+                    <div class="proforma-net-payable-bar">
+                        <div class="proforma-net-payable-row">
+                            <span class="proforma-net-payable-label">Net Payable Amount</span>
+                            <span class="proforma-net-payable-value" id="proforma-net-payable">0.00</span>
+                        </div>
+                        <div class="proforma-net-payable-row">
+                            <label class="proforma-net-payable-label" for="paid_amount">Paid Amount</label>
+                            <input
+                                type="text"
+                                id="paid_amount"
+                                name="paid_amount"
+                                class="form-control form-control-sm"
+                                value="{{ $invoice['paid_amount'] ?? '' }}"
+                                inputmode="decimal"
+                            >
+                        </div>
+                        <div class="proforma-net-payable-row" id="proforma-due-amount-row">
+                            <label class="proforma-net-payable-label" for="due_amount">Due Amount</label>
+                            <input
+                                type="text"
+                                id="due_amount"
+                                name="due_amount"
+                                class="form-control form-control-sm proforma-readonly"
+                                value="{{ $invoice['due_amount'] ?? '' }}"
+                                readonly
+                            >
+                        </div>
+                    </div>
                 </div>
                 </div>
             </form>
+
+            <div class="proforma-form-actions" id="proforma-form-actions">
+                <div class="proforma-form-actions__inner">
+                    <button type="button" class="btn btn-credit-note" id="proforma-credit-note">
+                        Credit Note
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-update-invoice"
+                        id="proforma-update-invoice"
+                        @if (empty($invoice['is_saved'])) style="display:none;" @endif
+                    >
+                        Update
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-generate-invoice"
+                        id="proforma-generate-invoice"
+                        @if (!empty($invoice['is_saved'])) disabled @endif
+                    >
+                        Generate Invoice
+                    </button>
+                </div>
+            </div>
             </div>
         </div>
     </div>
@@ -979,12 +1237,19 @@
         $(document).ready(function() {
             $('body').addClass('proforma-edit-page');
 
+            var proformaIsSaved = @json(!empty($invoice['is_saved']));
+
+            var $proformaFooter = $('#proforma-form-actions');
+            if ($proformaFooter.length && !$proformaFooter.parent().is('body')) {
+                $proformaFooter.appendTo('body');
+            }
+
             function initProformaSelect2($scope) {
                 if (typeof $.fn.select2 !== 'function') {
                     return;
                 }
 
-                $scope.find('select').not('.select2-departure, .select2-consignee, .select2-port-code, [data-country-select]').each(function() {
+                $scope.find('select').not('.select2-departure, .select2-consignee, .select2-port-code, .select2-currency-ajax, .line-qty-type, [data-country-select], [data-country-select-ajax]').each(function() {
                     var $select = $(this);
 
                     if ($select.hasClass('select2-hidden-accessible')) {
@@ -1007,6 +1272,73 @@
                 });
             }
 
+            function initLineQtyTypeSelects($scope) {
+                if (typeof $.fn.select2 !== 'function') {
+                    return;
+                }
+
+                var defaultQtyTypes = ['KG', 'Pcs', 'Job', 'SET', 'TRI'];
+                var blankPlaceholder = '\u200b';
+
+                $scope.find('.line-qty-type').each(function() {
+                    var $select = $(this);
+
+                    if ($select.hasClass('select2-hidden-accessible')) {
+                        return;
+                    }
+
+                    var mustBeBlank = $select.is('[data-qty-type-blank="1"]') || !proformaIsSaved;
+
+                    if (mustBeBlank) {
+                        $select.find('option').prop('selected', false);
+                        $select.find('option[value=""]').prop('selected', true);
+                        $select.val('');
+                    }
+
+                    $select.select2({
+                        width: '100%',
+                        allowClear: mustBeBlank,
+                        tags: true,
+                        minimumResultsForSearch: 0,
+                        dropdownCssClass: 'proforma-select2-dropdown',
+                        dropdownParent: $(document.body),
+                        placeholder: mustBeBlank ? blankPlaceholder : '',
+                        createTag: function(params) {
+                            var term = $.trim(params.term);
+
+                            if (term === '') {
+                                return null;
+                            }
+
+                            if (defaultQtyTypes.indexOf(term) !== -1) {
+                                return null;
+                            }
+
+                            return {
+                                id: term,
+                                text: term,
+                                newTag: true
+                            };
+                        }
+                    });
+
+                    if (mustBeBlank) {
+                        $select.val(null).trigger('change');
+                        window.setTimeout(function() {
+                            if (!$select.val()) {
+                                $select.next('.select2-container').find('.select2-selection__rendered').empty();
+                            }
+                        }, 0);
+                    }
+
+                    $select.on('select2:select select2:unselect select2:clear', function() {
+                        if ($(this).val()) {
+                            $(this).removeAttr('data-qty-type-blank');
+                        }
+                    });
+                });
+            }
+
             function destroyProformaSelect2($scope) {
                 if (typeof $.fn.select2 !== 'function') {
                     return;
@@ -1018,6 +1350,9 @@
             }
 
             function resetClonedSelects($scope) {
+                // Cloning a Select2 row copies the rendered .select2-container;
+                // remove it so initProformaSelect2 creates a single UI again.
+                $scope.find('.select2-container').remove();
                 $scope.find('select').each(function() {
                     var $select = $(this);
                     $select.removeClass('select2-hidden-accessible')
@@ -1025,6 +1360,7 @@
                         .removeAttr('aria-hidden')
                         .removeAttr('tabindex')
                         .css('display', '');
+                    $select.find('option').removeAttr('data-select2-id');
                 });
             }
 
@@ -1082,6 +1418,44 @@
                         },
                         templateResult: formatParty,
                         templateSelection: formatPartySelection
+                    });
+                });
+            }
+
+            function initProformaCurrencyAjaxSelect($scope) {
+                if (typeof $.fn.select2 !== 'function') {
+                    return;
+                }
+
+                $scope.find('.select2-currency-ajax').each(function() {
+                    var $select = $(this);
+
+                    if ($select.hasClass('select2-hidden-accessible')) {
+                        return;
+                    }
+
+                    var isLineItem = $select.closest('#proforma-line-items-table').length > 0;
+
+                    $select.select2({
+                        placeholder: $select.attr('data-placeholder') || 'Search currency',
+                        allowClear: false,
+                        width: '100%',
+                        minimumInputLength: 0,
+                        minimumResultsForSearch: 0,
+                        dropdownCssClass: 'proforma-select2-dropdown',
+                        dropdownParent: isLineItem ? $(document.body) : undefined,
+                        ajax: {
+                            url: @json(route('api.currencies')),
+                            dataType: 'json',
+                            delay: 200,
+                            data: function(params) {
+                                return { q: params.term || '' };
+                            },
+                            processResults: function(data) {
+                                return { results: data.results || [] };
+                            },
+                            cache: true
+                        }
                     });
                 });
             }
@@ -1160,34 +1534,84 @@
             function recalcLineRow($row) {
                 var qty = parseAmount($row.find('.line-qty').val());
                 var rate = parseAmount($row.find('.line-rate').val());
+                var exchangeRate = parseAmount($row.find('.line-exchange').val());
+                if (exchangeRate <= 0) {
+                    exchangeRate = 1;
+                }
+
                 var amount = qty * rate;
+                var taxable = amount * exchangeRate;
+
                 $row.find('.line-amount').val(formatAmount(amount));
-                $row.find('.line-taxable').val(formatAmount(amount));
+                $row.find('.line-taxable').val(formatAmount(taxable));
+                recalcVatAmount($row);
+            }
+
+            function recalcVatAmount($row) {
+                var taxable = parseAmount($row.find('.line-taxable').val());
+                var vatPct = parseAmount($row.find('.line-igst-pct').val());
+                var vatAmt = taxable * (vatPct / 100);
+                $row.find('.line-igst-amt').val(formatAmount(vatAmt));
+            }
+
+            function getNetPayableAmount() {
+                return parseAmount($('#proforma-net-payable').text());
+            }
+
+            function updateDueAmount() {
+                var netPayable = getNetPayableAmount();
+                var paid = parseAmount($('#paid_amount').val());
+                var due = Math.max(0, netPayable - paid);
+
+                $('#due_amount').val(formatAmount(due));
+            }
+
+            function syncPaymentTypeFromPaidAmount() {
+                var netPayable = getNetPayableAmount();
+                var paid = parseAmount($('#paid_amount').val());
+                var paymentType = $('input[name="payment_type"]:checked').val();
+
+                if (netPayable > 0 && paid >= netPayable) {
+                    $('input[name="payment_type"][value="full_payment"]').prop('checked', true);
+                } else if (paymentType === 'full_payment' && paid < netPayable) {
+                    $('input[name="payment_type"][value="partial_payment"]').prop('checked', true);
+                }
+
+                applyPaymentTypePaidAmount();
+            }
+
+            function applyPaymentTypePaidAmount() {
+                var paymentType = $('input[name="payment_type"]:checked').val();
+                var $dueRow = $('#proforma-due-amount-row');
+
+                if (paymentType === 'full_payment') {
+                    $dueRow.hide();
+                    $('#due_amount').val(formatAmount(0));
+                } else {
+                    $dueRow.show();
+                    updateDueAmount();
+                }
             }
 
             function updateSubtotals() {
                 var totalAmount = 0;
                 var totalNonTaxable = 0;
                 var totalTaxable = 0;
-                var totalIgst = 0;
-                var totalCgst = 0;
-                var totalSgst = 0;
+                var totalVat = 0;
 
                 $('#proforma-line-items-body .proforma-line-item-row').each(function() {
                     totalAmount += parseAmount($(this).find('.line-amount').val());
                     totalNonTaxable += parseAmount($(this).find('.line-non-taxable').val());
                     totalTaxable += parseAmount($(this).find('.line-taxable').val());
-                    totalIgst += parseAmount($(this).find('.line-igst-amt').val());
-                    totalCgst += parseAmount($(this).find('.line-cgst-amt').val());
-                    totalSgst += parseAmount($(this).find('.line-sgst-amt').val());
+                    totalVat += parseAmount($(this).find('.line-igst-amt').val());
                 });
 
                 $('#proforma-subtotal-amount').text(formatAmount(totalAmount));
                 $('#proforma-subtotal-non-taxable').text(formatAmount(totalNonTaxable));
                 $('#proforma-subtotal-taxable').text(formatAmount(totalTaxable));
-                $('#proforma-subtotal-igst').text(formatAmount(totalIgst));
-                $('#proforma-subtotal-cgst').text(formatAmount(totalCgst));
-                $('#proforma-subtotal-sgst').text(formatAmount(totalSgst));
+                $('#proforma-subtotal-vat').text(formatAmount(totalVat));
+                $('#proforma-net-payable').text(formatAmount(totalNonTaxable + totalTaxable + totalVat));
+                syncPaymentTypeFromPaidAmount();
             }
 
             function reindexLineItemNames() {
@@ -1220,12 +1644,22 @@
             }
 
             function bindLineRowEvents($row) {
-                $row.find('.line-qty, .line-rate').on('input change', function() {
+                $row.find('.line-qty, .line-rate, .line-exchange').on('input change', function() {
                     recalcLineRow($row);
                     updateSubtotals();
                 });
 
-                $row.find('.line-non-taxable, .line-taxable, .line-igst-amt, .line-cgst-amt, .line-sgst-amt').on('input change', function() {
+                $row.find('.line-taxable').on('input change', function() {
+                    recalcVatAmount($row);
+                    updateSubtotals();
+                });
+
+                $row.find('.line-non-taxable').on('input change', function() {
+                    updateSubtotals();
+                });
+
+                $row.find('.line-igst-pct').on('change', function() {
+                    recalcVatAmount($row);
                     updateSubtotals();
                 });
             }
@@ -1234,21 +1668,32 @@
                 var $rows = $('#proforma-line-items-body .proforma-line-item-row');
                 var $template = $rows.first().clone(false, false);
                 var nextIndex = $rows.length;
+                var defaultQtyTypes = ['KG', 'Pcs', 'Job', 'SET', 'TRI'];
 
                 $template.find('input, select').each(function() {
-                    if ($(this).is('select')) {
+                    if ($(this).hasClass('line-qty-type')) {
+                        $(this).find('option').each(function() {
+                            var val = $(this).val();
+                            if (val && defaultQtyTypes.indexOf(val) === -1) {
+                                $(this).remove();
+                            }
+                        });
+                        $(this).find('option').prop('selected', false);
+                        $(this).find('option[value=""]').prop('selected', true);
+                        $(this).attr('data-qty-type-blank', '1');
+                        $(this).val('');
+                    } else if ($(this).is('select')) {
                         $(this).prop('selectedIndex', 0);
                     } else if ($(this).hasClass('line-amount')) {
                         $(this).val('0.00');
                     } else if ($(this).hasClass('line-qty')) {
-                        $(this).val('1');
+                        $(this).val(proformaIsSaved ? '1' : '');
                     } else if ($(this).hasClass('line-rate')) {
-                        $(this).val('0');
+                        $(this).val(proformaIsSaved ? '0' : '');
                     } else if ($(this).hasClass('line-exchange')) {
                         $(this).val('1');
                     } else if ($(this).hasClass('line-non-taxable') || $(this).hasClass('line-taxable') ||
-                        $(this).hasClass('line-igst-amt') || $(this).hasClass('line-cgst-amt') ||
-                        $(this).hasClass('line-sgst-amt')) {
+                        $(this).hasClass('line-igst-amt')) {
                         $(this).val('0.00');
                     } else {
                         $(this).val('');
@@ -1265,6 +1710,8 @@
                 });
 
                 $('#proforma-line-items-body').append($template);
+                initProformaCurrencyAjaxSelect($template);
+                initLineQtyTypeSelects($template);
                 initProformaSelect2($template);
                 bindLineRowEvents($template);
                 refreshLineActionButtons();
@@ -1297,10 +1744,203 @@
 
             initProformaDatepickers($('#proforma-edit-form'));
             initDeparturePartySelects();
+            if (window.MarineCaddieInitPortSelect) {
+                window.MarineCaddieInitPortSelect();
+            }
             initProformaPortSelectDropdowns();
+            if (window.MarineCaddieInitCountrySelect) {
+                window.MarineCaddieInitCountrySelect('#bill_to_pos');
+            }
+            initProformaCurrencyAjaxSelect($('#proforma-edit-form'));
+            initLineQtyTypeSelects($('#proforma-edit-form'));
             initConsigneeSelect();
             initProformaSelect2($('#proforma-edit-form'));
             updateSubtotals();
+
+            $('#paid_amount').on('input change', function() {
+                syncPaymentTypeFromPaidAmount();
+            });
+
+            $('input[name="payment_type"]').on('change', function() {
+                applyPaymentTypePaidAmount();
+            });
+
+            function setProformaSavedState(isSaved) {
+                proformaIsSaved = !!isSaved;
+                var $generate = $('#proforma-generate-invoice');
+                var $update = $('#proforma-update-invoice');
+
+                if (proformaIsSaved) {
+                    $generate.prop('disabled', true);
+                    $update.show();
+                } else {
+                    $generate.prop('disabled', false);
+                    $update.hide();
+                }
+            }
+
+            function extractAjaxErrorMessage(xhr, fallbackMessage) {
+                var message = fallbackMessage;
+
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    var firstError = Object.values(xhr.responseJSON.errors)[0];
+                    if (Array.isArray(firstError) && firstError.length) {
+                        message = firstError[0];
+                    }
+                }
+
+                return message;
+            }
+
+            function validatePaymentTypeSelection() {
+                if ($('input[name="payment_type"]:checked').length === 0) {
+                    swal('Required', 'Please select Partially payment or Full payment.', 'warning');
+                    return false;
+                }
+
+                return true;
+            }
+
+            function submitProformaInvoice(options) {
+                if (!validatePaymentTypeSelection()) {
+                    if (options.onError) {
+                        options.onError();
+                    }
+                    return;
+                }
+
+                var formData = $('#proforma-edit-form').serializeArray();
+
+                if (options.previewProformaNo) {
+                    formData.push({ name: 'preview_proforma_no', value: options.previewProformaNo });
+                }
+
+                $.ajax({
+                    url: '{{ route('billing.invoicing.store') }}',
+                    type: 'POST',
+                    data: $.param(formData),
+                    success: function(saveResponse) {
+                        if (!saveResponse.success) {
+                            swal('Error', saveResponse.message || options.errorMessage, 'error');
+                            if (options.onError) {
+                                options.onError();
+                            }
+                            return;
+                        }
+
+                        $('#proforma_no').val(saveResponse.proforma_no || '');
+                        setProformaSavedState(true);
+
+                        swal({
+                            title: saveResponse.is_update ? 'Updated' : 'Saved',
+                            text: saveResponse.message || options.successMessage,
+                            type: 'success',
+                            timer: 1800,
+                            showConfirmButton: false
+                        });
+
+                        if (options.onSuccess) {
+                            options.onSuccess(saveResponse);
+                        }
+                    },
+                    error: function(xhr) {
+                        swal('Error', extractAjaxErrorMessage(xhr, options.errorMessage), 'error');
+                        if (options.onError) {
+                            options.onError();
+                        }
+                    }
+                });
+            }
+
+            setProformaSavedState(proformaIsSaved);
+
+            $('#proforma-generate-invoice').on('click', function() {
+                var $button = $(this);
+
+                if ($button.prop('disabled') || proformaIsSaved) {
+                    return;
+                }
+
+                if (!validatePaymentTypeSelection()) {
+                    return;
+                }
+
+                $button.prop('disabled', true);
+
+                $.get('{{ route('billing.invoicing.preview-proforma-number') }}', {
+                    proforma_date: $('#proforma_date').val()
+                })
+                    .done(function(response) {
+                        var proformaNo = response.proforma_no || '';
+
+                        swal({
+                            title: 'Generate Proforma Invoice',
+                            text: 'Invoice No.: ' + proformaNo + '\n\nSave all invoice details to the database?',
+                            type: 'info',
+                            showCancelButton: true,
+                            confirmButtonText: 'Save',
+                            cancelButtonText: 'Cancel',
+                            closeOnConfirm: false,
+                            closeOnCancel: true,
+                            showLoaderOnConfirm: true
+                        }, function(isConfirm) {
+                            if (!isConfirm) {
+                                setProformaSavedState(proformaIsSaved);
+                                return;
+                            }
+
+                            submitProformaInvoice({
+                                previewProformaNo: proformaNo,
+                                successMessage: 'Proforma invoice saved successfully.',
+                                errorMessage: 'Could not save proforma invoice.',
+                                onError: function() {
+                                    setProformaSavedState(proformaIsSaved);
+                                }
+                            });
+                        });
+                    })
+                    .fail(function() {
+                        swal('Error', 'Could not generate proforma number.', 'error');
+                        setProformaSavedState(proformaIsSaved);
+                    });
+            });
+
+            $('#proforma-update-invoice').on('click', function() {
+                if (!proformaIsSaved) {
+                    return;
+                }
+
+                if (!validatePaymentTypeSelection()) {
+                    return;
+                }
+
+                var proformaNo = $('#proforma_no').val() || '';
+
+                swal({
+                    title: 'Update Proforma Invoice?',
+                    text: 'Update saved proforma' + (proformaNo ? ' ' + proformaNo : '') + ' with the current form details?',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, update',
+                    cancelButtonText: 'Cancel',
+                    closeOnConfirm: false,
+                    closeOnCancel: true,
+                    showLoaderOnConfirm: true
+                }, function(isConfirm) {
+                    if (!isConfirm) {
+                        return;
+                    }
+
+                    submitProformaInvoice({
+                        successMessage: 'Proforma invoice updated successfully.',
+                        errorMessage: 'Could not update proforma invoice.'
+                    });
+                });
+            });
         });
     </script>
 @endpush

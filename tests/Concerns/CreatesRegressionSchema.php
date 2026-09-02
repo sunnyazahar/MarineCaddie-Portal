@@ -127,6 +127,14 @@ trait CreatesRegressionSchema
             $table->timestamps();
         });
 
+        Schema::create('other_companies', function (Blueprint $table) {
+            $table->id();
+            $table->string('company_name');
+            $table->string('code')->nullable();
+            $table->softDeletes();
+            $table->timestamps();
+        });
+
         Schema::create('ports', function (Blueprint $table) {
             $table->id();
             $table->string('type');
@@ -153,6 +161,7 @@ trait CreatesRegressionSchema
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('customer_name');
+            $table->string('phone')->nullable();
             $table->timestamps();
         });
 
@@ -168,6 +177,25 @@ trait CreatesRegressionSchema
             $table->foreignId('customer_id');
             $table->string('vessel')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('customer_invoice_details', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('customer_id');
+            $table->string('invoice_recipient_name')->nullable();
+            $table->string('invoice_email')->nullable();
+            $table->string('currency_code')->nullable();
+        });
+
+        Schema::create('customer_addresses', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('customer_id');
+            $table->string('type')->nullable();
+            $table->string('street')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('zip_code')->nullable();
+            $table->foreignId('country_id')->nullable();
         });
 
         Schema::create('crrs', function (Blueprint $table) {
@@ -238,13 +266,86 @@ trait CreatesRegressionSchema
             $table->string('consignee_country')->nullable();
             $table->string('service')->nullable();
             $table->string('additional_service')->nullable();
+            $table->string('customer_reference')->nullable();
             $table->unsignedInteger('repacked_items')->nullable();
             $table->decimal('repacked_weight', 12, 2)->nullable();
+            $table->unsignedInteger('stock_repacked_items')->nullable();
+            $table->decimal('stock_repacked_weight', 12, 2)->nullable();
             $table->date('deadline_arrival')->nullable();
+            $table->date('preferred_shipment_date')->nullable();
             $table->date('pre_alert_reminder')->nullable();
             $table->foreignId('account_manager_id')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->string('status')->default('Draft');
+            $table->timestamps();
+        });
+
+        Schema::create('proforma_invoices', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id');
+            $table->string('proforma_no')->unique();
+            $table->string('financial_year_label', 8);
+            $table->unsignedInteger('sequence_no');
+            $table->string('invoice_type')->nullable();
+            $table->string('shipper')->nullable();
+            $table->string('consignee')->nullable();
+            $table->string('billing_party')->nullable();
+            $table->unsignedBigInteger('bill_to_pos')->nullable();
+            $table->string('airport_of_loading')->nullable();
+            $table->string('airport_of_destination')->nullable();
+            $table->date('loading_date')->nullable();
+            $table->date('destination_date')->nullable();
+            $table->date('due_date')->nullable();
+            $table->date('proforma_date')->nullable();
+            $table->string('client_ref_no')->nullable();
+            $table->string('job_no')->nullable();
+            $table->date('job_date')->nullable();
+            $table->string('hawb_no')->nullable();
+            $table->date('hawb_date')->nullable();
+            $table->string('mawb_no')->nullable();
+            $table->date('mawb_date')->nullable();
+            $table->string('packages')->nullable();
+            $table->decimal('chargeable_wt', 12, 2)->nullable();
+            $table->decimal('gross_wt', 12, 2)->nullable();
+            $table->string('commodity')->nullable();
+            $table->string('type_of_supply')->nullable();
+            $table->string('sb_be_no')->nullable();
+            $table->date('sb_be_date')->nullable();
+            $table->string('flight_no')->nullable();
+            $table->date('flight_date')->nullable();
+            $table->string('vessel_name')->nullable();
+            $table->string('currency', 8)->nullable();
+            $table->string('einvoice_status')->nullable();
+            $table->string('payment_type', 32)->nullable();
+            $table->decimal('paid_amount', 14, 2)->nullable();
+            $table->decimal('due_amount', 14, 2)->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->timestamps();
+            $table->unique('shipment_id');
+        });
+
+        Schema::create('proforma_invoice_line_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('proforma_invoice_id');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->string('description')->nullable();
+            $table->string('hsn')->nullable();
+            $table->string('remarks')->nullable();
+            $table->decimal('qty', 12, 2)->nullable();
+            $table->string('qty_type', 32)->nullable();
+            $table->decimal('rate', 14, 2)->nullable();
+            $table->string('currency', 8)->nullable();
+            $table->decimal('amount', 14, 2)->nullable();
+            $table->decimal('exchange_rate', 14, 4)->nullable();
+            $table->string('tax_type', 4)->nullable();
+            $table->decimal('non_taxable', 14, 2)->nullable();
+            $table->decimal('taxable', 14, 2)->nullable();
+            $table->decimal('igst_pct', 6, 2)->nullable();
+            $table->decimal('igst_amt', 14, 2)->nullable();
+            $table->decimal('cgst_pct', 6, 2)->nullable();
+            $table->decimal('cgst_amt', 14, 2)->nullable();
+            $table->decimal('sgst_pct', 6, 2)->nullable();
+            $table->decimal('sgst_amt', 14, 2)->nullable();
             $table->timestamps();
         });
 
@@ -432,12 +533,16 @@ trait CreatesRegressionSchema
             'shipment_release_legs',
             'shipment_flights',
             'shipment_crr',
+            'proforma_invoice_line_items',
+            'proforma_invoices',
             'shipments',
             'crr_documents',
             'crr_change_logs',
             'crr_costs',
             'crr_packages',
             'crrs',
+            'customer_invoice_details',
+            'customer_addresses',
             'customer_vessels',
             'customer_responsibles',
             'customers',
@@ -445,6 +550,7 @@ trait CreatesRegressionSchema
             'ports',
             'agents',
             'suppliers',
+            'other_companies',
             'hubs',
             'countries',
             'offices',

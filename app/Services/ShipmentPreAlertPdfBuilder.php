@@ -155,6 +155,11 @@ class ShipmentPreAlertPdfBuilder
             ->values();
         $awb = $awbLabels->isNotEmpty() ? $awbLabels->first() : $awb;
 
+        $packedItems = filled($shipment->repacked_items) ? (int) $shipment->repacked_items : $totalPackages;
+        $packedWeight = filled($shipment->repacked_weight)
+            ? number_format((float) $shipment->repacked_weight, 2, '.', '')
+            : number_format((float) $totalWeight, 2, '.', '');
+
         return array_merge($base, [
             'headerSubtitle' => $serviceLabel,
             'expectedLine' => sprintf(
@@ -191,7 +196,7 @@ class ShipmentPreAlertPdfBuilder
                 : null,
             'preAlertRows' => $preAlertRows,
             'totalPiecesLabel' => $totalPackages . ' pcs',
-            'packedAsLabel' => $totalPackages . ' item(s) / ' . $totalWeight . ' kg',
+            'packedAsLabel' => $packedItems . ' item(s) / ' . $packedWeight . ' kg',
             'customsValueLabel' => ($totals['customs_value'] ?? '0.00') . ' ' . ($totals['currency'] ?? 'USD'),
             'totalSummaryLabel' => sprintf(
                 '%s pcs %s kg %s CBM %s %s',

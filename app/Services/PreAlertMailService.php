@@ -233,6 +233,17 @@ class PreAlertMailService
             $shipment->consignee_country
         );
         $service = $shipment->service ?? 'shipment';
+        $totals = $manifestData['totals'] ?? [];
+        $totalPackages = (int) ($totals['packages'] ?? 0);
+        $totalWeight = (float) ($totals['weight'] ?? 0);
+        $volumeWeightLabel = isset($totals['volume_weight'])
+            ? number_format((float) $totals['volume_weight'], 2) . ' kg'
+            : '—';
+        $packedItems = filled($shipment->repacked_items) ? (int) $shipment->repacked_items : $totalPackages;
+        $packedWeight = filled($shipment->repacked_weight)
+            ? (float) $shipment->repacked_weight
+            : $totalWeight;
+        $repackedAsLabel = $packedItems . ' item(s) / ' . number_format($packedWeight, 2) . ' kg';
 
         $lines = [
             'To ' . $consigneeName,
@@ -247,9 +258,11 @@ class PreAlertMailService
             'Vessel: ' . $this->preAlertPdfBuilder->formatMotorVesselName(
                 $manifestData['vesselLine'] ?? $shipment->crrs->pluck('vessel_name')->filter()->first()
             ),
-            'Total packages: ' . ($manifestData['totals']['packages'] ?? '—'),
-            'Total weight: ' . ($manifestData['totals']['weight'] ?? '—') . ' kg',
-            'Total CBM: ' . ($manifestData['totals']['cbm'] ?? '—'),
+            'Total packages: ' . ($totals['packages'] ?? '—'),
+            'Total weight: ' . ($totals['weight'] ?? '—') . ' kg',
+            'Estimated volume weight: ' . $volumeWeightLabel,
+            'Total CBM: ' . ($totals['cbm'] ?? '—'),
+            'Repacked as: ' . $repackedAsLabel,
             '',
         ];
 

@@ -39,6 +39,8 @@ trait ManagesShipmentPersistence
             'status' => 'nullable|string|max:255',
             'repacked_items' => 'nullable|integer|min:0',
             'repacked_weight' => 'nullable|numeric|min:0',
+            'stock_repacked_items' => 'nullable|integer|min:0',
+            'stock_repacked_weight' => 'nullable|numeric|min:0',
             'special_considerations_destination' => 'nullable|string',
             'comments_departure_hub' => 'nullable|string',
             'comments_consignee' => 'nullable|string',
@@ -189,6 +191,8 @@ trait ManagesShipmentPersistence
             'status' => 'nullable|string|max:255',
             'repacked_items' => 'nullable|integer|min:0',
             'repacked_weight' => 'nullable|numeric|min:0',
+            'stock_repacked_items' => 'nullable|integer|min:0',
+            'stock_repacked_weight' => 'nullable|numeric|min:0',
             'special_considerations_destination' => 'nullable|string',
             'comments_departure_hub' => 'nullable|string',
             'comments_consignee' => 'nullable|string',
@@ -475,6 +479,12 @@ trait ManagesShipmentPersistence
                 : null,
             'repacked_weight' => array_key_exists('repacked_weight', $validated)
                 ? ($validated['repacked_weight'] !== null ? (float) $validated['repacked_weight'] : null)
+                : null,
+            'stock_repacked_items' => array_key_exists('stock_repacked_items', $validated)
+                ? ($validated['stock_repacked_items'] !== null ? (int) $validated['stock_repacked_items'] : null)
+                : null,
+            'stock_repacked_weight' => array_key_exists('stock_repacked_weight', $validated)
+                ? ($validated['stock_repacked_weight'] !== null ? (float) $validated['stock_repacked_weight'] : null)
                 : null,
         ];
 

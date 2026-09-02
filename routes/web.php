@@ -29,7 +29,18 @@ Route::middleware('admin')->group(function () {
     Route::post('/users/{user}/unblock', [App\Http\Controllers\UserController::class, 'unblock'])->name('users.unblock');
 
     Route::get('/billing/invoicing', [App\Http\Controllers\BillingController::class, 'invoicing'])->name('billing.invoicing');
-    Route::get('/billing/invoicing/{proformaNo}/edit', [App\Http\Controllers\BillingController::class, 'editInvoice'])->name('billing.invoicing.edit');
+    Route::get('/billing/invoicing/preview-proforma-number', [App\Http\Controllers\BillingController::class, 'previewProformaNumber'])
+        ->name('billing.invoicing.preview-proforma-number');
+    Route::post('/billing/invoicing/store', [App\Http\Controllers\BillingController::class, 'storeProformaInvoice'])
+        ->name('billing.invoicing.store');
+    Route::get('/billing/invoicing/consolidated-print', [App\Http\Controllers\BillingController::class, 'printConsolidatedProformaInvoices'])
+        ->name('billing.invoicing.consolidated-print');
+    Route::get('/billing/invoicing/{proformaNo}/print', [App\Http\Controllers\BillingController::class, 'printProformaInvoice'])
+        ->where('proformaNo', '[A-Za-z0-9._-]+')
+        ->name('billing.invoicing.print');
+    Route::get('/billing/invoicing/{proformaNo}/edit', [App\Http\Controllers\BillingController::class, 'editInvoice'])
+        ->where('proformaNo', '[A-Za-z0-9._-]+')
+        ->name('billing.invoicing.edit');
     Route::get('/billing/debit-notes', [App\Http\Controllers\BillingController::class, 'debitNotes'])->name('billing.debit-notes');
     Route::get('/billing/credit-notes', [App\Http\Controllers\BillingController::class, 'creditNotes'])->name('billing.credit-notes');
 });
@@ -333,6 +344,52 @@ Route::get('/api/ports', function (\Illuminate\Http\Request $request) {
 
     return response()->json(['results' => $ports]);
 })->name('api.ports');
+
+Route::get('/api/countries', function (\Illuminate\Http\Request $request) {
+    $q = trim((string) $request->query('q', ''));
+    $limit = $q === '' ? 10 : 30;
+
+    $countries = \App\Models\Country::query()
+        ->where('is_active', true)
+        ->when($q !== '', function ($query) use ($q) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('iso_code', 'like', "%{$q}%")
+                    ->orWhere('iso3_code', 'like', "%{$q}%");
+            });
+        })
+        ->orderBy('name')
+        ->limit($limit)
+        ->get(['id', 'name', 'iso_code', 'flag_url'])
+        ->map(fn (\App\Models\Country $country) => [
+            'id' => $country->id,
+            'text' => $country->name,
+            'iso' => $country->iso_code,
+            'flag_url' => $country->flag_url,
+        ])
+        ->values();
+
+    return response()->json(['results' => $countries]);
+})->name('api.countries');
+
+Route::get('/api/currencies', function (\Illuminate\Http\Request $request) {
+    $q = trim((string) $request->query('q', ''));
+    $limit = $q === '' ? 10 : 30;
+
+    $currencies = \App\Models\Country::query()
+        ->where('is_active', true)
+        ->whereNotNull('currency')
+        ->where('currency', '!=', '')
+        ->when($q !== '', fn ($query) => $query->where('currency', 'like', "%{$q}%"))
+        ->distinct()
+        ->orderBy('currency')
+        ->limit($limit)
+        ->pluck('currency')
+        ->map(fn (string $currency) => ['id' => $currency, 'text' => $currency])
+        ->values();
+
+    return response()->json(['results' => $currencies]);
+})->name('api.currencies');
 
 Route::get('/api/shipments', [App\Http\Controllers\ShipmentController::class, 'search'])->name('api.shipments');
 

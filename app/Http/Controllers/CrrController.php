@@ -10,6 +10,7 @@ use App\Services\CrrAccountManagerNotifyService;
 use App\Services\CrrChangeLogService;
 use App\Services\LinkedStockShipmentManifestService;
 use App\Support\CountryCache;
+use App\Support\PackageVolumeMetrics;
 use App\Support\SimpleXlsxWriter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -471,8 +472,8 @@ class CrrController extends Controller
         $packages = $crr->packages;
         $pcs = $packages->count();
         $totalWeight = (float) $packages->sum('weight');
-        $totalCbm = (float) $packages->sum('cbm');
-        $volumeWeight = round($totalCbm * 167, 2);
+        $totalCbm = PackageVolumeMetrics::totalCbm($packages);
+        $volumeWeight = PackageVolumeMetrics::totalAirVolumeWeightKg($packages);
 
         $dimensions = $packages
             ->map(function ($pkg) {

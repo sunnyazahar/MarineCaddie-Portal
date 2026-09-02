@@ -191,8 +191,10 @@
     </table>
     <table class="summary-table">
         <tr><td class="summary-label">Total pieces in consignment</td><td>{{ $totalPiecesLabel }}</td></tr>
-        <tr><td class="summary-label">Packed as</td><td>{{ $packedAsLabel }}</td></tr>
+        <tr><td class="summary-label">Gross Weight</td><td>{{ number_format((float) ($totals['weight'] ?? 0), 2) }} kg</td></tr>
+        <tr><td class="summary-label">Estimated volume weight</td><td>{{ number_format((float) ($totals['volume_weight'] ?? 0), 2) }} kg</td></tr>
         <tr><td class="summary-label">Customs value</td><td>{{ $customsValueLabel }}</td></tr>
+        <tr><td class="summary-label">Repacked as</td><td>{{ $packedAsLabel }}</td></tr>
     </table>
 </div>
 

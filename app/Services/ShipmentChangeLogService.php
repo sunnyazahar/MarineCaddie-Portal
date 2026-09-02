@@ -45,6 +45,8 @@ class ShipmentChangeLogService
     'status' => 'Status',
     'repacked_items' => 'Repacked items',
     'repacked_weight' => 'Repacked weight',
+    'stock_repacked_items' => 'Stock repacked items',
+    'stock_repacked_weight' => 'Stock repacked weight',
   ];
 
   private const LEG_GROUPS = [

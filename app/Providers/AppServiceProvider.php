@@ -108,6 +108,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\ShipmentRepository::class,
         );
         $this->app->bind(
+            \App\Repositories\Contracts\ProformaInvoiceRepositoryInterface::class,
+            \App\Repositories\ProformaInvoiceRepository::class,
+        );
+        $this->app->bind(
             \App\Repositories\Contracts\CrrRepositoryInterface::class,
             \App\Repositories\CrrRepository::class,
         );

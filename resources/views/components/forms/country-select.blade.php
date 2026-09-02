@@ -13,6 +13,8 @@
     'emptyOption' => true,
     'emptyOptionText' => null,
     'dropdownParent' => null,
+    'ajax' => false,
+    'selectedText' => null,
 ])
 
 @php
@@ -35,7 +37,7 @@
 <select
     id="{{ $fieldId }}"
     name="{{ $name }}"
-    data-country-select="1"
+    @if ($ajax) data-country-select-ajax="1" @else data-country-select="1" @endif
     data-placeholder="{{ $placeholder }}"
     data-allow-clear="{{ $allowClear ? '1' : '0' }}"
     @if ($dropdownParent) data-mc-dropdown-parent="{{ $dropdownParent }}" @endif
@@ -46,18 +48,23 @@
     @if ($emptyOption)
         <option value="">{{ $emptyLabel }}</option>
     @endif
-    @foreach ($countries as $country)
-        @php
-            $optionValue = $valueKey === 'name' ? $country->name : $country->id;
-            $isSelected = (string) $selectedValue === (string) $optionValue;
-        @endphp
-        <option
-            value="{{ $optionValue }}"
-            data-flag-url="{{ $country->flag_url ?? '' }}"
-            data-iso="{{ $country->iso_code ?? '' }}"
-            @if ($isSelected) selected @endif
-        >{{ $country->name }}</option>
-    @endforeach
+    @if ($ajax && filled($selectedValue))
+        <option value="{{ $selectedValue }}" selected>{{ $selectedText ?: $selectedValue }}</option>
+    @endif
+    @unless ($ajax)
+        @foreach ($countries as $country)
+            @php
+                $optionValue = $valueKey === 'name' ? $country->name : $country->id;
+                $isSelected = (string) $selectedValue === (string) $optionValue;
+            @endphp
+            <option
+                value="{{ $optionValue }}"
+                data-flag-url="{{ $country->flag_url ?? '' }}"
+                data-iso="{{ $country->iso_code ?? '' }}"
+                @if ($isSelected) selected @endif
+            >{{ $country->name }}</option>
+        @endforeach
+    @endunless
 </select>
 
 @if ($wrapperClass)
@@ -121,12 +128,24 @@
                     return null;
                 }
 
+                function resolveCountryFlagFromState(state) {
+                    if (state.flag_url && String(state.flag_url).indexOf('http') === 0) {
+                        return state.flag_url;
+                    }
+
+                    if (state.iso && String(state.iso).length <= 3) {
+                        return 'https://flagcdn.com/w20/' + String(state.iso).toLowerCase() + '.png';
+                    }
+
+                    return resolveCountryFlagUrl($(state.element));
+                }
+
                 function formatCountrySelect(state) {
                     if (!state.id) {
                         return state.text;
                     }
 
-                    var flagUrl = resolveCountryFlagUrl($(state.element));
+                    var flagUrl = resolveCountryFlagFromState(state);
                     if (!flagUrl) {
                         return state.text;
                     }
@@ -139,6 +158,26 @@
                     }));
                     $row.append($('<span class="mc-country-option__label"></span>').text(state.text));
                     return $row;
+                }
+
+                function resolveCountryDropdownParent($select) {
+                    var dropdownParent = $select.attr('data-mc-dropdown-parent') || $select.attr('data-dropdown-parent');
+                    $select.removeAttr('data-dropdown-parent');
+                    $select.removeData('dropdownParent');
+
+                    var $parent = null;
+                    if (dropdownParent) {
+                        if (dropdownParent === 'body' || dropdownParent === 'document.body') {
+                            $parent = $(document.body);
+                        } else {
+                            $parent = $(dropdownParent);
+                        }
+                    }
+                    if (!$parent || !$parent.length) {
+                        $parent = $select.closest('.mc-select2-host, .modal');
+                    }
+
+                    return ($parent && $parent.length) ? $parent : $(document.body);
                 }
 
                 window.MarineCaddieInitCountrySelect = function (scope) {
@@ -159,33 +198,13 @@
                             templateSelection: formatCountrySelect
                         };
 
-                        // Use data-mc-dropdown-parent (NOT data-dropdown-parent).
-                        // Select2 auto-maps data-dropdown-parent and a raw "body" string
-                        // breaks open() with: TypeError: m.css is not a function.
-                        var dropdownParent = $select.attr('data-mc-dropdown-parent') || $select.attr('data-dropdown-parent');
-                        $select.removeAttr('data-dropdown-parent');
-                        $select.removeData('dropdownParent');
+                        options.dropdownParent = resolveCountryDropdownParent($select);
 
-                        var $parent = null;
-                        if (dropdownParent) {
-                            if (dropdownParent === 'body' || dropdownParent === 'document.body') {
-                                $parent = $(document.body);
-                            } else {
-                                $parent = $(dropdownParent);
-                            }
-                        }
-                        if (!$parent || !$parent.length) {
-                            $parent = $select.closest('.mc-select2-host, .modal');
-                        }
-                        options.dropdownParent = ($parent && $parent.length) ? $parent : $(document.body);
-
-                        // Stock edit page manages #country_of_origin itself
                         if ($select.attr('id') === 'country_of_origin' && $('#country-of-origin-host').length) {
                             return;
                         }
 
                         $select.select2(options);
-                        // Re-assert jQuery parent in case Select2 merged a string from leftover data-*
                         var s2 = $select.data('select2');
                         if (s2 && s2.options && typeof s2.options.set === 'function') {
                             s2.options.set('dropdownParent', options.dropdownParent);
@@ -199,6 +218,44 @@
                                 $(this).next('.select2-container').removeClass('error');
                             }
                         });
+                    });
+
+                    $scope.find('[data-country-select-ajax]').each(function () {
+                        var $select = $(this);
+
+                        if ($select.hasClass('select2-hidden-accessible')) {
+                            return;
+                        }
+
+                        var options = {
+                            placeholder: $select.attr('data-placeholder') || 'Select Country',
+                            allowClear: false,
+                            width: '100%',
+                            minimumInputLength: 0,
+                            templateResult: formatCountrySelect,
+                            templateSelection: formatCountrySelect,
+                            ajax: {
+                                url: @json(route('api.countries')),
+                                dataType: 'json',
+                                delay: 200,
+                                data: function (params) {
+                                    return { q: params.term || '' };
+                                },
+                                processResults: function (data) {
+                                    return { results: data.results || [] };
+                                },
+                                cache: true
+                            }
+                        };
+
+                        options.dropdownParent = resolveCountryDropdownParent($select);
+
+                        $select.select2(options);
+                        var s2Ajax = $select.data('select2');
+                        if (s2Ajax && s2Ajax.options && typeof s2Ajax.options.set === 'function') {
+                            s2Ajax.options.set('dropdownParent', options.dropdownParent);
+                        }
+                        $select.next('.select2.select2-container').css('width', '100%');
                     });
                 };
 

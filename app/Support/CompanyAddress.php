@@ -6,7 +6,7 @@ class CompanyAddress
 {
     public const NAME = 'MarineCaddie Shipping LLC';
 
-    public const LINE_1 = 'Unit No. 204 – 224, Al Safi Building, Tower 1';
+    public const LINE_1 = 'Unit No. 204 – 224, Al Safi 1';
 
     public const LINE_2 = 'Deira, Dubai, United Arab Emirates';
 
@@ -17,12 +17,22 @@ class CompanyAddress
     /**
      * @return array<int, string>
      */
+    public static function addressLines(): array
+    {
+        return [
+            self::LINE_1,
+            self::LINE_2,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
     public static function footerLeftLines(): array
     {
         return [
             self::NAME,
-            self::LINE_1,
-            self::LINE_2,
+            ...self::addressLines(),
         ];
     }
 

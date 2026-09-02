@@ -77,6 +77,11 @@ Full detail: `PROJECT_STANDARDS.md` **§12c**.
 - **Stock follow-up Accept**: `accept = true`; if status is **New** → **Stock**, otherwise status unchanged; row leaves follow-up list
 - Follow-up Status/Accept columns: no `text-overflow: ellipsis` on those cells (phantom `...` fix)
 
+## Invoicing / Proforma (short rules)
+Full detail: `PROJECT_STANDARDS.md` **§12d**.
+
+- **One customer per shipment:** linked stocks on a `shipment_number` are always the same customer — Billing Party / Bill To Pos resolve from that customer’s Invoice details (no multi-customer merge)
+
 ## Common mistakes to avoid
 - `table.rows.add($rows)` — DT 1.10 mein kaam nahi karta DOM nodes se
 - `hide_inactive` default `true` — saara data hide ho jata hai

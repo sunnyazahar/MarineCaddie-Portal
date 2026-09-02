@@ -1514,7 +1514,7 @@
                     return '0.00';
                 }
 
-                return formatCopyNumber(Math.round(volume * 167 * 100) / 100, 2);
+                return formatCopyNumber(Math.round((volume * 1000000 / 6000) * 100) / 100, 2);
             }
 
             function getCopyRowData($row) {

@@ -12,6 +12,7 @@ use App\Models\OtherCompany;
 use App\Models\Port;
 use App\Models\Shipment;
 use App\Models\Supplier;
+use App\Support\PackageVolumeMetrics;
 use App\Repositories\Contracts\CountryRepositoryInterface;
 use App\Repositories\Contracts\PartyLookupRepositoryInterface;
 use App\Repositories\Contracts\PortRepositoryInterface;
@@ -51,13 +52,13 @@ class ShipmentManifestPdfBuilder
         $packages = $crrs->flatMap(fn (Crr $crr) => $crr->packages);
         $totalPackages = $packages->count();
         $totalWeight = round((float) $packages->sum('weight'), 2);
-        $totalCbm = round((float) $packages->sum('cbm'), 2);
+        $totalCbm = PackageVolumeMetrics::totalCbm($packages);
         $currencyRates = $this->currencyRatesByCode();
         $totalCustomsValue = round($crrs->sum(
             fn (Crr $crr) => $this->convertCustomsValueToUsd($crr, $currencyRates)
         ), 2);
         $currency = 'USD';
-        $volumeWeight = round($totalCbm * 167, 2);
+        $volumeWeight = PackageVolumeMetrics::totalAirVolumeWeightKg($packages);
         $totalCbft = round($totalCbm * 35.315, 2);
 
         $primaryVessel = $this->formatMotorVesselName($crrs->pluck('vessel_name')->filter()->first());
@@ -89,7 +90,7 @@ class ShipmentManifestPdfBuilder
                 'po_number' => $poNumbers ?: '—',
                 'items' => $crr->packages->count(),
                 'weight' => round((float) $crr->packages->sum('weight'), 2),
-                'cbm' => round((float) $crr->packages->sum('cbm'), 2),
+                'cbm' => PackageVolumeMetrics::totalCbm($crr->packages),
                 'customs_value' => number_format($this->convertCustomsValueToUsd($crr, $currencyRates), 2),
                 'currency' => 'USD',
                 'description' => $crr->content ?? 'Shipspares',
@@ -201,9 +202,12 @@ class ShipmentManifestPdfBuilder
             'onBoardSignatory' => $this->formatOnBoardSignatory($primaryVessel),
             'pcsSummary' => $totalPackages
                 . ' / '
-                . (filled($shipment->repacked_items) ? $shipment->repacked_items : $totalPackages)
+                . (filled($shipment->stock_repacked_items) ? $shipment->stock_repacked_items : $totalPackages)
                 . ' / '
-                . number_format(filled($shipment->repacked_weight) ? (float) $shipment->repacked_weight : $totalWeight, 2)
+                . number_format(
+                    filled($shipment->stock_repacked_weight) ? (float) $shipment->stock_repacked_weight : $totalWeight,
+                    2
+                )
                 . ' kg',
             'preferredShipmentDate' => $shipment->preferred_shipment_date?->format('d.m.y') ?? '—',
             'deadlineArrival' => $shipment->deadline_arrival?->format('d.m.y') ?? '—',
@@ -222,9 +226,9 @@ class ShipmentManifestPdfBuilder
                 'currency' => $currency,
                 'cbm' => $totalCbm,
                 'cbft' => $totalCbft,
-                'repacked_items' => filled($shipment->repacked_items) ? (int) $shipment->repacked_items : '—',
-                'repacked_weight' => filled($shipment->repacked_weight)
-                    ? number_format((float) $shipment->repacked_weight, 2)
+                'repacked_items' => filled($shipment->stock_repacked_items) ? (int) $shipment->stock_repacked_items : '—',
+                'repacked_weight' => filled($shipment->stock_repacked_weight)
+                    ? number_format((float) $shipment->stock_repacked_weight, 2)
                     : '—',
             ],
             'shipperLine' => $this->formatPartyBlock($departureParty),

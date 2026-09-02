@@ -370,6 +370,17 @@
                 <button type="button" id="add-stock-items-btn" class="btn btn-premium btn-outline-custom ml-2" @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif>Add stock items</button>
             </div>
         </div>
+        @include('Shipment.partials.stock-repacked-fields', [
+            'itemsName' => 'stock_repacked_items',
+            'weightName' => 'stock_repacked_weight',
+            'itemsId' => 'stock_repacked_items',
+            'weightId' => 'stock_repacked_weight',
+            'itemsValue' => $shipment->stock_repacked_items,
+            'weightValue' => $shipment->stock_repacked_weight !== null
+                ? number_format((float) $shipment->stock_repacked_weight, 2, '.', '')
+                : null,
+            'disabled' => in_array($shipment->status, ['Completed', 'Cancelled'], true),
+        ])
     </div>
 
     <div id="stock-panel-service" class="stock-panel{{ $lockServiceDetailsForInProcess ? ' stock-panel--locked' : '' }}">
@@ -451,37 +462,17 @@
                 <a href="#" id="add-on-board-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add delivery</a>
             </div>
         </div>
-        <div class="stock-repacked-section">
-            <div class="stock-repacked-heading">Repacked as:</div>
-            <div class="stock-repacked-fields">
-                <div class="stock-repacked-field">
-                    <label for="repacked_items" class="stock-repacked-field-label">Repacked item(s)</label>
-                    <input
-                        type="text"
-                        name="repacked_items"
-                        id="repacked_items"
-                        class="form-control stock-repacked-input"
-                        inputmode="numeric"
-                        autocomplete="off"
-                        value="{{ old('repacked_items', $shipment->repacked_items) }}"
-                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true) || $lockServiceDetailsForInProcess) disabled @endif
-                    >
-                </div>
-                <div class="stock-repacked-field">
-                    <label for="repacked_weight" class="stock-repacked-field-label">Repacked weight (kg)</label>
-                    <input
-                        type="text"
-                        name="repacked_weight"
-                        id="repacked_weight"
-                        class="form-control stock-repacked-input"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        value="{{ old('repacked_weight', $shipment->repacked_weight !== null ? number_format((float) $shipment->repacked_weight, 2, '.', '') : '') }}"
-                        @if(in_array($shipment->status, ['Completed', 'Cancelled'], true) || $lockServiceDetailsForInProcess) disabled @endif
-                    >
-                </div>
-            </div>
-        </div>
+        @include('Shipment.partials.stock-repacked-fields', [
+            'itemsName' => 'repacked_items',
+            'weightName' => 'repacked_weight',
+            'itemsId' => 'repacked_items',
+            'weightId' => 'repacked_weight',
+            'itemsValue' => $shipment->repacked_items,
+            'weightValue' => $shipment->repacked_weight !== null
+                ? number_format((float) $shipment->repacked_weight, 2, '.', '')
+                : null,
+            'disabled' => in_array($shipment->status, ['Completed', 'Cancelled'], true) || $lockServiceDetailsForInProcess,
+        ])
     </div>
 
     <div id="stock-panel-irregularities" class="stock-panel">

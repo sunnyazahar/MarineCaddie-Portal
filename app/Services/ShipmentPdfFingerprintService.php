@@ -98,6 +98,8 @@ class ShipmentPdfFingerprintService
             'consignee_country' => $this->normalizeValue($shipment->consignee_country),
             'consignee_port_code' => $this->normalizeValue($shipment->consignee_port_code),
             'stock_ids' => $this->revisionStockIds($shipment),
+            'stock_repacked_items' => $this->normalizeValue($shipment->stock_repacked_items),
+            'stock_repacked_weight' => $this->normalizeValue($shipment->stock_repacked_weight),
         ];
     }
 
@@ -113,6 +115,8 @@ class ShipmentPdfFingerprintService
             'service_details' => $this->serviceDetailsPayload($shipment),
             'repacked_items' => $this->normalizeValue($shipment->repacked_items),
             'repacked_weight' => $this->normalizeValue($shipment->repacked_weight),
+            'stock_repacked_items' => $this->normalizeValue($shipment->stock_repacked_items),
+            'stock_repacked_weight' => $this->normalizeValue($shipment->stock_repacked_weight),
         ];
     }
 

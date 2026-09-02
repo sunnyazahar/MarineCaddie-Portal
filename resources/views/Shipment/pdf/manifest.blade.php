@@ -306,7 +306,7 @@
         </tbody>
     </table>
     <table class="totals-table">
-        <tr><td class="totals-label">Total in consignment</td><td>{{ $totals['packages'] }} pcs</td></tr>
+        <tr><td class="totals-label">Total pieces in consignment</td><td>{{ $totals['packages'] }} pcs</td></tr>
         <tr><td class="totals-label">Total weight</td><td>{{ $totals['weight'] }} kg</td></tr>
         <tr><td class="totals-label">Estimated volume weight</td><td>{{ number_format($totals['volume_weight'], 2) }} kg</td></tr>
         <tr><td class="totals-label">Total customs value</td><td>{{ $totals['customs_value'] }} {{ $totals['currency'] }}</td></tr>

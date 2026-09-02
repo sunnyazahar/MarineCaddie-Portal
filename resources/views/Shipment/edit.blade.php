@@ -3387,7 +3387,7 @@
                                                     <span class="summary-header-icon" aria-hidden="true">
                                                         <i class="icofont icofont-ship"></i>
                                                     </span>
-                                                    <div class="header-meta-group">
+                                                <div class="header-meta-group">
                                                     <div class="meta-item{{ $workflowEditMode ? ' meta-item-shipment-select' : '' }}">
                                                         <span class="meta-label">Shipment no</span>
                                                         @if ($workflowEditMode)
@@ -3567,7 +3567,7 @@
                                                         @foreach ($shipment->crrs as $crr)
                                                             <input type="hidden" name="crr_ids[]" value="{{ $crr->id }}">
                                                         @endforeach
-                                                    </div>
+                                                        </div>
                                                     @include('Shipment.partials.edit-shipment-details-form')
                                                 </form>
                                                 </div>
@@ -4129,7 +4129,7 @@
                                                         <div class="shipment-docs-header">
                                                             <span>Filename</span>
                                                             <span class="shipment-docs-internal-label">Internal</span>
-                                                        </div>
+                                                                </div>
                                                         <div id="shipment-docs-scroll">
                                                         <div id="shipment-manifests-list">
                                                         @foreach ($shipment->manifests as $manifest)
@@ -4150,14 +4150,14 @@
                                                                             <input type="checkbox" class="doc-internal-check">
                                                                             <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
                                                                         </label>
-                                                                    </div>
-                                                                    <i class="ti-trash doc-trash delete-shipment-manifest" data-id="{{ $manifest->id }}" title="Delete"></i>
-                                                                </div>
-                                                                <span class="doc-date">{{ $manifest->created_at->format('d.m.Y') }}</span>
                                                             </div>
+                                                                    <i class="ti-trash doc-trash delete-shipment-manifest" data-id="{{ $manifest->id }}" title="Delete"></i>
                                                         </div>
+                                                                <span class="doc-date">{{ $manifest->created_at->format('d.m.Y') }}</span>
+                                                                </div>
+                                                            </div>
                                                         @endforeach
-                                                        </div>
+                                                            </div>
                                                         <div id="shipment-pre-alerts-list">
                                                         @foreach ($shipment->preAlerts as $preAlert)
                                                         <div class="doc-item shipment-prealert-doc" data-id="{{ $preAlert->id }}">
@@ -4169,7 +4169,7 @@
                                                                     {{ ucfirst($preAlert->displayLabel()) }}
                                                                 </a>
                                                                 <span class="doc-type-label">Pre-alert</span>
-                                                            </div>
+                                                        </div>
                                                             <div class="doc-side">
                                                                 <div class="doc-side-row">
                                                                     <div class="doc-internal checkbox-fade fade-in-primary">
@@ -4177,14 +4177,14 @@
                                                                             <input type="checkbox" class="doc-internal-check">
                                                                             <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
                                                                         </label>
-                                                                    </div>
+                                                    </div>
                                                                     <i class="ti-trash doc-trash delete-shipment-prealert" data-id="{{ $preAlert->id }}" title="Delete"></i>
-                                                                </div>
+                                                        </div>
                                                                 <span class="doc-date">{{ $preAlert->created_at->format('d.m.Y') }}</span>
+                                                    </div>
                                                             </div>
-                                                        </div>
                                                         @endforeach
-                                                        </div>
+                                                            </div>
                                                         <div id="shipment-documents-list">
                                                         @foreach ($shipment->documents as $uploadedDocument)
                                                             @php
@@ -4206,7 +4206,7 @@
                                                                         <option value="{{ $selectedDocType }}" selected>{{ $selectedDocType }}</option>
                                                                     @endif
                                                                 </select>
-                                                            </div>
+                                                        </div>
                                                             <div class="doc-side">
                                                                 <div class="doc-side-row">
                                                                     <div class="doc-internal checkbox-fade fade-in-primary">
@@ -4217,14 +4217,14 @@
                                                                                    {{ $uploadedDocument->is_internal ? 'checked' : '' }}>
                                                                             <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
                                                                         </label>
-                                                                    </div>
-                                                                    <i class="ti-trash doc-trash delete-shipment-document" data-id="{{ $uploadedDocument->id }}" title="Delete"></i>
-                                                                </div>
-                                                                <span class="doc-date">{{ $uploadedDocument->created_at->format('d.m.Y') }}</span>
                                                             </div>
+                                                                    <i class="ti-trash doc-trash delete-shipment-document" data-id="{{ $uploadedDocument->id }}" title="Delete"></i>
+                                                            </div>
+                                                                <span class="doc-date">{{ $uploadedDocument->created_at->format('d.m.Y') }}</span>
                                                         </div>
+                                                            </div>
                                                         @endforeach
-                                                        </div>
+                                                            </div>
                                                         @if ($combinedPoDocuments->count() > 0)
                                                         <div class="doc-item shipment-combined-po-doc" id="shipment-combined-po-doc">
                                                             <div class="doc-main">
@@ -4235,7 +4235,7 @@
                                                                     Combined PO documents
                                                                 </a>
                                                                 <span class="doc-type-label">PO · {{ $combinedPoDocuments->unique('file_path')->count() }} PDF(s) merged</span>
-                                                            </div>
+                                                        </div>
                                                             <div class="doc-side">
                                                                 <div class="doc-side-row">
                                                                     <div class="doc-internal checkbox-fade fade-in-primary">
@@ -4246,11 +4246,11 @@
                                                                                    checked>
                                                                             <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
                                                                         </label>
-                                                                    </div>
-                                                                    <i class="ti-trash doc-trash" style="visibility: hidden;"></i>
-                                                                </div>
-                                                                <span class="doc-date">{{ $combinedPoDocuments->max('created_at')?->format('d.m.Y') }}</span>
                                                             </div>
+                                                                    <i class="ti-trash doc-trash" style="visibility: hidden;"></i>
+                                                            </div>
+                                                                <span class="doc-date">{{ $combinedPoDocuments->max('created_at')?->format('d.m.Y') }}</span>
+                                                        </div>
                                                         </div>
                                                         @endif
                                                         </div>
@@ -4264,17 +4264,17 @@
                                                     <div id="doc-panel-log" class="doc-panel">
                                                         <div id="shipment-log-scroll">
                                                         @forelse ($shipment->changeLogs as $changeLog)
-                                                            <div class="log-item">
-                                                                <div class="log-left">
+                                                        <div class="log-item">
+                                                            <div class="log-left">
                                                                     <span class="log-title">{{ $changeLog->title }}</span>
                                                                     @if ($changeLog->description)
                                                                         <span class="log-desc @if(str_starts_with($changeLog->title, 'Revision')) text-danger @endif" @if(str_starts_with($changeLog->title, 'Revision')) style="font-weight: 700;" @endif>{{ $changeLog->description }}</span>
                                                                     @endif
-                                                                </div>
-                                                                <div class="log-right">
+                                                            </div>
+                                                            <div class="log-right">
                                                                     <span class="log-user">{{ $changeLog->user?->name ?? 'System' }}</span>
                                                                     <span class="log-timestamp">{{ $changeLog->created_at->format('d.m.Y H:i') }}</span>
-                                                                </div>
+                                                            </div>
                                                             </div>
                                                         @empty
                                                             <div class="text-center py-4 text-muted" style="font-size: 12px;">No changes recorded yet.</div>
@@ -4327,10 +4327,10 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
-            </div>
+                                    </div>
             <div class="modal-body" style="padding: 20px 16px;">
                 <p class="mb-0" style="font-size: 12px; color: #4b5563;">Choose how you want to finalize this shipment.</p>
-            </div>
+                                </div>
             <div class="modal-footer py-2 d-flex justify-content-between">
                 <button type="button"
                     class="btn btn-premium btn-teal btn-sm"
@@ -4342,10 +4342,10 @@
                     id="finalize-shipment-transit-btn"
                     @disabled(!empty($transitDestinationStocksReady))
                     title="{{ !empty($transitDestinationStocksReady) ? 'Destination stocks already created' : '' }}">Transit</button>
-            </div>
-        </div>
-    </div>
-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
 <div class="modal fade" id="finalize-shipment-transit-modal" tabindex="-1" role="dialog" aria-labelledby="finalizeShipmentTransitModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document" style="max-width: 420px;">
@@ -4696,7 +4696,7 @@
                 width: '100%'
             });
         });
-
+        
         // Initialize Datepickers (raise pillar z-index so calendar isn't clipped)
         $('.datepicker').each(function() {
             $(this).datepicker({
@@ -7826,35 +7826,40 @@
             var serviceDetailsLocked = status === 'In process' && !@json((bool) ($workflowEditMode ?? false));
             $('#add-stock-items-btn').prop('disabled', isLocked);
             $('#repacked_items, #repacked_weight').prop('disabled', isLocked || serviceDetailsLocked);
+            $('#stock_repacked_items, #stock_repacked_weight').prop('disabled', isLocked);
         }
 
-        $('#repacked_items').on('input', function() {
-            var sanitized = $(this).val().replace(/\D/g, '');
-            if ($(this).val() !== sanitized) {
-                $(this).val(sanitized);
-            }
-        });
+        function bindRepackedInputSanitizers(selector) {
+            $(selector).filter('[id$="_items"], [id="repacked_items"], [id="stock_repacked_items"]').on('input', function() {
+                var sanitized = $(this).val().replace(/\D/g, '');
+                if ($(this).val() !== sanitized) {
+                    $(this).val(sanitized);
+                }
+            });
 
-        $('#repacked_weight').on('input', function() {
-            var val = $(this).val().replace(/[^\d.]/g, '');
-            var parts = val.split('.');
-            if (parts.length > 2) {
-                val = parts[0] + '.' + parts.slice(1).join('');
-            }
-            if ($(this).val() !== val) {
-                $(this).val(val);
-            }
-        }).on('blur', function() {
-            var raw = $.trim($(this).val());
-            if (raw === '' || raw === '.') {
-                $(this).val('');
-                return;
-            }
-            var num = parseFloat(raw);
-            if (!isNaN(num)) {
-                $(this).val(num.toFixed(2));
-            }
-        });
+            $(selector).filter('[id$="_weight"], [id="repacked_weight"], [id="stock_repacked_weight"]').on('input', function() {
+                var val = $(this).val().replace(/[^\d.]/g, '');
+                var parts = val.split('.');
+                if (parts.length > 2) {
+                    val = parts[0] + '.' + parts.slice(1).join('');
+                }
+                if ($(this).val() !== val) {
+                    $(this).val(val);
+                }
+            }).on('blur', function() {
+                var raw = $.trim($(this).val());
+                if (raw === '' || raw === '.') {
+                    $(this).val('');
+                    return;
+                }
+                var num = parseFloat(raw);
+                if (!isNaN(num)) {
+                    $(this).val(num.toFixed(2));
+                }
+            });
+        }
+
+        bindRepackedInputSanitizers('#repacked_items, #repacked_weight, #stock_repacked_items, #stock_repacked_weight');
 
        
 
@@ -8116,8 +8121,8 @@
             refreshStockItemsTable();
             syncCrrHiddenInputs();
         });
-
-                // Tab Logic for Document Tabs
+        
+        // Tab Logic for Document Tabs
         $('.doc-tab').on('click', function() {
             var target = $(this).data('target');
             var $panel = $('#doc-panel-' + target);

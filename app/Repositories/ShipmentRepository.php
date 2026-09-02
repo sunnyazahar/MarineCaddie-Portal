@@ -61,6 +61,88 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
         return $this->buildIndexQuery($filters)->paginate($perPage);
     }
 
+    public function paginateForInvoicing(array $filters, int $perPage): LengthAwarePaginator
+    {
+        return $this->buildInvoicingQuery($filters)->paginate($perPage);
+    }
+
+    public function buildInvoicingQuery(array $filters): Builder
+    {
+        $query = $this->query()
+            ->with([
+                'crrs.packages',
+                'flights',
+                'seaLegs',
+                'truckLegs',
+                'courierLegs',
+                'releaseLegs',
+                'handCarryLegs',
+                'onBoardLegs',
+                'proformaInvoice',
+            ])
+            ->where('status', '!=', 'Cancelled');
+
+        $this->applyInvoicingFilters($query, $filters);
+
+        return $query->orderByDesc('id');
+    }
+
+    public function findForInvoicingByNumber(string $shipmentNumber): ?Shipment
+    {
+        $shipmentNumber = trim($shipmentNumber);
+        if ($shipmentNumber === '') {
+            return null;
+        }
+
+        return $this->query()
+            ->with([
+                'crrs.packages',
+                'flights',
+                'seaLegs',
+                'truckLegs',
+                'courierLegs',
+                'releaseLegs',
+                'handCarryLegs',
+                'onBoardLegs',
+                'proformaInvoice',
+            ])
+            ->where('shipment_number', $shipmentNumber)
+            ->where('status', '!=', 'Cancelled')
+            ->first();
+    }
+
+  /**
+     * @param  list<string>  $shipmentNumbers
+     * @return EloquentCollection<int, Shipment>
+     */
+    public function findManyForInvoicingByNumbers(array $shipmentNumbers): EloquentCollection
+    {
+        $shipmentNumbers = array_values(array_unique(array_filter(array_map(
+            static fn (string $number) => trim($number),
+            $shipmentNumbers
+        ))));
+
+        if ($shipmentNumbers === []) {
+            return new EloquentCollection();
+        }
+
+        return $this->query()
+            ->with([
+                'crrs.packages',
+                'flights',
+                'seaLegs',
+                'truckLegs',
+                'courierLegs',
+                'releaseLegs',
+                'handCarryLegs',
+                'onBoardLegs',
+                'proformaInvoice.lineItems',
+            ])
+            ->whereIn('shipment_number', $shipmentNumbers)
+            ->where('status', '!=', 'Cancelled')
+            ->get();
+    }
+
     public function indexFilterOptions(): array
     {
         $customers = DB::table('customers')
@@ -494,6 +576,118 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
     public function findDocumentForShipmentOrFail(int $shipmentId, int $docId): ShipmentDocument
     {
         return ShipmentDocument::query()->where('shipment_id', $shipmentId)->findOrFail($docId);
+    }
+
+    private function applyInvoicingFilters(Builder $query, array $filters): void
+    {
+        $billingStatuses = array_values(array_filter((array) ($filters['status'] ?? [])));
+        if ($billingStatuses) {
+            $wantsBilled = in_array('Billed', $billingStatuses, true);
+            $wantsReady = in_array('Ready for billing', $billingStatuses, true);
+            $wantsPartiallyPaid = in_array('Partially paid', $billingStatuses, true);
+
+            $query->where(function (Builder $statusQuery) use ($wantsBilled, $wantsReady, $wantsPartiallyPaid) {
+                if ($wantsReady) {
+                    $statusQuery->orWhereDoesntHave('proformaInvoice');
+                }
+
+                if ($wantsBilled) {
+                    $statusQuery->orWhereHas('proformaInvoice', function (Builder $invoiceQuery) {
+                        $invoiceQuery->where(function (Builder $paymentQuery) {
+                            $paymentQuery
+                                ->where('payment_type', 'full_payment')
+                                ->orWhereNull('payment_type');
+                        });
+                    });
+                }
+
+                if ($wantsPartiallyPaid) {
+                    $statusQuery->orWhereHas('proformaInvoice', function (Builder $invoiceQuery) {
+                        $invoiceQuery->where('payment_type', 'partial_payment');
+                    });
+                }
+            });
+        }
+
+        $this->applyInvoicingShipmentFilters($query, $filters);
+
+        if ($this->hasInvoicingCrrFilterParams($filters)) {
+            $query->whereHas('crrs', fn (Builder $crrQuery) => $this->applyInvoicingCrrFilters($crrQuery, $filters));
+        }
+    }
+
+    private function applyInvoicingShipmentFilters(Builder $query, array $filters): void
+    {
+        $invoiceNo = trim((string) ($filters['invoice_no'] ?? ($filters['proforma_no'] ?? '')));
+        $shipmentNo = trim((string) ($filters['job_no'] ?? ($filters['shipment'] ?? ($filters['shipment_no'] ?? ($filters['shipment_number'] ?? '')))));
+        $mawbMbl = trim((string) ($filters['mawb_mbl'] ?? ($filters['mawb'] ?? ($filters['mbl'] ?? ''))));
+        $poNumber = trim((string) ($filters['po_number'] ?? ($filters['client_ref_no'] ?? '')));
+        $dateFrom = trim((string) ($filters['date_from'] ?? ''));
+        $dateTo = trim((string) ($filters['date_to'] ?? ''));
+
+        $invoiceNoLike = ListSearch::contains($invoiceNo);
+        $shipmentNoLike = ListSearch::prefix($shipmentNo);
+        $mawbMblLike = ListSearch::prefix($mawbMbl);
+        $poNumberLike = ListSearch::contains($poNumber);
+
+        $query
+            ->when($invoiceNoLike, fn ($q, $pattern) => $q->whereHas(
+                'proformaInvoice',
+                fn ($invoiceQuery) => $invoiceQuery->where('proforma_no', 'like', $pattern)
+            ))
+            ->when($shipmentNoLike, fn ($q, $pattern) => $q->where('shipment_number', 'like', $pattern))
+            ->when($poNumberLike, function ($q, $pattern) {
+                $q->where(function ($sub) use ($pattern) {
+                    $sub->where('customer_reference', 'like', $pattern)
+                        ->orWhereHas('proformaInvoice', fn ($invoiceQuery) => $invoiceQuery->where('client_ref_no', 'like', $pattern));
+                });
+            })
+            ->when($mawbMblLike, function ($q, $pattern) {
+                $q->where(function ($sub) use ($pattern) {
+                    $sub->whereHas('flights', fn ($leg) => $leg->where('leg_reference', 'like', $pattern))
+                        ->orWhereHas('courierLegs', fn ($leg) => $leg->where('airway_bill', 'like', $pattern))
+                        ->orWhereHas('seaLegs', fn ($leg) => $leg->where('bill_of_lading', 'like', $pattern));
+                });
+            })
+            ->when($dateFrom !== '' || $dateTo !== '', function ($q) use ($dateFrom, $dateTo) {
+                $q->whereHas('proformaInvoice', function ($invoiceQuery) use ($dateFrom, $dateTo) {
+                    if ($dateFrom !== '') {
+                        $invoiceQuery->whereDate('created_at', '>=', $dateFrom);
+                    }
+                    if ($dateTo !== '') {
+                        $invoiceQuery->whereDate('created_at', '<=', $dateTo);
+                    }
+                });
+            });
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function hasInvoicingCrrFilterParams(array $filters): bool
+    {
+        $customers = array_values(array_filter((array) ($filters['customer'] ?? [])));
+        $vessels = array_values(array_filter((array) ($filters['vessel'] ?? [])));
+        $accountManagers = array_values(array_filter((array) ($filters['account_manager'] ?? [])));
+
+        return $customers || $vessels || $accountManagers;
+    }
+
+    private function applyInvoicingCrrFilters(Builder $query, array $filters): void
+    {
+        $customers = array_values(array_filter((array) ($filters['customer'] ?? [])));
+        $vessels = array_values(array_filter((array) ($filters['vessel'] ?? [])));
+        $accountManagers = array_values(array_filter((array) ($filters['account_manager'] ?? [])));
+
+        $query
+            ->when($customers, fn ($q) => $q->whereHas('customerVessel.customer', fn ($sub) => $sub->whereIn('customer_name', $customers)))
+            ->when($vessels, fn ($q) => $q->whereIn('vessel_name', $vessels))
+            ->when($accountManagers, function ($q) use ($accountManagers) {
+                $q->where(function ($sub) use ($accountManagers) {
+                    $sub->whereHas('customerVessel', fn ($cv) => $cv->whereIn('account_manager', $accountManagers))
+                        ->orWhereHas('customerVessel.customer.responsible.accountManager', fn ($am) => $am->whereIn('name', $accountManagers));
+                });
+            });
     }
 
     private function applyShipmentFollowUpFilters(Builder $query, array $filters): void

@@ -66,4 +66,49 @@ class ShipmentPdfCompanyFooter
 
         return $output;
     }
+
+    /**
+     * Render the PDF and stamp only the page number (e.g. 1/1) on every page.
+     *
+     * @param  float  $marginBottomMm  When set, places the page number just below the reserved footer band (proforma invoices).
+     */
+    public function outputPageNumbers(PDF $pdf, float $marginBottomMm = 0): string
+    {
+        $pdf->render();
+
+        $dompdf = $pdf->getDomPDF();
+        $canvas = $dompdf->getCanvas();
+        $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans');
+        $size = 7.0;
+        $physicalBottomOffsetPt = 10.0;
+
+        $canvas->page_script(function (int $pageNumber, int $pageCount, Canvas $canvas, FontMetrics $fontMetrics) use (
+            $font,
+            $size,
+            $marginBottomMm,
+            $physicalBottomOffsetPt
+        ) {
+            $width = $canvas->get_width();
+            $height = $canvas->get_height();
+
+            if ($marginBottomMm > 0) {
+                $marginBottomPt = $marginBottomMm * 2.834645669;
+                $y = $height - $marginBottomPt + $physicalBottomOffsetPt;
+            } else {
+                $y = $height - $physicalBottomOffsetPt;
+            }
+
+            $pageLabel = $pageNumber . '/' . $pageCount;
+            $pageLabelWidth = $fontMetrics->getTextWidth($pageLabel, $font, $size);
+            $canvas->text(($width - $pageLabelWidth) / 2, $y, $pageLabel, $font, $size);
+        });
+
+        $output = $dompdf->output();
+
+        if (! is_string($output) || strlen($output) < 100) {
+            throw new \RuntimeException('PDF could not be generated with page numbers.');
+        }
+
+        return $output;
+    }
 }

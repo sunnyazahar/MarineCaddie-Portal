@@ -2,13 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OtherCompany;
+use App\Http\Requests\Billing\StoreProformaInvoiceRequest;
 use App\Models\Shipment;
+use App\Repositories\Contracts\CrrRepositoryInterface;
+use App\Repositories\Contracts\ShipmentRepositoryInterface;
+use App\Services\ConsolidatedProformaInvoicePdfService;
+use App\Services\InvoicingShipmentRowMapper;
+use App\Services\ProformaInvoicePdfBuilder;
+use App\Services\ProformaInvoiceService;
+use App\Services\ShipmentPdfCompanyFooter;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class BillingController extends Controller
 {
+    public function __construct(
+        private ShipmentRepositoryInterface $shipmentRepository,
+        private CrrRepositoryInterface $crrRepository,
+        private InvoicingShipmentRowMapper $invoicingShipmentRowMapper,
+        private ProformaInvoiceService $proformaInvoiceService,
+    ) {}
+
     private const MOCK_INVOICE_TOTAL = 200;
 
     /** @var array<string, string> */
@@ -22,31 +36,38 @@ class BillingController extends Controller
         '7' => 'Miscellaneous',
     ];
 
+    /** @var list<string> */
+    private const SERVICE_OPTIONS = [
+        'Courier',
+        'Airfreight',
+        'Sea freight',
+        'Truck',
+        'Release',
+        'Hand Carry',
+        'On-board delivery',
+    ];
+
     public function invoicing(Request $request)
     {
         $perPage = max(25, min(100, (int) $request->query('per_page', 25)));
-        $page = max(1, (int) $request->query('page', 1));
-        $offset = ($page - 1) * $perPage;
-        $start = $offset + 1;
-        $end = min($offset + $perPage, self::MOCK_INVOICE_TOTAL);
-
-        $pageItems = collect();
-        for ($i = $start; $i <= $end; $i++) {
-            $pageItems->push($this->buildMockInvoiceRow($i));
-        }
-
-        $invoices = new LengthAwarePaginator(
-            $pageItems,
-            self::MOCK_INVOICE_TOTAL,
-            $perPage,
-            $page,
-            [
-                'path' => route('billing.invoicing'),
-                'query' => $request->query(),
-            ]
+        $filters = $request->all();
+        $invoices = $this->shipmentRepository->paginateForInvoicing($filters, $perPage);
+        $invoices->setCollection(
+            $this->invoicingShipmentRowMapper->mapCollection($invoices->getCollection())
         );
 
-        return view('Billing.all-invoices', compact('invoices'));
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('Billing.partials.invoicing-rows', compact('invoices'))->render(),
+                'pagination' => view('Billing.partials.invoicing-pagination-links', ['paginator' => $invoices])->render(),
+                'pagination_meta' => view('Billing.partials.invoicing-pagination-meta', ['paginator' => $invoices])->render(),
+                'total' => $invoices->total(),
+            ]);
+        }
+
+        $filterOptions = $this->crrRepository->indexFilterOptions();
+
+        return view('Billing.all-invoices', array_merge(compact('invoices'), $filterOptions));
     }
 
     public function debitNotes()
@@ -61,27 +82,65 @@ class BillingController extends Controller
 
     public function editInvoice(string $proformaNo)
     {
-        $index = $this->resolveMockInvoiceIndex($proformaNo);
-        if ($index === null) {
+        $shipment = $this->shipmentRepository->findForInvoicingByNumber($proformaNo);
+        if ($shipment === null) {
             abort(404);
         }
 
-        $invoice = $this->buildMockInvoiceDetail($index);
-        $billToPosOptions = OtherCompany::query()
-            ->orderBy('company_name')
-            ->get(['id', 'company_name', 'code']);
-
-        if ($billToPosOptions->isNotEmpty()) {
-            $invoice['bill_to_pos'] = (string) $billToPosOptions[($index - 1) % $billToPosOptions->count()]->id;
-        } else {
-            $invoice['bill_to_pos'] = '';
-        }
+        $invoice = $this->invoicingShipmentRowMapper->mapDetail($shipment);
 
         return view('Billing.edit-proforma-invoice', [
             'invoice' => $invoice,
             'invoiceTypeOptions' => self::INVOICE_TYPE_OPTIONS,
-            'billToPosOptions' => $billToPosOptions,
+            'serviceOptions' => self::SERVICE_OPTIONS,
+            'shipmentId' => $shipment->id,
         ]);
+    }
+
+    public function previewProformaNumber(Request $request)
+    {
+        return response()->json(
+            $this->proformaInvoiceService->previewNumber($request->query('proforma_date'))
+        );
+    }
+
+    public function storeProformaInvoice(StoreProformaInvoiceRequest $request)
+    {
+        $result = $this->proformaInvoiceService->store(
+            $request->validated(),
+            (int) $request->user()->id,
+        );
+
+        return response()->json($result);
+    }
+
+    public function printProformaInvoice(string $proformaNo, ProformaInvoicePdfBuilder $pdfBuilder, ShipmentPdfCompanyFooter $companyFooter)
+    {
+        $shipment = $this->shipmentRepository->findForInvoicingByNumber($proformaNo);
+        if ($shipment === null) {
+            abort(404);
+        }
+
+        $data = $pdfBuilder->build($shipment, self::INVOICE_TYPE_OPTIONS);
+        $numberSlug = $data['proforma_display_no'] !== '—'
+            ? $data['proforma_display_no']
+            : $shipment->shipment_number;
+        $filename = 'proforma-invoice-' . preg_replace('/[^A-Za-z0-9._-]+/', '-', $numberSlug) . '.pdf';
+
+        $pdf = Pdf::loadView('Billing.pdf.proforma-invoice', $data)->setPaper('a4', 'portrait');
+        $output = $companyFooter->outputPageNumbers($pdf);
+
+        return response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
+    }
+
+    public function printConsolidatedProformaInvoices(Request $request, ConsolidatedProformaInvoicePdfService $consolidatedPdfService)
+    {
+        $jobNumbers = array_values(array_filter((array) $request->query('job_no', []), static fn ($value) => trim((string) $value) !== ''));
+
+        return $consolidatedPdfService->streamMergedPdf($jobNumbers, self::INVOICE_TYPE_OPTIONS);
     }
 
     private function resolveMockInvoiceIndex(string $proformaNo): ?int
@@ -214,6 +273,7 @@ class BillingController extends Controller
                 'hsn' => '9967',
                 'remarks' => 'Clearance Charges',
                 'qty' => '1',
+                'qty_type' => 'KG',
                 'rate' => '7',
                 'currency' => $currency,
                 'amount' => '7.00',
@@ -233,6 +293,7 @@ class BillingController extends Controller
                 'hsn' => '9965',
                 'remarks' => 'Freight Charges',
                 'qty' => '1',
+                'qty_type' => 'Job',
                 'rate' => $secondRate,
                 'currency' => $currency,
                 'amount' => $secondRate,
@@ -316,6 +377,7 @@ class BillingController extends Controller
             'currency' => $currency,
             'gst_amount' => $gstAmount,
             'net_invoice_amount' => $netAmount,
+            'status' => $i % 2 === 0 ? 'Billed' : 'Ready for billing',
         ];
     }
 }

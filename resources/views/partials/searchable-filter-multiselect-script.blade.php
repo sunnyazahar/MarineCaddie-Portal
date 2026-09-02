@@ -228,6 +228,7 @@
         var filtersReady = false;
         var requestToken = 0;
         var suppressFilterLoad = false;
+        var debounceMs = config.debounceMs || 200;
         var table = config.existingTable || null;
         var dataTableOptions = $.extend({
             "dom": 'rt',
@@ -255,7 +256,7 @@
             table = initTable();
         }
 
-        function replaceRows(html, paginationHtml) {
+        function replaceRows(html, paginationHtml, paginationMetaHtml) {
             if (typeof window.mcSetListLoading === 'function') {
                 window.mcSetListLoading(tableSelector, true);
             }
@@ -274,6 +275,9 @@
             table.draw(false);
             if (paginationSelector) {
                 $(paginationSelector).html(paginationHtml || '');
+            }
+            if (config.paginationMetaSelector && paginationMetaHtml) {
+                $(config.paginationMetaSelector).html(paginationMetaHtml);
             }
             if (typeof config.afterDraw === 'function') {
                 config.afterDraw(table);
@@ -301,7 +305,7 @@
                     return;
                 }
 
-                replaceRows(response.html, response.pagination);
+                replaceRows(response.html, response.pagination, response.pagination_meta);
 
                 if (typeof response.total === 'number') {
                     var $count = $('.list-page-header-count strong');
@@ -313,6 +317,15 @@
                     }
                 }
             });
+        }
+
+        function queueLoad(page) {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function () {
+                if (shouldLoad()) {
+                    load(page || 1);
+                }
+            }, debounceMs);
         }
 
         if (config.multiselectSelector) {
@@ -340,14 +353,13 @@
                 if (e.type === 'keyup' && e.key === 'Enter') {
                     e.preventDefault();
                     clearTimeout(searchTimer);
-                    load(1);
+                    if (shouldLoad()) {
+                        load(1);
+                    }
                     return;
                 }
 
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(function () {
-                    load(1);
-                }, 200);
+                queueLoad(1);
             });
         }
 
@@ -389,6 +401,7 @@
 
         return {
             load: load,
+            queueLoad: queueLoad,
             getTable: function () {
                 return table;
             }

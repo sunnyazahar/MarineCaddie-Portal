@@ -17,6 +17,16 @@ interface ShipmentRepositoryInterface
 
     public function paginateIndex(array $filters, int $perPage): LengthAwarePaginator;
 
+    public function paginateForInvoicing(array $filters, int $perPage): LengthAwarePaginator;
+
+    public function findForInvoicingByNumber(string $shipmentNumber): ?Shipment;
+
+    /**
+     * @param  list<string>  $shipmentNumbers
+     * @return EloquentCollection<int, Shipment>
+     */
+    public function findManyForInvoicingByNumbers(array $shipmentNumbers): EloquentCollection;
+
     public function indexFilterOptions(): array;
 
     public function buildPreAlertRemindersQuery(array $filters): Builder;

@@ -261,14 +261,10 @@
             foreach ($vcrrs as $c) {
                 $grandTotalItems += $c->packages->count();
                 $grandTotalWeight += $c->packages->sum('weight');
-                $grandTotalCbm += $c->packages->sum('cbm');
+                $grandTotalCbm += \App\Support\PackageVolumeMetrics::totalCbm($c->packages);
                 $grandTotalValue += $c->customs_value_usd;
-
-                foreach ($c->packages as $pkg) {
-                    $vol = $pkg->length * $pkg->width * $pkg->height;
-                    $grandTotalAir += ($vol / 6000);
-                    $grandTotalCourier += ($vol / 5000);
-                }
+                $grandTotalAir += \App\Support\PackageVolumeMetrics::totalAirVolumeWeightKg($c->packages);
+                $grandTotalCourier += \App\Support\PackageVolumeMetrics::totalCourierVolumeWeightKg($c->packages);
             }
         }
         $grandCurrency = $grouped->first() && $grouped->first()->first() ? $grouped->first()->first()->currency : 'USD';
@@ -305,7 +301,7 @@
                     @php
                         $itemsCount = $crr->packages->count();
                         $weight = $crr->packages->sum('weight');
-                        $cbm = $crr->packages->sum('cbm');
+                        $cbm = \App\Support\PackageVolumeMetrics::totalCbm($crr->packages);
 
                         $vesselItems += $itemsCount;
                         $vesselWeight += $weight;
