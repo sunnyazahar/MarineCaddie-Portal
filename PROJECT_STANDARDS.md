@@ -147,12 +147,14 @@ scripts/                  — Local QA helpers (not for production runtime)
 ### Middleware layers (in order)
 
 ```
-guest → auth → otp.verified → ops.admin.readonly → (admin for /users)
+guest → auth → otp.verified → ops.admin.readonly → accounts.readonly → (admin for /users, billing for Admin+Accounts)
 ```
 
 - **`otp.verified`:** Login ke baad OTP mandatory (production).
 - **`ops.admin.readonly`:** Operations role ko administration write block (`DenyOperationsAdministrationWrite`).
+- **`accounts.readonly`:** Accounts may write **Billing only**; other modules are GET/read-only (`DenyAccountsWriteOutsideBilling`). Create pages + non-GET outside `billing.*` → 403.
 - **`admin`:** User management routes.
+- **`billing`:** `/billing/*` — Admin + Accounts (`User::canAccessBilling()`).
 
 ---
 
@@ -1180,6 +1182,8 @@ Send endpoints require: `to`, `subject`; optional `cc`, `bcc`, `body`, `files[]`
 |---|---|
 | Auth on all app routes | `auth` + `otp.verified` middleware |
 | Admin routes protected | `admin` middleware on `/users` |
+| Billing routes protected | `billing` middleware on `/billing/*` (Admin + Accounts) |
+| Accounts read-only outside Billing | `accounts.readonly` middleware (`DenyAccountsWriteOutsideBilling`) |
 | Ops read-only on admin modules | `DenyOperationsAdministrationWrite` middleware |
 | Mass assignment | `$request->validated()` / explicit `$request->only()` |
 | File upload validation | `mimes` + `max` on all upload endpoints |

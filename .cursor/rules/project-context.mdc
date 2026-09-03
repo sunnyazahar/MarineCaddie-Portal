@@ -80,6 +80,8 @@ Full detail: `PROJECT_STANDARDS.md` **§12c**.
 ## Invoicing / Proforma (short rules)
 Full detail: `PROJECT_STANDARDS.md` **§12d**.
 
+- **Access:** Billing — **Admin** + **Accounts** (`canAccessBilling()` / middleware `billing`)
+- **Accounts role:** Billing pe full write; baaki sab modules read-only (`canWriteOutsideBilling()` / middleware `accounts.readonly`)
 - **One customer per shipment:** linked stocks on a `shipment_number` are always the same customer — Billing Party / Bill To Pos resolve from that customer’s Invoice details (no multi-customer merge)
 
 ## Common mistakes to avoid

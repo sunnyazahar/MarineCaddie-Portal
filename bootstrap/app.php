@@ -17,7 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'otp.verified' => \App\Http\Middleware\EnsureOtpIsVerified::class,
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'billing' => \App\Http\Middleware\EnsureUserCanAccessBilling::class,
             'ops.admin.readonly' => \App\Http\Middleware\DenyOperationsAdministrationWrite::class,
+            'accounts.readonly' => \App\Http\Middleware\DenyAccountsWriteOutsideBilling::class,
             'login.throttle' => \App\Http\Middleware\ThrottleLoginAttempts::class,
         ]);
 

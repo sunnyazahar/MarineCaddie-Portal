@@ -216,7 +216,9 @@ class AppServiceProvider extends ServiceProvider
         URL::useAssetOrigin($assetUrl);
 
         View::composer('*', function ($view) {
-            $view->with('canWriteAdministration', auth()->user()?->canWriteAdministration() ?? true);
+            $user = auth()->user();
+            $view->with('canWriteAdministration', $user?->canWriteAdministration() ?? true);
+            $view->with('canWriteOutsideBilling', $user?->canWriteOutsideBilling() ?? true);
         });
 
         \Illuminate\Pagination\Paginator::useBootstrapFive();

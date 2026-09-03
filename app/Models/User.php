@@ -61,14 +61,32 @@ class User extends Authenticatable
         return $this->role === 'Admin';
     }
 
+    public function isAccounts(): bool
+    {
+        return $this->role === 'Accounts';
+    }
+
     public function isOperations(): bool
     {
         return $this->role === 'Operations';
     }
 
+    public function canAccessBilling(): bool
+    {
+        return $this->isAdmin() || $this->isAccounts();
+    }
+
+    /**
+     * Accounts may only mutate Billing; all other modules are read-only.
+     */
+    public function canWriteOutsideBilling(): bool
+    {
+        return ! $this->isAccounts();
+    }
+
     public function canWriteAdministration(): bool
     {
-        return ! $this->isOperations();
+        return ! $this->isOperations() && ! $this->isAccounts();
     }
 
     public function offices(): BelongsToMany

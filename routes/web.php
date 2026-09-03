@@ -16,7 +16,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/otp/verify', [App\Http\Controllers\Auth\OtpController::class, 'verify'])->name('otp.verify');
     Route::post('/otp/resend', [App\Http\Controllers\Auth\OtpController::class, 'resend'])->name('otp.resend');
 
-    Route::middleware(['otp.verified', 'ops.admin.readonly'])->group(function () {
+    Route::middleware(['otp.verified', 'ops.admin.readonly', 'accounts.readonly'])->group(function () {
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard.home');
 Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
@@ -27,7 +27,9 @@ Route::middleware('admin')->group(function () {
     Route::post('/users', [App\Http\Controllers\UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
     Route::post('/users/{user}/unblock', [App\Http\Controllers\UserController::class, 'unblock'])->name('users.unblock');
+});
 
+Route::middleware('billing')->group(function () {
     Route::get('/billing/invoicing', [App\Http\Controllers\BillingController::class, 'invoicing'])->name('billing.invoicing');
     Route::get('/billing/invoicing/preview-proforma-number', [App\Http\Controllers\BillingController::class, 'previewProformaNumber'])
         ->name('billing.invoicing.preview-proforma-number');

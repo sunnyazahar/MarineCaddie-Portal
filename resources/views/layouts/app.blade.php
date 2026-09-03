@@ -38,8 +38,9 @@
     @include('partials.mobile-chrome-safe')
 </head>
 
-<body class="{{ auth()->user()?->isOperations() && request()->routeIs('offices.*', 'hub.*', 'agents.*', 'customers.*', 'contacts.*') ? 'ops-admin-readonly' : '' }}" data-mc-user-id="{{ auth()->id() ?? 'guest' }}">
+<body class="{{ auth()->user()?->isOperations() && request()->routeIs('offices.*', 'hub.*', 'agents.*', 'customers.*', 'contacts.*') ? 'ops-admin-readonly' : '' }}{{ auth()->user()?->isAccounts() && ! request()->routeIs('billing.*') ? ' accounts-readonly' : '' }}" data-mc-user-id="{{ auth()->id() ?? 'guest' }}">
     @include('layouts.partials.administration-readonly')
+    @include('layouts.partials.accounts-readonly')
     <div id="app">
         <main>
             @yield('content')
