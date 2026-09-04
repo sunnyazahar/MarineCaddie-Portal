@@ -80,6 +80,7 @@ function bindFormSaveState($, options) {
     let initialSnapshot = '';
     let fileDirty = false;
     let allowLeave = false;
+    let isSubmitting = false;
 
     if (!$saveBtn.data('mc-save-label')) {
         $saveBtn.data('mc-save-label', $.trim($saveBtn.text()) || 'Save');
@@ -108,7 +109,11 @@ function bindFormSaveState($, options) {
     }
 
     function isDirty() {
-        return !allowLeave && (fileDirty || formSnapshot() !== initialSnapshot);
+        if (isSubmitting || allowLeave) {
+            return false;
+        }
+
+        return fileDirty || formSnapshot() !== initialSnapshot;
     }
 
     function syncSaveButtonState() {
@@ -131,21 +136,62 @@ function bindFormSaveState($, options) {
         initialSnapshot = formSnapshot();
         fileDirty = false;
         allowLeave = false;
+        isSubmitting = false;
         syncSaveButtonState();
     }
 
     function markAllowLeave() {
         allowLeave = true;
+        isSubmitting = true;
         syncSaveButtonState();
     }
 
-    $form.on('submit.mcSaveState', () => {
+    function clearAllowLeave() {
+        allowLeave = false;
+        isSubmitting = false;
+        syncSaveButtonState();
+    }
+
+    function armSubmit() {
         markAllowLeave();
+    }
+
+    function rearmGuardIfStillOnPage() {
+        window.setTimeout(function () {
+            if (document.hidden) {
+                return;
+            }
+
+            const validator = $form.data('validator');
+            if (validator && typeof validator.checkForm === 'function' && !validator.checkForm()) {
+                clearAllowLeave();
+                return;
+            }
+
+            // Native constraint validation blocked submit, or submit was cancelled.
+            if (isSubmitting && $form[0] && typeof $form[0].checkValidity === 'function' && !$form[0].checkValidity()) {
+                clearAllowLeave();
+            }
+        }, 0);
+    }
+
+    $form.on('submit.mcSaveState', () => {
+        armSubmit();
+    });
+
+    $saveBtn.on('click.mcSaveState mousedown.mcSaveState', function () {
+        armSubmit();
+        rearmGuardIfStillOnPage();
     });
 
     $form.on('input.mcSaveState change.mcSaveState', ':input', function () {
         if ($(this).is(':file')) {
             fileDirty = true;
+        }
+        // Typing after a blocked save should restore the leave guard.
+        if (allowLeave || isSubmitting) {
+            allowLeave = false;
+            isSubmitting = false;
         }
         syncSaveButtonState();
     });
@@ -154,6 +200,10 @@ function bindFormSaveState($, options) {
         'select2:select.mcSaveState select2:unselect.mcSaveState select2:clear.mcSaveState',
         `${formSelector} select, ${formSelector} .select2`,
         () => {
+            if (allowLeave || isSubmitting) {
+                allowLeave = false;
+                isSubmitting = false;
+            }
             window.setTimeout(syncSaveButtonState, 0);
         }
     );
@@ -169,6 +219,8 @@ function bindFormSaveState($, options) {
         isDirty,
         resetBaseline,
         markAllowLeave,
+        clearAllowLeave,
+        armSubmit,
         syncSaveButtonState,
         getSaveButton() {
             return $saveBtn;

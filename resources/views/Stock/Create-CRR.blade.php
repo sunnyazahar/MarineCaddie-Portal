@@ -1644,6 +1644,10 @@
                                         placeholder="email@example.com; email2@example.com">
                                 </div>
                                 <div class="crr-field-group">
+                                    <label class="crr-label">Contact person <span class="text-danger">*</span></label>
+                                    <input type="text" class="crr-input" name="contact_person" id="modal-supplier-contact-person" required autocomplete="name">
+                                </div>
+                                <div class="crr-field-group">
                                     <label class="crr-label">Remarks</label>
                                     <textarea class="crr-input" name="remarks" id="modal-supplier-remarks" rows="3" style="height: auto; min-height: 70px;"></textarea>
                                 </div>

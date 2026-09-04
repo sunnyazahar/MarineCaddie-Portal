@@ -83,6 +83,36 @@
             allowLeave = true;
         }
 
+        function clearAllowLeave() {
+            if (saveState && typeof saveState.clearAllowLeave === 'function') {
+                saveState.clearAllowLeave();
+                return;
+            }
+            allowLeave = false;
+        }
+
+        function armSaveSubmit() {
+            markAllowLeave();
+        }
+
+        function rearmGuardIfSaveBlocked() {
+            window.setTimeout(function() {
+                if (document.hidden) {
+                    return;
+                }
+
+                var validator = $form.data('validator');
+                if (validator && typeof validator.checkForm === 'function' && !validator.checkForm()) {
+                    clearAllowLeave();
+                    return;
+                }
+
+                if ($form[0] && typeof $form[0].checkValidity === 'function' && !$form[0].checkValidity()) {
+                    clearAllowLeave();
+                }
+            }, 0);
+        }
+
         function resetBaselineFallback() {
             initialSnapshot = formSnapshot();
             fileDirty = false;
@@ -183,15 +213,46 @@
             return true;
         }
 
+        function buttonSubmitsGuardedForm(btn) {
+            if (!btn) {
+                return false;
+            }
+            var formId = $form.attr('id');
+            if (formId && btn.getAttribute('form') === formId) {
+                return true;
+            }
+            return $form[0] && $.contains($form[0], btn);
+        }
+
         $form.on('submit', function() {
-            markAllowLeave();
+            armSaveSubmit();
         });
+
+        // Arm before unload: external form= submit buttons can race beforeunload
+        // ahead of the form submit handler in some browsers.
+        document.addEventListener('click', function(e) {
+            var btn = e.target && e.target.closest
+                ? e.target.closest('button[type="submit"], input[type="submit"]')
+                : null;
+            if (!buttonSubmitsGuardedForm(btn)) {
+                return;
+            }
+            armSaveSubmit();
+            rearmGuardIfSaveBlocked();
+        }, true);
+
+        if (saveButtonSelector) {
+            $(saveButtonSelector).on('mousedown.unsavedGuard', function() {
+                armSaveSubmit();
+            });
+        }
 
         if (!saveState) {
             $form.on('input change', ':input', function() {
                 if ($(this).is(':file')) {
                     fileDirty = true;
                 }
+                allowLeave = false;
             });
 
             setTimeout(resetBaselineFallback, 300);
@@ -275,6 +336,7 @@
             resetBaselineFallback();
         };
         window.unsavedChangesGuardAllowLeave = markAllowLeave;
+        window.unsavedChangesGuardClearAllowLeave = clearAllowLeave;
     }
 
     if (window.jQuery) {

@@ -4153,6 +4153,10 @@
                                         placeholder="email@example.com; email2@example.com">
             </div>
                                 <div class="field-group mb-2">
+                                    <label class="field-label">Contact person <span class="text-danger">*</span></label>
+                                    <input type="text" class="field-input" name="contact_person" id="modal-supplier-contact-person" required autocomplete="name">
+                                </div>
+                                <div class="field-group mb-2">
                                     <label class="field-label">Remarks</label>
                                     <textarea class="field-input" name="remarks" id="modal-supplier-remarks" rows="3" style="height: auto; min-height: 70px;"></textarea>
                                 </div>

@@ -865,15 +865,26 @@
                 },
                 highlight: function (element) {
                     $(element).addClass('error');
-                    if ($(element).hasClass('select2-field') || $(element).hasClass('select2-office-user') || element.is('[data-country-select]') || element.is('[data-port-select]')) {
+                    if ($(element).hasClass('select2-field') || $(element).hasClass('select2-office-user') || $(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
                         $(element).next('.select2-container').addClass('error');
                     }
                 },
                 unhighlight: function (element) {
                     $(element).removeClass('error');
-                    if ($(element).hasClass('select2-field') || $(element).hasClass('select2-office-user') || element.is('[data-country-select]') || element.is('[data-port-select]')) {
+                    if ($(element).hasClass('select2-field') || $(element).hasClass('select2-office-user') || $(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
                         $(element).next('.select2-container').removeClass('error');
                     }
+                },
+                invalidHandler: function () {
+                    if (typeof window.unsavedChangesGuardClearAllowLeave === 'function') {
+                        window.unsavedChangesGuardClearAllowLeave();
+                    }
+                },
+                submitHandler: function (form) {
+                    if (typeof window.unsavedChangesGuardAllowLeave === 'function') {
+                        window.unsavedChangesGuardAllowLeave();
+                    }
+                    form.submit();
                 }
             });
 
