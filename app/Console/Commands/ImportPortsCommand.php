@@ -501,6 +501,8 @@ class ImportPortsCommand extends Command
             'spain' => 'ES',
             'ibiza/spain' => 'ES',
             'teneriffa/spain' => 'ES',
+            'ceuta' => 'XC',
+            'ceuta/spain' => 'XC',
             'switzerland' => 'CH',
             'switzerland/france' => 'CH',
             'austria' => 'AT',
