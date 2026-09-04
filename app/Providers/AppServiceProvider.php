@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\DB;
@@ -190,6 +191,15 @@ class AppServiceProvider extends ServiceProvider
         if ($appUrl !== '') {
             URL::forceRootUrl($appUrl);
         }
+
+        // Laravel's default ResetPassword uses url(route(..., false)), which doubles
+        // the subdirectory when APP_URL includes /laravel (e.g. /laravel/laravel/...).
+        ResetPassword::createUrlUsing(function (object $user, string $token): string {
+            return route('password.reset', [
+                'token' => $token,
+                'email' => $user->getEmailForPasswordReset(),
+            ]);
+        });
 
         /** @var Request $request */
         $request = request();

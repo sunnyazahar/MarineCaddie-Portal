@@ -34,7 +34,7 @@ class ForgotPasswordController extends Controller
 
     public function sendResetLinkEmail(Request $request)
     {
-        $request->validate($this->rules(), $this->validationErrorMessages());
+        $this->validateEmail($request);
 
         $key = $this->resetLinkRateLimitKey($request);
         if (RateLimiter::tooManyAttempts($key, self::RESET_LINK_ATTEMPTS)) {
