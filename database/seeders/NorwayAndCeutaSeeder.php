@@ -98,5 +98,35 @@ class NorwayAndCeutaSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+
+        $india = Country::query()->where('iso_code', 'IN')->first();
+
+        Port::query()->updateOrCreate(
+            [
+                'type' => Port::TYPE_SEAPORT,
+                'un_locode' => 'INNSA',
+            ],
+            [
+                'iata_code' => null,
+                'port_name' => 'Nhava Sheva (Navaseva / JNPT)',
+                'city' => 'Nhava Sheva',
+                'country_name' => 'India',
+                'country_code' => 'IN',
+                'country_id' => $india?->id,
+                'is_active' => true,
+            ]
+        );
+
+        Port::query()
+            ->where('type', Port::TYPE_SEAPORT)
+            ->where('un_locode', 'INNSA1')
+            ->update([
+                'port_name' => 'JNPT (Nhava Sheva / Navaseva)',
+                'city' => 'Nhava Sheva',
+                'country_name' => 'India',
+                'country_code' => 'IN',
+                'country_id' => $india?->id,
+                'is_active' => true,
+            ]);
     }
 }

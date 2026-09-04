@@ -119,8 +119,8 @@ class PortSeeder extends Seeder
             [
                 'type' => Port::TYPE_SEAPORT,
                 'un_locode' => 'INNSA',
-                'port_name' => 'Jawaharlal Nehru Port (Nhava Sheva)',
-                'city' => 'Mumbai',
+                'port_name' => 'Nhava Sheva (Navaseva / JNPT)',
+                'city' => 'Nhava Sheva',
                 'country_name' => 'India',
                 'country_code' => 'IN',
                 'flag' => '🇮🇳',
