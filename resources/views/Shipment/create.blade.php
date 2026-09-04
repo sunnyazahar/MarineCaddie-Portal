@@ -2089,6 +2089,11 @@
             var hubDepartureCodes = @json($hubs->mapWithKeys(fn ($hub) => ['hub:' . $hub->id => $hub->code ?? '']));
 
             function setPortCodeSelect($select, code) {
+                if (typeof window.MarineCaddieSetPortCodeSelect === 'function') {
+                    window.MarineCaddieSetPortCodeSelect($select, code);
+                    return;
+                }
+
                 code = $.trim((code || '').toString());
                 if (!code) {
                     $select.val(null).trigger('change');

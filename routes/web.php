@@ -334,9 +334,9 @@ Route::get('/api/ports', function (\Illuminate\Http\Request $request) {
 
             return [
                 'id' => $code,
-                'text' => trim($code . ($port->city ? ', ' . $port->city : '')),
+                'text' => $port->selectLabel() ?: $code,
                 'code' => $code,
-                'city' => $port->city,
+                'city' => $port->selectCityLabel() ?: null,
                 'port_name' => $port->port_name,
                 'country' => $port->country?->name ?? $port->country_name,
             ];

@@ -1,6 +1,8 @@
 @forelse ($shipments as $shipment)
 @php
-    $departureDisplay = $shipment->partyDisplay($shipment->departure, $partyNames);
+    $portCities = $portCities ?? [];
+    $departureCity = $shipment->departureCityDisplay($portCities);
+    $destinationCity = $shipment->destinationCityDisplay($portCities);
     $consigneeDisplay = $shipment->partyDisplay($shipment->consignee, $partyNames);
     $consigneeType = explode(':', (string) $shipment->consignee, 2)[0];
     $paReminder = $shipment->pre_alert_reminder;
@@ -10,7 +12,7 @@
     data-customers="{{ $shipment->customer_names->implode(',') }}"
     data-vessels="{{ $shipment->vessel_names->implode(',') }}"
     data-shipment-number="{{ $shipment->shipment_number }}"
-    data-destination="{{ $shipment->destination_display }}"
+    data-destination="{{ $destinationCity }}"
     data-account-manager="{{ $shipment->accountManager?->name ?? '' }}"
     data-created-by="{{ $shipment->creator?->name ?? '' }}"
     data-status="{{ $shipment->status ?? '' }}"
@@ -36,8 +38,8 @@
             <span class="consignee-row"><span class="consignee-hub-icon consignee-hub-icon-spacer"></span><span class="consignee-hub-agent-text">{{ $consigneeDisplay }}</span></span>
         @endif
     </td>
-    <td>{{ $departureDisplay }}</td>
-    <td>{{ $shipment->destination_display }}</td>
+    <td title="{{ $departureCity }}">{{ $departureCity }}</td>
+    <td title="{{ $destinationCity }}">{{ $destinationCity }}</td>
     <td>{{ $shipment->total_weight_display }}</td>
     <td>{{ $shipment->deadline_arrival?->format('d.m.Y') ?? '—' }}</td>
     <td>

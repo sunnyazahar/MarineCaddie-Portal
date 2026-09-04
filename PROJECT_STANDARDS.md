@@ -402,6 +402,7 @@ All form/list components load assets via `@once` + `@push('styles'|'scripts')` �
 
 **Test marker:** `data-port-select="1"` on `<select>`.  
 **JS init:** `window.MarineCaddieInitPortSelect()` (auto on `document.ready`, re-applies after other Select2 inits).  
+**Selected / dropdown label format:** `CODE, City` (e.g. `AAC, Al Arish`). Edit pages resolve city for the initial option via `Port::selectLabelForCode()`.  
 **Do NOT** copy `formatPortResult` / `$('.select2-port-code').select2(...)` into page scripts.  
 **Do NOT** generic `$('select.form-control').select2(...)` without `.not('[data-port-select]')` — that wipes AJAX and shows "No results found".
 
@@ -875,17 +876,20 @@ Select2 for status/flags: `dropdownParent: $(document.body)` + high z-index so t
 - Linked CRRs → **Completed**
 - **No** `duplicateStocksForTransit()` — destination copies are **not** created on Complete
 
+**Delivery follow-up** (`/shipment-follow-up`): shows shipments that are not Draft/Cancelled and have **`arrived_at` null** — including **In transit** / **Completed**. **Mark as arrived** sets `arrived_at` and Completes the shipment if needed; row then leaves the list.
+
 Destination duplicates are created only on:
 
-- **Finalize → Transit** (after Complete, when allowed)
+- **Finalize → Transit** (status unchanged; Mark as arrived Completes later)
 - Header status manually set to **In transit** (`updateStatus`)
 
 For office/hub/agent + Courier/Airfreight/Sea freight/Truck:
 
 | Action | Shipment status | Original linked stocks | New duplicate stocks |
 |---|---|---|---|
-| **Complete** / Mark as arrived | `Completed` | Marked Completed; stay on `shipment_crr` | **Not created** |
-| **Transit** (after Complete) | stays **`Completed`** | Stay linked (still shown on edit) | **Created** (Active copies) |
+| **Complete** | `Completed` | Marked Completed; stay on `shipment_crr` | **Not created** |
+| **Transit** | **unchanged** | Stay linked (still shown on edit) | **Created** (Active copies) |
+| **Mark as arrived** | `Completed` (+ `arrived_at`) | Marked Completed if needed | **Not created** |
 
 Multi-leg: same `stock_number` may exist many times. Each new shipment number gets its own destination copy created **from that shipment’s linked CRRs** on **Transit**. A linked stock that is itself a prior-leg duplicate must not block Transit.
 
@@ -910,7 +914,7 @@ Generation rules for **Transit** (and manual **In transit** status):
 - New CRR: `duplicated_from_crr_id`, `internal_shipment` = null (no shipment number on Complete/Transit copies), `status` = Active
 - `hub_agent` from consignee code / party (`office`/`hub`/`agent`)
 - `transit_type` / `transit_id` from service legs (AWB / B/L / CMR / etc.)
-- Delivery dates from `deadline_arrival`
+- Delivery dates (expected + actual) from service-details arrival (`service_eta`); fallback `deadline_arrival`
 - Packages (warehouse_location → shipment number), costs, documents (file copy via `PrivateDisk`)
 
 **Critical:** `syncShipmentLinks` must be **`false`** for Finalize Transit (and manual In transit) so the shipment keeps showing the **old completed stocks**. Duplicates exist separately for destination / stock list; they must **not** replace `shipment_crr`.
@@ -927,9 +931,9 @@ Generation rules for **Transit** (and manual **In transit** status):
 | Path | Behaviour |
 |---|---|
 | Finalize → Complete | `completeShipmentWithDestinationStocks()` |
-| Mark as arrived | same Complete helper |
 | Header status → Completed | same Complete helper |
-| Finalize → Transit | duplicates + status stays Completed; no link sync; UI disabled only if destination stocks already exist |
+| Finalize → Transit | duplicates only; **shipment status unchanged**; no link sync; UI disabled only if destination stocks already exist |
+| Mark as arrived | Complete helper (if needed) + `arrived_at`; status → Completed |
 | Header status → In transit | may create duplicates with `sync=false`; status becomes `In transit` |
 
 ### Tests

@@ -44,6 +44,56 @@ class Port extends Model
             : $this->un_locode;
     }
 
+    public function selectCityLabel(): string
+    {
+        return Shipment::normalizePortCityLabel((string) ($this->city ?: $this->port_name ?: ''));
+    }
+
+    public function selectLabel(): string
+    {
+        $code = trim((string) ($this->displayCode() ?? ''));
+        if ($code === '') {
+            return '';
+        }
+
+        $city = $this->selectCityLabel();
+
+        return $city !== '' ? ($code . ', ' . $city) : $code;
+    }
+
+    public static function selectLabelForCode(?string $code): ?string
+    {
+        $code = trim((string) ($code ?? ''));
+        if ($code === '') {
+            return null;
+        }
+
+        $port = static::query()
+            ->where(function ($query) use ($code) {
+                $query->where('iata_code', $code)
+                    ->orWhere('un_locode', $code);
+            })
+            ->first();
+
+        if (! $port) {
+            $prefix = (string) (preg_replace('/\d+$/', '', $code) ?: '');
+            if ($prefix !== '' && $prefix !== $code) {
+                $port = static::query()
+                    ->where('un_locode', 'like', $prefix . '%')
+                    ->first();
+            }
+        }
+
+        if (! $port) {
+            return $code;
+        }
+
+        $displayCode = trim((string) ($port->displayCode() ?? $code));
+        $city = $port->selectCityLabel();
+
+        return $city !== '' ? ($displayCode . ', ' . $city) : $displayCode;
+    }
+
     public function scopeAirports($query)
     {
         return $query->where('type', self::TYPE_AIRPORT);

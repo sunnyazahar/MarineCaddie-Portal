@@ -6,6 +6,9 @@
         $customerDisplay = $shipment->formatNamesDisplay($customerNames);
         $customerDisplayShort = $shipment->formatNamesDisplayShort($customerNames);
         $serviceReferenceDisplay = $shipment->service_reference_display;
+        $portCities = $portCities ?? [];
+        $departureCity = $shipment->departureCityDisplay($portCities);
+        $destinationCity = $shipment->destinationCityDisplay($portCities);
     @endphp
     <tr
         data-customers="{{ $customerNames->implode(',') }}"
@@ -14,7 +17,7 @@
         data-service-reference="{{ $serviceReferenceDisplay }}"
         data-consignee="{{ $consigneeDisplay }}"
         data-departure-port-code="{{ $shipment->departure_port_code ?? '' }}"
-        data-destination="{{ $shipment->destination_display }}"
+        data-destination="{{ $destinationCity }}"
         data-service="{{ $shipment->service ?? '' }}"
         data-po-numbers="{{ $shipment->po_numbers_display }}"
         data-account-manager="{{ $shipment->accountManager?->name ?? '' }}"
@@ -69,8 +72,8 @@
                 </span>
             @endif
         </td>
-        <td title="{{ $shipment->departure_port_code ?: '—' }}">{{ $shipment->departure_port_code ?: '—' }}</td>
-        <td title="{{ $shipment->destination_display }}">{{ $shipment->destination_display }}</td>
+        <td title="{{ $departureCity }}">{{ $departureCity }}</td>
+        <td title="{{ $destinationCity }}">{{ $destinationCity }}</td>
         <td>{{ $shipment->deadline_arrival?->format('d.m.Y') ?? '—' }}</td>
         <td>{{ $shipment->pre_alert_reminder?->format('d.m.Y') ?? '—' }}</td>
         <td><label class="{{ $shipment->statusBadgeClass() }}">{{ $shipment->status }}</label></td>

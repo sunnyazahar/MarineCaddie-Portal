@@ -72,6 +72,9 @@ class ShipmentTransitStockDuplicationService
             'seaLegs',
             'truckLegs',
             'courierLegs',
+            'releaseLegs',
+            'handCarryLegs',
+            'onBoardLegs',
         ]);
 
         $originalIds = $shipment->crrs->pluck('id')->map(fn ($id) => (int) $id)->all();
@@ -137,6 +140,7 @@ class ShipmentTransitStockDuplicationService
         foreach ($original->packages as $package) {
             $packageAttributes = $this->duplicateableAttributes($package);
             $packageAttributes['crr_id'] = $duplicate->id;
+            $packageAttributes['warehouse_location'] = $shipment->shipment_number;
 
             $this->transitStocks->createCrrPackage($packageAttributes);
         }
@@ -255,17 +259,18 @@ class ShipmentTransitStockDuplicationService
 
     private function deliveryDateFromShipment(Shipment $shipment): ?string
     {
-        $deadlineArrival = $shipment->deadline_arrival;
+        // Prefer service-details arrival (last leg ETA / arrival / delivery date).
+        $arrival = $shipment->service_eta ?? $shipment->deadline_arrival;
 
-        if ($deadlineArrival === null) {
+        if ($arrival === null) {
             return null;
         }
 
-        if ($deadlineArrival instanceof \DateTimeInterface) {
-            return Carbon::instance($deadlineArrival)->format('Y-m-d');
+        if ($arrival instanceof \DateTimeInterface) {
+            return Carbon::instance($arrival)->format('Y-m-d');
         }
 
-        $normalized = trim((string) $deadlineArrival);
+        $normalized = trim((string) $arrival);
         if ($normalized === '') {
             return null;
         }

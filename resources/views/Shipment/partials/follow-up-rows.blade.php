@@ -1,6 +1,8 @@
 @forelse ($shipments as $shipment)
 @php
-    $departureDisplay = $shipment->departure_port_code ?: $shipment->partyDisplay($shipment->departure, $partyNames);
+    $portCities = $portCities ?? [];
+    $departureCity = $shipment->departureCityDisplay($portCities);
+    $destinationCity = $shipment->destinationCityDisplay($portCities);
     $consigneeDisplay = $shipment->partyDisplay($shipment->consignee, $partyNames);
     $consigneeType = explode(':', (string) $shipment->consignee, 2)[0];
     $etd = $shipment->service_etd;
@@ -14,7 +16,7 @@
     data-customers="{{ $shipment->customer_names->implode(',') }}"
     data-vessels="{{ $shipment->vessel_names->implode(',') }}"
     data-shipment-number="{{ $shipment->shipment_number }}"
-    data-destination="{{ $shipment->destination_display }}"
+    data-destination="{{ $destinationCity }}"
     data-account-manager="{{ $shipment->accountManager?->name ?? '' }}"
     data-created-by="{{ $shipment->creator?->name ?? '' }}"
     data-status="{{ $shipment->status ?? '' }}"
@@ -39,8 +41,8 @@
             <span class="consignee-row"><span class="consignee-hub-agent-text" title="{{ $consigneeDisplay }}">{{ $consigneeDisplay }}</span></span>
         @endif
     </td>
-    <td>{{ $departureDisplay ?: '—' }}</td>
-    <td>{{ $shipment->destination_display }}</td>
+    <td title="{{ $departureCity }}">{{ $departureCity }}</td>
+    <td title="{{ $destinationCity }}">{{ $destinationCity }}</td>
     <td>{{ $etd?->format('d.m.Y') ?? '—' }}</td>
     <td @if($etaOverdue) style="color: #ff5252; font-weight: 500;" @endif>{{ $eta?->format('d.m.Y') ?? '—' }}</td>
     <td>

@@ -34,10 +34,11 @@ class ShipmentController extends BaseShipmentController
         $shipmentRows = $shipments->getCollection();
         $partyNames = Shipment::batchResolvePartyNames($shipmentRows);
         $vesselCustomerMap = Shipment::batchResolveVesselCustomerNames($shipmentRows);
+        $portCities = Shipment::batchResolvePortCities($shipmentRows);
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('Shipment.partials.rows', compact('shipments', 'partyNames', 'vesselCustomerMap'))->render(),
+                'html' => view('Shipment.partials.rows', compact('shipments', 'partyNames', 'vesselCustomerMap', 'portCities'))->render(),
                 'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $shipments])->render(),
                 'total' => $shipments->total(),
             ]);
@@ -49,6 +50,7 @@ class ShipmentController extends BaseShipmentController
             'shipments' => $shipments,
             'partyNames' => $partyNames,
             'vesselCustomerMap' => $vesselCustomerMap,
+            'portCities' => $portCities,
         ], $options));
     }
 
@@ -229,10 +231,11 @@ class ShipmentController extends BaseShipmentController
         $shipments = $this->shipmentRepository->paginatePreAlertReminders($request->all(), $perPage);
         $shipmentRows = $shipments->getCollection();
         $partyNames = Shipment::batchResolvePartyNames($shipmentRows);
+        $portCities = Shipment::batchResolvePortCities($shipmentRows);
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('Shipment.partials.pre-alert-rows', compact('shipments', 'partyNames'))->render(),
+                'html' => view('Shipment.partials.pre-alert-rows', compact('shipments', 'partyNames', 'portCities'))->render(),
                 'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $shipments])->render(),
                 'total' => $shipments->total(),
             ]);
@@ -243,6 +246,7 @@ class ShipmentController extends BaseShipmentController
         return view('Shipment.pre-alert-reminders', array_merge($options, [
             'shipments' => $shipments,
             'partyNames' => $partyNames,
+            'portCities' => $portCities,
         ]));
     }
 
@@ -253,10 +257,11 @@ class ShipmentController extends BaseShipmentController
         $shipments = $this->shipmentRepository->paginateShipmentFollowUp($request->all(), $perPage);
         $shipmentRows = $shipments->getCollection();
         $partyNames = Shipment::batchResolvePartyNames($shipmentRows);
+        $portCities = Shipment::batchResolvePortCities($shipmentRows);
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('Shipment.partials.follow-up-rows', compact('shipments', 'partyNames'))->render(),
+                'html' => view('Shipment.partials.follow-up-rows', compact('shipments', 'partyNames', 'portCities'))->render(),
                 'pagination' => view('partials.list-pagination-footer-inner', ['paginator' => $shipments])->render(),
                 'total' => $shipments->total(),
             ]);
@@ -267,6 +272,7 @@ class ShipmentController extends BaseShipmentController
         return view('Shipment.shipment-follow-up', array_merge($options, [
             'shipments' => $shipments,
             'partyNames' => $partyNames,
+            'portCities' => $portCities,
         ]));
     }
 
@@ -300,10 +306,12 @@ class ShipmentController extends BaseShipmentController
             ->get();
         $partyNames = Shipment::batchResolvePartyNames($shipments);
         $vesselCustomerMap = Shipment::batchResolveVesselCustomerNames($shipments);
+        $portCities = Shipment::batchResolvePortCities($shipments);
 
-        $data = $shipments->map(function (Shipment $shipment) use ($partyNames, $vesselCustomerMap) {
+        $data = $shipments->map(function (Shipment $shipment) use ($partyNames, $vesselCustomerMap, $portCities) {
             $customerNames = $shipment->customerNamesFromVessels($vesselCustomerMap);
-            $departureDisplay = $shipment->departure_port_code ?: $shipment->partyDisplay($shipment->departure, $partyNames);
+            $departureDisplay = $shipment->departureCityDisplay($portCities);
+            $destinationDisplay = $shipment->destinationCityDisplay($portCities);
             $consigneeDisplay = $shipment->partyDisplay($shipment->consignee, $partyNames);
             $etd = $shipment->service_etd;
             $eta = $shipment->service_eta;
@@ -321,8 +329,8 @@ class ShipmentController extends BaseShipmentController
                 'service_reference' => $shipment->service_reference_display,
                 'consignee' => $consigneeDisplay,
                 'consignee_type' => explode(':', (string) $shipment->consignee, 2)[0],
-                'departure' => $departureDisplay ?: '—',
-                'destination' => $shipment->destination_display,
+                'departure' => $departureDisplay,
+                'destination' => $destinationDisplay,
                 'etd' => $etd?->format('d.m.Y') ?? '—',
                 'eta' => $eta?->format('d.m.Y') ?? '—',
                 'del_date' => $delDate?->format('d.m.Y') ?? '—',
@@ -354,18 +362,22 @@ class ShipmentController extends BaseShipmentController
             'courierLegs',
         ]);
 
-        if ($shipment->status === 'Completed') {
+        if ($shipment->arrived_at !== null) {
             return response()->json([
                 'success' => false,
-                'message' => 'This shipment is already completed.',
+                'message' => 'This shipment is already marked as arrived.',
             ], 422);
         }
 
         DB::transaction(function () use ($shipment, $stockSnapshotService) {
-            $this->completeShipmentWithDestinationStocks(
-                $shipment,
-                $stockSnapshotService,
-            );
+            if ($shipment->status !== 'Completed') {
+                $this->completeShipmentWithDestinationStocks(
+                    $shipment,
+                    $stockSnapshotService,
+                );
+            }
+
+            $shipment->update(['arrived_at' => now()]);
         });
 
         $shipment = $shipment->fresh(['stockSnapshots']);
@@ -799,26 +811,23 @@ class ShipmentController extends BaseShipmentController
             ]);
         }
 
+        $previousStatus = $shipment->status;
+
         DB::transaction(function () use ($shipment, $validated, $transitStockDuplicationService) {
-            // Create destination stock copies, but keep shipment_crr on the completed originals
-            // so the shipment edit page continues to show the old completed stocks.
+            // Create destination stock copies, but keep shipment_crr on the linked originals
+            // so the shipment edit page continues to show those stocks.
+            // Transit does not change shipment status — Mark as arrived Completes it.
             $transitStockDuplicationService->duplicateStocksForTransit(
                 $shipment,
                 $validated['consignee_code'] ?? null,
                 false
             );
-
-            // Finalize → Transit creates destination stocks and keeps shipment Completed
-            // (not "In transit"). Complete is still required first.
-            $shipment->update([
-                'status' => 'Completed',
-            ]);
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Destination stocks created. Shipment status is Completed.',
-            'status' => 'Completed',
+            'message' => 'Destination stocks created. Shipment status is unchanged.',
+            'status' => $previousStatus,
             'consignee_code' => $validated['consignee_code'] ?? null,
             'reload' => true,
         ]);

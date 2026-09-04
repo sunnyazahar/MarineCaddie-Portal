@@ -25,8 +25,8 @@
                 minmax(100px, 1.1fr)
                 minmax(80px, 1fr)
                 minmax(140px, 1.5fr)
-                minmax(70px, 0.7fr)
-                minmax(70px, 0.8fr)
+                minmax(110px, 1.1fr)
+                minmax(110px, 1.1fr)
                 minmax(80px, 0.8fr)
                 minmax(90px, 0.9fr)
                 minmax(80px, 0.9fr);
@@ -56,8 +56,8 @@
                 minmax(100px, 1.1fr)
                 minmax(80px, 1fr)
                 minmax(140px, 1.5fr)
-                minmax(70px, 0.7fr)
-                minmax(70px, 0.8fr)
+                minmax(110px, 1.1fr)
+                minmax(110px, 1.1fr)
                 minmax(80px, 0.8fr)
                 minmax(90px, 0.9fr)
                 minmax(80px, 0.9fr);

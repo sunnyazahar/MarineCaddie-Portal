@@ -13,6 +13,9 @@
 @php
     $fieldId = $id ?? $name;
     $selectedValue = old($name, $value);
+    $selectedLabel = $selectedValue
+        ? (\App\Models\Port::selectLabelForCode($selectedValue) ?: $selectedValue)
+        : null;
 @endphp
 
 @if ($wrapperClass)
@@ -37,7 +40,7 @@
 >
     <option value=""></option>
     @if ($selectedValue)
-        <option value="{{ $selectedValue }}" selected>{{ $selectedValue }}</option>
+        <option value="{{ $selectedValue }}" selected>{{ $selectedLabel }}</option>
     @endif
 </select>
 
@@ -53,13 +56,105 @@
                     return;
                 }
 
+                window.MarineCaddiePortsApiUrl = @json(route('api.ports'));
+
+                window.MarineCaddieNormalizePortCity = function (city) {
+                    city = String(city || '').trim();
+                    if (!city) {
+                        return '';
+                    }
+
+                    var paren = city.match(/\(([^)]+)\)/);
+                    if (paren && String(paren[1] || '').trim() !== '') {
+                        return String(paren[1]).trim();
+                    }
+
+                    if (city.indexOf(',') !== -1) {
+                        city = city.split(',', 2)[0].trim();
+                    }
+
+                    if (city.indexOf(' - ') !== -1) {
+                        city = city.split(' - ', 2)[0].trim();
+                    }
+
+                    return city;
+                };
+
+                window.MarineCaddieFormatPortLabel = function (code, city) {
+                    code = String(code || '').trim();
+                    if (!code) {
+                        return '';
+                    }
+
+                    city = window.MarineCaddieNormalizePortCity(city);
+                    return city ? (code + ', ' + city) : code;
+                };
+
+                window.MarineCaddieSetPortCodeSelect = function ($select, code) {
+                    code = $.trim((code || '').toString());
+                    if (!$select || !$select.length) {
+                        return;
+                    }
+
+                    if (!code) {
+                        $select.val(null).trigger('change');
+                        return;
+                    }
+
+                    function applyOption(label) {
+                        label = String(label || code).trim() || code;
+                        var $existing = $select.find('option').filter(function () {
+                            return $(this).val() === code;
+                        });
+
+                        if ($existing.length === 0) {
+                            $select.append(new Option(label, code, true, true));
+                        } else {
+                            $existing.text(label).prop('selected', true);
+                        }
+
+                        $select.val(code).trigger('change');
+                    }
+
+                    var $match = $select.find('option').filter(function () {
+                        return $(this).val() === code;
+                    }).first();
+                    if ($match.length && String($match.text() || '').indexOf(',') !== -1) {
+                        applyOption($match.text());
+                        return;
+                    }
+
+                    $.getJSON(window.MarineCaddiePortsApiUrl, { q: code })
+                        .done(function (data) {
+                            var hit = (data.results || []).find(function (row) {
+                                return row.id === code || row.code === code;
+                            });
+
+                            if (hit) {
+                                applyOption(
+                                    hit.text || window.MarineCaddieFormatPortLabel(hit.code || code, hit.city)
+                                );
+                                return;
+                            }
+
+                            applyOption(code);
+                        })
+                        .fail(function () {
+                            applyOption(code);
+                        });
+                };
+
                 window.MarineCaddieInitPortSelect = function () {
                     function formatPortResult(port) {
                         if (port.loading || !port.id) {
                             return port.text;
                         }
 
-                        var title = port.code + (port.city ? ', ' + port.city : '');
+                        var title = window.MarineCaddieFormatPortLabel(port.code || port.id, port.city);
+                        if (!title) {
+                            title = port.text;
+                        }
+
                         var $option = $(
                             '<div class="port-option">' +
                                 '<div style="font-weight: 600; font-size: 13px; color: #111827;"></div>' +
@@ -77,9 +172,11 @@
                             return port.text;
                         }
 
-                        return port.code
-                            ? (port.code + (port.city ? ', ' + port.city : ''))
-                            : port.text;
+                        if (port.code || port.city) {
+                            return window.MarineCaddieFormatPortLabel(port.code || port.id, port.city);
+                        }
+
+                        return port.text;
                     }
 
                     $('[data-port-select]').each(function () {
@@ -95,7 +192,7 @@
                             width: '100%',
                             minimumInputLength: 0,
                             ajax: {
-                                url: @json(route('api.ports')),
+                                url: window.MarineCaddiePortsApiUrl,
                                 dataType: 'json',
                                 delay: 200,
                                 data: function (params) {

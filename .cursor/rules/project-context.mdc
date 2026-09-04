@@ -63,7 +63,7 @@ AJAX response must return: `{ html, pagination, total }`.
 Full detail: `PROJECT_STANDARDS.md` **§12a**.
 
 - Status picker: **In transit / Delivered / Completed / Cancelled** only (`In process` = create default; `In process` not pickable in picker)
-- Office/Hub/Agent + Courier/Airfreight/Sea freight/Truck → Complete does **not** create destination stocks; **Transit** creates them; shipment status stays **Completed**
+- Office/Hub/Agent + Courier/Airfreight/Sea freight/Truck → Complete does **not** create destination stocks; **Transit** creates them and leaves shipment status **unchanged**; **Mark as arrived** Completes
 - Release / Hand Carry / On-board delivery → Transit may create destination stocks (no service/status gate on Finalize → Transit)
 - After Complete/Transit, shipment edit must keep showing **old completed stocks** (`syncShipmentLinks=false` — never replace `shipment_crr` with duplicates)
 - Create pre alert: **Transit required** SweetAlert only after **Complete Pre alert** succeeds — **Transit now** → `/transit?shipment={id}` (not on edit page open)

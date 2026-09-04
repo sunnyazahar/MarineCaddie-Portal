@@ -43,6 +43,7 @@ class Shipment extends Model
         'project_logistics',
         'port_agency',
         'status',
+        'arrived_at',
         'repacked_items',
         'repacked_weight',
         'stock_repacked_items',
@@ -57,6 +58,7 @@ class Shipment extends Model
         'vessel_eta' => 'date',
         'vessel_etd' => 'date',
         'pre_alert_reminder' => 'date',
+        'arrived_at' => 'datetime',
         'flags' => 'array',
         'not_applicable_for_consolidation' => 'boolean',
         'skip_instruction_dest' => 'boolean',
@@ -331,6 +333,176 @@ class Shipment extends Model
         $parts = array_filter([$this->consignee_city, $this->consignee_country]);
 
         return $parts ? implode(', ', $parts) : '—';
+    }
+
+    /**
+     * List display: city for a port code (from batchResolvePortCities map).
+     */
+    public function portCityLabel(?string $portCode, array $portCities, ?string $fallbackCity = null): string
+    {
+        $code = trim((string) ($portCode ?? ''));
+        if ($code !== '') {
+            $city = $portCities[$code]
+                ?? $portCities[strtoupper($code)]
+                ?? null;
+            if (is_string($city) && trim($city) !== '') {
+                return self::normalizePortCityLabel($city);
+            }
+        }
+
+        $fallback = self::normalizePortCityLabel((string) ($fallbackCity ?? ''));
+
+        return $fallback !== '' ? $fallback : '—';
+    }
+
+    /**
+     * Clean messy port/city source strings for list display.
+     * e.g. "Bombay (Mumbai)" → "Mumbai", "Incheon, Incheon International Airport" → "Incheon"
+     */
+    public static function normalizePortCityLabel(?string $city): string
+    {
+        $city = trim((string) ($city ?? ''));
+        if ($city === '') {
+            return '';
+        }
+
+        if (preg_match('/\(([^)]+)\)/', $city, $matches)) {
+            $inside = trim((string) $matches[1]);
+            if ($inside !== '') {
+                return $inside;
+            }
+        }
+
+        if (str_contains($city, ',')) {
+            $city = trim(explode(',', $city, 2)[0]);
+        }
+
+        if (str_contains($city, ' - ')) {
+            $city = trim(explode(' - ', $city, 2)[0]);
+        }
+
+        return $city;
+    }
+
+    public function departureCityDisplay(array $portCities): string
+    {
+        return $this->portCityLabel($this->departure_port_code, $portCities);
+    }
+
+    public function destinationCityDisplay(array $portCities): string
+    {
+        return $this->portCityLabel(
+            $this->consignee_port_code,
+            $portCities,
+            $this->consignee_city
+        );
+    }
+
+    /**
+     * @return array<string, string> port code => city name
+     */
+    public static function batchResolvePortCities(Collection $shipments): array
+    {
+        $codes = $shipments
+            ->flatMap(fn (self $shipment) => [
+                $shipment->departure_port_code,
+                $shipment->consignee_port_code,
+            ])
+            ->map(fn ($code) => trim((string) $code))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($codes->isEmpty()) {
+            return [];
+        }
+
+        $aliases = [
+            'JNPT' => 'Nhava Sheva',
+            'INNSA' => 'Nhava Sheva',
+        ];
+
+        $map = [];
+        foreach ($codes as $code) {
+            $upper = strtoupper($code);
+            $prefix = strtoupper((string) (preg_replace('/\d+$/', '', $upper) ?: ''));
+            if (isset($aliases[$upper])) {
+                $map[$code] = self::normalizePortCityLabel($aliases[$upper]);
+            } elseif ($prefix !== '' && isset($aliases[$prefix])) {
+                $map[$code] = self::normalizePortCityLabel($aliases[$prefix]);
+            }
+        }
+
+        $unresolved = $codes->reject(fn ($code) => isset($map[$code]))->values();
+        if ($unresolved->isEmpty()) {
+            return $map;
+        }
+
+        $lookupKeys = $unresolved
+            ->flatMap(function (string $code) {
+                $upper = strtoupper($code);
+                $prefix = (string) (preg_replace('/\d+$/', '', $upper) ?: '');
+
+                return array_values(array_unique(array_filter([$code, $upper, $prefix])));
+            })
+            ->unique()
+            ->values()
+            ->all();
+
+        $ports = Port::query()
+            ->where(function ($query) use ($lookupKeys) {
+                $query->whereIn('iata_code', $lookupKeys)
+                    ->orWhereIn('un_locode', $lookupKeys);
+            })
+            ->get();
+
+        $portByCode = [];
+        foreach ($ports as $port) {
+            $city = self::normalizePortCityLabel((string) ($port->city ?: $port->port_name ?: ''));
+            if ($city === '') {
+                continue;
+            }
+            foreach ([$port->iata_code, $port->un_locode] as $key) {
+                $key = trim((string) $key);
+                if ($key !== '') {
+                    $portByCode[strtoupper($key)] = $city;
+                }
+            }
+        }
+
+        foreach ($unresolved as $code) {
+            $upper = strtoupper($code);
+            $prefix = strtoupper((string) (preg_replace('/\d+$/', '', $upper) ?: ''));
+            if (isset($portByCode[$upper])) {
+                $map[$code] = $portByCode[$upper];
+            } elseif ($prefix !== '' && isset($portByCode[$prefix])) {
+                $map[$code] = $portByCode[$prefix];
+            }
+        }
+
+        $stillUnresolved = $unresolved->reject(fn ($code) => isset($map[$code]))->values();
+        if ($stillUnresolved->isEmpty() || ! \Illuminate\Support\Facades\Schema::hasColumn('hubs', 'port_code')) {
+            return $map;
+        }
+
+        $hubs = Hub::query()
+            ->whereIn('port_code', $stillUnresolved->all())
+            ->get(['port_code', 'city', 'office_city']);
+
+        foreach ($hubs as $hub) {
+            $city = self::normalizePortCityLabel((string) ($hub->city ?: $hub->office_city ?: ''));
+            if ($city === '') {
+                continue;
+            }
+            $hubCode = trim((string) $hub->port_code);
+            foreach ($stillUnresolved as $code) {
+                if (strcasecmp($code, $hubCode) === 0) {
+                    $map[$code] = $city;
+                }
+            }
+        }
+
+        return $map;
     }
 
     public function getServiceEtdAttribute(): ?\Illuminate\Support\Carbon

@@ -278,6 +278,7 @@ trait CreatesRegressionSchema
             $table->foreignId('account_manager_id')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->string('status')->default('Draft');
+            $table->timestamp('arrived_at')->nullable();
             $table->timestamps();
         });
 

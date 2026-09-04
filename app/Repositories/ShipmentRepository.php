@@ -229,7 +229,8 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
                 'onBoardLegs',
             ])
             ->withMax('preAlertReminderSends as last_reminder_sent_at', 'created_at')
-            ->whereNotIn('status', ['Completed', 'Draft']);
+            ->whereNotIn('status', ['Draft', 'Cancelled'])
+            ->whereNull('arrived_at');
 
         $this->applyShipmentFollowUpFilters($query, $filters);
 
@@ -272,7 +273,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
         if ($scope === 'not_completed') {
             $baseQuery->where('status', '!=', 'Completed');
         } elseif ($scope === 'follow_up') {
-            $baseQuery->whereNotIn('status', ['Completed', 'Draft']);
+            $baseQuery->whereNotIn('status', ['Draft', 'Cancelled'])->whereNull('arrived_at');
         } else {
             $baseQuery->where('status', '!=', 'Cancelled');
         }

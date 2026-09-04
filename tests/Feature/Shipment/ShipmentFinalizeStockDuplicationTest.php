@@ -6,6 +6,7 @@ use App\Models\Crr;
 use App\Models\CrrPackage;
 use App\Models\Hub;
 use App\Models\Shipment;
+use App\Models\ShipmentTruckLeg;
 use Tests\RegressionTestCase;
 
 class ShipmentFinalizeStockDuplicationTest extends RegressionTestCase
@@ -94,8 +95,16 @@ class ShipmentFinalizeStockDuplicationTest extends RegressionTestCase
             'status' => 'In process',
             'service' => 'Truck',
             'consignee' => 'hub:' . $hub->id,
+            'deadline_arrival' => '2026-08-01',
         ]);
         $shipment->crrs()->attach($original->id);
+
+        ShipmentTruckLeg::create([
+            'shipment_id' => $shipment->id,
+            'cmr' => 'CMR-TRUCK-1',
+            'arrival_date' => '2026-09-15',
+            'sort_order' => 0,
+        ]);
 
         $this->actingAsVerified($user)->postJson(route('shipments.finalize', $shipment->id), [
             'shipment_number' => 'SHIP-TRANSIT-1',
@@ -119,6 +128,7 @@ class ShipmentFinalizeStockDuplicationTest extends RegressionTestCase
             'status' => 'Completed',
         ]);
 
+        // Transit keeps prior status (Complete already set Completed).
         $this->assertSame('Completed', $shipment->fresh()->status);
 
         $duplicate = Crr::query()
@@ -130,7 +140,9 @@ class ShipmentFinalizeStockDuplicationTest extends RegressionTestCase
         $this->assertNull($duplicate->internal_shipment);
         $this->assertSame('CMR', $duplicate->transit_type);
         $this->assertSame('AMS', $duplicate->hub_agent);
-        $this->assertSame('BIN-A', $duplicate->packages()->value('warehouse_location'));
+        $this->assertSame('SHIP-TRANSIT-1', $duplicate->packages()->value('warehouse_location'));
+        $this->assertSame('2026-09-15', optional($duplicate->expected_delivery_date)->format('Y-m-d') ?? (string) $duplicate->expected_delivery_date);
+        $this->assertSame('2026-09-15', optional($duplicate->actual_delivery_date)->format('Y-m-d') ?? (string) $duplicate->actual_delivery_date);
         // Shipment keeps showing the completed original stock, not the destination copy.
         $this->assertSame([(int) $original->id], $shipment->fresh()->crrs()->pluck('crrs.id')->map(fn ($id) => (int) $id)->all());
         $this->assertSame(Crr::STATUS_COMPLETED, (int) $original->fresh()->status);
@@ -183,6 +195,8 @@ class ShipmentFinalizeStockDuplicationTest extends RegressionTestCase
             'status' => 'Completed',
         ]);
 
+        $this->assertSame('Completed', $shipment->fresh()->status);
+
         $sinStock = Crr::query()
             ->where('duplicated_from_crr_id', $bomStock->id)
             ->first();
@@ -193,6 +207,41 @@ class ShipmentFinalizeStockDuplicationTest extends RegressionTestCase
         $this->assertSame('SIN', $sinStock->hub_agent);
         $this->assertSame('DXB-MULTI-1', $sinStock->stock_number);
         $this->assertTrue($service->hasDestinationStocksForShipment($shipment->fresh()));
+    }
+
+    public function test_transit_keeps_in_transit_status_unchanged(): void
+    {
+        $user = $this->createAdminUser();
+        $hub = Hub::create(['hub_name' => 'DEL Hub', 'code' => 'DEL']);
+
+        $original = Crr::create([
+            'stock_number' => 'ICN-KEEP-STATUS-1',
+            'content' => 'Shipspares',
+            'status' => Crr::STATUS_COMPLETED,
+            'hub_agent' => 'BOM',
+            'accept' => false,
+        ]);
+
+        $shipment = Shipment::create([
+            'shipment_number' => 'SHIP-KEEP-STATUS-1',
+            'status' => 'In transit',
+            'service' => 'Airfreight',
+            'consignee' => 'hub:' . $hub->id,
+        ]);
+        $shipment->crrs()->attach($original->id);
+
+        $this->actingAsVerified($user)->postJson(route('shipments.finalize', $shipment->id), [
+            'shipment_number' => 'SHIP-KEEP-STATUS-1',
+            'action' => 'transit',
+        ])->assertOk()->assertJson([
+            'success' => true,
+            'status' => 'In transit',
+        ]);
+
+        $this->assertSame('In transit', $shipment->fresh()->status);
+        $this->assertNotNull(
+            Crr::query()->where('duplicated_from_crr_id', $original->id)->first()
+        );
     }
 
     public function test_manual_status_completed_defers_hub_courier_destination_stocks(): void
@@ -303,8 +352,10 @@ class ShipmentFinalizeStockDuplicationTest extends RegressionTestCase
                 'action' => 'transit',
             ])->assertOk()->assertJson([
                 'success' => true,
-                'status' => 'Completed',
+                'status' => 'In process',
             ]);
+
+            $this->assertSame('In process', $shipment->fresh()->status);
 
             $this->assertNotNull(
                 Crr::query()
