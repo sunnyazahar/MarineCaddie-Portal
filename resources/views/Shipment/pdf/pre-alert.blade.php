@@ -57,20 +57,27 @@
         'Courier' => 'Carrier',
         'Release' => 'Freight company',
         'Hand Carry' => 'Contact',
+        'On-board delivery' => 'Delivery',
         default => 'Flight',
     };
+    $isOnBoardDelivery = ($shipment->service ?? '') === 'On-board delivery';
 @endphp
 
 <div class="page">
     {!! $header() !!}
 <br>
-    <div class="notify-title" style="margin-top:0;">Incoming shipment details.</div>
+    <div class="notify-title" style="margin-top:0;">
+        {{ $isOnBoardDelivery ? 'On-board delivery details.' : 'Incoming shipment details.' }}
+    </div>
     <div class="vessel-heading">{{ $vesselLine }}</div>
-    <div class="address-block"><strong>C/O {{ $consigneeName }}</strong> <br> {{ $consigneeAddress }}</div>
+    @unless ($isOnBoardDelivery)
+        <div class="address-block"><strong>C/O {{ $consigneeName }}</strong> <br> {{ $consigneeAddress }}</div>
 
-    <div class="section-title">Freight details</div>
+        <div class="section-title">Freight details</div>
+    @endunless
     <div class="expected-line">
-        Shipment is expected on <strong>{{ $arrivalDate }} in {{ $destinationPortSimple }}</strong> with the below details
+        {{ $isOnBoardDelivery ? 'Delivery is expected on' : 'Shipment is expected on' }}
+        <strong>{{ $arrivalDate }} in {{ $destinationPortSimple }}</strong> with the below details
     </div>
 
     <table class="data-table">
@@ -138,19 +145,53 @@
 </div>
 
 <div class="page page-break">
-    {!! $header() !!}
-
-    <div class="notify-title">This is to notify incoming shipment under</div>
-    @if (!empty($showReferenceColumn) && filled($awb) && $awb !== '—')
-        <table class="summary-table">
-            <tr><td class="summary-label">{{ $referenceColumnLabel }} {{ $awb }}</td></tr>
+    @if ($isOnBoardDelivery)
+        <table class="header-table">
+            <tr>
+                <td style="width:62%;">
+                    <div class="doc-title">Pre-alert</div>
+                    <div class="doc-subtitle">Shippers reference {{ $shippersReference }}</div>
+                    <div class="doc-subtitle" style="margin-top:16px;">{{ $headerSubtitle }}</div>
+                </td>
+                <td class="header-right" style="width:38%;">
+                    <div class="brand-logo">
+                        {!! \App\Support\LogoHelper::imgTag('180px') !!}
+                    </div>
+                </td>
+            </tr>
         </table>
+        <table class="summary-table" style="margin-top:10px;">
+            <tr>
+                <td style="width:50%; padding-right:12px; vertical-align:top; font-size:11px;">
+                    <div class="field-label">Shipped through:</div>
+                    <div>MarineCaddie Shipping LLC,</div>
+                    <div>Email ops@marinecaddie.com</div>
+                </td>
+                <td style="width:50%; padding-left:12px; vertical-align:top; font-size:11px;">
+                    <div class="field-label">Vessel Agent:</div>
+                    <div>{{ $consigneeName }}</div>
+                    <div>Phone: {{ $consigneePhone ?: '—' }}</div>
+                    <div>Email: {{ $consigneeEmail ?: '—' }}</div>
+                </td>
+            </tr>
+        </table>
+    @else
+        {!! $header() !!}
+
+        <div class="notify-title">This is to notify incoming shipment under</div>
+        @if (!empty($showReferenceColumn) && filled($awb) && $awb !== '—')
+            <table class="summary-table">
+                <tr><td class="summary-label">{{ $referenceColumnLabel }} {{ $awb }}</td></tr>
+            </table>
+        @endif
     @endif
     <div class="vessel-heading">{{ $vesselLine }}</div>
 
-    <div class="field-block">
-        <div class="address-block"><strong>C/O {{ $consigneeName }}</strong> <br> {{ $consigneeAddress }}</div>
-    </div>
+    @unless ($isOnBoardDelivery)
+        <div class="field-block">
+            <div class="address-block"><strong>C/O {{ $consigneeName }}</strong> <br> {{ $consigneeAddress }}</div>
+        </div>
+    @endunless
 
     <table class="data-table">
         <thead>

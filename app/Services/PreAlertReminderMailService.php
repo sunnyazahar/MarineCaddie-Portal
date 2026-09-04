@@ -120,8 +120,7 @@ class PreAlertReminderMailService
             throw new RuntimeException('Email subject is required.');
         }
 
-        $normalizedBody = preg_replace("/\r\n|\r|\n/", "\n", $body) ?? '';
-        $htmlBody = nl2br(e($normalizedBody), false);
+        $htmlBody = \App\Support\MailBodyHtml::fromComposeBody($body);
         $fromEmail = $mail['senderEmail'] ?: config('mail.from.address');
         $fromName = $mail['senderName'] ?: config('mail.from.name');
 

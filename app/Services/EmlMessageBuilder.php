@@ -46,9 +46,11 @@ class EmlMessageBuilder
 
         $headers[] = 'Content-Type: multipart/mixed; boundary="' . $mixedBoundary . '"';
 
+        $isHtml = (bool) preg_match('/<(table|br|strong|p)\b/i', $body);
+
         $parts = [
             '--' . $mixedBoundary,
-            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Type: ' . ($isHtml ? 'text/html' : 'text/plain') . '; charset=UTF-8',
             'Content-Transfer-Encoding: quoted-printable',
             '',
             quoted_printable_encode($body),

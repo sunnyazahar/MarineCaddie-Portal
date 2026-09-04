@@ -1338,6 +1338,17 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('In transit and selected stocks will be marked Completed', $contents);
     }
 
+    public function test_compose_editors_include_font_color_and_highlight_tools(): void
+    {
+        $edit = file_get_contents(resource_path('views/Shipment/edit.blade.php'));
+        $reminder = file_get_contents(resource_path('views/Shipment/partials/reminder-compose-modal.blade.php'));
+
+        $this->assertStringContainsString("partials.compose-color-tools", $edit);
+        $this->assertStringContainsString("partials.compose-color-tools", $reminder);
+        $this->assertStringContainsString('compose-font-color', file_get_contents(resource_path('views/partials/compose-color-tools.blade.php')));
+        $this->assertStringContainsString('compose-highlight-color', file_get_contents(resource_path('views/partials/compose-color-tools.blade.php')));
+    }
+
     public function test_shipment_transit_page_uses_finalize_shipment_header_action(): void
     {
         $contents = file_get_contents(resource_path('views/Shipment/edit.blade.php'));

@@ -6,6 +6,8 @@ var reminderComposeSender = @json([
 ]);
 var reminderContactsSearchTimer = null;
 
+@include('partials.compose-color-tools-script')
+
 function fillReminderComposeFrom(preview) {
     preview = preview || {};
     var fromName = preview.from_name || reminderComposeSender.name || '';
@@ -141,21 +143,44 @@ $(document).on('click', '#compose-reminder-modal', function(e) {
 $('#compose-reminder-modal').on('hidden.bs.modal', closeReminderContactPickers);
 
 function plainTextToReminderHtml(text) {
-    return String(text || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\n/g, '<br>');
+    var parts = String(text || '').split(/(<table[\s\S]*?<\/table>|<font[\s\S]*?<\/font>|<span[\s\S]*?<\/span>|<mark[\s\S]*?<\/mark>)/i);
+    return parts.map(function(part) {
+        if (/^<(table|font|span|mark)\b/i.test(part)) {
+            return part;
+        }
+        return String(part || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\n/g, '<br>');
+    }).join('');
 }
 
 function reminderEditorToPlainText(html) {
-    return $('<div>').html(
-        String(html || '')
-            .replace(/<br\s*\/?>/gi, '\n')
-            .replace(/<\/p>/gi, '\n')
-            .replace(/<\/div>/gi, '\n')
-            .replace(/<[^>]+>/g, '')
-    ).text();
+    var $tmp = $('<div>').html(html || '');
+    var blocks = [];
+    $tmp.find('table, font[color], span[style], mark').each(function() {
+        var style = String(this.getAttribute('style') || '').toLowerCase();
+        var keep = this.tagName === 'TABLE'
+            || this.tagName === 'FONT'
+            || this.tagName === 'MARK'
+            || style.indexOf('color') !== -1
+            || style.indexOf('background') !== -1;
+        if (!keep) {
+            return;
+        }
+        blocks.push(this.outerHTML);
+        $(this).replaceWith('%%MAIL_HTML_' + (blocks.length - 1) + '%%');
+    });
+    $tmp.find('br').replaceWith('\n');
+    $tmp.find('div, p, li').each(function() {
+        $(this).append('\n');
+    });
+    var text = $.trim($tmp.text().replace(/\n{3,}/g, '\n\n'));
+    blocks.forEach(function(blockHtml, index) {
+        text = text.replace('%%MAIL_HTML_' + index + '%%', '\n' + blockHtml + '\n');
+    });
+    return $.trim(text.replace(/\n{3,}/g, '\n\n'));
 }
 
 function formatReminderFileSize(bytes) {

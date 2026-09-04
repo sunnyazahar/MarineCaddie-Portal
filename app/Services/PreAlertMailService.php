@@ -39,7 +39,7 @@ class PreAlertMailService
             $mail['to'],
             $mail['cc'],
             $mail['subject'],
-            $mail['body'],
+            \App\Support\MailBodyHtml::fromComposeBody($mail['body']),
             $mail['attachments']
         );
     }
@@ -97,9 +97,7 @@ class PreAlertMailService
         }
 
         $attachments = array_merge($mail['attachments'], $extraAttachments);
-        $normalizedBody = preg_replace("/\r\n|\r|\n/", "\n", $body) ?? '';
-        $htmlBody = nl2br(e($normalizedBody), false);
-        $htmlBody = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $htmlBody) ?? $htmlBody;
+        $htmlBody = \App\Support\MailBodyHtml::fromComposeBody($body);
         $fromEmail = $mail['senderEmail'] ?: config('mail.from.address');
         $fromName = $mail['senderName'] ?: config('mail.from.name');
 
@@ -193,7 +191,7 @@ class PreAlertMailService
             'senderEmail' => $sender['email'],
             'subject' => $this->buildSubject($shipment, $manifestData),
             'body' => $this->buildBody($shipment, $manifestData, $consigneeParty, $sender['name'], $sender['email']),
-            'to' => $this->buildToAddresses($consigneeParty),
+            'to' => $this->buildToAddresses($shipment, $consigneeParty),
             'cc' => $this->buildCcAddresses($sender['email']),
             'attachments' => $this->buildAttachments($shipment, $manifestData, $documentIds, $excludeAttachments),
         ];
@@ -226,6 +224,10 @@ class PreAlertMailService
         string $senderName,
         string $senderEmail
     ): string {
+        if (($shipment->service ?? '') === 'On-board delivery') {
+            return $this->buildOnBoardDeliveryBody($shipment, $manifestData, $senderName, $senderEmail);
+        }
+
         $consigneeName = $consigneeParty['name'] ?: ($shipment->consignee_att ?: 'Sir/Madam');
         $destination = $this->manifestPdfBuilder->formatPortCodeCityCountry(
             $shipment->consignee_port_code,
@@ -283,6 +285,134 @@ class PreAlertMailService
         $lines[] = 'Marinecaddie';
 
         return implode("\r\n", $lines);
+    }
+
+    /**
+     * @param  array<string, mixed>  $manifestData
+     */
+    private function buildOnBoardDeliveryBody(
+        Shipment $shipment,
+        array $manifestData,
+        string $senderName,
+        string $senderEmail
+    ): string {
+        $ownerName = $shipment->crrs
+            ->map(fn ($crr) => $crr->customerVessel?->customer?->customer_name)
+            ->filter()
+            ->unique()
+            ->implode(', ') ?: '—';
+        $departure = $this->manifestPdfBuilder->formatPortCity($shipment->departure_port_code);
+        $destination = $this->manifestPdfBuilder->formatPortCity(
+            $shipment->consignee_port_code,
+            $shipment->consignee_city
+        );
+        $vesselLine = $manifestData['vesselLine']
+            ?? $this->preAlertPdfBuilder->formatMotorVesselName(
+                $shipment->crrs->pluck('vessel_name')->filter()->first()
+            );
+
+        $lines = [
+            'This is to notify owner / management ' . $ownerName . ' about shipment from ' . $departure . ' to ' . $destination . ' with the below details',
+            '',
+            '',
+            '**Shipment Details:**',
+            'Shipment Ref. ' . $shipment->shipment_number,
+            'Vessel: ' . $vesselLine,
+        ];
+
+        $serviceDetailLines = $this->preAlertPdfBuilder->reminderMailServiceDetailLines($shipment);
+        array_push($lines, ...array_slice($serviceDetailLines, 2));
+        $lines[] = 'Customer reference: ' . (filled($shipment->customer_reference) ? $shipment->customer_reference : '—');
+        $lines[] = '';
+        $lines[] = '**Cargo / Item details:**';
+        $lines[] = '';
+        $cargo = $this->buildOnBoardCargoItemHtml($shipment, $manifestData);
+        $lines[] = $cargo['table'];
+        $lines[] = '';
+        array_push($lines, ...$cargo['summary']);
+        $lines[] = '';
+        $lines[] = '';
+        $lines[] = 'With kind regards,';
+        $lines[] = '';
+        $lines[] = $senderName;
+        $lines[] = $senderEmail;
+        $lines[] = 'Marinecaddie';
+
+        return implode("\r\n", $lines);
+    }
+
+    /**
+     * @param  array<string, mixed>  $manifestData
+     * @return array{table: string, summary: list<string>}
+     */
+    private function buildOnBoardCargoItemHtml(Shipment $shipment, array $manifestData): array
+    {
+        $shipment->loadMissing('crrs.packages');
+        $currencyRates = $this->manifestPdfBuilder->currencyRatesByCode();
+        $totalCustomsUsd = 0.0;
+        $cell = 'border:0.5px solid #ccc;padding:5px 4px;text-align:left;vertical-align:top;font-size:inherit;font-family:inherit;line-height:inherit;';
+        $th = $cell . 'background:#f3f4f6;font-weight:bold;';
+        $tableStyle = 'width:100%;border-collapse:collapse;font-size:inherit;font-family:inherit;line-height:inherit;margin-top:8px;';
+        $tdOpen = '<td style="' . $cell . '">';
+        $rowsHtml = '';
+
+        foreach ($shipment->crrs as $crr) {
+            $poNumbers = is_array($crr->po_numbers)
+                ? implode(', ', $crr->po_numbers)
+                : (string) ($crr->po_numbers ?? '');
+            $customsUsd = $this->manifestPdfBuilder->convertCustomsValueToUsd($crr, $currencyRates);
+            $totalCustomsUsd += $customsUsd;
+
+            $rowsHtml .= '<tr>'
+                . $tdOpen . e($crr->supplier ?: '—') . '</td>'
+                . $tdOpen . e($poNumbers !== '' ? $poNumbers : '—') . '</td>'
+                . $tdOpen . e((string) $crr->packages->count()) . '</td>'
+                . $tdOpen . e((string) round((float) $crr->packages->sum('weight'), 2)) . '</td>'
+                . $tdOpen . e(number_format(round((float) $crr->packages->sum('cbm'), 2), 2)) . '</td>'
+                . $tdOpen . e(number_format($customsUsd, 2) . ' USD') . '</td>'
+                . '</tr>';
+        }
+
+        $totals = $manifestData['totals'] ?? [];
+        $packages = $shipment->crrs->flatMap->packages;
+        $totalPackages = (int) ($totals['packages'] ?? $packages->count());
+        $totalWeight = $totals['weight'] ?? round((float) $packages->sum('weight'), 2);
+        $totalCbm = (float) ($totals['cbm'] ?? round((float) $packages->sum('cbm'), 2));
+        $volumeWeight = $totals['volume_weight'] ?? \App\Support\PackageVolumeMetrics::totalAirVolumeWeightKg($packages);
+        $customsLabel = ($totals['customs_value'] ?? number_format($totalCustomsUsd, 2)) . ' ' . ($totals['currency'] ?? 'USD');
+        $packedItems = filled($shipment->repacked_items) ? (int) $shipment->repacked_items : $totalPackages;
+        $packedWeight = filled($shipment->repacked_weight)
+            ? number_format((float) $shipment->repacked_weight, 2, '.', '')
+            : number_format((float) $totalWeight, 2, '.', '');
+        $totalPiecesLabel = $totalPackages . ' pcs';
+
+        $table = '<table style="' . $tableStyle . '">'
+            . '<thead><tr>'
+            . '<th style="' . $th . '">Supplier</th>'
+            . '<th style="' . $th . '">PO number</th>'
+            . '<th style="' . $th . '">Items</th>'
+            . '<th style="' . $th . '">Weight</th>'
+            . '<th style="' . $th . '">CBM</th>'
+            . '<th style="' . $th . '">Cust. value</th>'
+            . '</tr></thead><tbody>'
+            . $rowsHtml
+            . '<tr>'
+            . '<td colspan="2" style="' . $cell . '"><strong>Total</strong></td>'
+            . '<td style="' . $cell . '"><strong>' . e($totalPiecesLabel) . '</strong></td>'
+            . '<td style="' . $cell . '"><strong>' . e($totalWeight . ' kg') . '</strong></td>'
+            . '<td style="' . $cell . '"><strong>' . e(number_format($totalCbm, 2) . ' CBM') . '</strong></td>'
+            . '<td style="' . $cell . '"><strong>' . e($customsLabel) . '</strong></td>'
+            . '</tr></tbody></table>';
+
+        return [
+            'table' => $table,
+            'summary' => [
+                'Total pieces in consignment: ' . $totalPiecesLabel,
+                'Gross Weight: ' . number_format((float) $totalWeight, 2) . ' kg',
+                'Estimated volume weight: ' . number_format((float) $volumeWeight, 2) . ' kg',
+                'Repacked as: ' . $packedItems . ' item(s) / ' . $packedWeight . ' kg',
+            ],
+        ];
     }
 
     /**
@@ -507,8 +637,12 @@ class PreAlertMailService
     /**
      * @return array<int, array{name?: string, email: string}>
      */
-    private function buildToAddresses(array $consigneeParty): array
+    private function buildToAddresses(Shipment $shipment, array $consigneeParty): array
     {
+        if (($shipment->service ?? '') === 'On-board delivery') {
+            return $this->buildOnBoardDeliveryToAddresses($shipment);
+        }
+
         $addresses = [];
 
         if (!empty($consigneeParty['email'])) {
@@ -524,6 +658,24 @@ class PreAlertMailService
     /**
      * @return array<int, array{name?: string, email: string}>
      */
+    private function buildOnBoardDeliveryToAddresses(Shipment $shipment): array
+    {
+        return $shipment->crrs
+            ->map(function ($crr) {
+                $customer = $crr->customerVessel?->customer;
+                $email = strtolower(trim((string) ($customer?->email ?? '')));
+
+                return [
+                    'name' => $customer?->customer_name ?? '',
+                    'email' => $email,
+                ];
+            })
+            ->filter(fn (array $row) => $row['email'] !== '' && filter_var($row['email'], FILTER_VALIDATE_EMAIL))
+            ->unique('email')
+            ->values()
+            ->all();
+    }
+
     /**
      * @return array<int, array{name?: string, email: string}>
      */

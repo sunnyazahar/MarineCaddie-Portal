@@ -2956,6 +2956,7 @@
             background: #e5e7eb;
             color: #111827;
         }
+        @include('partials.compose-color-tools-styles')
         #compose-manifest-mail-modal .compose-editor {
             min-height: 220px;
             max-height: 340px;
@@ -2966,6 +2967,29 @@
             color: #111827;
             outline: none;
             white-space: pre-wrap;
+        }
+        #compose-manifest-mail-modal .compose-editor table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            line-height: inherit !important;
+            margin: 8px 0;
+            white-space: normal;
+        }
+        #compose-manifest-mail-modal .compose-editor th,
+        #compose-manifest-mail-modal .compose-editor td {
+            border: 0.5px solid #ccc;
+            padding: 5px 4px;
+            text-align: left;
+            vertical-align: top;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            line-height: inherit !important;
+        }
+        #compose-manifest-mail-modal .compose-editor th {
+            background: #f3f4f6;
+            font-weight: bold;
         }
         #compose-manifest-mail-modal .compose-editor:empty:before {
             content: attr(data-placeholder);
@@ -4450,6 +4474,7 @@
                         <button type="button" class="compose-tool-btn" data-cmd="bold" title="Bold"><strong>B</strong></button>
                         <button type="button" class="compose-tool-btn" data-cmd="italic" title="Italic"><em>I</em></button>
                         <button type="button" class="compose-tool-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+                        @include('partials.compose-color-tools')
                         <button type="button" class="compose-tool-btn" data-cmd="fontSize" data-value="2" title="Small">Small</button>
                         <button type="button" class="compose-tool-btn" data-cmd="formatBlock" data-value="blockquote" title="Quote"><i class="ti-quote-left"></i></button>
                         <button type="button" class="compose-tool-btn" data-cmd="insertUnorderedList" title="Bulleted list"><i class="ti-list"></i></button>
@@ -5435,13 +5460,33 @@
         });
 
         function plainTextToEditorHtml(text) {
-            return $('<div>').text(text || '').html()
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
+            var parts = String(text || '').split(/(<table[\s\S]*?<\/table>|<font[\s\S]*?<\/font>|<span[\s\S]*?<\/span>|<mark[\s\S]*?<\/mark>)/i);
+            return parts.map(function(part) {
+                if (/^<(table|font|span|mark)\b/i.test(part)) {
+                    return part;
+                }
+                return $('<div>').text(part).html()
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+            }).join('');
         }
 
         function editorHtmlToPlainText(html) {
             var $tmp = $('<div>').html(html || '');
+            var blocks = [];
+            $tmp.find('table, font[color], span[style], mark').each(function() {
+                var style = String(this.getAttribute('style') || '').toLowerCase();
+                var keep = this.tagName === 'TABLE'
+                    || this.tagName === 'FONT'
+                    || this.tagName === 'MARK'
+                    || style.indexOf('color') !== -1
+                    || style.indexOf('background') !== -1;
+                if (!keep) {
+                    return;
+                }
+                blocks.push(this.outerHTML);
+                $(this).replaceWith('%%MAIL_HTML_' + (blocks.length - 1) + '%%');
+            });
             $tmp.find('strong, b').each(function() {
                 $(this).replaceWith('**' + $(this).text() + '**');
             });
@@ -5449,7 +5494,11 @@
             $tmp.find('div, p, li').each(function() {
                 $(this).append('\n');
             });
-            return $.trim($tmp.text().replace(/\n{3,}/g, '\n\n'));
+            var text = $.trim($tmp.text().replace(/\n{3,}/g, '\n\n'));
+            blocks.forEach(function(blockHtml, index) {
+                text = text.replace('%%MAIL_HTML_' + index + '%%', '\n' + blockHtml + '\n');
+            });
+            return $.trim(text.replace(/\n{3,}/g, '\n\n'));
         }
 
         function isPdfAttachment(item) {
@@ -8601,6 +8650,7 @@
                 $(this).remove();
             });
         }, 500);
+        @include('partials.compose-color-tools-script')
     });
 </script>
 @endsection

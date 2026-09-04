@@ -161,6 +161,7 @@ trait CreatesRegressionSchema
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('customer_name');
+            $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->timestamps();
         });

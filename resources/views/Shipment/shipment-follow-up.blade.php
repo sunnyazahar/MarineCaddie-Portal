@@ -650,6 +650,7 @@
             background: #e5e7eb;
             color: #111827;
         }
+        @include('partials.compose-color-tools-styles')
         #compose-reminder-modal .compose-editor {
             min-height: 220px;
             max-height: 340px;
