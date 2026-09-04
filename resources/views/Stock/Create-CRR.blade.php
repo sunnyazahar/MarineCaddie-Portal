@@ -533,6 +533,29 @@
             display: none !important;
         }
 
+        /* Transit type: show clear (×) on the right, before the arrow */
+        .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__rendered {
+            position: relative !important;
+            padding-right: 44px !important;
+        }
+
+        .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__clear {
+            display: block !important;
+            position: absolute !important;
+            right: 22px !important;
+            left: auto !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            float: none !important;
+            margin: 0 !important;
+            padding: 0 2px !important;
+            font-size: 15px !important;
+            line-height: 1 !important;
+            color: #94a3b8 !important;
+            cursor: pointer !important;
+            z-index: 2 !important;
+        }
+
         .supplier-add-link {
             display: block;
             color: #FFFFFF;
@@ -1361,7 +1384,7 @@
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
                                                                 <label class="crr-label">Transit type</label>
-                                                                <select class="form-control select2" name="transit_type">
+                                                                <select class="form-control select2 select2-transit-type" name="transit_type" data-placeholder="Select transit type">
                                                                     <option value=""></option>
                                                                     <option value="AMAZON">AMAZON</option>
                                                                     <option value="AWB">AWB</option>
@@ -2002,10 +2025,32 @@
             });
 
             // Initialize generic Select2 (excludes PO numbers which needs tags)
-            $('.select2:not([name="po_numbers[]"])').select2({
+            $('.select2:not([name="po_numbers[]"]):not(.select2-transit-type)').select2({
                 placeholder: "Click here",
                 allowClear: false,
                 width: '100%'
+            });
+
+            if (!$('#mc-transit-type-clear-style').length) {
+                $('head').append(
+                    '<style id="mc-transit-type-clear-style">' +
+                    '.select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__rendered{' +
+                    'position:relative!important;padding-right:44px!important;}' +
+                    '.select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__clear{' +
+                    'display:block!important;position:absolute!important;right:22px!important;left:auto!important;' +
+                    'top:50%!important;transform:translateY(-50%)!important;float:none!important;margin:0!important;' +
+                    'padding:0 2px!important;font-size:15px!important;line-height:1!important;color:#94a3b8!important;' +
+                    'cursor:pointer!important;z-index:2!important;}' +
+                    '</style>'
+                );
+            }
+
+            $('.select2-transit-type').select2({
+                placeholder: 'Select transit type',
+                allowClear: true,
+                width: '100%'
+            }).each(function () {
+                $(this).next('.select2-container').addClass('select2-transit-type-container');
             });
 
             $('.select2-incoterm').select2({

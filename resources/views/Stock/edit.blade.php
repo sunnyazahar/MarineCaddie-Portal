@@ -23,6 +23,29 @@
             display: none !important;
         }
 
+        /* Transit type: show clear (×) on the right, before the arrow */
+        .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__rendered {
+            position: relative !important;
+            padding-right: 44px !important;
+        }
+
+        .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__clear {
+            display: block !important;
+            position: absolute !important;
+            right: 22px !important;
+            left: auto !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            float: none !important;
+            margin: 0 !important;
+            padding: 0 2px !important;
+            font-size: 15px !important;
+            line-height: 1 !important;
+            color: #94a3b8 !important;
+            cursor: pointer !important;
+            z-index: 2 !important;
+        }
+
         /* Modern 3-Pane Layout for Edit Stock */
         .stock-edit-wrapper {
             display: flex;
@@ -227,6 +250,28 @@
         .select2-selection__clear,
         .select2-selection__choice__remove {
             display: none !important;
+        }
+
+        .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__rendered {
+            position: relative !important;
+            padding-right: 44px !important;
+        }
+
+        .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__clear {
+            display: block !important;
+            position: absolute !important;
+            right: 22px !important;
+            left: auto !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            float: none !important;
+            margin: 0 !important;
+            padding: 0 2px !important;
+            font-size: 15px !important;
+            line-height: 1 !important;
+            color: #94a3b8 !important;
+            cursor: pointer !important;
+            z-index: 2 !important;
         }
 
         /* DGR Sub-row styles */
@@ -1843,6 +1888,28 @@
             display: none !important;
         }
 
+        .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__rendered {
+            position: relative !important;
+            padding-right: 44px !important;
+        }
+
+        .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__clear {
+            display: block !important;
+            position: absolute !important;
+            right: 22px !important;
+            left: auto !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            float: none !important;
+            margin: 0 !important;
+            padding: 0 2px !important;
+            font-size: 15px !important;
+            line-height: 1 !important;
+            color: #94a3b8 !important;
+            cursor: pointer !important;
+            z-index: 2 !important;
+        }
+
         /* Supplier Select2 Styles */
         .select2-result-supplier {
             padding: 4px;
@@ -3221,7 +3288,7 @@
                                                         <div class="col-sm-6">
                                                             <div class="field-group">
                                                                 <label class="field-label">Transit type</label>
-                                                                <select class="field-input select2" name="transit_type">
+                                                                <select class="field-input select2 select2-transit-type" name="transit_type" data-placeholder="Select transit type">
                                                                     <option value=""></option>
                                                                     <option value="AMAZON" {{ $crr->transit_type == 'AMAZON' ? 'selected' : '' }}>AMAZON</option>
                                                                     <option value="AWB" {{ $crr->transit_type == 'AWB' ? 'selected' : '' }}>AWB</option>
@@ -4380,18 +4447,54 @@
             var currencies = @json($currencies);
 
             // Select2 Initialization
-            // Nuclear option: Purge clear icon HTML via MutationObserver
+            // Purge clear icons except Transit type (allowClear enabled there)
             const clearIconObserver = new MutationObserver(function (mutations) {
-                $('.select2-selection__clear').remove();
+                $('.select2-selection__clear').each(function () {
+                    var $clear = $(this);
+                    if ($clear.closest('.select2-transit-type-container').length
+                        || $clear.closest('.select2-container').prev('select.select2-transit-type').length) {
+                        return;
+                    }
+                    $clear.remove();
+                });
             });
             clearIconObserver.observe(document.body, { childList: true, subtree: true });
-            $('.select2-selection__clear').remove();
+            $('.select2-selection__clear').each(function () {
+                if ($(this).closest('.select2-transit-type-container').length
+                    || $(this).closest('.select2-container').prev('select.select2-transit-type').length) {
+                    return;
+                }
+                $(this).remove();
+            });
 
-            $('.select2, .select2-irregularities').select2({
+            $('.select2:not(.select2-transit-type), .select2-irregularities').select2({
                 placeholder: "Select an option",
                 allowClear: false,
                 width: '100%',
                 dropdownParent: $(document.body)
+            });
+
+            if (!$('#mc-transit-type-clear-style').length) {
+                $('head').append(
+                    '<style id="mc-transit-type-clear-style">' +
+                    '.select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__rendered{' +
+                    'position:relative!important;padding-right:44px!important;}' +
+                    '.select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__clear{' +
+                    'display:block!important;position:absolute!important;right:22px!important;left:auto!important;' +
+                    'top:50%!important;transform:translateY(-50%)!important;float:none!important;margin:0!important;' +
+                    'padding:0 2px!important;font-size:15px!important;line-height:1!important;color:#94a3b8!important;' +
+                    'cursor:pointer!important;z-index:2!important;}' +
+                    '</style>'
+                );
+            }
+
+            $('.select2-transit-type').select2({
+                placeholder: 'Select transit type',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $(document.body)
+            }).each(function () {
+                $(this).next('.select2-container').addClass('select2-transit-type-container');
             });
 
             $('.select2-incoterm').select2({
