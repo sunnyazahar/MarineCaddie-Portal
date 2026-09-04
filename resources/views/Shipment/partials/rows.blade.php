@@ -74,12 +74,14 @@
         </td>
         <td title="{{ $departureCity }}">{{ $departureCity }}</td>
         <td title="{{ $destinationCity }}">{{ $destinationCity }}</td>
+        <td title="{{ $shipment->total_pcs_display }}">{{ $shipment->total_pcs_display }}</td>
+        <td title="{{ $shipment->total_weight_display }}">{{ $shipment->total_weight_display }}</td>
         <td>{{ $shipment->deadline_arrival?->format('d.m.Y') ?? '—' }}</td>
         <td>{{ $shipment->pre_alert_reminder?->format('d.m.Y') ?? '—' }}</td>
         <td><label class="{{ $shipment->statusBadgeClass() }}">{{ $shipment->status }}</label></td>
     </tr>
 @empty
     <tr>
-        <td colspan="11" class="text-center py-4 text-muted">No shipments found.</td>
+        <td colspan="13" class="text-center py-4 text-muted">No shipments found.</td>
     </tr>
 @endforelse

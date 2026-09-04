@@ -40,6 +40,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
     {
         $query = $this->query()
             ->with([
+                'crrs.packages',
                 'crrs.customerVessel.customer',
                 'accountManager.office',
                 'creator',

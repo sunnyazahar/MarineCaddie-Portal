@@ -25,8 +25,10 @@
                 minmax(100px, 1.1fr)
                 minmax(80px, 1fr)
                 minmax(140px, 1.5fr)
-                minmax(110px, 1.1fr)
-                minmax(110px, 1.1fr)
+                minmax(100px, 1fr)
+                minmax(100px, 1fr)
+                minmax(55px, 0.55fr)
+                minmax(70px, 0.7fr)
                 minmax(80px, 0.8fr)
                 minmax(90px, 0.9fr)
                 minmax(80px, 0.9fr);
@@ -56,8 +58,10 @@
                 minmax(100px, 1.1fr)
                 minmax(80px, 1fr)
                 minmax(140px, 1.5fr)
-                minmax(110px, 1.1fr)
-                minmax(110px, 1.1fr)
+                minmax(100px, 1fr)
+                minmax(100px, 1fr)
+                minmax(55px, 0.55fr)
+                minmax(70px, 0.7fr)
                 minmax(80px, 0.8fr)
                 minmax(90px, 0.9fr)
                 minmax(80px, 0.9fr);
@@ -858,6 +862,8 @@
                                                                 <th>Consignee</th>
                                                                 <th>Departure</th>
                                                                 <th>Destination</th>
+                                                                <th>Pcs</th>
+                                                                <th>Weight</th>
                                                                 <th>Deadline</th>
                                                                 <th>PA Reminder</th>
                                                                 <th>Status</th>

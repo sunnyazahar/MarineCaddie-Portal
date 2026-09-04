@@ -544,6 +544,20 @@ class Shipment extends Model
         );
     }
 
+    public function getTotalPcsAttribute(): int
+    {
+        return (int) $this->crrs->sum(
+            fn (Crr $crr) => $crr->packages->count()
+        );
+    }
+
+    public function getTotalPcsDisplayAttribute(): string
+    {
+        $pcs = $this->total_pcs;
+
+        return $pcs > 0 ? (string) $pcs : '—';
+    }
+
     public function getTotalWeightDisplayAttribute(): string
     {
         $weight = $this->crrs->sum(
