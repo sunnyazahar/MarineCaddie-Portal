@@ -1044,6 +1044,7 @@ Routes: `/billing/invoicing`, `/billing/invoicing/{proformaNo}/edit`, PDF print.
 
 | Implication | Detail |
 |---|---|
+| Invoicing list **Party name** | Linked stock customer `customer_name` (one customer per shipment) |
 | Billing Party | `customer.invoiceDetail.invoice_recipient_name` from any linked stock’s customer (same for all) |
 | Bill To Pos | `customer.invoiceAddress.country` from that customer’s Invoice details |
 | Invoicing list status | `partial_payment` → **Partially paid**; `full_payment` (or legacy null) → **Billed**; no proforma → **Ready for billing** |

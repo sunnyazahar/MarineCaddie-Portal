@@ -101,6 +101,11 @@ class ConsolidatedProformaInvoicePdfService
     {
         $rows = $this->invoicingShipmentRowMapper->mapCollection($shipments);
 
+        $ungenerated = $rows->first(static fn (array $row) => empty($row['invoice_generated']));
+        if ($ungenerated !== null) {
+            abort(422, 'Please generate the invoice first for every selected shipment before consolidating.');
+        }
+
         $poNumbers = $rows
             ->pluck('client_ref_no')
             ->map(static fn (string $value) => trim($value))
@@ -119,9 +124,9 @@ class ConsolidatedProformaInvoicePdfService
             ]);
         }
 
-        if ($poNumbers->first() === '' || $partyNames->first() === '') {
+        if ($partyNames->first() === '') {
             throw ValidationException::withMessages([
-                'job_no' => 'Consolidated invoice requires a PO No. and Party Name on every selected row.',
+                'job_no' => 'Consolidated invoice requires a Party Name on every selected row.',
             ]);
         }
     }

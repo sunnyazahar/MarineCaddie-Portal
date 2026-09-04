@@ -28,6 +28,7 @@ class InvoicingShipmentRowMapper
     {
         $shipment->loadMissing([
             'crrs.packages',
+            'crrs.customerVessel.customer',
             'flights',
             'seaLegs',
             'truckLegs',
@@ -45,10 +46,9 @@ class InvoicingShipmentRowMapper
         // Same total as shipment edit stock chips: sum of linked CRR customs_value.
         $netAmount = round((float) $shipment->crrs->sum('customs_value'), 2);
         $currency = (string) ($shipment->crrs->pluck('currency')->filter()->first() ?: '');
-        $vessel = (string) ($shipment->crrs->pluck('vessel_name')->filter()->first() ?: '');
         $shipper = $shipment->partyDisplay($shipment->departure, $partyNames);
         $consignee = $shipment->partyDisplay($shipment->consignee, $partyNames);
-        $partyName = collect([$shipper, $vessel])->filter()->implode(' / ');
+        $partyName = (string) ($this->resolveStockCustomer($shipment)?->customer_name ?: '');
 
         $createdAt = $shipment->created_at;
         $invoiceDateLabel = '-';
@@ -88,6 +88,7 @@ class InvoicingShipmentRowMapper
             'gst_amount' => '',
             'net_invoice_amount' => number_format($netAmount, 2),
             'status' => $this->resolveInvoicingStatus($shipment),
+            'invoice_generated' => $shipment->proformaInvoice !== null,
         ];
     }
 

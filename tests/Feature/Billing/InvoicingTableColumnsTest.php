@@ -375,6 +375,12 @@ class InvoicingTableColumnsTest extends RegressionTestCase
     {
         $user = $this->createAdminUser();
 
+        $customer = Customer::create(['customer_name' => 'Consolidate Customer']);
+        CustomerVessel::create([
+            'customer_id' => $customer->id,
+            'vessel' => 'Consolidate Vessel',
+        ]);
+
         $shipmentA = Shipment::create([
             'shipment_number' => 'INV-CONSOL-A',
             'status' => 'Completed',
@@ -413,6 +419,23 @@ class InvoicingTableColumnsTest extends RegressionTestCase
         $shipmentA->crrs()->attach($crrA->id);
         $shipmentB->crrs()->attach($crrB->id);
 
+        ProformaInvoice::query()->create([
+            'shipment_id' => $shipmentA->id,
+            'proforma_no' => 'MC-AE26-27-0201',
+            'financial_year_label' => '26-27',
+            'sequence_no' => 201,
+            'payment_type' => 'full_payment',
+            'client_ref_no' => 'PO-CONSOL-123',
+        ]);
+        ProformaInvoice::query()->create([
+            'shipment_id' => $shipmentB->id,
+            'proforma_no' => 'MC-AE26-27-0202',
+            'financial_year_label' => '26-27',
+            'sequence_no' => 202,
+            'payment_type' => 'full_payment',
+            'client_ref_no' => 'PO-CONSOL-123',
+        ]);
+
         $response = $this->actingAsVerified($user)
             ->get(route('billing.invoicing.consolidated-print', [
                 'job_no' => ['INV-CONSOL-A', 'INV-CONSOL-B'],
@@ -444,6 +467,117 @@ class InvoicingTableColumnsTest extends RegressionTestCase
         $this->assertSame('500.00', $summaryData['consolidation_rows'][0]['total_amount']);
         $this->assertSame('700.00', $summaryData['consolidation_rows'][1]['total_amount']);
         $this->assertSame('1200.00', $summaryData['totals']['net_payable']);
+    }
+
+    public function test_consolidated_print_allows_empty_po_when_party_matches(): void
+    {
+        $user = $this->createAdminUser();
+
+        $customer = Customer::create(['customer_name' => 'Empty PO Customer']);
+        CustomerVessel::create([
+            'customer_id' => $customer->id,
+            'vessel' => 'Empty PO Vessel',
+        ]);
+
+        $shipmentA = Shipment::create([
+            'shipment_number' => 'INV-CONSOL-EMPTY-PO-A',
+            'status' => 'Completed',
+            'service' => 'Airfreight',
+            'customer_reference' => null,
+        ]);
+        $shipmentB = Shipment::create([
+            'shipment_number' => 'INV-CONSOL-EMPTY-PO-B',
+            'status' => 'Completed',
+            'service' => 'Airfreight',
+            'customer_reference' => '',
+        ]);
+
+        $crrA = Crr::create([
+            'stock_number' => 'INV-STK-EMPTY-PO-A',
+            'vessel_name' => 'Empty PO Vessel',
+            'content' => 'Shipspares',
+            'currency' => 'USD',
+            'customs_value' => 100,
+            'status' => Crr::STATUS_IN_PROGRESS,
+        ]);
+        $crrB = Crr::create([
+            'stock_number' => 'INV-STK-EMPTY-PO-B',
+            'vessel_name' => 'Empty PO Vessel',
+            'content' => 'Shipspares',
+            'currency' => 'USD',
+            'customs_value' => 200,
+            'status' => Crr::STATUS_IN_PROGRESS,
+        ]);
+
+        $shipmentA->crrs()->attach($crrA->id);
+        $shipmentB->crrs()->attach($crrB->id);
+
+        ProformaInvoice::query()->create([
+            'shipment_id' => $shipmentA->id,
+            'proforma_no' => 'MC-AE26-27-0203',
+            'financial_year_label' => '26-27',
+            'sequence_no' => 203,
+            'payment_type' => 'full_payment',
+        ]);
+        ProformaInvoice::query()->create([
+            'shipment_id' => $shipmentB->id,
+            'proforma_no' => 'MC-AE26-27-0204',
+            'financial_year_label' => '26-27',
+            'sequence_no' => 204,
+            'payment_type' => 'full_payment',
+        ]);
+
+        $this->actingAsVerified($user)
+            ->get(route('billing.invoicing.consolidated-print', [
+                'job_no' => ['INV-CONSOL-EMPTY-PO-A', 'INV-CONSOL-EMPTY-PO-B'],
+            ]))
+            ->assertOk();
+    }
+
+    public function test_consolidated_print_requires_generated_invoices(): void
+    {
+        $user = $this->createAdminUser();
+
+        $customer = Customer::create(['customer_name' => 'Pending Invoice Customer']);
+        CustomerVessel::create([
+            'customer_id' => $customer->id,
+            'vessel' => 'Pending Invoice Vessel',
+        ]);
+
+        $shipmentA = Shipment::create([
+            'shipment_number' => 'INV-CONSOL-PENDING-A',
+            'status' => 'Completed',
+            'service' => 'Airfreight',
+            'customer_reference' => 'PO-PENDING-1',
+        ]);
+        $shipmentB = Shipment::create([
+            'shipment_number' => 'INV-CONSOL-PENDING-B',
+            'status' => 'Completed',
+            'service' => 'Airfreight',
+            'customer_reference' => 'PO-PENDING-1',
+        ]);
+
+        $crrA = Crr::create([
+            'stock_number' => 'INV-STK-PENDING-A',
+            'vessel_name' => 'Pending Invoice Vessel',
+            'content' => 'Shipspares',
+            'status' => Crr::STATUS_IN_PROGRESS,
+        ]);
+        $crrB = Crr::create([
+            'stock_number' => 'INV-STK-PENDING-B',
+            'vessel_name' => 'Pending Invoice Vessel',
+            'content' => 'Shipspares',
+            'status' => Crr::STATUS_IN_PROGRESS,
+        ]);
+
+        $shipmentA->crrs()->attach($crrA->id);
+        $shipmentB->crrs()->attach($crrB->id);
+
+        $this->actingAsVerified($user)
+            ->get(route('billing.invoicing.consolidated-print', [
+                'job_no' => ['INV-CONSOL-PENDING-A', 'INV-CONSOL-PENDING-B'],
+            ]))
+            ->assertStatus(422);
     }
 
     public function test_edit_icon_opens_proforma_edit_page_for_shipment(): void
@@ -578,6 +712,14 @@ class InvoicingTableColumnsTest extends RegressionTestCase
         ]);
         $shipment->crrs()->attach($crr->id);
 
+        ProformaInvoice::query()->create([
+            'shipment_id' => $shipment->id,
+            'proforma_no' => 'MC-AE26-27-0101',
+            'financial_year_label' => '26-27',
+            'sequence_no' => 101,
+            'payment_type' => 'full_payment',
+        ]);
+
         $data = app(ProformaInvoicePdfBuilder::class)->build($shipment);
         $html = view('Billing.pdf.proforma-invoice', $data)->render();
 
@@ -664,12 +806,55 @@ class InvoicingTableColumnsTest extends RegressionTestCase
         ]);
         $shipment->crrs()->attach($crr->id);
 
+        ProformaInvoice::query()->create([
+            'shipment_id' => $shipment->id,
+            'proforma_no' => 'MC-AE26-27-0102',
+            'financial_year_label' => '26-27',
+            'sequence_no' => 102,
+            'payment_type' => 'full_payment',
+        ]);
+
         $response = $this->actingAsVerified($user)
             ->get(route('billing.invoicing.print', ['proformaNo' => $shipment->shipment_number]));
 
         $response->assertOk();
         $this->assertStringStartsWith('%PDF', (string) $response->getContent());
         $this->assertStringContainsString('application/pdf', (string) $response->headers->get('content-type'));
+    }
+
+    public function test_print_requires_generated_invoice(): void
+    {
+        $user = $this->createAdminUser();
+
+        $shipment = Shipment::create([
+            'shipment_number' => 'INV-PRINT-BLOCK-1',
+            'status' => 'Completed',
+            'service' => 'Airfreight',
+        ]);
+
+        $this->actingAsVerified($user)
+            ->get(route('billing.invoicing.print', ['proformaNo' => $shipment->shipment_number]))
+            ->assertStatus(422);
+    }
+
+    public function test_invoicing_list_print_icon_marks_ungenerated_invoice(): void
+    {
+        $user = $this->createAdminUser();
+
+        Shipment::create([
+            'shipment_number' => 'INV-PRINT-UI-1',
+            'status' => 'Completed',
+            'service' => 'Airfreight',
+        ]);
+
+        $html = $this->actingAsVerified($user)
+            ->get(route('billing.invoicing'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('data-invoice-generated="0"', $html);
+        $this->assertStringContainsString('Please generate the invoice first before printing.', $html);
+        $this->assertStringContainsString('Please generate the invoice first for every selected shipment before consolidating.', $html);
     }
 
     public function test_unsaved_edit_page_first_line_item_row_is_blank_by_default(): void

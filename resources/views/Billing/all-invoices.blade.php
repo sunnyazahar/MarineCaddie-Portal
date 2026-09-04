@@ -723,7 +723,7 @@
                     var rowPo = $.trim($(this).data('po-no') || '');
                     var rowParty = $.trim($(this).data('party-name') || '');
 
-                    if (rowPo === '' || rowParty === '') {
+                    if (rowParty === '') {
                         canConsolidate = false;
                         return false;
                     }
@@ -1001,7 +1001,8 @@
             });
 
             $('#btn-invoicing-consolidated-pdf').on('click', function () {
-                var jobNumbers = $('#invoicing-table tbody .invoicing-row-checkbox:checked')
+                var $checked = $('#invoicing-table tbody .invoicing-row-checkbox:checked');
+                var jobNumbers = $checked
                     .map(function () {
                         return $.trim($(this).val() || '');
                     })
@@ -1014,8 +1015,51 @@
                     return;
                 }
 
+                var allGenerated = true;
+                $checked.each(function () {
+                    if (String($(this).attr('data-invoice-generated') || '0') !== '1') {
+                        allGenerated = false;
+                        return false;
+                    }
+                });
+
+                if (!allGenerated) {
+                    var message = 'Please generate the invoice first for every selected shipment before consolidating.';
+                    if (typeof swal === 'function') {
+                        swal({
+                            title: 'Invoice not generated',
+                            text: message,
+                            type: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        alert(message);
+                    }
+                    return;
+                }
+
                 var url = @json(route('billing.invoicing.consolidated-print')) + '?' + $.param({ job_no: jobNumbers });
                 window.open(url, '_blank', 'noopener,noreferrer');
+            });
+
+            $(document).on('click', '#invoicing-table .invoicing-row-action--print', function (e) {
+                if (String($(this).attr('data-invoice-generated') || '0') === '1') {
+                    return;
+                }
+
+                e.preventDefault();
+
+                var message = 'Please generate the invoice first before printing.';
+                if (typeof swal === 'function') {
+                    swal({
+                        title: 'Invoice not generated',
+                        text: message,
+                        type: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    alert(message);
+                }
             });
 
             initializeSearchableFilterMultiselect('.searchable-filter-multiselect', {

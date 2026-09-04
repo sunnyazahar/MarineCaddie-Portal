@@ -121,6 +121,11 @@ class BillingController extends Controller
             abort(404);
         }
 
+        $shipment->loadMissing('proformaInvoice');
+        if ($shipment->proformaInvoice === null) {
+            abort(422, 'Please generate the invoice first before printing.');
+        }
+
         $data = $pdfBuilder->build($shipment, self::INVOICE_TYPE_OPTIONS);
         $numberSlug = $data['proforma_display_no'] !== '—'
             ? $data['proforma_display_no']
@@ -194,7 +199,7 @@ class BillingController extends Controller
             'sb_be_date' => $row['sb_be_no'] !== '' ? $row['job_date'] : '',
             'flight_no' => $i % 3 === 0 ? 'SQ'.(100 + ($i % 900)) : '',
             'flight_date' => $i % 3 === 0 ? $row['proforma_date'] : '',
-            'vessel_name' => explode(' / ', $row['party_name'])[1] ?? 'Green Sea',
+            'vessel_name' => $row['vessel_name'] ?? 'Green Sea',
             'line_items' => $this->buildMockLineItems($i),
         ]);
     }
@@ -366,7 +371,7 @@ class BillingController extends Controller
             'job_date' => $jobDate,
             'shipper_name' => $shipper,
             'consignee_name' => $consignee,
-            'party_name' => $shipper.' / '.$vessel,
+            'party_name' => $shipper,
             'port_of_loading' => $pol,
             'port_of_discharge' => $pod,
             'client_ref_no' => strtoupper(substr($pol, 0, 3)).(6374000 + $i).'-'.($i % 100),
@@ -378,6 +383,7 @@ class BillingController extends Controller
             'gst_amount' => $gstAmount,
             'net_invoice_amount' => $netAmount,
             'status' => $i % 2 === 0 ? 'Billed' : 'Ready for billing',
+            'vessel_name' => $vessel,
         ];
     }
 }

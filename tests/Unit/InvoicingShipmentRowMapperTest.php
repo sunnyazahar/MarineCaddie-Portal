@@ -75,4 +75,32 @@ class InvoicingShipmentRowMapperTest extends RegressionTestCase
         $this->assertSame('', $line['currency']);
         $this->assertSame('0.00', $line['amount']);
     }
+
+    public function test_party_name_uses_linked_stock_customer_name(): void
+    {
+        $customer = \App\Models\Customer::create(['customer_name' => 'CAMPBELL SHIPPING']);
+        \App\Models\CustomerVessel::create([
+            'customer_id' => $customer->id,
+            'vessel' => 'ANGEL',
+        ]);
+
+        $crr = Crr::create([
+            'stock_number' => 'INV-PARTY-STK-1',
+            'content' => 'Shipspares',
+            'status' => Crr::STATUS_IN_PROGRESS,
+            'vessel_name' => 'ANGEL',
+        ]);
+
+        $shipment = Shipment::create([
+            'shipment_number' => 'INV-PARTY-1',
+            'status' => 'Completed',
+            'service' => 'Airfreight',
+        ]);
+        $shipment->crrs()->attach($crr->id);
+
+        $row = app(InvoicingShipmentRowMapper::class)->map($shipment->fresh());
+
+        $this->assertSame('CAMPBELL SHIPPING', $row['party_name']);
+        $this->assertFalse($row['invoice_generated']);
+    }
 }

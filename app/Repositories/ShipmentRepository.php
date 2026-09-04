@@ -72,6 +72,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
         $query = $this->query()
             ->with([
                 'crrs.packages',
+                'crrs.customerVessel.customer',
                 'flights',
                 'seaLegs',
                 'truckLegs',
@@ -98,6 +99,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
         return $this->query()
             ->with([
                 'crrs.packages',
+                'crrs.customerVessel.customer',
                 'flights',
                 'seaLegs',
                 'truckLegs',

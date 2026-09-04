@@ -6,6 +6,7 @@
                 value="{{ $row['job_no'] }}"
                 data-po-no="{{ $row['client_ref_no'] }}"
                 data-party-name="{{ $row['party_name'] }}"
+                data-invoice-generated="{{ ! empty($row['invoice_generated']) ? '1' : '0' }}"
                 aria-label="Select row">
         </td>
         <td title="{{ $row['service_type'] }}">{{ $row['service_type'] }}</td>
@@ -48,7 +49,12 @@
                 <a href="{{ route('billing.invoicing.edit', ['proformaNo' => $row['job_no']]) }}" class="invoicing-row-action invoicing-row-action--edit" title="Edit invoice" aria-label="Edit invoice">
                     <i class="feather icon-edit"></i>
                 </a>
-                <a href="{{ route('billing.invoicing.print', ['proformaNo' => $row['job_no']]) }}" class="invoicing-row-action invoicing-row-action--print" title="Print invoice" aria-label="Print invoice" target="_blank" rel="noopener noreferrer">
+                <a href="{{ ! empty($row['invoice_generated']) ? route('billing.invoicing.print', ['proformaNo' => $row['job_no']]) : '#' }}"
+                    class="invoicing-row-action invoicing-row-action--print"
+                    title="{{ ! empty($row['invoice_generated']) ? 'Print invoice' : 'Generate invoice first' }}"
+                    aria-label="Print invoice"
+                    data-invoice-generated="{{ ! empty($row['invoice_generated']) ? '1' : '0' }}"
+                    @if (! empty($row['invoice_generated'])) target="_blank" rel="noopener noreferrer" @endif>
                     <i class="feather icon-printer"></i>
                 </a>
             </div>
