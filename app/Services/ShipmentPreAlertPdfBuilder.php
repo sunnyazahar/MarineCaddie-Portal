@@ -116,7 +116,6 @@ class ShipmentPreAlertPdfBuilder
                 'customs_value' => number_format($customsUsd, 2) . ' USD',
                 'description' => $description,
                 'stock_number' => $crr->stock_number ?? '—',
-                'location' => $crr->location ?: '—',
             ];
         });
 
@@ -332,6 +331,39 @@ class ShipmentPreAlertPdfBuilder
     }
 
     /**
+     * Public rows for compose/pre-alert mail service table (same shape as PDF).
+     *
+     * @return list<array{service: string, additional_service: string, departure_port: string, departure_date: string, flight: string, arrival_date: string, arrival_time: string, reference: string}>
+     */
+    public function serviceDetailRowsForMail(Shipment $shipment): array
+    {
+        $shipment->loadMissing([
+            'flights',
+            'seaLegs',
+            'truckLegs',
+            'courierLegs',
+            'releaseLegs',
+            'handCarryLegs',
+            'onBoardLegs',
+        ]);
+
+        return $this->buildServiceDetailRows($shipment);
+    }
+
+    public function flightColumnLabel(?string $service): string
+    {
+        return match ($service) {
+            'Sea freight' => 'Vessel',
+            'Truck' => 'Freight company',
+            'Courier' => 'Carrier',
+            'Release' => 'Freight company',
+            'Hand Carry' => 'Contact',
+            'On-board delivery' => 'Delivery',
+            default => 'Flight',
+        };
+    }
+
+    /**
      * @return list<array{service: string, additional_service: string, departure_port: string, departure_date: string, flight: string, arrival_date: string, arrival_time: string, reference: string}>
      */
     private function buildServiceDetailRows(Shipment $shipment): array
@@ -475,6 +507,38 @@ class ShipmentPreAlertPdfBuilder
     private function serviceHasReferenceColumn(?string $service): bool
     {
         return in_array($service, ['Airfreight', 'Sea freight', 'Truck', 'Courier'], true);
+    }
+
+    /**
+     * Subject token like "AWB:AS244444" / "B/L:MBL123" from the first service leg.
+     */
+    public function composeSubjectServiceReference(Shipment $shipment): ?string
+    {
+        if (! $this->serviceHasReferenceColumn($shipment->service)) {
+            return null;
+        }
+
+        $shipment->loadMissing([
+            'flights',
+            'seaLegs',
+            'truckLegs',
+            'courierLegs',
+        ]);
+
+        $value = match ($shipment->service) {
+            'Airfreight' => $shipment->flights->sortBy('sort_order')->first()?->leg_reference,
+            'Sea freight' => $shipment->seaLegs->sortBy('sort_order')->first()?->bill_of_lading,
+            'Truck' => $shipment->truckLegs->sortBy('sort_order')->first()?->cmr,
+            'Courier' => $shipment->courierLegs->sortBy('sort_order')->first()?->airway_bill,
+            default => null,
+        };
+
+        $value = trim((string) $value);
+        if ($value === '' || $value === '—') {
+            return null;
+        }
+
+        return $this->referenceColumnLabel($shipment->service) . ':' . $value;
     }
 
     /**

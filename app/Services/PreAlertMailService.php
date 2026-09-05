@@ -206,6 +206,19 @@ class PreAlertMailService
             $shipment->consignee_port_code,
             $shipment->consignee_city
         );
+        $serviceReference = $this->preAlertPdfBuilder->composeSubjectServiceReference($shipment);
+
+        if ($serviceReference !== null) {
+            return sprintf(
+                'Pre-alert for Ref. %s / %s / %s /%s/ From %s to %s',
+                $shipment->shipment_number,
+                $vessel,
+                $service,
+                $serviceReference,
+                $departure,
+                $destination
+            );
+        }
 
         return sprintf(
             'Pre-alert for Ref. %s / %s / %s / From %s to %s',
@@ -266,9 +279,7 @@ class PreAlertMailService
             '',
         ];
 
-        $lines[] = '**Service Details:**';
-        $lines[] = '';
-        array_push($lines, ...$this->preAlertPdfBuilder->composeMailServiceDetailLines($shipment));
+        array_push($lines, ...$this->buildComposeServiceDetailsSection($shipment));
         $lines[] = '';
         array_push($lines, ...$this->buildShippedToLines($shipment, $manifestData, $consigneeParty));
         $lines[] = '';
@@ -282,6 +293,52 @@ class PreAlertMailService
         $lines[] = 'Marinecaddie';
 
         return implode("\r\n", $lines);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function buildComposeServiceDetailsSection(Shipment $shipment): array
+    {
+        $reference = $this->preAlertPdfBuilder->composeSubjectServiceReference($shipment);
+        $heading = '**Service Details:**' . ($reference !== null ? ' ' . $reference : '');
+
+        $rows = $this->preAlertPdfBuilder->serviceDetailRowsForMail($shipment);
+        if ($rows === []) {
+            return [$heading];
+        }
+
+        $cell = 'border:0.5px solid #ccc;padding:5px 4px;text-align:left;vertical-align:top;font-size:13px;font-family:Arial, Helvetica, sans-serif;line-height:1.5;';
+        $th = $cell . 'background:#f3f4f6;font-weight:bold;';
+        $tableStyle = 'width:100%;border-collapse:collapse;font-size:13px;font-family:Arial, Helvetica, sans-serif;line-height:1.5;margin-top:8px;';
+        $flightLabel = $this->preAlertPdfBuilder->flightColumnLabel($shipment->service);
+        $tdOpen = '<td style="' . $cell . '">';
+
+        $rowsHtml = '';
+        foreach ($rows as $row) {
+            $rowsHtml .= '<tr>'
+                . $tdOpen . e((string) ($row['service'] ?? '—')) . '</td>'
+                . $tdOpen . e((string) ($row['departure_port'] ?? '—')) . '</td>'
+                . $tdOpen . e((string) ($row['departure_date'] ?? '—')) . '</td>'
+                . $tdOpen . e((string) ($row['flight'] ?? '—')) . '</td>'
+                . $tdOpen . e((string) ($row['arrival_date'] ?? '—')) . '</td>'
+                . $tdOpen . e((string) ($row['arrival_time'] ?? '—')) . '</td>'
+                . '</tr>';
+        }
+
+        $table = '<table style="' . $tableStyle . '">'
+            . '<thead><tr>'
+            . '<th style="' . $th . '">Service</th>'
+            . '<th style="' . $th . '">Departure port</th>'
+            . '<th style="' . $th . '">Departure date</th>'
+            . '<th style="' . $th . '">' . e($flightLabel) . '</th>'
+            . '<th style="' . $th . '">Arrival date</th>'
+            . '<th style="' . $th . '">Arrival time</th>'
+            . '</tr></thead><tbody>'
+            . $rowsHtml
+            . '</tbody></table>';
+
+        return [$heading, '', $table];
     }
 
     /**

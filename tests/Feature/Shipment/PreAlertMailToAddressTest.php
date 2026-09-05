@@ -212,7 +212,18 @@ class PreAlertMailToAddressTest extends RegressionTestCase
             'consignee_city' => 'Singapore',
         ]);
         $shipment->crrs()->attach($crr->id);
-        $shipment->load(['crrs.customerVessel.customer', 'crrs.packages']);
+
+        \App\Models\ShipmentFlight::create([
+            'shipment_id' => $shipment->id,
+            'sort_order' => 0,
+            'leg_reference' => '176-2222 8888',
+            'flight_number' => 'AI-2345',
+            'departure_date' => '2026-09-13',
+            'arrival_date' => '2026-09-16',
+            'arrival_time' => '22:22',
+        ]);
+
+        $shipment->load(['crrs.customerVessel.customer', 'crrs.packages', 'flights']);
 
         $method = new ReflectionMethod(PreAlertMailService::class, 'buildBody');
         $body = $method->invoke(
@@ -234,9 +245,98 @@ class PreAlertMailToAddressTest extends RegressionTestCase
         );
 
         $this->assertStringContainsString('Vessel: M/V ANGEL in transit', $body);
-        $this->assertStringContainsString('Service: Airfreight', $body);
-        $this->assertStringContainsString('Departure port:', $body);
+        $this->assertStringContainsString('**Service Details:** AWB:176-2222 8888', $body);
+        $this->assertStringContainsString('>Service</th>', $body);
+        $this->assertStringContainsString('>Departure port</th>', $body);
+        $this->assertStringContainsString('>Flight</th>', $body);
+        $this->assertStringContainsString('AI-2345', $body);
+        $this->assertStringContainsString('13.09.2026', $body);
+        $this->assertStringContainsString('16.09.2026', $body);
+        $this->assertStringContainsString('22:22', $body);
+        $this->assertStringNotContainsString('Service: Airfreight', $body);
+        $this->assertStringNotContainsString('Airway bill:', $body);
         $this->assertStringNotContainsString('(IMO:', $body);
         $this->assertStringNotContainsString('9123456', $body);
+    }
+
+    public function test_pre_alert_subject_includes_service_reference(): void
+    {
+        Port::create([
+            'type' => 'seaport',
+            'iata_code' => 'INBOM',
+            'name' => 'Bombay (Mumbai)',
+            'city' => 'Bombay (Mumbai)',
+            'is_active' => 1,
+        ]);
+        Port::create([
+            'type' => 'airport',
+            'iata_code' => 'INDEL',
+            'name' => 'New Delhi',
+            'city' => 'New Delhi',
+            'is_active' => 1,
+        ]);
+
+        $crr = Crr::create([
+            'stock_number' => 'SUBJ-STK-1',
+            'vessel_name' => 'ANGEL',
+            'content' => 'Shipspares',
+            'status' => Crr::STATUS_IN_PROGRESS,
+        ]);
+
+        $airShipment = Shipment::create([
+            'shipment_number' => 'AZA-86651-0926',
+            'status' => 'In process',
+            'service' => 'Airfreight',
+            'departure_port_code' => 'INBOM',
+            'consignee_port_code' => 'INDEL',
+            'consignee_city' => 'New Delhi',
+        ]);
+        $airShipment->crrs()->attach($crr->id);
+
+        \App\Models\ShipmentFlight::create([
+            'shipment_id' => $airShipment->id,
+            'sort_order' => 0,
+            'leg_reference' => 'AS244444',
+            'flight_number' => 'AI-2345',
+        ]);
+
+        $airShipment->load(['crrs', 'flights']);
+
+        $method = new ReflectionMethod(PreAlertMailService::class, 'buildSubject');
+        $subject = $method->invoke(
+            app(PreAlertMailService::class),
+            $airShipment,
+            []
+        );
+
+        $this->assertSame(
+            'Pre-alert for Ref. AZA-86651-0926 / ANGEL / Airfreight /AWB:AS244444/ From Bombay (Mumbai) to New Delhi',
+            $subject
+        );
+
+        $seaShipment = Shipment::create([
+            'shipment_number' => 'SEA-SUBJ-1',
+            'status' => 'In process',
+            'service' => 'Sea freight',
+            'departure_port_code' => 'INBOM',
+            'consignee_port_code' => 'INDEL',
+            'consignee_city' => 'New Delhi',
+        ]);
+        $seaShipment->crrs()->attach($crr->id);
+
+        \App\Models\ShipmentSeaLeg::create([
+            'shipment_id' => $seaShipment->id,
+            'sort_order' => 0,
+            'bill_of_lading' => 'MBL998877',
+            'transport_vessel_name' => 'OCEAN STAR',
+        ]);
+
+        $seaShipment->load(['crrs', 'seaLegs']);
+        $seaSubject = $method->invoke(app(PreAlertMailService::class), $seaShipment, []);
+
+        $this->assertSame(
+            'Pre-alert for Ref. SEA-SUBJ-1 / ANGEL / Sea freight /B/L:MBL998877/ From Bombay (Mumbai) to New Delhi',
+            $seaSubject
+        );
     }
 }
