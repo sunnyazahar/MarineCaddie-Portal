@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Support\MailBodyHtml;
+
 class EmlMessageBuilder
 {
     /**
@@ -18,8 +20,9 @@ class EmlMessageBuilder
     ): string {
         $fromEmail = trim($fromEmail) ?: 'noreply@example.com';
         $fromName = trim($fromName) ?: $fromEmail;
-        $body = str_replace(["\r\n", "\r"], "\n", $body);
-        $body = str_replace("\n", "\r\n", $body);
+        $htmlBody = MailBodyHtml::fromComposeBody($body);
+        $htmlBody = str_replace(["\r\n", "\r"], "\n", $htmlBody);
+        $htmlBody = str_replace("\n", "\r\n", $htmlBody);
 
         $mixedBoundary = '=_Mixed_' . bin2hex(random_bytes(8));
         $headers = [
@@ -46,14 +49,12 @@ class EmlMessageBuilder
 
         $headers[] = 'Content-Type: multipart/mixed; boundary="' . $mixedBoundary . '"';
 
-        $isHtml = (bool) preg_match('/<(table|br|strong|p)\b/i', $body);
-
         $parts = [
             '--' . $mixedBoundary,
-            'Content-Type: ' . ($isHtml ? 'text/html' : 'text/plain') . '; charset=UTF-8',
+            'Content-Type: text/html; charset=UTF-8',
             'Content-Transfer-Encoding: quoted-printable',
             '',
-            quoted_printable_encode($body),
+            quoted_printable_encode($htmlBody),
         ];
 
         foreach ($attachments as $attachment) {
@@ -70,7 +71,7 @@ class EmlMessageBuilder
 
         $parts[] = '--' . $mixedBoundary . '--';
 
-        return implode("\r\n", $headers) . "\r\n\r\n" . implode("\r\n", $parts);
+        return implode("\r\n", $headers) . "\r\n\n" . implode("\r\n", $parts);
     }
 
     /**

@@ -257,9 +257,7 @@ class PreAlertMailService
             'Shipment Ref. ' . $shipment->shipment_number,
             'From: ' . ($manifestData['departurePort'] ?? '—'),
             'To: ' . $destination,
-            'Vessel: ' . $this->preAlertPdfBuilder->formatMotorVesselName(
-                $manifestData['vesselLine'] ?? $shipment->crrs->pluck('vessel_name')->filter()->first()
-            ),
+            'Vessel: ' . $this->preAlertPdfBuilder->formatMailVesselLine($shipment),
             'Total packages: ' . ($totals['packages'] ?? '—'),
             'Total weight: ' . ($totals['weight'] ?? '—') . ' kg',
             'Estimated volume weight: ' . $volumeWeightLabel,
@@ -270,8 +268,7 @@ class PreAlertMailService
 
         $lines[] = '**Service Details:**';
         $lines[] = '';
-        $serviceDetailLines = $this->preAlertPdfBuilder->reminderMailServiceDetailLines($shipment);
-        array_push($lines, ...array_slice($serviceDetailLines, 2));
+        array_push($lines, ...$this->preAlertPdfBuilder->composeMailServiceDetailLines($shipment));
         $lines[] = '';
         array_push($lines, ...$this->buildShippedToLines($shipment, $manifestData, $consigneeParty));
         $lines[] = '';
@@ -306,10 +303,7 @@ class PreAlertMailService
             $shipment->consignee_port_code,
             $shipment->consignee_city
         );
-        $vesselLine = $manifestData['vesselLine']
-            ?? $this->preAlertPdfBuilder->formatMotorVesselName(
-                $shipment->crrs->pluck('vessel_name')->filter()->first()
-            );
+        $vesselLine = $this->preAlertPdfBuilder->formatMailVesselLine($shipment);
 
         $lines = [
             'This is to notify owner / management ' . $ownerName . ' about shipment from ' . $departure . ' to ' . $destination . ' with the below details',
@@ -320,8 +314,8 @@ class PreAlertMailService
             'Vessel: ' . $vesselLine,
         ];
 
-        $serviceDetailLines = $this->preAlertPdfBuilder->reminderMailServiceDetailLines($shipment);
-        array_push($lines, ...array_slice($serviceDetailLines, 2));
+        $serviceDetailLines = $this->preAlertPdfBuilder->composeMailServiceDetailLines($shipment);
+        array_push($lines, ...$serviceDetailLines);
         $lines[] = 'Customer reference: ' . (filled($shipment->customer_reference) ? $shipment->customer_reference : '—');
         $lines[] = '';
         $lines[] = '**Cargo / Item details:**';
@@ -350,9 +344,9 @@ class PreAlertMailService
         $shipment->loadMissing('crrs.packages');
         $currencyRates = $this->manifestPdfBuilder->currencyRatesByCode();
         $totalCustomsUsd = 0.0;
-        $cell = 'border:0.5px solid #ccc;padding:5px 4px;text-align:left;vertical-align:top;font-size:inherit;font-family:inherit;line-height:inherit;';
+        $cell = 'border:0.5px solid #ccc;padding:5px 4px;text-align:left;vertical-align:top;font-size:13px;font-family:Arial, Helvetica, sans-serif;line-height:1.5;';
         $th = $cell . 'background:#f3f4f6;font-weight:bold;';
-        $tableStyle = 'width:100%;border-collapse:collapse;font-size:inherit;font-family:inherit;line-height:inherit;margin-top:8px;';
+        $tableStyle = 'width:100%;border-collapse:collapse;font-size:13px;font-family:Arial, Helvetica, sans-serif;line-height:1.5;margin-top:8px;';
         $tdOpen = '<td style="' . $cell . '">';
         $rowsHtml = '';
 
@@ -519,7 +513,6 @@ class PreAlertMailService
         return $this->formatLegBlock('Sea leg ' . $number, [
             'Bill of lading' => $leg->bill_of_lading,
             'Container number' => $leg->container_number,
-            'Transport vessel IMO' => $leg->transport_vessel_imo,
             'Transport vessel name' => $leg->transport_vessel_name,
             'ETD' => $this->formatDate($leg->etd),
             'ETA' => $this->formatDate($leg->eta),

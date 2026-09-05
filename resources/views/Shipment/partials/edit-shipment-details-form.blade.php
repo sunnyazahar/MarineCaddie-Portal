@@ -336,7 +336,7 @@
                             </td>
                             <td>{{ $crr->packages->count() }}</td>
                             <td>{{ number_format($crr->packages->sum('weight'), 2) }}</td>
-                            <td>{{ number_format($crr->packages->sum('cbm'), 3) }}</td>
+                            <td>{{ \App\Support\PackageVolumeMetrics::formatCbm($crr->packages->sum('cbm')) }}</td>
                             <td>{{ $crr->customs_value ? number_format($crr->customs_value, 2) . ' ' . ($crr->currency ?? 'USD') : '—' }}</td>
                             <td><span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span></td>
                             <td style="text-align: center;"><button type="button" class="btn btn-link btn-sm p-0 remove-stock-item"><i class="ti-trash text-muted"></i></button></td>
@@ -360,7 +360,7 @@
             </div>
             <div class="stock-total-chip">
                 <span class="stock-total-chip__label">CBM</span>
-                <span class="stock-total-chip__value">{{ number_format($totalCbm, 2) }}</span>
+                <span class="stock-total-chip__value">{{ \App\Support\PackageVolumeMetrics::formatCbm($totalCbm) }}</span>
             </div>
             <div class="stock-total-chip">
                 <span class="stock-total-chip__label">Value</span>

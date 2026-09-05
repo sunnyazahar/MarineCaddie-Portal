@@ -137,7 +137,7 @@ class PreAlertMailToAddressTest extends RegressionTestCase
             app(PreAlertMailService::class),
             $shipment,
             [
-                'vesselLine' => 'M/V ANGEL (IMO: 9590620) in transit',
+                'vesselLine' => 'M/V ANGEL in transit',
                 'totals' => [
                     'packages' => 1,
                     'weight' => 11,
@@ -155,7 +155,8 @@ class PreAlertMailToAddressTest extends RegressionTestCase
             $body
         );
         $this->assertStringContainsString('Shipment Ref. AZA-33967-0926', $body);
-        $this->assertStringContainsString('Vessel: M/V ANGEL (IMO: 9590620) in transit', $body);
+        $this->assertStringContainsString('Vessel: M/V ANGEL in transit', $body);
+        $this->assertStringNotContainsString('(IMO:', $body);
         $this->assertStringContainsString('Departure date: 04.09.2026', $body);
         $this->assertStringContainsString('Delivery date: 05.09.2026', $body);
         $this->assertStringContainsString('Delivery time:', $body);
@@ -181,5 +182,61 @@ class PreAlertMailToAddressTest extends RegressionTestCase
         $this->assertStringNotContainsString('Please do the needful.', $body);
         $this->assertStringNotContainsString('Please find attached', $body);
         $this->assertStringContainsString("With kind regards,\r\n\r\nAzahar\r\nsunnyazahar@gmail.com\r\nMarinecaddie", $body);
+    }
+
+    public function test_pre_alert_compose_body_omits_vessel_imo(): void
+    {
+        $customer = Customer::create([
+            'customer_name' => 'Owner Co',
+            'email' => 'owner@test.com',
+        ]);
+
+        CustomerVessel::create([
+            'customer_id' => $customer->id,
+            'vessel' => 'ANGEL',
+        ]);
+
+        $crr = Crr::create([
+            'stock_number' => 'IMO-STK-1',
+            'vessel_name' => 'ANGEL',
+            'content' => 'Shipspares',
+            'status' => Crr::STATUS_IN_PROGRESS,
+        ]);
+
+        $shipment = Shipment::create([
+            'shipment_number' => 'VESSEL-MAIL-1',
+            'status' => 'In process',
+            'service' => 'Airfreight',
+            'departure_port_code' => 'AEJEA',
+            'consignee_port_code' => 'SGSIN',
+            'consignee_city' => 'Singapore',
+        ]);
+        $shipment->crrs()->attach($crr->id);
+        $shipment->load(['crrs.customerVessel.customer', 'crrs.packages']);
+
+        $method = new ReflectionMethod(PreAlertMailService::class, 'buildBody');
+        $body = $method->invoke(
+            app(PreAlertMailService::class),
+            $shipment,
+            [
+                'vesselLine' => 'M/V ANGEL (IMO: 9123456) in transit',
+                'departurePort' => 'Jebel Ali',
+                'totals' => [
+                    'packages' => 0,
+                    'weight' => 0,
+                    'volume_weight' => 0,
+                    'cbm' => 0,
+                ],
+            ],
+            ['name' => 'Agent', 'email' => 'agent@test.com'],
+            'Azahar',
+            'sunnyazahar@gmail.com'
+        );
+
+        $this->assertStringContainsString('Vessel: M/V ANGEL in transit', $body);
+        $this->assertStringContainsString('Service: Airfreight', $body);
+        $this->assertStringContainsString('Departure port:', $body);
+        $this->assertStringNotContainsString('(IMO:', $body);
+        $this->assertStringNotContainsString('9123456', $body);
     }
 }

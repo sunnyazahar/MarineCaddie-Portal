@@ -1342,11 +1342,18 @@ class MigratedBladeViewsTest extends RegressionTestCase
     {
         $edit = file_get_contents(resource_path('views/Shipment/edit.blade.php'));
         $reminder = file_get_contents(resource_path('views/Shipment/partials/reminder-compose-modal.blade.php'));
+        $colorTools = file_get_contents(resource_path('views/partials/compose-color-tools.blade.php'));
+        $fontTools = file_get_contents(resource_path('views/partials/compose-font-tools.blade.php'));
 
         $this->assertStringContainsString("partials.compose-color-tools", $edit);
         $this->assertStringContainsString("partials.compose-color-tools", $reminder);
-        $this->assertStringContainsString('compose-font-color', file_get_contents(resource_path('views/partials/compose-color-tools.blade.php')));
-        $this->assertStringContainsString('compose-highlight-color', file_get_contents(resource_path('views/partials/compose-color-tools.blade.php')));
+        $this->assertStringContainsString("partials.compose-font-tools", $edit);
+        $this->assertStringContainsString("partials.compose-font-tools", $reminder);
+        $this->assertStringContainsString('compose-color-picker', $colorTools);
+        $this->assertStringContainsString('data-color-mode="fore"', $colorTools);
+        $this->assertStringContainsString('data-color-mode="highlight"', $colorTools);
+        $this->assertStringContainsString('compose-font-family', $fontTools);
+        $this->assertStringContainsString('compose-font-size', $fontTools);
     }
 
     public function test_shipment_transit_page_uses_finalize_shipment_header_action(): void

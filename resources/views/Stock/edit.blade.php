@@ -3451,7 +3451,7 @@
                                                 <div class="crr-table-header__title">
                                                     <span class="crr-table-header__icon" aria-hidden="true"><i class="icofont icofont-box"></i></span>
                                                     <span class="crr-table-header__label">Packages</span>
-                                                    <span id="package-summary-text" class="package-summary-badge">(Total : 0.00 kg, 0 Packages, 0.0000 CBM)</span>
+                                                    <span id="package-summary-text" class="package-summary-badge">(Total : 0.00 kg, 0 Packages, 0.00 CBM)</span>
                                             </div>
                                                 <button type="button" class="btn btn-outline-teal btn-add-package">Add item</button>
                                             </div>
@@ -3504,7 +3504,7 @@
                                                                          value="{{ $pkg->weight }}"></td>
                                                                  <td><input type="text" class="crr-input pkg-cbm"
                                                                          name="packages[{{ $index }}][cbm]" readonly
-                                                                         value="{{ $pkg->cbm }}"></td>
+                                                                         value="{{ \App\Support\PackageVolumeMetrics::formatCbm($pkg->cbm, '0') }}"></td>
                                                                  <td><input type="text" class="crr-input"
                                                                          name="packages[{{ $index }}][warehouse_location]"
                                                                          value="{{ $pkg->warehouse_location }}"></td>
@@ -4966,7 +4966,7 @@ function updatePackageSummary() {
                     count++;
                 });
 
-                $('#package-summary-text').text(`(Total : ${totalWeight.toFixed(2)} kg, ${count} Packages, ${totalCbm.toFixed(4)} CBM)`);
+                $('#package-summary-text').text(`(Total : ${totalWeight.toFixed(2)} kg, ${count} Packages, ${totalCbm.toFixed(2)} CBM)`);
             }
 
             // Initial summary
@@ -4979,7 +4979,7 @@ function updatePackageSummary() {
                 let w = parseFloat(row.find('.pkg-w').val()) || 0;
                 let h = parseFloat(row.find('.pkg-h').val()) || 0;
                 let cbm = (l * w * h) / 1000000;
-                row.find('.pkg-cbm').val(cbm.toFixed(4));
+                row.find('.pkg-cbm').val(cbm.toFixed(2));
                 updatePackageSummary();
             });
 

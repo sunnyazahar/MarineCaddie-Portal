@@ -2918,7 +2918,7 @@
         #compose-manifest-mail-modal .compose-editor-wrap {
             border: 1px solid #d1d5db;
             border-radius: 4px;
-            overflow: hidden;
+            overflow: visible;
             background: #fff;
         }
         #compose-manifest-mail-modal .compose-toolbar {
@@ -2929,6 +2929,8 @@
             padding: 8px 10px;
             border-bottom: 1px solid #e5e7eb;
             background: #fafafa;
+            position: relative;
+            z-index: 2;
         }
         #compose-manifest-mail-modal .compose-toolbar select {
             height: 28px;
@@ -2956,6 +2958,7 @@
             background: #e5e7eb;
             color: #111827;
         }
+        @include('partials.compose-font-tools-styles')
         @include('partials.compose-color-tools-styles')
         #compose-manifest-mail-modal .compose-editor {
             min-height: 220px;
@@ -2963,6 +2966,7 @@
             overflow-y: auto;
             padding: 12px 14px;
             font-size: 13px;
+            font-family: Arial, Helvetica, sans-serif;
             line-height: 1.5;
             color: #111827;
             outline: none;
@@ -2971,9 +2975,9 @@
         #compose-manifest-mail-modal .compose-editor table {
             width: 100%;
             border-collapse: collapse;
-            font-size: inherit !important;
-            font-family: inherit !important;
-            line-height: inherit !important;
+            font-size: 13px !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            line-height: 1.5 !important;
             margin: 8px 0;
             white-space: normal;
         }
@@ -2983,9 +2987,9 @@
             padding: 5px 4px;
             text-align: left;
             vertical-align: top;
-            font-size: inherit !important;
-            font-family: inherit !important;
-            line-height: inherit !important;
+            font-size: 13px !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            line-height: 1.5 !important;
         }
         #compose-manifest-mail-modal .compose-editor th {
             background: #f3f4f6;
@@ -3522,8 +3526,7 @@
                                                             data-eml-url="{{ route('shipments.manifest-mail', $shipmentRouteId) }}"
                                                             data-eml-filename="manifest-mail-{{ $shipment->shipment_number }}.eml"
                                                             data-manifest-mail-pending="{{ $manifestMailPending ? '1' : '0' }}"
-                                                            @disabled(! $manifestMailPending)
-                                                            title="{{ $manifestMailPending ? 'New manifest ready — send email' : 'Send manifest after a new manifest is generated' }}">Send manifest</button>
+                                                            title="{{ $manifestMailPending ? 'Changes ready — send updated manifest email' : 'Send manifest email' }}">Send manifest</button>
                                                         @if($manifestRevision)
                                                             <span class="manifest-rev-badge">MI Rev - {{ $manifestRevision }}</span>
                                                         @endif
@@ -3540,8 +3543,8 @@
                                                         id="send-prealert-btn"
                                                         class="btn btn-premium btn-outline-custom{{ $preAlertMailPending ? ' send-prealert-pending' : '' }}"
                                                         data-pre-alert-mail-pending="{{ $preAlertMailPending ? '1' : '0' }}"
-                                                        @disabled($workflowAwaitingShipment || ! $preAlertMailPending)
-                                                        title="{{ $workflowAwaitingShipment ? 'Load a shipment first' : ($preAlertMailPending ? 'New pre-alert ready — send email' : 'Send pre-alert after a new pre-alert is generated') }}">Send pre-alert</button>
+                                                        @disabled($workflowAwaitingShipment)
+                                                        title="{{ $workflowAwaitingShipment ? 'Load a shipment first' : ($preAlertMailPending ? 'Changes ready — send updated pre-alert email' : 'Send pre-alert email') }}">Send pre-alert</button>
                                                     <button type="button"
                                                         id="complete-prealert-btn"
                                                         class="btn btn-premium btn-outline-custom"
@@ -4465,17 +4468,11 @@
                 </div>
                 <div class="compose-editor-wrap">
                     <div class="compose-toolbar">
-                        <select id="compose-font-size" title="Text style">
-                            <option value="3">A Normal text</option>
-                            <option value="2">Small</option>
-                            <option value="4">Large</option>
-                            <option value="5">Heading</option>
-                        </select>
+                        @include('partials.compose-font-tools')
                         <button type="button" class="compose-tool-btn" data-cmd="bold" title="Bold"><strong>B</strong></button>
                         <button type="button" class="compose-tool-btn" data-cmd="italic" title="Italic"><em>I</em></button>
                         <button type="button" class="compose-tool-btn" data-cmd="underline" title="Underline"><u>U</u></button>
                         @include('partials.compose-color-tools')
-                        <button type="button" class="compose-tool-btn" data-cmd="fontSize" data-value="2" title="Small">Small</button>
                         <button type="button" class="compose-tool-btn" data-cmd="formatBlock" data-value="blockquote" title="Quote"><i class="ti-quote-left"></i></button>
                         <button type="button" class="compose-tool-btn" data-cmd="insertUnorderedList" title="Bulleted list"><i class="ti-list"></i></button>
                         <button type="button" class="compose-tool-btn" data-cmd="insertOrderedList" title="Numbered list"><i class="ti-list-ol"></i></button>
@@ -4802,13 +4799,14 @@
                 return;
             }
 
+            var shipmentLoaded = @json((int) $shipmentRouteId) > 0;
             $btn
                 .toggleClass('send-manifest-pending', manifestMailPending)
                 .attr('data-manifest-mail-pending', manifestMailPending ? '1' : '0')
-                .prop('disabled', !manifestMailPending)
+                .prop('disabled', !shipmentLoaded)
                 .attr('title', manifestMailPending
-                    ? 'New manifest ready — send email'
-                    : 'Send manifest after a new manifest is generated');
+                    ? 'Changes ready — send updated manifest email'
+                    : 'Send manifest email');
         }
 
         function restoreSendManifestButton(originalText) {
@@ -5042,15 +5040,21 @@
         function setPreAlertMailPendingState(isPending) {
             preAlertMailPending = !!isPending;
             var $btn = $('#send-prealert-btn');
-            if ($btn.length) {
-                $btn
-                    .toggleClass('send-prealert-pending', preAlertMailPending)
-                    .attr('data-pre-alert-mail-pending', preAlertMailPending ? '1' : '0')
-                    .prop('disabled', !preAlertMailPending)
-                    .attr('title', preAlertMailPending
-                        ? 'New pre-alert ready — send email'
-                        : 'Send pre-alert after a new pre-alert is generated');
+            if (!$btn.length) {
+                return;
             }
+
+            var shipmentLoaded = @json((int) $shipmentRouteId) > 0;
+            var workflowAwaitingShipment = @json((bool) ($workflowAwaitingShipment ?? false));
+            $btn
+                .toggleClass('send-prealert-pending', preAlertMailPending)
+                .attr('data-pre-alert-mail-pending', preAlertMailPending ? '1' : '0')
+                .prop('disabled', workflowAwaitingShipment || !shipmentLoaded)
+                .attr('title', workflowAwaitingShipment || !shipmentLoaded
+                    ? 'Load a shipment first'
+                    : (preAlertMailPending
+                        ? 'Changes ready — send updated pre-alert email'
+                        : 'Send pre-alert email'));
         }
 
         function restoreSendPreAlertButton(originalText) {
@@ -5739,7 +5743,7 @@
                 cc: $.trim($('#compose-mail-cc').val() || ''),
                 bcc: $.trim($('#compose-mail-bcc').val() || ''),
                 subject: $.trim($('#compose-mail-subject').val() || ''),
-                body: editorHtmlToPlainText($('#compose-mail-body').html())
+                body: $('#compose-mail-body').html() || ''
             };
         }
 
@@ -5780,11 +5784,6 @@
             var value = $(this).data('value') || null;
             $('#compose-mail-body').focus();
             document.execCommand(cmd, false, value);
-        });
-
-        $(document).on('change', '#compose-font-size', function() {
-            $('#compose-mail-body').focus();
-            document.execCommand('fontSize', false, $(this).val());
         });
 
         $(document).on('click', '#compose-insert-link', function(e) {
@@ -8145,6 +8144,11 @@
                 var statusClass = 'stock-status-badge ' + stockStatusBadgeClass(status);
                 var stockNumber = $modalRow.data('stock') || '—';
                 var stockEditUrl = stockEditUrlTemplate.replace('__CRR_ID__', encodeURIComponent(id));
+                var cbmRaw = $modalRow.data('cbm');
+                var cbmNum = parseFloat(cbmRaw);
+                var cbm = (cbmRaw === '' || cbmRaw === null || typeof cbmRaw === 'undefined')
+                    ? '—'
+                    : (isNaN(cbmNum) ? String(cbmRaw) : cbmNum.toFixed(2));
                 var rowHtml = '<tr class="selected-stock-row" data-crr-id="' + id + '" data-hub-key="' + hubKey + '">' +
                     '<td>' + hub + '</td>' +
                     '<td>' + ($modalRow.data('vessel') || '—') + '</td>' +
@@ -8153,7 +8157,7 @@
                     '<td><a href="' + stockEditUrl + '" class="text-primary">' + $('<div>').text(stockNumber).html() + '</a></td>' +
                     '<td>' + ($modalRow.data('items') || '—') + '</td>' +
                     '<td>' + ($modalRow.data('weight') || '—') + '</td>' +
-                    '<td>' + ($modalRow.data('cbm') || '—') + '</td>' +
+                    '<td>' + cbm + '</td>' +
                     '<td>' + ($modalRow.data('value') || '—') + '</td>' +
                     '<td><span class="' + statusClass + '">' + status + '</span></td>' +
                     '<td style="text-align:center;"><button type="button" class="btn btn-link btn-sm p-0 remove-stock-item"><i class="ti-trash text-muted"></i></button></td>' +
@@ -8655,6 +8659,7 @@
                 $(this).remove();
             });
         }, 500);
+        @include('partials.compose-font-tools-script')
         @include('partials.compose-color-tools-script')
     });
 </script>

@@ -20,6 +20,8 @@ class PackageVolumeMetricsTest extends RegressionTestCase
         $this->assertSame(128.0, PackageVolumeMetrics::totalAirVolumeWeightKg(collect([$package])));
         $this->assertSame(153.6, PackageVolumeMetrics::totalCourierVolumeWeightKg(collect([$package])));
         $this->assertSame(0.77, PackageVolumeMetrics::totalCbm(collect([$package])));
+        $this->assertSame('0.77', PackageVolumeMetrics::formatCbm(0.768));
+        $this->assertSame('0.00', PackageVolumeMetrics::formatCbm(null));
     }
 
     public function test_air_volume_weight_falls_back_to_cbm_when_dimensions_missing(): void

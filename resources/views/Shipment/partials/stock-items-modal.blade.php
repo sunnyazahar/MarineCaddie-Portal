@@ -125,6 +125,7 @@
                                     $poNumbers = is_array($crr->po_numbers) ? implode(', ', $crr->po_numbers) : ($crr->po_numbers ?? '');
                                     $totalItems = $crr->packages->count();
                                     $totalWeight = $crr->packages->sum('weight');
+                                    $totalCbm = \App\Support\PackageVolumeMetrics::totalCbm($crr->packages);
                                     $hasDgr = $crr->packages->where('is_dgr', true)->isNotEmpty();
                                     $hasDocs = $crr->documents->isNotEmpty();
                                     $isNotStackable = $crr->packages->where('is_not_stackable', true)->isNotEmpty();
@@ -143,7 +144,7 @@
                                     data-supplier="{{ $crr->supplier ?? '' }}"
                                     data-items="{{ $totalItems }}"
                                     data-weight="{{ $totalWeight > 0 ? number_format($totalWeight, 2, '.', '') : '' }}"
-                                    data-cbm="{{ $crr->cbm ?? '' }}"
+                                    data-cbm="{{ $totalCbm > 0 ? \App\Support\PackageVolumeMetrics::formatCbm($totalCbm) : '' }}"
                                     data-value="{{ $crr->customs_value ? number_format($crr->customs_value, 2, '.', '') : '' }}">
                                     <td class="text-center">
                                         <input type="checkbox"

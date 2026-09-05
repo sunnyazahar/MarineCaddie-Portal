@@ -382,7 +382,7 @@
                 <tr>
                     <td style="padding: 4px; ">Total Seafright (CBM)</td>
                     <td style="padding: 4px; font-weight: bold;">
-                        {{ number_format($grandTotalCbm, 4, '.', ' ') }} CBM
+                        {{ number_format($grandTotalCbm, 2, '.', ' ') }} CBM
                     </td>
                 </tr>
                 <tr>

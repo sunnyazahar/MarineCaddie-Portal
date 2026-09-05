@@ -6,6 +6,7 @@ var reminderComposeSender = @json([
 ]);
 var reminderContactsSearchTimer = null;
 
+@include('partials.compose-font-tools-script')
 @include('partials.compose-color-tools-script')
 
 function fillReminderComposeFrom(preview) {
@@ -254,11 +255,6 @@ $(document).on('click', '#compose-reminder-modal .compose-tool-btn', function(e)
     $('#reminder-mail-body').focus();
 });
 
-$(document).on('change', '#reminder-font-size', function() {
-    document.execCommand('fontSize', false, $(this).val());
-    $('#reminder-mail-body').focus();
-});
-
 $(document).on('click', '#reminder-attachment-btn', function() {
     $('#reminder-attachment-input').trigger('click');
 });
@@ -396,7 +392,7 @@ $(document).on('click', '#reminder-mail-send', function() {
     formData.append('cc', $.trim($('#reminder-mail-cc').val() || ''));
     formData.append('bcc', $.trim($('#reminder-mail-bcc').val() || ''));
     formData.append('subject', subject);
-    formData.append('body', reminderEditorToPlainText($('#reminder-mail-body').html()));
+    formData.append('body', $('#reminder-mail-body').html() || '');
     (pendingReminderMail.attachments || []).forEach(function(item) {
         formData.append('files[]', item.file, item.file.name);
     });

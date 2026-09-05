@@ -46,17 +46,11 @@
                 </div>
                 <div class="compose-editor-wrap">
                     <div class="compose-toolbar">
-                        <select id="reminder-font-size" title="Text style">
-                            <option value="3">A Normal text</option>
-                            <option value="2">Small</option>
-                            <option value="4">Large</option>
-                            <option value="5">Heading</option>
-                        </select>
+                        @include('partials.compose-font-tools')
                         <button type="button" class="compose-tool-btn" data-cmd="bold" title="Bold"><strong>B</strong></button>
                         <button type="button" class="compose-tool-btn" data-cmd="italic" title="Italic"><em>I</em></button>
                         <button type="button" class="compose-tool-btn" data-cmd="underline" title="Underline"><u>U</u></button>
                         @include('partials.compose-color-tools')
-                        <button type="button" class="compose-tool-btn" data-cmd="fontSize" data-value="2" title="Small">Small</button>
                         <button type="button" class="compose-tool-btn" data-cmd="formatBlock" data-value="blockquote" title="Quote"><i class="ti-quote-left"></i></button>
                         <button type="button" class="compose-tool-btn" data-cmd="insertUnorderedList" title="Bulleted list"><i class="ti-list"></i></button>
                         <button type="button" class="compose-tool-btn" data-cmd="insertOrderedList" title="Numbered list"><i class="ti-list-ol"></i></button>

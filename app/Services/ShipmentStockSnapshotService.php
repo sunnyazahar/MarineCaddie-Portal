@@ -44,7 +44,7 @@ class ShipmentStockSnapshotService
                 'stock_number' => $crr->stock_number,
                 'pieces_count' => $packages->count(),
                 'total_weight' => round((float) $packages->sum('weight'), 2),
-                'total_cbm' => round((float) $packages->sum('cbm'), 4),
+                'total_cbm' => round((float) $packages->sum('cbm'), 2),
                 'customs_value' => $crr->customs_value,
                 'currency' => $crr->currency,
                 'status_label' => Crr::getStatusLabels()[(int) $crr->status] ?? 'Completed',

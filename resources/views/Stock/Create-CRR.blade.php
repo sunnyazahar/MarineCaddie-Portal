@@ -1555,7 +1555,7 @@
                                                         id="package-summary-text"
                                                         style="font-weight: normal; color: #000000; font-weight: 600;">(Total
                                                         : 0.00 kg, 0
-                                                        Packages, 0.0000 CBM)</span></span></div>
+                                                        Packages, 0.00 CBM)</span></span></div>
                                             <div id="packages-validation-error" style="display:none; margin-bottom: 10px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 12px; position: relative; padding-right: 32px;">
                                                 <span id="packages-validation-error-text"></span>
                                                 <button type="button" id="packages-validation-error-close" title="Close" aria-label="Close" style="position: absolute; top: 6px; right: 8px; border: none; background: transparent; color: #b91c1c; font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 4px;">&times;</button>
@@ -1826,7 +1826,7 @@
                 count++;
             });
 
-            $('#package-summary-text').text(`(Total : ${totalWeight.toFixed(2)} kg, ${count} Packages, ${totalCbm.toFixed(4)} CBM)`);
+            $('#package-summary-text').text(`(Total : ${totalWeight.toFixed(2)} kg, ${count} Packages, ${totalCbm.toFixed(2)} CBM)`);
         }
         $(document).ready(function () {
             $('body').addClass('create-crr-page');
@@ -2381,7 +2381,7 @@
                 let w = parseFloat(row.find('.pkg-w').val()) || 0;
                 let h = parseFloat(row.find('.pkg-h').val()) || 0;
                 let cbm = (l * w * h) / 1000000;
-                row.find('.pkg-cbm').val(cbm.toFixed(4));
+                row.find('.pkg-cbm').val(cbm.toFixed(2));
                 updatePackageSummary();
             });
 

@@ -527,7 +527,7 @@ class CrrController extends Controller
             $this->formatExcelDate($crr->actual_delivery_date),
             $packages->contains(fn ($pkg) => (bool) $pkg->is_dgr) ? 'Yes' : '',
             $dimensions,
-            $totalCbm > 0 ? rtrim(rtrim(number_format($totalCbm, 5, '.', ''), '0'), '.') : '',
+            $totalCbm > 0 ? \App\Support\PackageVolumeMetrics::formatCbm($totalCbm) : '',
             $volumeWeight > 0 ? number_format($volumeWeight, 2, '.', '') : '',
         ];
     }

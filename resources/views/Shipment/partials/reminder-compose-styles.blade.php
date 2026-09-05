@@ -136,7 +136,7 @@
     text-align: center;
 }
 #compose-reminder-modal .compose-editor-wrap {
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid #d1d5db;
     border-radius: 4px;
     background: #fff;
@@ -149,6 +149,8 @@
     padding: 8px 10px;
     border-bottom: 1px solid #e5e7eb;
     background: #fafafa;
+    position: relative;
+    z-index: 2;
 }
 #compose-reminder-modal .compose-toolbar select {
     height: 28px;
@@ -176,6 +178,7 @@
     background: #e5e7eb;
     color: #111827;
 }
+@include('partials.compose-font-tools-styles')
 @include('partials.compose-color-tools-styles')
 #compose-reminder-modal .compose-editor {
     min-height: 220px;
@@ -184,6 +187,7 @@
     padding: 12px 14px;
     color: #111827;
     font-size: 13px;
+    font-family: Arial, Helvetica, sans-serif;
     line-height: 1.5;
     white-space: pre-wrap;
     outline: none;

@@ -109,4 +109,16 @@ final class PackageVolumeMetrics
     {
         return round($value, 2);
     }
+
+    /**
+     * Display CBM with exactly 2 decimal places (project-wide).
+     */
+    public static function formatCbm(float|int|string|null $value, string $empty = '0.00'): string
+    {
+        if ($value === null || $value === '') {
+            return $empty;
+        }
+
+        return number_format(self::round2((float) $value), 2, '.', '');
+    }
 }

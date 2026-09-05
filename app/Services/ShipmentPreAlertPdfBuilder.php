@@ -47,6 +47,8 @@ class ShipmentPreAlertPdfBuilder
         $serviceDetailRows = $this->buildServiceDetailRows($shipment);
 
         $primaryVessel = $this->formatMotorVesselName($shipment->crrs->pluck('vessel_name')->filter()->first());
+        // Pre-alert PDF/email: vessel name + transit suffix only (no IMO).
+        $vesselLine = $this->formatMailVesselLine($shipment);
         $awb = $serviceDetails['awb'] ?? '—';
         $flightNumber = $serviceDetails['flight_number'] ?? '—';
         $arrivalDate = $serviceDetails['arrival_date'] ?? ($shipment->deadline_arrival?->format('d.m.Y') ?? '—');
@@ -185,7 +187,7 @@ class ShipmentPreAlertPdfBuilder
             'issuedByName' => $issuedByName,
             'issuedByAddress' => $issuedByAddress,
             'primaryVessel' => $primaryVessel,
-            'vesselLine' => $base['vesselLine'] ?? $primaryVessel,
+            'vesselLine' => $vesselLine !== '' ? $vesselLine : ($primaryVessel ?: '—'),
             'serviceLabel' => $serviceLabel,
             'customerReference' => $shipment->customer_reference ?? '—',
             'customerName' => $ownerName,
@@ -491,8 +493,6 @@ class ShipmentPreAlertPdfBuilder
             'onBoardLegs',
         ]);
 
-        $serviceDetails = $this->buildServiceDetails($shipment);
-
         $vessel = $shipment->crrs->pluck('vessel_name')->filter()->first() ?? '—';
         $serviceLabel = filled($shipment->additional_service)
             ? trim(($shipment->service ?? '—') . ', ' . $shipment->additional_service)
@@ -518,18 +518,64 @@ class ShipmentPreAlertPdfBuilder
     }
 
     /**
+     * Compose/pre-alert body: Service + every leg for this shipment (Vessel already in Shipment Details).
+     *
+     * @return array<int, string>
+     */
+    public function composeMailServiceDetailLines(Shipment $shipment): array
+    {
+        return array_values(array_slice($this->reminderMailServiceDetailLines($shipment), 1));
+    }
+
+    /**
      * @return array<int, string>
      */
     private function airfreightReminderLines(Shipment $shipment): array
     {
-        $flight = $shipment->flights->first();
+        $flights = $shipment->flights->sortBy('sort_order')->values();
+        $departurePort = $this->simplePortLabel($shipment->departure_port_code, null, null);
 
-        return [
-            'Airway bill: ' . $this->displayValue($flight?->leg_reference),
-            'Flight number: ' . $this->displayValue($flight?->flight_number),
-            'Departure date: ' . $this->displayValue($flight ? $this->formatDate($flight->departure_date) : null),
-            'Arrival date: ' . $this->displayArrivalDate($flight?->arrival_date, $flight?->arrival_time),
-        ];
+        if ($flights->isEmpty()) {
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'Airway bill: ',
+                'Flight number: ',
+                'Departure date: ',
+                'Arrival date: ',
+            ];
+        }
+
+        if ($flights->count() === 1) {
+            $flight = $flights->first();
+
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'Airway bill: ' . $this->displayValue($flight->leg_reference),
+                'Flight number: ' . $this->displayValue($flight->flight_number),
+                'Departure date: ' . $this->displayValue($this->formatDate($flight->departure_date)),
+                'Arrival date: ' . $this->displayArrivalDate($flight->arrival_date, $flight->arrival_time),
+            ];
+        }
+
+        $lines = [];
+        foreach ($flights as $index => $flight) {
+            $isFirst = $index === 0;
+            $lines[] = 'Flight ' . ($index + 1) . ':';
+            $lines[] = 'Departure port: ' . $this->displayValue(
+                $isFirst ? $departurePort : $this->simplePortLabel($flight->leg_reference)
+            );
+            if ($isFirst) {
+                $lines[] = 'Airway bill: ' . $this->displayValue($flight->leg_reference);
+            }
+            $lines[] = 'Flight number: ' . $this->displayValue($flight->flight_number);
+            $lines[] = 'Departure date: ' . $this->displayValue($this->formatDate($flight->departure_date));
+            $lines[] = 'Arrival date: ' . $this->displayArrivalDate($flight->arrival_date, $flight->arrival_time);
+            if ($index < $flights->count() - 1) {
+                $lines[] = '';
+            }
+        }
+
+        return $lines;
     }
 
     /**
@@ -537,14 +583,53 @@ class ShipmentPreAlertPdfBuilder
      */
     private function seaFreightReminderLines(Shipment $shipment): array
     {
-        $leg = $shipment->seaLegs->first();
+        $legs = $shipment->seaLegs->sortBy('sort_order')->values();
+        $departurePort = $this->simplePortLabel($shipment->departure_port_code, null, null);
 
-        return [
-            'B/L: ' . $this->displayValue($leg?->bill_of_lading),
-            'Vessel Name: ' . $this->displayValue($leg?->transport_vessel_name),
-            'Departure date: ' . $this->displayValue($leg ? $this->formatDate($leg->etd) : null),
-            'Arrival date: ' . $this->displayArrivalDate($leg?->eta, $leg?->arrival_time),
-        ];
+        if ($legs->isEmpty()) {
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'B/L: ',
+                'Container number: ',
+                'Vessel Name: ',
+                'Departure date: ',
+                'Arrival date: ',
+            ];
+        }
+
+        if ($legs->count() === 1) {
+            $leg = $legs->first();
+
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'B/L: ' . $this->displayValue($leg->bill_of_lading),
+                'Container number: ' . $this->displayValue($leg->container_number),
+                'Vessel Name: ' . $this->displayValue($leg->transport_vessel_name),
+                'Departure date: ' . $this->displayValue($this->formatDate($leg->etd)),
+                'Arrival date: ' . $this->displayArrivalDate($leg->eta, $leg->arrival_time),
+            ];
+        }
+
+        $lines = [];
+        foreach ($legs as $index => $leg) {
+            $isFirst = $index === 0;
+            $lines[] = 'Sea leg ' . ($index + 1) . ':';
+            $lines[] = 'Departure port: ' . $this->displayValue(
+                $isFirst ? $departurePort : $this->simplePortLabel($leg->bill_of_lading)
+            );
+            if ($isFirst) {
+                $lines[] = 'B/L: ' . $this->displayValue($leg->bill_of_lading);
+            }
+            $lines[] = 'Container number: ' . $this->displayValue($leg->container_number);
+            $lines[] = 'Vessel Name: ' . $this->displayValue($leg->transport_vessel_name);
+            $lines[] = 'Departure date: ' . $this->displayValue($this->formatDate($leg->etd));
+            $lines[] = 'Arrival date: ' . $this->displayArrivalDate($leg->eta, $leg->arrival_time);
+            if ($index < $legs->count() - 1) {
+                $lines[] = '';
+            }
+        }
+
+        return $lines;
     }
 
     /**
@@ -552,14 +637,45 @@ class ShipmentPreAlertPdfBuilder
      */
     private function truckReminderLines(Shipment $shipment): array
     {
-        $leg = $shipment->truckLegs->first();
+        $legs = $shipment->truckLegs->sortBy('sort_order')->values();
+        $departurePort = $this->simplePortLabel($shipment->departure_port_code, null, null);
 
-        return [
-            'CMR: ' . $this->displayValue($leg?->cmr),
-            'Freight company: ' . $this->displayValue($leg?->freight_company),
-            'Departure date: ' . $this->displayValue($leg ? $this->formatDate($leg->departure_date) : null),
-            'Arrival date: ' . $this->displayArrivalDate($leg?->arrival_date, $leg?->arrival_time),
-        ];
+        if ($legs->isEmpty()) {
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'CMR: ',
+                'Freight company: ',
+                'Departure date: ',
+                'Arrival date: ',
+            ];
+        }
+
+        if ($legs->count() === 1) {
+            $leg = $legs->first();
+
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'CMR: ' . $this->displayValue($leg->cmr),
+                'Freight company: ' . $this->displayValue($leg->freight_company),
+                'Departure date: ' . $this->displayValue($this->formatDate($leg->departure_date)),
+                'Arrival date: ' . $this->displayArrivalDate($leg->arrival_date, $leg->arrival_time),
+            ];
+        }
+
+        $lines = [];
+        foreach ($legs as $index => $leg) {
+            $lines[] = 'Truck ' . ($index + 1) . ':';
+            $lines[] = 'Departure port: ' . $this->displayValue($departurePort);
+            $lines[] = 'CMR: ' . $this->displayValue($leg->cmr);
+            $lines[] = 'Freight company: ' . $this->displayValue($leg->freight_company);
+            $lines[] = 'Departure date: ' . $this->displayValue($this->formatDate($leg->departure_date));
+            $lines[] = 'Arrival date: ' . $this->displayArrivalDate($leg->arrival_date, $leg->arrival_time);
+            if ($index < $legs->count() - 1) {
+                $lines[] = '';
+            }
+        }
+
+        return $lines;
     }
 
     /**
@@ -567,14 +683,45 @@ class ShipmentPreAlertPdfBuilder
      */
     private function courierReminderLines(Shipment $shipment): array
     {
-        $leg = $shipment->courierLegs->first();
+        $legs = $shipment->courierLegs->sortBy('sort_order')->values();
+        $departurePort = $this->simplePortLabel($shipment->departure_port_code, null, null);
 
-        return [
-            'Airway bill: ' . $this->displayValue($leg?->airway_bill),
-            'Carrier: ' . $this->displayValue($leg?->carrier),
-            'Departure date: ' . $this->displayValue($leg ? $this->formatDate($leg->departure_date) : null),
-            'Arrival date: ' . $this->displayArrivalDate($leg?->arrival_date, $leg?->arrival_time),
-        ];
+        if ($legs->isEmpty()) {
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'Airway bill: ',
+                'Carrier: ',
+                'Departure date: ',
+                'Arrival date: ',
+            ];
+        }
+
+        if ($legs->count() === 1) {
+            $leg = $legs->first();
+
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'Airway bill: ' . $this->displayValue($leg->airway_bill),
+                'Carrier: ' . $this->displayValue($leg->carrier),
+                'Departure date: ' . $this->displayValue($this->formatDate($leg->departure_date)),
+                'Arrival date: ' . $this->displayArrivalDate($leg->arrival_date, $leg->arrival_time),
+            ];
+        }
+
+        $lines = [];
+        foreach ($legs as $index => $leg) {
+            $lines[] = 'Courier ' . ($index + 1) . ':';
+            $lines[] = 'Departure port: ' . $this->displayValue($departurePort);
+            $lines[] = 'Airway bill: ' . $this->displayValue($leg->airway_bill);
+            $lines[] = 'Carrier: ' . $this->displayValue($leg->carrier);
+            $lines[] = 'Departure date: ' . $this->displayValue($this->formatDate($leg->departure_date));
+            $lines[] = 'Arrival date: ' . $this->displayArrivalDate($leg->arrival_date, $leg->arrival_time);
+            if ($index < $legs->count() - 1) {
+                $lines[] = '';
+            }
+        }
+
+        return $lines;
     }
 
     /**
@@ -582,13 +729,42 @@ class ShipmentPreAlertPdfBuilder
      */
     private function releaseReminderLines(Shipment $shipment): array
     {
-        $leg = $shipment->releaseLegs->first();
+        $legs = $shipment->releaseLegs->sortBy('sort_order')->values();
+        $departurePort = $this->simplePortLabel($shipment->departure_port_code, null, null);
 
-        return [
-            'Freight company: ' . $this->displayValue($leg?->freight_company),
-            'Departure date: ' . '',
-            'Arrival date: ' . $this->displayArrivalDate($leg?->delivery_date, $leg?->delivery_time),
-        ];
+        if ($legs->isEmpty()) {
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'Freight company: ',
+                'Departure date: ',
+                'Arrival date: ',
+            ];
+        }
+
+        if ($legs->count() === 1) {
+            $leg = $legs->first();
+
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'Freight company: ' . $this->displayValue($leg->freight_company),
+                'Departure date: ',
+                'Arrival date: ' . $this->displayArrivalDate($leg->delivery_date, $leg->delivery_time),
+            ];
+        }
+
+        $lines = [];
+        foreach ($legs as $index => $leg) {
+            $lines[] = 'Release ' . ($index + 1) . ':';
+            $lines[] = 'Departure port: ' . $this->displayValue($departurePort);
+            $lines[] = 'Freight company: ' . $this->displayValue($leg->freight_company);
+            $lines[] = 'Departure date: ';
+            $lines[] = 'Arrival date: ' . $this->displayArrivalDate($leg->delivery_date, $leg->delivery_time);
+            if ($index < $legs->count() - 1) {
+                $lines[] = '';
+            }
+        }
+
+        return $lines;
     }
 
     /**
@@ -596,13 +772,45 @@ class ShipmentPreAlertPdfBuilder
      */
     private function handCarryReminderLines(Shipment $shipment): array
     {
-        $leg = $shipment->handCarryLegs->first();
+        $legs = $shipment->handCarryLegs->sortBy('sort_order')->values();
+        $departurePort = $this->simplePortLabel($shipment->departure_port_code, null, null);
 
-        return [
-            'Contact: ' . $this->displayValue($leg?->contact_name),
-            'Departure date: ' . $this->displayValue($leg ? $this->formatDate($leg->departure_date) : null),
-            'Arrival date: ' . $this->displayArrivalDate($leg?->arrival_date, $leg?->arrival_time),
-        ];
+        if ($legs->isEmpty()) {
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'Contact: ',
+                'Contact phone: ',
+                'Departure date: ',
+                'Arrival date: ',
+            ];
+        }
+
+        if ($legs->count() === 1) {
+            $leg = $legs->first();
+
+            return [
+                'Departure port: ' . $this->displayValue($departurePort),
+                'Contact: ' . $this->displayValue($leg->contact_name),
+                'Contact phone: ' . $this->displayValue($leg->contact_phone),
+                'Departure date: ' . $this->displayValue($this->formatDate($leg->departure_date)),
+                'Arrival date: ' . $this->displayArrivalDate($leg->arrival_date, $leg->arrival_time),
+            ];
+        }
+
+        $lines = [];
+        foreach ($legs as $index => $leg) {
+            $lines[] = 'Hand carry ' . ($index + 1) . ':';
+            $lines[] = 'Departure port: ' . $this->displayValue($departurePort);
+            $lines[] = 'Contact: ' . $this->displayValue($leg->contact_name);
+            $lines[] = 'Contact phone: ' . $this->displayValue($leg->contact_phone);
+            $lines[] = 'Departure date: ' . $this->displayValue($this->formatDate($leg->departure_date));
+            $lines[] = 'Arrival date: ' . $this->displayArrivalDate($leg->arrival_date, $leg->arrival_time);
+            if ($index < $legs->count() - 1) {
+                $lines[] = '';
+            }
+        }
+
+        return $lines;
     }
 
     /**
@@ -610,19 +818,66 @@ class ShipmentPreAlertPdfBuilder
      */
     private function onBoardReminderLines(Shipment $shipment): array
     {
-        /** @var ShipmentOnBoardLeg|null $leg */
-        $leg = $shipment->onBoardLegs->first();
+        $legs = $shipment->onBoardLegs->sortBy('sort_order')->values();
 
-        return [
-            'Departure date: ' . $this->displayValue($leg ? $this->formatDate($leg->departure_date) : null),
-            'Delivery date: ' . $this->displayValue($leg ? $this->formatDate($leg->delivery_date) : null),
-            'Delivery time: ' . $this->displayValue($leg?->delivery_time),
-        ];
+        if ($legs->isEmpty()) {
+            return [
+                'Departure date: ',
+                'Delivery date: ',
+                'Delivery time: ',
+            ];
+        }
+
+        if ($legs->count() === 1) {
+            /** @var ShipmentOnBoardLeg $leg */
+            $leg = $legs->first();
+
+            return [
+                'Departure date: ' . $this->displayValue($this->formatDate($leg->departure_date)),
+                'Delivery date: ' . $this->displayValue($this->formatDate($leg->delivery_date)),
+                'Delivery time: ' . $this->displayValue($leg->delivery_time),
+            ];
+        }
+
+        $lines = [];
+        foreach ($legs as $index => $leg) {
+            $lines[] = 'On-board delivery ' . ($index + 1) . ':';
+            $lines[] = 'Departure date: ' . $this->displayValue($this->formatDate($leg->departure_date));
+            $lines[] = 'Delivery date: ' . $this->displayValue($this->formatDate($leg->delivery_date));
+            $lines[] = 'Delivery time: ' . $this->displayValue($leg->delivery_time);
+            if ($index < $legs->count() - 1) {
+                $lines[] = '';
+            }
+        }
+
+        return $lines;
     }
 
     public function formatMotorVesselName(?string $vesselName): string
     {
         return $this->manifestPdfBuilder->formatMotorVesselName($vesselName);
+    }
+
+    /**
+     * Compose/pre-alert vessel line without IMO, e.g. "M/V ANGEL in transit".
+     */
+    public function formatMailVesselLine(Shipment $shipment): string
+    {
+        $shipment->loadMissing('crrs.customerVessel');
+
+        $primaryVessel = $this->formatMotorVesselName(
+            $shipment->crrs->pluck('vessel_name')->filter()->first()
+        );
+        $vesselInfo = $shipment->crrs
+            ->map(fn (Crr $crr) => $crr->customerVessel)
+            ->filter()
+            ->first();
+
+        if ($primaryVessel === '' || $primaryVessel === '—') {
+            return '—';
+        }
+
+        return $primaryVessel . ($vesselInfo?->not_in_transit ? '' : ' in transit');
     }
 
     private function displayValue(mixed $value): string
