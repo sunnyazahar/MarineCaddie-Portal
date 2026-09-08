@@ -68,9 +68,6 @@ class ShipmentManifestPdfBuilder
             ->first();
 
         $vesselLine = $primaryVessel;
-        if ($vesselInfo?->vessel_imo) {
-            $vesselLine .= ' (IMO: ' . $vesselInfo->vessel_imo . ')';
-        }
         $vesselLine .= $vesselInfo?->not_in_transit ? '' : ' in transit';
 
         $customerName = $crrs
@@ -154,6 +151,7 @@ class ShipmentManifestPdfBuilder
         $companyEmail = $departureParty['email'] ?: '—';
 
         $invoiceEmail = $departureParty['invoice_email'] ?? $companyEmail;
+        $isOnBoardDelivery = ($shipment->service ?? '') === 'On-board delivery';
 
         return [
             'shipment' => $shipment,
@@ -198,7 +196,7 @@ class ShipmentManifestPdfBuilder
             'documentHandledBy' => $handledBy,
             'serviceLabel' => $shipment->service ?? '—',
             'additionalServiceLabel' => $shipment->additional_service ?: '—',
-            'isOnBoardDelivery' => ($shipment->service ?? '') === 'On-board delivery',
+            'isOnBoardDelivery' => $isOnBoardDelivery,
             'onBoardSignatory' => $this->formatOnBoardSignatory($primaryVessel),
             'pcsSummary' => $totalPackages
                 . ' / '
@@ -231,10 +229,10 @@ class ShipmentManifestPdfBuilder
                     ? number_format((float) $shipment->stock_repacked_weight, 2)
                     : '—',
             ],
-            'shipperLine' => $this->formatPartyBlock($departureParty),
+            'shipperLine' => $this->formatPartyBlock($departureParty, omitAddress: $isOnBoardDelivery),
             'consigneeLine' => $this->formatPartyDetails(
                 $consigneeParty['name'] ?: ($shipment->consignee_att ?? ''),
-                $this->formatShipmentAddress($shipment),
+                $isOnBoardDelivery ? '' : $this->formatShipmentAddress($shipment),
                 $shipment->consignee_email ?: ($consigneeParty['email'] ?? ''),
                 $consigneeParty['phone'] ?? '',
                 $shipment->consignee_att ?? ''
@@ -242,11 +240,11 @@ class ShipmentManifestPdfBuilder
         ];
     }
 
-    private function formatPartyBlock(array $party): string
+    private function formatPartyBlock(array $party, bool $omitAddress = false): string
     {
         return $this->formatPartyDetails(
             $party['name'] ?? '',
-            $party['address_line'] ?? '',
+            $omitAddress ? '' : ($party['address_line'] ?? ''),
             $party['email'] ?? '',
             $party['phone'] ?? ''
         );

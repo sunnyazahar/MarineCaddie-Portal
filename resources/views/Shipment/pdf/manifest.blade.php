@@ -152,7 +152,10 @@
         </table>';
     };
 
-    $partyHeader = function (string $docTitle) use ($titleLine, $shipperLine, $consigneeLine) {
+    $partyHeader = function (string $docTitle) use ($titleLine, $shipperLine, $consigneeLine, $isOnBoardDelivery) {
+        $shipperHeading = ! empty($isOnBoardDelivery) ? 'MarineCaddie Agent:' : 'Shipper';
+        $consigneeHeading = ! empty($isOnBoardDelivery) ? 'Vessel Agent:' : 'Consignee';
+
         return '
         <table class="header-table" style="table-layout:fixed;">
             <tr>
@@ -182,7 +185,7 @@
                     <table class="party-inner">
                         <tr>
                             <td style="text-align:left; vertical-align:top; width:180px;">
-                                <span class="party-heading">Shipper</span>
+                                <span class="party-heading">' . e($shipperHeading) . '</span>
                                 <div class="party-block">' . nl2br(e($shipperLine), false) . '</div>
                             </td>
                         </tr>
@@ -192,7 +195,7 @@
                     <table align="right" class="party-inner">
                         <tr>
                             <td style="text-align:left; vertical-align:top; width:180px;">
-                                <span class="party-heading">Consignee</span>
+                                <span class="party-heading">' . e($consigneeHeading) . '</span>
                                 <div class="party-block">' . nl2br(e($consigneeLine), false) . '</div>
                             </td>
                         </tr>
@@ -239,7 +242,13 @@
         <table class="agent-box-table">
             <tr>
                 <td class="agent-box-label">
-                    <strong>C/O {{ $consigneeName }}</strong>
+                    <strong>
+                        @if (!empty($isOnBoardDelivery))
+                            Vessel Agent: {{ $consigneeName }}
+                        @else
+                            C/O {{ $consigneeName }}
+                        @endif
+                    </strong>
                     @if (empty($isOnBoardDelivery))
                         <br> {{ $consigneeAddress }}
                     @endif
