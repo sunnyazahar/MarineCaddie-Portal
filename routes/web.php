@@ -730,14 +730,9 @@ Route::get('/stocks/create-crr', function () {
         ->get();
     $countries = \App\Support\CountryCache::active();
     $currencies = \App\Support\CountryCache::currencies();
-    $hubs = \App\Models\Hub::where(function ($query) {
-        $query->where('hide_in_portal', false)
-            ->orWhereNull('hide_in_portal');
-    })->orderBy('hub_name')->get();
-    $agents = \App\Models\Agent::with('country')
-        ->where('is_active', true)
-        ->orderBy('agent_name')
-        ->get();
+    // Same hub/agent universe as stock edit — do not filter by hide_in_portal / is_active.
+    $hubs = \App\Models\Hub::orderBy('hub_name')->get();
+    $agents = \App\Models\Agent::with('country')->orderBy('agent_name')->get();
     $suppliers = \App\Models\Supplier::with('country')->orderBy('supplier_name')->get();
     return view('Stock.Create-CRR', compact('vessels', 'countries', 'currencies', 'hubs', 'agents', 'suppliers'));
 })->name('create-crr');

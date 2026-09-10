@@ -98,6 +98,7 @@ trait CreatesRegressionSchema
             $table->id();
             $table->string('hub_name');
             $table->string('code')->nullable();
+            $table->boolean('hide_in_portal')->nullable()->default(false);
             $table->softDeletes();
             $table->timestamps();
         });
