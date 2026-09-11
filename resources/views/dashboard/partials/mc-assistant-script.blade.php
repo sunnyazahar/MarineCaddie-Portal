@@ -526,6 +526,48 @@
                 || (containsIntentPhrases(text, ['cancelled', 'canceled']) && containsIntentPhrases(text, ['shipment', 'shipments']));
         }
 
+        function shipmentStatusSummaryEntries() {
+            return (assistantData.shipmentStatuses || []).filter(function (item) {
+                return item && hasValue(item.label);
+            });
+        }
+
+        function detectShipmentStatusSummaryRequest(text) {
+            var normalizedText = normalize(text);
+            var countOnly = queryHasCountIntent(normalizedText)
+                && ! containsIntentPhrases(normalizedText, ['describe', 'summary', 'summery', 'show', 'list', 'detail', 'details', 'overview', 'snapshot']);
+            var matched = null;
+
+            if (! normalizedText) {
+                return null;
+            }
+
+            shipmentStatusSummaryEntries().forEach(function (entry) {
+                var label = $.trim(String(entry && entry.label ? entry.label : ''));
+
+                if (! label || ! containsIntentPhrase(normalizedText, label)) {
+                    return;
+                }
+
+                if (! matched || normalize(label).length > normalize(matched.item.label).length) {
+                    matched = {
+                        item: entry,
+                        countOnly: countOnly
+                    };
+                }
+            });
+
+            if (! matched) {
+                return null;
+            }
+
+            if (matchesExactIntent(normalizedText, [matched.item.label]) || containsIntentPhrases(normalizedText, ['shipment', 'shipments'])) {
+                return matched;
+            }
+
+            return null;
+        }
+
         function isTransportDetailsRequest(text) {
             var normalizedText = normalize(text);
 
@@ -591,7 +633,10 @@
                 'overview',
                 'snapshot',
                 'info',
-                'information'
+                'information',
+                'describe',
+                'summarize',
+                'summarise'
             ]);
         }
 
@@ -1181,7 +1226,7 @@
                 return true;
             }
 
-            if (isCancelledShipmentSummaryRequest(normalizedText) || detectShipmentCreationCountWindow(normalizedText)) {
+            if (isCancelledShipmentSummaryRequest(normalizedText) || detectShipmentCreationCountWindow(normalizedText) || detectShipmentStatusSummaryRequest(normalizedText)) {
                 return true;
             }
 
@@ -1750,6 +1795,45 @@
                             recentCancelled,
                             choose('Recent cancelled shipments jo snapshot me dikh rahe hain', 'Recent visible cancelled shipments'),
                             choose('Snapshot me abhi cancelled shipment visible nahi hai.', 'No cancelled shipment is visible in the snapshot right now.')
+                        )
+                        : '')
+            };
+        }
+
+        function renderShipmentStatusSummary(statusMatch) {
+            var statusItem = statusMatch && statusMatch.item ? statusMatch.item : statusMatch;
+            var countOnly = !!(statusMatch && statusMatch.countOnly);
+            var label = $.trim(String(statusItem && statusItem.label ? statusItem.label : choose('Selected', 'Selected')));
+            var normalizedStatus = normalize(label);
+            var total = Number(statusItem && statusItem.value || 0);
+            var visibleShipments = shipments.filter(function (item) {
+                return normalize(item.status) === normalizedStatus;
+            }).slice(0, 4);
+            var statusLabelLower = label.toLowerCase();
+            var title = countOnly
+                ? choose(label + ' shipment count', label + ' shipment count')
+                : choose(label + ' shipment summary', label + ' shipment summary');
+            var titleStatus = countOnly
+                ? choose(label + ' shipment count ready', label + ' shipment count ready')
+                : choose(label + ' shipment summary ready', label + ' shipment summary ready');
+
+            return {
+                kind: 'shipment-status-summary',
+                status: titleStatus,
+                html: '' +
+                    '<strong>' + escapeHtml(title) + '</strong>' +
+                    '<p>' + escapeHtml(choose(
+                        'Hamare system me total ' + formatNumber(total) + ' ' + statusLabelLower + ' shipment ' + countVerb(total, 'hai', 'hain') + '.',
+                        'There ' + countVerb(total, 'is', 'are') + ' ' + describeCount(total, statusLabelLower + ' shipment', statusLabelLower + ' shipments') + ' in the system.'
+                    )) + '</p>' +
+                    (! countOnly
+                        ? shipmentList(
+                            visibleShipments,
+                            choose('Recent visible ' + statusLabelLower + ' shipments', 'Recent visible ' + statusLabelLower + ' shipments'),
+                            choose(
+                                'Snapshot me abhi koi ' + statusLabelLower + ' shipment visible nahi hai.',
+                                'No ' + statusLabelLower + ' shipment is visible in the snapshot right now.'
+                            )
                         )
                         : '')
             };
@@ -3320,6 +3404,7 @@
             options = options || {};
             var normalized = normalize(input);
             var shipmentCreationWindow = detectShipmentCreationCountWindow(normalized);
+            var shipmentStatusSummary = detectShipmentStatusSummaryRequest(input);
 
             if (! normalized) {
                 return renderHelp();
@@ -3391,6 +3476,14 @@
                 }
 
                 return responseForStockQuery(matchedStock, input);
+            }
+
+            if (shipmentStatusSummary) {
+                if (! scopeAllows('shipments')) {
+                    return renderScopeBlockedResponse('shipment');
+                }
+
+                return renderShipmentStatusSummary(shipmentStatusSummary);
             }
 
             if (containsAny(normalized, ['help', 'what can you', 'kya kar', 'capabilit', 'madad', 'samjha'])) {
