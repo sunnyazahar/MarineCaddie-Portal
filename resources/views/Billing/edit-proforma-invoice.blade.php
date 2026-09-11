@@ -795,7 +795,7 @@
                         <div class="proforma-field-row">
                             <label for="shipper-select">Select Shipper</label>
                             <div class="proforma-field-input">
-                                <select id="shipper-select" name="shipper" class="form-control form-control-sm select2-departure">
+                                <select id="shipper-select" name="shipper" class="form-control form-control-sm select2-departure" data-allow-custom="1">
                                     @if (!empty($invoice['shipper_departure']))
                                         <option value="{{ $invoice['shipper_departure'] }}" selected>{{ $invoice['shipper_departure_display'] }}</option>
                                     @endif
@@ -1395,11 +1395,12 @@
 
                 $('.select2-departure').each(function() {
                     var $select = $(this);
+                    var allowCustom = $select.is('[data-allow-custom="1"]');
                     if ($select.hasClass('select2-hidden-accessible')) {
                         return;
                     }
 
-                    $select.select2({
+                    var options = {
                         placeholder: 'Type departure',
                         allowClear: false,
                         width: '100%',
@@ -1418,7 +1419,31 @@
                         },
                         templateResult: formatParty,
                         templateSelection: formatPartySelection
-                    });
+                    };
+
+                    if (allowCustom) {
+                        options.tags = true;
+                        options.createTag = function(params) {
+                            var term = $.trim(params.term);
+
+                            if (term === '') {
+                                return null;
+                            }
+
+                            return {
+                                id: term,
+                                text: term,
+                                type_label: 'Custom',
+                                subtitle: 'Manual entry',
+                                newTag: true
+                            };
+                        };
+                        options.insertTag = function(data, tag) {
+                            data.unshift(tag);
+                        };
+                    }
+
+                    $select.select2(options);
                 });
             }
 

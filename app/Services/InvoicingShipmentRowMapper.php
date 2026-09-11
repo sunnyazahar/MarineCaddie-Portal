@@ -202,6 +202,8 @@ class InvoicingShipmentRowMapper
         $saved = $shipment->proformaInvoice;
         $billingPartyRecipient = $this->resolveBillingPartyInvoiceRecipient($shipment);
         $billToPos = $this->resolveBillToPosFromInvoiceCountry($shipment);
+        $shipperDisplay = $shipment->partyDisplay($saved->shipper ?: $shipment->departure, $partyNames);
+        $consigneeDisplay = $shipment->partyDisplay($saved->consignee ?: $shipment->consignee, $partyNames);
 
         return [
             'shipment_id' => (string) $shipment->id,
@@ -210,8 +212,8 @@ class InvoicingShipmentRowMapper
             'proforma_date' => $this->formatDate($saved->proforma_date) ?: now()->format('d.m.Y'),
             'job_no' => $saved->job_no ?: $shipment->shipment_number,
             'job_date' => $this->formatDate($saved->job_date),
-            'shipper_name' => $row['shipper_name'],
-            'consignee_name' => $row['consignee_name'],
+            'shipper_name' => $shipperDisplay,
+            'consignee_name' => $consigneeDisplay,
             'party_name' => $row['party_name'],
             'port_of_loading' => $row['port_of_loading'],
             'port_of_discharge' => $row['port_of_discharge'],
@@ -228,9 +230,9 @@ class InvoicingShipmentRowMapper
             'paid_amount' => $this->formatDecimal($saved->paid_amount),
             'due_amount' => $this->formatDecimal($saved->due_amount),
             'shipper_departure' => (string) ($saved->shipper ?: $shipment->departure ?: ''),
-            'shipper_departure_display' => $shipment->partyDisplay($saved->shipper ?: $shipment->departure, $partyNames),
+            'shipper_departure_display' => $shipperDisplay,
             'consignee' => (string) ($saved->consignee ?: $shipment->consignee ?: ''),
-            'consignee_display' => $shipment->partyDisplay($saved->consignee ?: $shipment->consignee, $partyNames),
+            'consignee_display' => $consigneeDisplay,
             'billing_party' => $billingPartyRecipient !== '' ? $billingPartyRecipient : (string) ($saved->billing_party ?: ''),
             'billing_party_display' => $billingPartyRecipient !== '' ? $billingPartyRecipient : (string) ($saved->billing_party ?: ''),
             'bill_to_pos' => $billToPos['id'] !== '' ? $billToPos['id'] : ($saved->bill_to_pos ? (string) $saved->bill_to_pos : ''),
