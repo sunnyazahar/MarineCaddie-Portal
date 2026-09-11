@@ -3,6 +3,7 @@
 namespace Tests\Feature\MigratedViews;
 
 use Illuminate\Pagination\LengthAwarePaginator;
+use Symfony\Component\Process\Process;
 use Tests\Concerns\RendersMigratedBladeViews;
 use Tests\RegressionTestCase;
 use Tests\Support\MigratedViewStubs;
@@ -1268,6 +1269,525 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('crr-section-shell', $contents);
         $this->assertStringContainsString('create-crr-footer', $contents);
         $this->assertStringContainsString('create-crr-hero-icon', $contents);
+        $this->assertStringNotContainsString("Stock.partials.create-crr-assistant", $contents);
+        $this->assertStringNotContainsString("Stock.partials.create-crr-assistant-styles", $contents);
+        $this->assertStringNotContainsString("Stock.partials.create-crr-assistant-script", $contents);
+    }
+
+    public function test_dashboard_blade_uses_mc_assistant(): void
+    {
+        $contents = file_get_contents(resource_path('views/home.blade.php'));
+        $layoutContents = file_get_contents(resource_path('views/layouts/app.blade.php'));
+        $assistantView = file_get_contents(resource_path('views/dashboard/partials/mc-assistant.blade.php'));
+        $assistantScript = file_get_contents(resource_path('views/dashboard/partials/mc-assistant-script.blade.php'));
+        $assistantStyles = file_get_contents(resource_path('views/dashboard/partials/mc-assistant-styles.blade.php'));
+
+        $this->assertStringContainsString('dash-page', $contents);
+        $this->assertStringContainsString("dashboard.partials.mc-assistant", $contents);
+        $this->assertStringContainsString("dashboard.partials.mc-assistant-styles", $contents);
+        $this->assertStringContainsString("dashboard.partials.mc-assistant-script", $contents);
+        $this->assertStringContainsString("@stack('overlays')", $layoutContents);
+        $this->assertTrue(
+            strpos($contents, "@include('layouts.partials.pcoded-shell-end')") < strpos($contents, "@include('dashboard.partials.mc-assistant')"),
+            'Dashboard assistant should render outside the Pcoded shell so fixed positioning stays stable on mobile.'
+        );
+        $this->assertStringNotContainsString('mcAssistantSuggestions', $assistantView);
+        $this->assertStringNotContainsString('mc-assistant-suggestions', $assistantView);
+        $this->assertStringNotContainsString('mcAssistantQuickActions', $assistantView);
+        $this->assertStringNotContainsString('mc-assistant-quick-actions', $assistantView);
+        $this->assertStringNotContainsString('mc-assistant-detail-grid', $assistantView);
+        $this->assertStringContainsString('Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?', $assistantView);
+        $this->assertStringContainsString('Stock helper', $assistantView);
+        $this->assertStringContainsString('For your role, only stock details and stock summaries are available here.', $assistantView);
+        $this->assertStringContainsString('Open', $assistantView);
+        $this->assertStringContainsString('Send', $assistantView);
+        $this->assertStringContainsString('Clear chat', $assistantView);
+        $this->assertStringContainsString('mcAssistantKicker', $assistantView);
+        $this->assertStringContainsString('mcAssistantBadge', $assistantView);
+        $this->assertStringContainsString('mcAssistantCopy', $assistantView);
+        $this->assertStringContainsString('.mc-assistant-shell.is-open .mc-assistant-launcher', $assistantStyles);
+        $this->assertStringContainsString('--mc-assistant-launcher-height: 72px;', $assistantStyles);
+        $this->assertStringContainsString('--mc-assistant-visual-offset: 0px;', $assistantStyles);
+        $this->assertStringContainsString('--mc-assistant-screen-bottom: calc(var(--mc-assistant-bottom) + var(--mc-assistant-visual-offset));', $assistantStyles);
+        $this->assertStringContainsString('bottom: calc(var(--mc-assistant-screen-bottom) + var(--mc-assistant-launcher-height) + var(--mc-assistant-panel-gap));', $assistantStyles);
+        $this->assertStringContainsString('.mc-assistant-launcher__toggle', $assistantStyles);
+        $this->assertStringContainsString('letter-spacing: 0.02em;', $assistantStyles);
+        $this->assertStringContainsString('min-width: 64px;', $assistantStyles);
+        $this->assertStringContainsString('display: flex !important;', $assistantStyles);
+        $this->assertStringContainsString('max-height: min(640px, calc(100vh - 112px));', $assistantStyles);
+        $this->assertStringContainsString('flex: 1 1 auto;', $assistantStyles);
+        $this->assertStringContainsString('overflow-wrap: anywhere;', $assistantStyles);
+        $this->assertStringContainsString('font-size: 16px;', $assistantStyles);
+        $this->assertStringContainsString('padding-bottom: 204px;', $assistantStyles);
+        $this->assertStringContainsString('max-height: min(82dvh, calc(100dvh - 28px));', $assistantStyles);
+        $this->assertStringContainsString('--mc-assistant-bottom: max(72px, calc(env(safe-area-inset-bottom, 0px) + 14px));', $assistantStyles);
+        $this->assertStringContainsString('--mc-assistant-bottom: max(64px, calc(env(safe-area-inset-bottom, 0px) + 12px));', $assistantStyles);
+        $this->assertStringContainsString('env(safe-area-inset-bottom, 0px)', $assistantStyles);
+        $this->assertStringContainsString('@media (max-width: 399.98px), (max-height: 720px)', $assistantStyles);
+        $this->assertStringNotContainsString('shouldShowSuggestions', $assistantScript);
+        $this->assertStringNotContainsString('setQuickActions', $assistantScript);
+        $this->assertStringNotContainsString('mc-assistant-chip', $assistantScript);
+        $this->assertStringNotContainsString('detailRows', $assistantScript);
+        $this->assertStringNotContainsString('<strong>Note:</strong>', $assistantScript);
+        $this->assertStringContainsString('detectResponseLanguage', $assistantScript);
+        $this->assertStringContainsString('detectInitialLanguage', $assistantScript);
+        $this->assertStringContainsString('document.body.appendChild(shellNode);', $assistantScript);
+        $this->assertStringContainsString('function forceClosedLauncherState()', $assistantScript);
+        $this->assertStringContainsString('function syncViewportOffset()', $assistantScript);
+        $this->assertStringContainsString('activeElement.blur()', $assistantScript);
+        $this->assertStringContainsString('$launcher[0].focus()', $assistantScript);
+        $this->assertStringContainsString("shellNode.style.setProperty('--mc-assistant-visual-offset', hiddenBottom + 'px');", $assistantScript);
+        $this->assertStringContainsString('window.visualViewport', $assistantScript);
+        $this->assertStringContainsString('normalizeAssistantTypos', $assistantScript);
+        $this->assertStringContainsString('syncAssistantChrome', $assistantScript);
+        $this->assertStringContainsString('scopeAllows', $assistantScript);
+        $this->assertStringContainsString('isStockOnlyAssistant', $assistantScript);
+        $this->assertStringContainsString('renderScopeBlockedResponse', $assistantScript);
+        $this->assertStringContainsString('isTransportDetailsRequest', $assistantScript);
+        $this->assertStringContainsString('detectShipmentCreationCountWindow', $assistantScript);
+        $this->assertStringContainsString('isTodayShipmentCreationCountRequest', $assistantScript);
+        $this->assertStringContainsString('isFullRecordRequest', $assistantScript);
+        $this->assertStringContainsString('isGenericRecordSummaryRequest', $assistantScript);
+        $this->assertStringContainsString('renderShipmentFieldResponse', $assistantScript);
+        $this->assertStringContainsString('renderStockFieldResponse', $assistantScript);
+        $this->assertStringContainsString('renderUnknownFieldResponse', $assistantScript);
+        $this->assertStringContainsString('looksLikeSensitiveCredentialRequest', $assistantScript);
+        $this->assertStringContainsString('renderSensitiveLookupResponse', $assistantScript);
+        $this->assertStringContainsString('containsAdministrationEntityHint', $assistantScript);
+        $this->assertStringContainsString('containsAdministrationFieldHint', $assistantScript);
+        $this->assertStringContainsString('administrationIntentSuggestsSpecificField', $assistantScript);
+        $this->assertStringContainsString('renderChangeLogDetail', $assistantScript);
+        $this->assertStringContainsString('renderChangeLogFieldResponse', $assistantScript);
+        $this->assertStringContainsString('responseForChangeLogQuery', $assistantScript);
+        $this->assertStringContainsString('looksLikeAdministrationNameQuery', $assistantScript);
+        $this->assertStringContainsString('isAdministrationLookupRequest', $assistantScript);
+        $this->assertStringContainsString('administrationIntentText', $assistantScript);
+        $this->assertStringContainsString('isServiceSummaryRequest', $assistantScript);
+        $this->assertStringContainsString('isShipmentSummaryRequest', $assistantScript);
+        $this->assertStringContainsString('isStockSummaryRequest', $assistantScript);
+        $this->assertStringContainsString('renderAdministrationDetail', $assistantScript);
+        $this->assertStringContainsString('renderAdministrationFieldResponse', $assistantScript);
+        $this->assertStringContainsString('responseForAdministrationQuery', $assistantScript);
+        $this->assertStringContainsString('renderShipmentTransportDetail', $assistantScript);
+        $this->assertStringContainsString('renderShipmentCreationWindowSummary', $assistantScript);
+        $this->assertStringContainsString('renderTodayShipmentCreationSummary', $assistantScript);
+        $this->assertStringContainsString('flight details', $assistantScript);
+        $this->assertStringContainsString('consigenee', $assistantScript);
+        $this->assertStringContainsString('shipmentCreationCounts', $assistantScript);
+        $this->assertStringContainsString('shipmentCreationDaily', $assistantScript);
+        $this->assertStringContainsString('newShipmentsToday', $assistantScript);
+        $this->assertStringContainsString('kitna stocks add hai', $assistantScript);
+        $this->assertStringContainsString('specific field', $assistantScript);
+        $this->assertStringContainsString('exact field samajh nahi paya', $assistantScript);
+        $this->assertStringContainsString('Sensitive detail blocked', $assistantScript);
+        $this->assertStringContainsString('password ya credential jaisi sensitive login details share nahi kar sakta', $assistantScript);
+        $this->assertStringContainsString('Main yahan action complete nahi kar sakta', $assistantScript);
+        $this->assertStringContainsString('I am ready.', $assistantScript);
+        $this->assertStringContainsString('What I can help with', $assistantScript);
+        $this->assertStringContainsString('Please be a bit more specific', $assistantScript);
+        $this->assertStringContainsString('Complete summary for shipment', $assistantScript);
+        $this->assertStringContainsString('Answer for shipment', $assistantScript);
+        $this->assertStringContainsString('Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?', $assistantScript);
+        $this->assertStringContainsString('For your role, I can only help with stock-related details here.', $assistantScript);
+        $this->assertStringContainsString('MarineCaddie Dubai Office ka address kisne change kiya', $assistantScript);
+        $this->assertStringContainsString('last changes', $assistantScript);
+        $this->assertStringContainsString('what happened', $assistantScript);
+        $this->assertStringContainsString('last change kisne kiya tha', $assistantScript);
+        $this->assertStringContainsString('sunnyazahar@gmail.com ka user role batao', $assistantScript);
+        $this->assertStringContainsString('ANGEL vessel ka IMO batao', $assistantScript);
+        $this->assertStringContainsString('user-detail', $assistantScript);
+        $this->assertStringContainsString("state.isOpen ? 'Close' : 'Open'", $assistantScript);
+        $this->assertStringContainsString("language: 'english'", $assistantScript);
+        $this->assertStringContainsString('navigator.language', $assistantScript);
+        $this->assertStringContainsString('__mcAssistantTestApi', $assistantScript);
+        $this->assertStringContainsString('assistantTestingEnabled', $assistantScript);
+        $this->assertStringNotContainsString("containsAny(normalized, ['service summary', 'service mix', 'services'])", $assistantScript);
+        $this->assertStringNotContainsString('runQuestionBank', $assistantScript);
+        $this->assertStringNotContainsString('dashboard.assistant-question-bank', $assistantScript);
+        $this->assertStringNotContainsString('dashboard.assistant-lookup-bulk', $assistantScript);
+        $this->assertStringContainsString('textParagraphs', $assistantScript);
+        $this->assertStringContainsString('ka complete summary', $assistantScript);
+    }
+
+    public function test_dashboard_assistant_script_has_valid_javascript_syntax(): void
+    {
+        $assistantScript = file_get_contents(resource_path('views/dashboard/partials/mc-assistant-script.blade.php'));
+        $preparedScript = preg_replace('/^<script>\s*/', '', $assistantScript);
+        $preparedScript = preg_replace('/\s*<\/script>\s*$/', '', $preparedScript ?? '');
+        $preparedScript = preg_replace('/var assistantData = @json\([^\n]+\);/', 'var assistantData = {};', $preparedScript ?? '');
+        $preparedScript = preg_replace('/var lookupUrl = @json\([^\n]+\);/', 'var lookupUrl = "";', $preparedScript ?? '');
+        $preparedScript = preg_replace('/var assistantTestingEnabled = @json\([^\n]+\);/', 'var assistantTestingEnabled = false;', $preparedScript ?? '');
+
+        $temporaryScript = tempnam(sys_get_temp_dir(), 'mc-assistant-script-');
+        $this->assertNotFalse($temporaryScript);
+
+        file_put_contents($temporaryScript, $preparedScript);
+
+        try {
+            $process = new Process(['node', '--check', $temporaryScript]);
+            $process->run();
+
+            if ($process->getExitCode() !== 0) {
+                $this->fail(trim($process->getErrorOutput() ?: $process->getOutput()));
+            }
+
+            $this->assertSame(0, $process->getExitCode());
+        } finally {
+            @unlink($temporaryScript);
+        }
+    }
+
+    public function test_dashboard_assistant_script_handles_compound_queries(): void
+    {
+        $assistantScript = file_get_contents(resource_path('views/dashboard/partials/mc-assistant-script.blade.php'));
+        $assistantData = [
+            'scope' => [
+                'role' => 'Admin',
+                'mode' => 'dashboard',
+                'allows' => [
+                    'overview' => true,
+                    'shipments' => true,
+                    'stocks' => true,
+                    'administration' => true,
+                    'services' => true,
+                    'overdueShipments' => true,
+                    'stockFollowUps' => true,
+                ],
+            ],
+            'shipments' => [[
+                'id' => 1,
+                'number' => 'AZA-34042-0926',
+                'status' => 'In transit',
+                'creationDate' => '10 Sep 2026',
+                'createdBy' => 'Azahar',
+                'updatedBy' => 'Azahar',
+                'accountManager' => 'Kundan Kumar',
+                'departure' => 'MarineCaddie Shipping LLC',
+                'departurePort' => 'DXB, Dubai',
+                'service' => 'Airfreight',
+                'additionalService' => 'Express',
+                'vessel' => 'ANGEL',
+                'customer' => 'Campbell Shipping',
+                'consignee' => 'SAF GLOBAL MARITIME PVT LTD',
+                'consigneePort' => 'BOM, Mumbai',
+                'updatedAt' => '11 Sep 2026 10:30',
+                'linkedStocks' => ['ICN-72656522'],
+                'stockCount' => 1,
+                'documents' => [],
+                'documentCount' => 0,
+                'transportHeading' => 'Flight details',
+                'transportUnitSingular' => 'flight leg',
+                'transportUnitPlural' => 'flight legs',
+                'transportLegCount' => 1,
+                'transportLegs' => [[
+                    'title' => 'Flight leg 1',
+                    'referenceLabel' => 'AWB',
+                    'reference' => 'AWB-99887766',
+                    'carrierLabel' => 'Flight',
+                    'carrier' => 'EK 600',
+                    'departurePort' => 'DXB, Dubai',
+                    'departureDate' => '11 Sep 2026',
+                    'arrivalDate' => '12 Sep 2026',
+                    'arrivalTime' => '19:45',
+                    'note' => '—',
+                ]],
+            ]],
+            'stocks' => [[
+                'id' => 10,
+                'number' => 'ICN-72656522',
+                'status' => 'Completed',
+                'priority' => 'High',
+                'vessel' => 'ANGEL',
+                'customer' => 'Campbell Shipping',
+                'supplier' => 'GUMA TECH MARINE SERVICES',
+                'hubAgent' => 'DXB',
+                'acceptance' => 'Accepted',
+                'currency' => 'USD',
+                'customsValue' => '22.00',
+                'expectedDeliveryDate' => '12 Sep 2026',
+                'linkedShipments' => ['AZA-34042-0926'],
+                'packageCount' => 1,
+                'updatedAt' => '11 Sep 2026 11:10',
+            ]],
+            'overdueShipments' => [],
+            'stockFollowUps' => [],
+            'generatedAt' => '11 Sep 2026 11:30',
+        ];
+
+        $preparedScript = preg_replace('/^<script>\s*/', '', $assistantScript);
+        $preparedScript = preg_replace('/\s*<\/script>\s*$/', '', $preparedScript ?? '');
+        $preparedScript = preg_replace(
+            '/var assistantData = @json\([^\n]+\);/',
+            'var assistantData = ' . json_encode($assistantData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';',
+            $preparedScript ?? ''
+        );
+        $preparedScript = preg_replace('/var lookupUrl = @json\([^\n]+\);/', 'var lookupUrl = "";', $preparedScript ?? '');
+        $preparedScript = preg_replace('/var assistantTestingEnabled = @json\([^\n]+\);/', 'var assistantTestingEnabled = true;', $preparedScript ?? '');
+
+        $temporaryScript = tempnam(sys_get_temp_dir(), 'mc-assistant-runner-');
+        $this->assertNotFalse($temporaryScript);
+
+        $nodeHarness = <<<'JS'
+globalThis.window = globalThis;
+globalThis.document = { documentElement: { lang: 'en' } };
+Object.defineProperty(globalThis, 'navigator', {
+    configurable: true,
+    value: { language: 'en-US', userLanguage: 'en-US' }
+});
+
+const elementStore = new Map();
+
+function escapeHtmlForStub(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function stripTagsForStub(value) {
+    return String(value == null ? '' : value).replace(/<[^>]*>/g, '');
+}
+
+function createElement(key) {
+    return {
+        key,
+        length: 1,
+        0: { scrollHeight: 0 },
+        attributes: {},
+        htmlValue: '',
+        textValue: '',
+        value: '',
+        handlers: {},
+        toggleClass() { return this; },
+        addClass() { return this; },
+        removeClass() { return this; },
+        attr(name, value) {
+            if (typeof value === 'undefined') {
+                return this.attributes[name];
+            }
+
+            this.attributes[name] = value;
+
+            return this;
+        },
+        text(value) {
+            if (typeof value === 'undefined') {
+                return stripTagsForStub(this.htmlValue || this.textValue);
+            }
+
+            this.textValue = String(value);
+            this.htmlValue = escapeHtmlForStub(this.textValue);
+
+            return this;
+        },
+        html(value) {
+            if (typeof value === 'undefined') {
+                return this.htmlValue;
+            }
+
+            this.htmlValue = String(value);
+
+            return this;
+        },
+        append(value) {
+            this.htmlValue += String(value);
+            this[0].scrollHeight = this.htmlValue.length;
+
+            return this;
+        },
+        empty() {
+            this.htmlValue = '';
+            this.textValue = '';
+            this.value = '';
+
+            return this;
+        },
+        scrollTop() { return this; },
+        trigger() { return this; },
+        focus() { return this; },
+        on() { return this; },
+        val(value) {
+            if (typeof value === 'undefined') {
+                return this.value;
+            }
+
+            this.value = String(value);
+
+            return this;
+        }
+    };
+}
+
+function createBufferElement() {
+    return {
+        length: 1,
+        0: { scrollHeight: 0 },
+        htmlValue: '',
+        text(value) {
+            if (typeof value === 'undefined') {
+                return stripTagsForStub(this.htmlValue);
+            }
+
+            this.htmlValue = escapeHtmlForStub(value);
+
+            return this;
+        },
+        html(value) {
+            if (typeof value === 'undefined') {
+                return this.htmlValue;
+            }
+
+            this.htmlValue = String(value);
+
+            return this;
+        },
+        append(value) {
+            this.htmlValue += String(value);
+
+            return this;
+        },
+        attr() { return this; },
+        toggleClass() { return this; },
+        scrollTop() { return this; },
+        trigger() { return this; },
+        focus() { return this; },
+        on() { return this; },
+        val() { return ''; },
+        empty() { this.htmlValue = ''; return this; }
+    };
+}
+
+function jQuery(selector) {
+    if (typeof selector === 'function') {
+        selector(jQuery);
+        return createElement('__ready__');
+    }
+
+    if (String(selector) === '<div></div>') {
+        return createBufferElement();
+    }
+
+    const key = String(selector);
+
+    if (!elementStore.has(key)) {
+        elementStore.set(key, createElement(key));
+    }
+
+    return elementStore.get(key);
+}
+
+jQuery.trim = function (value) {
+    return String(value == null ? '' : value).trim();
+};
+
+jQuery.extend = function (target, ...sources) {
+    return Object.assign(target, ...sources);
+};
+
+jQuery.param = function (value) {
+    return new URLSearchParams(value || {}).toString();
+};
+
+jQuery.getJSON = function () {
+    throw new Error('Unexpected remote lookup in compound-query harness');
+};
+
+jQuery.ajax = function () {
+    return {
+        done() { return this; },
+        fail() { return this; },
+        always() { return this; }
+    };
+};
+
+globalThis.jQuery = jQuery;
+globalThis.$ = jQuery;
+JS;
+
+        $nodeRunner = <<<'JS'
+const api = window.__mcAssistantTestApi;
+
+if (!api || typeof api.buildResponse !== 'function' || typeof api.buildRemoteLookupResponse !== 'function') {
+    throw new Error('MC Assistant test API was not exposed.');
+}
+
+const multiField = api.buildResponse('What are the status and customer for shipment AZA-34042-0926?');
+const transportAndStatus = api.buildResponse('Show flight details and status for shipment AZA-34042-0926.');
+const multiRecord = api.buildResponse('What is the status for shipment AZA-34042-0926 and what is the supplier for stock ICN-72656522?');
+const remoteAdmin = api.buildRemoteLookupResponse({
+    matched: true,
+    type: 'office',
+    item: {
+        name: 'MarineCaddie Dubai Office',
+        entityLabel: 'Office',
+        identifier: 'DXB HQ',
+        identifierLabel: 'Office short name',
+        status: 'Active',
+        updatedAt: '11 Sep 2026 11:15',
+        identityValues: ['MarineCaddie Dubai Office', 'DXB HQ'],
+        quickFields: ['Email', 'Office short name'],
+        fields: [
+            { key: 'email', label: 'Email', value: 'ops@marinecaddie.example', aliases: ['mail'] },
+            { key: 'office_short_name', label: 'Office short name', value: 'DXB HQ', aliases: ['short name'] }
+        ],
+        sections: [
+            {
+                title: 'Basic details',
+                fields: [
+                    { key: 'email', label: 'Email', value: 'ops@marinecaddie.example', aliases: ['mail'] },
+                    { key: 'office_short_name', label: 'Office short name', value: 'DXB HQ', aliases: ['short name'] }
+                ]
+            }
+        ],
+        logs: []
+    }
+}, 'What are the email and office short name for office MarineCaddie Dubai Office?');
+
+console.log(JSON.stringify({
+    detectedHinglish: api.detectResponseLanguage('AZA-34042-0926 ka status aur customer batao'),
+    detectedEnglish: api.detectResponseLanguage('What is the status for shipment AZA-34042-0926?'),
+    multiField,
+    transportAndStatus,
+    multiRecord,
+    remoteAdmin
+}));
+JS;
+
+        file_put_contents($temporaryScript, $nodeHarness . "\n" . $preparedScript . "\n" . $nodeRunner);
+
+        try {
+            $process = new Process(['node', $temporaryScript]);
+            $process->run();
+
+            if ($process->getExitCode() !== 0) {
+                $this->fail(trim($process->getErrorOutput() ?: $process->getOutput()));
+            }
+
+            $payload = json_decode(trim($process->getOutput()), true, 512, JSON_THROW_ON_ERROR);
+
+            $this->assertSame('hinglish', $payload['detectedHinglish'] ?? null);
+            $this->assertSame('english', $payload['detectedEnglish'] ?? null);
+
+            $this->assertSame('shipment-field-detail', $payload['multiField']['kind'] ?? null);
+            $this->assertStringContainsString('In transit', $payload['multiField']['html'] ?? '');
+            $this->assertStringContainsString('Campbell Shipping', $payload['multiField']['html'] ?? '');
+
+            $this->assertSame('shipment-compound-detail', $payload['transportAndStatus']['kind'] ?? null);
+            $this->assertStringContainsString('AWB-99887766', $payload['transportAndStatus']['html'] ?? '');
+            $this->assertStringContainsString('In transit', $payload['transportAndStatus']['html'] ?? '');
+
+            $this->assertSame('compound-response', $payload['multiRecord']['kind'] ?? null);
+            $this->assertStringContainsString('In transit', $payload['multiRecord']['html'] ?? '');
+            $this->assertStringContainsString('GUMA TECH MARINE SERVICES', $payload['multiRecord']['html'] ?? '');
+
+            $this->assertSame('office-field-detail', $payload['remoteAdmin']['kind'] ?? null);
+            $this->assertStringContainsString('ops@marinecaddie.example', $payload['remoteAdmin']['html'] ?? '');
+            $this->assertStringContainsString('DXB HQ', $payload['remoteAdmin']['html'] ?? '');
+        } finally {
+            @unlink($temporaryScript);
+        }
     }
 
     public function test_shipment_edit_details_form_uses_pillar_shell(): void

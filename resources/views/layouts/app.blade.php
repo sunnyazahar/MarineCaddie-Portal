@@ -47,6 +47,8 @@
         </main>
     </div>
 
+    @stack('overlays')
+
     @include('partials.mail-busy-overlay')
 
     @include('partials.common-assets-scripts')

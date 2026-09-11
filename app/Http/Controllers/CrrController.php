@@ -50,6 +50,8 @@ class CrrController extends Controller
     public function store(Request $request, CrrChangeLogService $changeLogService)
     {
         $validated = $request->validate([
+            'vessel_name' => ['required', 'string', 'max:255', 'regex:/[A-Za-z0-9]/'],
+            'supplier' => ['required', 'string', 'max:255', 'regex:/[A-Za-z0-9]/'],
             'hub_agent' => ['required', 'string', 'max:50', 'regex:/[A-Za-z0-9]/'],
             'currency' => ['required', 'string', 'max:10'],
             'customs_value' => ['required', 'numeric'],
@@ -61,6 +63,12 @@ class CrrController extends Controller
             'packages.*.height' => ['required', 'numeric', 'gt:0'],
             'packages.*.weight' => ['required', 'numeric', 'gt:0'],
         ], [
+            'vessel_name.required' => 'Vessel is required.',
+            'vessel_name.regex' => 'Vessel is required.',
+            'supplier.required' => 'Supplier is required.',
+            'supplier.regex' => 'Supplier is required.',
+            'hub_agent.required' => 'Hub/agent is required.',
+            'hub_agent.regex' => 'Hub/agent is required.',
             'currency.required' => 'Currency is required.',
             'customs_value.required' => 'Customs value is required.',
             'customs_value.numeric' => 'Customs value must be a number.',

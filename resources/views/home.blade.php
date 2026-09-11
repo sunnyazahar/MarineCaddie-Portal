@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@push('styles')
+    @include('dashboard.partials.mc-assistant-styles')
+@endpush
+
 @section('content')
 @include('layouts.partials.pcoded-shell-start')
 @php
@@ -210,7 +214,12 @@
 @include('layouts.partials.pcoded-shell-end')
 @endsection
 
+@push('overlays')
+    @include('dashboard.partials.mc-assistant')
+@endpush
+
 @push('scripts')
+@include('dashboard.partials.mc-assistant-script')
 <script type="text/javascript" src="{{ asset('files/bower_components/chart.js/dist/Chart.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

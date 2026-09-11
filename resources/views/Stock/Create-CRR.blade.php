@@ -1146,8 +1146,8 @@
                                                     <div class="crr-pillar">
                                                     <div class="crr-pillar__title">Vessel &amp; PO</div>
                                                     <div class="crr-field-group">
-                                                        <label class="crr-label">Vessel</label>
-                                                        <select class="form-control select2-vessel" name="vessel_name">
+                                                        <label class="crr-label">Vessel <span class="text-danger">*</span></label>
+                                                        <select class="form-control select2-vessel" name="vessel_name" required>
                                                             <option value=""></option>
                                                             @foreach($vessels as $vessel)
                                                                 <option value="{{ $vessel->vessel }}"
@@ -1237,10 +1237,10 @@
                                                     <div class="crr-pillar">
                                                     <div class="crr-pillar__title">Supplier &amp; delivery</div>
                                                     <div class="crr-field-group">
-                                                        <label class="crr-label">Supplier</label>
+                                                        <label class="crr-label">Supplier <span class="text-danger">*</span></label>
                                                         <div id="supplier-select-wrapper">
                                                             <select class="form-control select2-supplier" name="supplier"
-                                                                id="supplier-select">
+                                                                id="supplier-select" required>
                                                                 <option></option>
                                                                 @foreach($suppliers as $s)
                                                                     <option value="{{ $s->supplier_name }}"
@@ -1255,7 +1255,7 @@
                                                         </div>
                                                         <div id="supplier-input-wrapper" style="display: none;">
                                                             <input type="text" class="crr-input" name="supplier"
-                                                                value="EX VESSEL" readonly id="supplier-input" disabled>
+                                                                value="EX VESSEL" readonly id="supplier-input" disabled required>
                                                         </div>
                                                     </div>
                                                     <div class="crr-checkbox-group">
@@ -1350,7 +1350,7 @@
                                                     <div class="crr-pillar">
                                                     <div class="crr-pillar__title">Hub &amp; customs</div>
                                                     <div class="crr-field-group">
-                                                        <label class="crr-label">Hub/agent</label>
+                                                        <label class="crr-label">Hub/agent <span class="text-danger">*</span></label>
                                                         <select class="form-control select2-hub" name="hub_agent" required>
                                                             <option></option>
                                                             <optgroup label="Hubs">
@@ -1551,7 +1551,7 @@
 
                                             <!-- Packages Table -->
                                             <div class="crr-section-shell">
-                                            <div class="crr-table-header"><span>Packages &nbsp; &nbsp; <span
+                                            <div class="crr-table-header"><span>Packages <span class="text-danger">*</span> &nbsp; &nbsp; <span
                                                         id="package-summary-text"
                                                         style="font-weight: normal; color: #000000; font-weight: 600;">(Total
                                                         : 0.00 kg, 0
@@ -2442,10 +2442,10 @@
                     $('#landed-vessel-wrapper').fadeIn(200);
 
                     $('#supplier-select-wrapper').hide();
-                    $('#supplier-select').prop('disabled', true);
+                    $('#supplier-select').prop('disabled', true).prop('required', false);
 
                     $('#supplier-input-wrapper').show();
-                    $('#supplier-input').prop('disabled', false).val('EX VESSEL');
+                    $('#supplier-input').prop('disabled', false).prop('required', true).val('EX VESSEL');
 
                     $('#landed-from-vessel').select2({
                         placeholder: "Select vessel",
@@ -2460,10 +2460,10 @@
                     $('#landed-vessel-wrapper').fadeOut(200);
 
                     $('#supplier-input-wrapper').hide();
-                    $('#supplier-input').prop('disabled', true);
+                    $('#supplier-input').prop('disabled', true).prop('required', false);
 
                     $('#supplier-select-wrapper').show();
-                    $('#supplier-select').prop('disabled', false);
+                    $('#supplier-select').prop('disabled', false).prop('required', true);
                 }
             });
 
@@ -2589,6 +2589,8 @@
                     }, 200);
                 }, 50);
             }
+
+            window.openCreateCrrSupplierModal = openAddSupplierModal;
 
             function initModalSupplierSelect2() {
                 $('.modal-supplier-country').each(function () {
@@ -2808,16 +2810,70 @@
                 var $actualDelivery = $('#actual_delivery_date');
                 var $actualErrorBox = $('#actual-delivery-validation-error');
                 var $actualErrorText = $('#actual-delivery-validation-error-text');
+                var $vessel = $('select[name="vessel_name"]');
+                var $hub = $('select[name="hub_agent"]');
+                var $supplierSelect = $('#supplier-select');
+                var $supplierInput = $('#supplier-input');
                 var $currency = $('#currency_select');
                 var $customsValue = $('#customs_value');
+                var $vesselSelection = $vessel.next('.select2-container').find('.select2-selection');
+                var $hubSelection = $hub.next('.select2-container').find('.select2-selection');
+                var $supplierSelection = $supplierSelect.next('.select2-container').find('.select2-selection');
                 var $currencySelection = $currency.next('.select2-container').find('.select2-selection');
 
                 $rows.find('.pkg-l, .pkg-w, .pkg-h, .pkg-weight').css('border-color', '');
                 $actualDelivery.css('border-color', '');
                 $actualErrorText.text('');
                 $actualErrorBox.hide();
+                $vesselSelection.css('border-color', '');
+                $hubSelection.css('border-color', '');
+                $supplierSelection.css('border-color', '');
+                $supplierInput.css('border-color', '');
                 $customsValue.css('border-color', '');
                 $currencySelection.css('border-color', '');
+
+                if (!$.trim(String($vessel.val() || ''))) {
+                    e.preventDefault();
+                    $vesselSelection.css('border-color', '#dc3545');
+                    $errorText.text('Vessel is required.');
+                    $errorBox.show();
+                    $('html, body').animate({
+                        scrollTop: $vessel.closest('.crr-field-group').offset().top - 100
+                    }, 300);
+                    return false;
+                }
+
+                if (!$.trim(String($hub.val() || ''))) {
+                    e.preventDefault();
+                    $hubSelection.css('border-color', '#dc3545');
+                    $errorText.text('Hub/agent is required.');
+                    $errorBox.show();
+                    $('html, body').animate({
+                        scrollTop: $hub.closest('.crr-field-group').offset().top - 100
+                    }, 300);
+                    return false;
+                }
+
+                var supplierValue = $('#landed-goods').is(':checked')
+                    ? $.trim(String($supplierInput.val() || ''))
+                    : $.trim(String($supplierSelect.val() || ''));
+                if (!supplierValue) {
+                    e.preventDefault();
+                    if ($('#landed-goods').is(':checked')) {
+                        $supplierInput.css('border-color', '#dc3545');
+                        $('html, body').animate({
+                            scrollTop: $supplierInput.closest('.crr-field-group').offset().top - 100
+                        }, 300);
+                    } else {
+                        $supplierSelection.css('border-color', '#dc3545');
+                        $('html, body').animate({
+                            scrollTop: $supplierSelect.closest('.crr-field-group').offset().top - 100
+                        }, 300);
+                    }
+                    $errorText.text('Supplier is required.');
+                    $errorBox.show();
+                    return false;
+                }
 
                 if (!$.trim(String($currency.val() || ''))) {
                     e.preventDefault();

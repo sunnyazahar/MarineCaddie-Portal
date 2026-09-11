@@ -91,14 +91,105 @@ trait CreatesRegressionSchema
         Schema::create('offices', function (Blueprint $table) {
             $table->id();
             $table->string('office_name');
+            $table->string('office_short_name')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->string('email')->nullable();
+            $table->string('eori_number')->nullable();
+            $table->text('address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('district_state')->nullable();
+            $table->string('zip_code')->nullable();
+            $table->foreignId('country_id')->nullable();
+            $table->text('postal_address')->nullable();
+            $table->string('postal_city')->nullable();
+            $table->string('postal_district_state')->nullable();
+            $table->string('postal_zip_code')->nullable();
+            $table->foreignId('office_country_id')->nullable();
+            $table->string('invoicing_currency')->nullable();
+            $table->string('reporting_currency')->nullable();
+            $table->string('vat_rates')->nullable();
+            $table->string('vat_country_specific_name')->nullable();
+            $table->string('vat_number')->nullable();
+            $table->string('invoicing_emails')->nullable();
+            $table->text('heading_invoice')->nullable();
+            $table->text('information_invoice')->nullable();
+            $table->boolean('use_vat_check')->default(false);
+            $table->boolean('show_imo')->default(false);
+            $table->boolean('enable_reader')->default(false);
+            $table->string('status')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
             $table->timestamps();
         });
 
         Schema::create('hubs', function (Blueprint $table) {
             $table->id();
             $table->string('hub_name');
+            $table->unsignedBigInteger('company_id')->nullable();
+            $table->string('customer_number_fm')->nullable();
             $table->string('code')->nullable();
+            $table->string('code_description')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->string('contact_person')->nullable();
+            $table->string('email')->nullable();
+            $table->boolean('is_gts_company')->default(false);
+            $table->text('remarks')->nullable();
+            $table->text('special_considerations')->nullable();
+            $table->boolean('show_pre_alert')->default(false);
+            $table->text('hub_address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('district_state')->nullable();
+            $table->string('zip_code')->nullable();
+            $table->string('country')->nullable();
+            $table->string('port_code')->nullable();
+            $table->text('office_address')->nullable();
+            $table->string('office_city')->nullable();
+            $table->string('office_district_state')->nullable();
+            $table->string('office_zip_code')->nullable();
+            $table->string('office_country')->nullable();
+            $table->string('eori_number')->nullable();
+            $table->string('un_locode')->nullable();
             $table->boolean('hide_in_portal')->nullable()->default(false);
+            $table->text('portal_remarks')->nullable();
+            $table->string('portal_email')->nullable();
+            $table->string('invoicing_name')->nullable();
+            $table->text('invoicing_address')->nullable();
+            $table->string('invoicing_city')->nullable();
+            $table->string('invoicing_district')->nullable();
+            $table->string('invoicing_zip')->nullable();
+            $table->string('billing_country')->nullable();
+            $table->string('emails_for_invoicing')->nullable();
+            $table->string('emails_for_invoicing_cc')->nullable();
+            $table->string('vat_number')->nullable();
+            $table->string('invoicing_frequency')->nullable();
+            $table->string('billing_currency_outgoing')->nullable();
+            $table->string('payment_terms_outgoing')->nullable();
+            $table->string('billing_currency_incoming')->nullable();
+            $table->string('payment_terms_incoming')->nullable();
+            $table->string('agreement_type')->nullable();
+            $table->decimal('rebate_percentage', 8, 2)->nullable();
+            $table->json('export_services')->nullable();
+            $table->json('import_services')->nullable();
+            $table->json('export_emails')->nullable();
+            $table->json('import_emails')->nullable();
+            $table->string('stock_item_changed_emails')->nullable();
+            $table->string('quote_requests_emails')->nullable();
+            $table->boolean('coc_signed')->default(false);
+            $table->boolean('sop_implemented')->default(false);
+            $table->date('coc_signed_date')->nullable();
+            $table->string('responsible_manager')->nullable();
+            $table->string('scan_gun_login')->nullable();
+            $table->string('scan_gun_password')->nullable();
+            $table->date('agreement_start_date')->nullable();
+            $table->date('agreement_expiry_date')->nullable();
+            $table->decimal('minimal_cbm', 10, 2)->nullable();
+            $table->decimal('minimal_weight', 10, 2)->nullable();
+            $table->unsignedInteger('free_storage_days')->nullable();
+            $table->decimal('cbm_charge_usd', 10, 2)->nullable();
+            $table->boolean('scangun_photo_taking')->default(false);
+            $table->boolean('scangun_detailed_shipment_out')->default(false);
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -106,17 +197,65 @@ trait CreatesRegressionSchema
         Schema::create('agents', function (Blueprint $table) {
             $table->id();
             $table->string('agent_name');
+            $table->unsignedBigInteger('company_id')->nullable();
             $table->string('code')->nullable();
+            $table->string('code_description')->nullable();
             $table->string('email')->nullable();
+            $table->string('phone')->nullable();
             $table->string('contact_person')->nullable();
+            $table->text('remarks')->nullable();
+            $table->text('special_considerations')->nullable();
+            $table->boolean('show_pre_alert')->default(false);
             $table->text('agent_address')->nullable();
             $table->string('city')->nullable();
             $table->string('district_state')->nullable();
             $table->string('zip_code')->nullable();
             $table->unsignedBigInteger('country_id')->nullable();
+            $table->string('port_code')->nullable();
             $table->text('office_address')->nullable();
+            $table->string('office_city')->nullable();
+            $table->string('office_district_state')->nullable();
+            $table->string('office_zip_code')->nullable();
+            $table->unsignedBigInteger('office_country_id')->nullable();
+            $table->string('eori_number')->nullable();
+            $table->string('un_locode')->nullable();
             $table->string('agent_type')->nullable();
+            $table->string('invoicing_name')->nullable();
+            $table->text('billing_address')->nullable();
+            $table->string('billing_city')->nullable();
+            $table->string('billing_district_state')->nullable();
+            $table->string('billing_zip_code')->nullable();
+            $table->unsignedBigInteger('billing_country_id')->nullable();
+            $table->string('invoicing_emails')->nullable();
+            $table->string('invoicing_emails_cc')->nullable();
+            $table->string('vat_number')->nullable();
+            $table->string('invoicing_frequency')->nullable();
+            $table->boolean('applies_to_rebate')->default(false);
+            $table->decimal('rebate_percentage', 8, 2)->nullable();
+            $table->string('outgoing_currency')->nullable();
+            $table->string('outgoing_payment_terms')->nullable();
+            $table->string('incoming_currency')->nullable();
+            $table->string('incoming_payment_terms')->nullable();
+            $table->boolean('coc_signed')->default(false);
+            $table->boolean('sop_implemented')->default(false);
+            $table->date('coc_signed_date')->nullable();
+            $table->string('responsible_manager')->nullable();
+            $table->boolean('calculate_sell_rates')->default(false);
+            $table->decimal('purchase_rate', 10, 2)->nullable();
+            $table->decimal('sell_rate', 10, 2)->nullable();
+            $table->decimal('profit', 10, 2)->nullable();
+            $table->string('export_email_services')->nullable();
+            $table->string('import_email_services')->nullable();
+            $table->string('status_changed_emails')->nullable();
+            $table->string('stock_item_changed_emails')->nullable();
+            $table->string('quote_requests_emails')->nullable();
+            $table->string('scangun_login')->nullable();
+            $table->string('scangun_password')->nullable();
+            $table->boolean('scangun_enable_picture')->default(false);
+            $table->boolean('scangun_enable_detailed_shipment')->default(false);
             $table->boolean('is_active')->default(true);
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -124,6 +263,28 @@ trait CreatesRegressionSchema
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
             $table->string('supplier_name');
+            $table->string('phone_number')->nullable();
+            $table->string('contact_person')->nullable();
+            $table->string('email')->nullable();
+            $table->text('remarks')->nullable();
+            $table->text('special_considerations')->nullable();
+            $table->text('supplier_address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('district_state')->nullable();
+            $table->string('zip_code')->nullable();
+            $table->unsignedBigInteger('country_id')->nullable();
+            $table->string('port_code')->nullable();
+            $table->text('office_address')->nullable();
+            $table->string('office_city')->nullable();
+            $table->string('office_district_state')->nullable();
+            $table->string('office_zip_code')->nullable();
+            $table->unsignedBigInteger('office_country_id')->nullable();
+            $table->string('vat_number')->nullable();
+            $table->string('eori_number')->nullable();
+            $table->string('currency')->nullable();
+            $table->string('un_locode')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -132,6 +293,8 @@ trait CreatesRegressionSchema
             $table->id();
             $table->string('company_name');
             $table->string('code')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -154,22 +317,47 @@ trait CreatesRegressionSchema
             $table->string('name')->nullable();
             $table->string('email')->nullable();
             $table->string('phone_number')->nullable();
+            $table->text('description')->nullable();
+            $table->boolean('is_main_contact')->default(false);
             $table->foreignId('office_id')->nullable();
+            $table->foreignId('customer_id')->nullable();
+            $table->foreignId('hub_id')->nullable();
+            $table->foreignId('supplier_id')->nullable();
             $table->unsignedBigInteger('agent_id')->nullable();
+            $table->unsignedBigInteger('other_company_id')->nullable();
+            $table->string('reply_to_email')->nullable();
+            $table->boolean('is_cc_enabled')->default(false);
+            $table->string('status')->nullable();
+            $table->string('category')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
             $table->timestamps();
         });
 
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('customer_name');
+            $table->string('customer_number')->nullable();
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
+            $table->string('contact_person')->nullable();
+            $table->unsignedBigInteger('customer_group_id')->nullable();
+            $table->string('internal_shipment')->nullable();
+            $table->text('remarks')->nullable();
+            $table->text('special_considerations')->nullable();
+            $table->string('un_locode')->nullable();
+            $table->boolean('show_transport_details')->default(false);
+            $table->boolean('esea_store_stock_only')->default(false);
+            $table->string('logo')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
             $table->timestamps();
         });
 
         Schema::create('customer_responsibles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id');
+            $table->foreignId('sales_manager_id')->nullable();
             $table->foreignId('account_manager_id')->nullable();
             $table->foreignId('accounting_user_id')->nullable();
         });
@@ -178,6 +366,37 @@ trait CreatesRegressionSchema
             $table->id();
             $table->foreignId('customer_id');
             $table->string('vessel')->nullable();
+            $table->string('vessel_name_alias')->nullable();
+            $table->string('vessel_imo')->nullable();
+            $table->string('shipyard')->nullable();
+            $table->string('shipyard_location')->nullable();
+            $table->boolean('not_in_transit')->default(false);
+            $table->boolean('inactive_vessel')->default(false);
+            $table->boolean('sanction_blocked')->default(false);
+            $table->boolean('financially_blocked')->default(false);
+            $table->boolean('pre_payment_only')->default(false);
+            $table->string('customer_vessel_code')->nullable();
+            $table->string('vessel_type_alias')->nullable();
+            $table->string('po_example')->nullable();
+            $table->string('internal_shipment')->nullable();
+            $table->string('except_from_hubs')->nullable();
+            $table->text('remarks')->nullable();
+            $table->string('manager')->nullable();
+            $table->string('account_manager')->nullable();
+            $table->string('receivers_stocklists')->nullable();
+            $table->string('home_consolidation_port')->nullable();
+            $table->string('home_delivery_port')->nullable();
+            $table->unsignedBigInteger('contact_id')->nullable();
+            $table->boolean('contact_stocklists')->default(false);
+            $table->boolean('contact_pre_alerts')->default(false);
+            $table->boolean('contact_stock_notifications')->default(false);
+            $table->boolean('contact_free_storage_notifications')->default(false);
+            $table->boolean('contact_offers')->default(false);
+            $table->boolean('invoice_vessel_separately')->default(false);
+            $table->string('title_invoice_recipient')->nullable();
+            $table->string('yearly_customer_reference')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
             $table->timestamps();
         });
 
@@ -186,7 +405,13 @@ trait CreatesRegressionSchema
             $table->foreignId('customer_id');
             $table->string('invoice_recipient_name')->nullable();
             $table->string('invoice_email')->nullable();
+            $table->string('invoice_email_cc')->nullable();
             $table->string('currency_code')->nullable();
+            $table->unsignedInteger('payment_terms_days')->nullable();
+            $table->string('invoice_frequency')->nullable();
+            $table->text('invoice_remarks')->nullable();
+            $table->string('vat_number')->nullable();
+            $table->string('eori_number')->nullable();
         });
 
         Schema::create('customer_addresses', function (Blueprint $table) {
@@ -198,6 +423,82 @@ trait CreatesRegressionSchema
             $table->string('state')->nullable();
             $table->string('zip_code')->nullable();
             $table->foreignId('country_id')->nullable();
+            $table->string('port_code')->nullable();
+        });
+
+        Schema::create('customer_sops', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('customer_id');
+            $table->string('send_stocklist')->nullable();
+            $table->string('onboard_delivery')->nullable();
+            $table->string('quotes_prior_to_instructions')->nullable();
+            $table->string('agreed_rate')->nullable();
+            $table->text('invoicing_procedure')->nullable();
+            $table->string('pending_entry')->nullable();
+            $table->text('special_pending_routines')->nullable();
+            $table->text('other_procedures_comments')->nullable();
+        });
+
+        Schema::create('customer_notification_settings', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('customer_id');
+            $table->string('notify_stock_items')->nullable();
+            $table->boolean('send_automatic_first_mile_email')->default(false);
+            $table->string('notify_first_mile_email_sent')->nullable();
+            $table->unsignedInteger('shipping_free_storage_days')->nullable();
+            $table->decimal('shipping_free_storage_weight', 10, 2)->nullable();
+            $table->decimal('shipping_free_storage_volume', 10, 2)->nullable();
+            $table->string('notify_free_storage_exceeded')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('customer_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('customer_id');
+            $table->string('file_name')->nullable();
+            $table->string('file_path')->nullable();
+            $table->string('file_type')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('hub_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('hub_id');
+            $table->string('document_type')->nullable();
+            $table->string('file_name')->nullable();
+            $table->string('file_path')->nullable();
+            $table->string('file_type')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('hub_pricing_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('hub_id');
+            $table->string('file_name')->nullable();
+            $table->string('file_path')->nullable();
+            $table->string('file_type')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('agent_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('agent_id');
+            $table->string('section')->nullable();
+            $table->string('filename')->nullable();
+            $table->string('file_path')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('office_bank_accounts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('office_id');
+            $table->string('bank')->nullable();
+            $table->string('currency')->nullable();
+            $table->string('account_number')->nullable();
+            $table->string('iban')->nullable();
+            $table->string('swift')->nullable();
+            $table->boolean('is_main_account')->default(false);
+            $table->timestamps();
         });
 
         Schema::create('crrs', function (Blueprint $table) {
@@ -264,22 +565,50 @@ trait CreatesRegressionSchema
             $table->string('departure_port_code')->nullable();
             $table->string('consignee')->nullable();
             $table->string('consignee_port_code')->nullable();
+            $table->text('consignee_address')->nullable();
             $table->string('consignee_city')->nullable();
+            $table->string('consignee_district')->nullable();
+            $table->string('consignee_zip')->nullable();
             $table->string('consignee_country')->nullable();
+            $table->string('consignee_att')->nullable();
+            $table->string('consignee_email')->nullable();
+            $table->string('location')->nullable();
             $table->string('service')->nullable();
             $table->string('additional_service')->nullable();
             $table->string('customer_reference')->nullable();
+            $table->boolean('not_applicable_for_consolidation')->default(false);
             $table->unsignedInteger('repacked_items')->nullable();
             $table->decimal('repacked_weight', 12, 2)->nullable();
             $table->unsignedInteger('stock_repacked_items')->nullable();
             $table->decimal('stock_repacked_weight', 12, 2)->nullable();
             $table->date('deadline_arrival')->nullable();
             $table->date('preferred_shipment_date')->nullable();
+            $table->date('vessel_eta')->nullable();
+            $table->date('vessel_etd')->nullable();
             $table->date('pre_alert_reminder')->nullable();
             $table->foreignId('account_manager_id')->nullable();
             $table->foreignId('created_by')->nullable();
+            $table->text('special_considerations_destination')->nullable();
+            $table->boolean('skip_instruction_dest')->default(false);
+            $table->text('comments_departure_hub')->nullable();
+            $table->boolean('skip_instruction_hub')->default(false);
+            $table->text('comments_consignee')->nullable();
+            $table->boolean('skip_prealert')->default(false);
+            $table->boolean('project_logistics')->default(false);
+            $table->boolean('port_agency')->default(false);
             $table->string('status')->default('Draft');
+            $table->json('flags')->nullable();
             $table->timestamp('arrived_at')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('shipment_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id');
+            $table->string('file_name');
+            $table->string('file_path');
+            $table->string('file_type')->default('document');
+            $table->boolean('is_internal')->default(false);
             $table->timestamps();
         });
 
@@ -535,6 +864,7 @@ trait CreatesRegressionSchema
             'shipment_hand_carry_legs',
             'shipment_release_legs',
             'shipment_flights',
+            'shipment_documents',
             'shipment_crr',
             'proforma_invoice_line_items',
             'proforma_invoices',
@@ -544,6 +874,13 @@ trait CreatesRegressionSchema
             'crr_costs',
             'crr_packages',
             'crrs',
+            'office_bank_accounts',
+            'agent_documents',
+            'hub_pricing_documents',
+            'hub_documents',
+            'customer_documents',
+            'customer_notification_settings',
+            'customer_sops',
             'customer_invoice_details',
             'customer_addresses',
             'customer_vessels',

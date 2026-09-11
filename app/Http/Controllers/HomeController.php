@@ -30,4 +30,15 @@ class HomeController extends Controller
             'dashboard' => $dashboardService->build($request->user(), $period),
         ]);
     }
+
+    public function assistantLookup(Request $request, OperationsDashboardService $dashboardService)
+    {
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'max:1000'],
+        ]);
+
+        return response()->json(
+            $dashboardService->assistantLookup($request->user(), $validated['q'])
+        );
+    }
 }

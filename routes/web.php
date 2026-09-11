@@ -17,17 +17,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/otp/resend', [App\Http\Controllers\Auth\OtpController::class, 'resend'])->name('otp.resend');
 
     Route::middleware(['otp.verified', 'ops.admin.readonly', 'accounts.readonly'])->group(function () {
-Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard.home');
-Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+        Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/assistant-lookup', [App\Http\Controllers\HomeController::class, 'assistantLookup'])->name('dashboard.assistant-lookup');
+        Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard.home');
+        Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
 Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.mark-read');
 Route::middleware('admin')->group(function () {
     Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
     Route::post('/users', [App\Http\Controllers\UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
     Route::post('/users/{user}/unblock', [App\Http\Controllers\UserController::class, 'unblock'])->name('users.unblock');
-});
+    });
 
 Route::middleware('billing')->group(function () {
     Route::get('/billing/invoicing', [App\Http\Controllers\BillingController::class, 'invoicing'])->name('billing.invoicing');
@@ -868,4 +869,3 @@ Route::get('/Agents/company-agent/{id}', function ($id) {
         Route::get('/update-currency-rates', [App\Http\Controllers\CurrencyController::class, 'updateRates'])->name('currency.update');
     });
 });
-
