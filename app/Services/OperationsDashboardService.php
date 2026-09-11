@@ -687,6 +687,7 @@ class OperationsDashboardService
             'deadlineArrival' => $this->formatDate($shipment->deadline_arrival),
             'preAlertReminder' => $this->formatDate($shipment->pre_alert_reminder),
             'customerReference' => $this->normalizeText($shipment->customer_reference),
+            'poNumbers' => $this->formatJoinedValues($shipment->po_numbers_display),
             'notApplicableForConsolidation' => (bool) $shipment->not_applicable_for_consolidation,
             'specialConsiderations' => $this->normalizeText($shipment->special_considerations_destination),
             'commentsDepartureHub' => $this->normalizeText($shipment->comments_departure_hub),
@@ -775,6 +776,7 @@ class OperationsDashboardService
             'status' => Crr::getStatusLabels()[$crr->status] ?? 'Unknown',
             'priority' => $crr->priority ?: '—',
             'vessel' => $crr->vessel_name ?: '—',
+            'poNumber' => $this->formatJoinedValues($crr->po_numbers),
             'customer' => $crr->customerVessel?->customer?->customer_name ?: '—',
             'supplier' => $crr->supplier ?: '—',
             'hubAgent' => $crr->hub_code ?: ($crr->hub_agent ?: '—'),
@@ -791,6 +793,34 @@ class OperationsDashboardService
                 ->values()
                 ->all(),
             'packageCount' => (int) $crr->packages->count(),
+            'packageDetails' => $crr->packages
+                ->values()
+                ->map(function ($package) use ($crr) {
+                    return [
+                        'length' => $this->formatDecimal($package->length, 2),
+                        'width' => $this->formatDecimal($package->width, 2),
+                        'height' => $this->formatDecimal($package->height, 2),
+                        'weight' => $this->formatDecimal($package->weight, 2),
+                        'cbm' => $this->formatCbm($package->cbm),
+                        'warehouseLocation' => $this->normalizeText($package->warehouse_location)
+                            ?: $this->normalizeText($crr->location),
+                        'remarks' => $this->normalizeText($package->remarks),
+                        'isDgr' => (bool) $package->is_dgr,
+                        'dgrDescription' => $this->normalizeText($package->dgr_description),
+                        'unNumber' => $this->normalizeText($package->un_number),
+                        'dgrClass' => $this->normalizeText($package->dgr_class),
+                        'isDeliveryIrregularity' => (bool) $package->is_delivery_irregularity,
+                        'deliveryIrregularities' => collect((array) ($package->delivery_irregularities ?? []))
+                            ->map(fn ($item) => $this->normalizeText($item))
+                            ->filter()
+                            ->values()
+                            ->all(),
+                        'isNotStackable' => (bool) $package->is_not_stackable,
+                        'isMedicine' => (bool) $package->is_medicine,
+                        'isXray' => (bool) $package->is_xray,
+                    ];
+                })
+                ->all(),
             'updatedAt' => $this->formatDateTime($crr->updated_at),
         ];
     }
@@ -843,7 +873,7 @@ class OperationsDashboardService
             $this->assistantSection('Basic details', [
                 $this->assistantField('office_name', 'Office name', $office->office_name, ['office', 'name']),
                 $this->assistantField('office_short_name', 'Office short name', $office->office_short_name, ['short name', 'short code']),
-                $this->assistantField('status', 'Status', $this->normalizeText($office->status), ['active status']),
+                $this->assistantField('status', 'Status', $this->assistantActivationStatusText($office->status), ['active status']),
                 $this->assistantField('phone_number', 'Phone number', $office->phone_number, ['phone', 'mobile']),
                 $this->assistantField('email', 'Email', $office->email, ['mail']),
                 $this->assistantField('eori_number', 'EORI number', $office->eori_number, ['eori']),
@@ -887,9 +917,9 @@ class OperationsDashboardService
             'entityLabel' => 'Office',
             'identifierLabel' => 'Office short name',
             'identifier' => $office->office_short_name,
-            'status' => $this->normalizeText($office->status),
+            'status' => $this->assistantActivationStatusText($office->status),
             'updatedAt' => $office->updated_at,
-            'identityValues' => [$office->office_short_name, $office->email, $office->city],
+            'identityValues' => [$office->office_short_name, $office->email, $office->phone_number, $office->city],
             'quickFields' => ['Email', 'Phone number', 'Address', 'Country', 'Created by', 'Bank accounts'],
         ]);
     }
@@ -987,7 +1017,7 @@ class OperationsDashboardService
             'identifier' => $hub->code,
             'status' => $hub->hide_in_portal ? 'Hidden in portal' : 'Active',
             'updatedAt' => $hub->updated_at,
-            'identityValues' => [$hub->code, $hub->email, $hub->city, $hub->port_code],
+            'identityValues' => [$hub->code, $hub->email, $hub->phone_number, $hub->city, $hub->port_code],
             'quickFields' => ['Code', 'Email', 'Contact person', 'Hub address', 'Created by', 'Special considerations'],
         ]);
     }
@@ -1076,7 +1106,7 @@ class OperationsDashboardService
             'identifier' => $agent->code,
             'status' => $agent->is_active ? 'Active' : 'Inactive',
             'updatedAt' => $agent->updated_at,
-            'identityValues' => [$agent->code, $agent->email, $agent->city, $agent->port_code],
+            'identityValues' => [$agent->code, $agent->email, $agent->phone, $agent->city, $agent->port_code],
             'quickFields' => ['Code', 'Email', 'Contact person', 'Agent address', 'Created by', 'Documents'],
         ]);
     }
@@ -1123,7 +1153,7 @@ class OperationsDashboardService
             'identifierLabel' => 'Email',
             'identifier' => $supplier->email,
             'updatedAt' => $supplier->updated_at,
-            'identityValues' => [$supplier->email, $supplier->city, $supplier->port_code],
+            'identityValues' => [$supplier->email, $supplier->phone_number, $supplier->city, $supplier->port_code],
             'quickFields' => ['Email', 'Phone number', 'Contact person', 'Supplier address', 'Created by', 'Currency'],
         ]);
     }
@@ -1255,7 +1285,7 @@ class OperationsDashboardService
                 $this->assistantField('email', 'Email', $contact->email, ['mail']),
                 $this->assistantField('phone_number', 'Phone number', $contact->phone_number, ['phone', 'mobile']),
                 $this->assistantField('description', 'Description', $contact->description, ['role', 'designation']),
-                $this->assistantField('status', 'Status', $contact->status, ['active status']),
+                $this->assistantField('status', 'Status', $this->assistantActivationStatusText($contact->status), ['active status']),
                 $this->assistantField('category', 'Category', $contact->category),
             ]),
             $this->assistantSection('Link & settings', [
@@ -1276,7 +1306,7 @@ class OperationsDashboardService
             'entityLabel' => 'Contact',
             'identifierLabel' => 'Email',
             'identifier' => $contact->email ?: $contact->phone_number,
-            'status' => $this->normalizeText($contact->status),
+            'status' => $this->assistantActivationStatusText($contact->status),
             'updatedAt' => $contact->updated_at,
             'identityValues' => array_filter([
                 $contact->email,
@@ -2293,7 +2323,7 @@ class OperationsDashboardService
         foreach ($records as $record) {
             $values = collect($searchableValues($record))
                 ->flatten()
-                ->map(fn ($value) => $this->normalizeSearchText($value))
+                ->map(fn ($value) => $this->normalizeText($value))
                 ->filter()
                 ->unique()
                 ->values();
@@ -2312,9 +2342,34 @@ class OperationsDashboardService
             foreach ($phrases as $phrase) {
                 $phraseTokens = $this->searchWordTokens($phrase);
                 $isStrongExactPhrase = count($phraseTokens) >= 2 || preg_match('/[\d@._-]/u', $phrase) === 1;
+                $structuredPhraseKey = $this->assistantStructuredAdministrationLookupKey($phrase);
 
                 foreach ($values as $value) {
-                    if ($value === $phrase && $isStrongExactPhrase && mb_strlen($phrase) >= 6) {
+                    $normalizedValue = $this->normalizeSearchText($value);
+                    $structuredValueKey = $this->assistantStructuredAdministrationLookupKey($value);
+
+                    if (
+                        $structuredPhraseKey !== ''
+                        && $this->assistantStructuredAdministrationLookupMatches($structuredValueKey, $structuredPhraseKey)
+                    ) {
+                        if ($structuredValueKey === $structuredPhraseKey) {
+                            $matchScore = 5000 + mb_strlen($structuredPhraseKey);
+
+                            if ($matchScore > $exactScore) {
+                                $exactScore = $matchScore;
+                                $exactMatch = $record;
+                            }
+                        }
+
+                        $score = max(
+                            $score,
+                            ($structuredValueKey === $structuredPhraseKey ? 520 : 470) + mb_strlen($structuredPhraseKey)
+                        );
+
+                        continue;
+                    }
+
+                    if ($normalizedValue === $phrase && $isStrongExactPhrase && mb_strlen($phrase) >= 6) {
                         $matchScore = 5000 + mb_strlen($phrase);
 
                         if ($matchScore > $exactScore) {
@@ -2323,27 +2378,27 @@ class OperationsDashboardService
                         }
                     }
 
-                    if ($value === $phrase) {
+                    if ($normalizedValue === $phrase) {
                         $score = max($score, 520 + mb_strlen($phrase));
                         continue;
                     }
 
-                    if (str_starts_with($value, $phrase)) {
+                    if (str_starts_with($normalizedValue, $phrase)) {
                         $score = max($score, 460 + mb_strlen($phrase));
                         continue;
                     }
 
-                    if (count($phraseTokens) > 1 && str_contains($value, $phrase)) {
+                    if (count($phraseTokens) > 1 && str_contains($normalizedValue, $phrase)) {
                         $score = max($score, 400 + mb_strlen($phrase));
                         continue;
                     }
 
-                    if (count($phraseTokens) === 1 && in_array($phraseTokens[0], $this->searchWordTokens($value), true)) {
+                    if (count($phraseTokens) === 1 && in_array($phraseTokens[0], $this->searchWordTokens($normalizedValue), true)) {
                         $score = max($score, 390 + mb_strlen($phrase));
                         continue;
                     }
 
-                    if (count($phraseTokens) > 1 && array_diff($phraseTokens, $this->searchWordTokens($value)) === []) {
+                    if (count($phraseTokens) > 1 && array_diff($phraseTokens, $this->searchWordTokens($normalizedValue)) === []) {
                         $score = max($score, 360 + mb_strlen($phrase));
                     }
                 }
@@ -2452,6 +2507,29 @@ class OperationsDashboardService
         }
 
         return array_values($phrases);
+    }
+
+    private function assistantStructuredAdministrationLookupKey(string $value): string
+    {
+        if (preg_match('/[\d@._-]/u', $value) !== 1) {
+            return '';
+        }
+
+        return $this->normalizeAssistantLookupIdentifier($value);
+    }
+
+    private function assistantStructuredAdministrationLookupMatches(string $valueKey, string $phraseKey): bool
+    {
+        if ($valueKey === '' || $phraseKey === '') {
+            return false;
+        }
+
+        if ($valueKey === $phraseKey) {
+            return true;
+        }
+
+        return preg_match('/^\d{5,}$/', $phraseKey) === 1
+            && Str::endsWith($valueKey, $phraseKey);
     }
 
     /**
@@ -2758,6 +2836,25 @@ class OperationsDashboardService
         return match ($normalized) {
             '1', 'true', 'yes', 'on' => 'Yes',
             '0', 'false', 'no', 'off' => 'No',
+            default => $this->normalizeText($value),
+        };
+    }
+
+    private function assistantActivationStatusText($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'Active' : 'Inactive';
+        }
+
+        $normalized = mb_strtolower(trim((string) $value));
+
+        return match ($normalized) {
+            '1', 'true', 'yes', 'on', 'active', 'enabled' => 'Active',
+            '0', 'false', 'no', 'off', 'inactive', 'disabled' => 'Inactive',
             default => $this->normalizeText($value),
         };
     }
@@ -3566,6 +3663,12 @@ class OperationsDashboardService
                 }
             }
 
+            $poMatch = $this->findAssistantStockByPoNumber(clone $baseQuery, $term);
+
+            if ($poMatch !== null) {
+                return $poMatch;
+            }
+
             $prefixPattern = ListSearch::prefix($term);
 
             if ($prefixPattern !== null) {
@@ -3597,6 +3700,12 @@ class OperationsDashboardService
                 return $exact;
             }
 
+            $customerReferenceMatch = $this->findAssistantShipmentByCustomerReference(clone $baseQuery, $term);
+
+            if ($customerReferenceMatch !== null) {
+                return $customerReferenceMatch;
+            }
+
             $lookupPattern = $this->assistantShipmentLookupPattern($term);
 
             if ($lookupPattern === null) {
@@ -3610,9 +3719,292 @@ class OperationsDashboardService
             if ($match !== null) {
                 return $match;
             }
+
+            $transportMatch = $this->findAssistantShipmentByTransportReference(clone $baseQuery, $term);
+
+            if ($transportMatch !== null) {
+                return $transportMatch;
+            }
+
+            $poMatch = $this->findAssistantShipmentByPoNumber(clone $baseQuery, $term);
+
+            if ($poMatch !== null) {
+                return $poMatch;
+            }
         }
 
         return null;
+    }
+
+    private function findAssistantStockByPoNumber(Builder $baseQuery, string $term): ?Crr
+    {
+        $term = trim($term);
+
+        if ($term === '' || mb_strlen($term) < 3) {
+            return null;
+        }
+
+        $searchQuery = (clone $baseQuery)->setEagerLoads([]);
+        $exactIds = (clone $searchQuery)
+            ->whereJsonContains('po_numbers', $term)
+            ->limit(2)
+            ->pluck('id');
+
+        if ($exactIds->count() === 1) {
+            return (clone $baseQuery)->whereKey($exactIds->first())->first();
+        }
+
+        if ($exactIds->count() > 1) {
+            return null;
+        }
+
+        $likePattern = $this->assistantIdentifierLikePattern($term);
+
+        if ($likePattern === null) {
+            return null;
+        }
+
+        $candidateIds = (clone $searchQuery)
+            ->where('po_numbers', 'like', $likePattern)
+            ->get(['id', 'po_numbers'])
+            ->filter(fn (Crr $crr) => $this->assistantPoValuesMatchLookup($crr->po_numbers, $term))
+            ->pluck('id')
+            ->unique()
+            ->values();
+
+        if ($candidateIds->count() !== 1) {
+            return null;
+        }
+
+        return (clone $baseQuery)->whereKey($candidateIds->first())->first();
+    }
+
+    private function findAssistantShipmentByTransportReference(Builder $baseQuery, string $term): ?Shipment
+    {
+        $term = trim($term);
+
+        if ($term === '' || mb_strlen($term) < 5) {
+            return null;
+        }
+
+        return $baseQuery
+            ->where(function (Builder $query) use ($term): void {
+                $this->assistantAddTransportReferenceMatch($query, 'flights', 'leg_reference', $term);
+                $this->assistantAddTransportReferenceMatch($query, 'seaLegs', 'bill_of_lading', $term);
+                $this->assistantAddTransportReferenceMatch($query, 'truckLegs', 'cmr', $term);
+                $this->assistantAddTransportReferenceMatch($query, 'courierLegs', 'airway_bill', $term);
+            })
+            ->first();
+    }
+
+    private function findAssistantShipmentByCustomerReference(Builder $baseQuery, string $term): ?Shipment
+    {
+        $term = trim($term);
+
+        if ($term === '' || mb_strlen($term) < 3) {
+            return null;
+        }
+
+        $lowerTerm = Str::lower($term);
+        $normalizedTerm = $this->normalizeAssistantLookupIdentifier($term);
+        $searchQuery = (clone $baseQuery)->setEagerLoads([]);
+        $candidateIds = (clone $searchQuery)
+            ->where(function (Builder $query) use ($lowerTerm, $normalizedTerm): void {
+                $query->whereRaw("LOWER(COALESCE(customer_reference, '')) = ?", [$lowerTerm]);
+
+                if ($normalizedTerm !== '') {
+                    $query->orWhereRaw(
+                        $this->assistantNormalizedTransportReferenceSql('customer_reference') . ' = ?',
+                        [$normalizedTerm]
+                    );
+                }
+            })
+            ->limit(2)
+            ->pluck('shipments.id');
+
+        if ($candidateIds->count() !== 1) {
+            return null;
+        }
+
+        return (clone $baseQuery)->whereKey($candidateIds->first())->first();
+    }
+
+    private function findAssistantShipmentByPoNumber(Builder $baseQuery, string $term): ?Shipment
+    {
+        $term = trim($term);
+
+        if ($term === '' || mb_strlen($term) < 3) {
+            return null;
+        }
+
+        $searchQuery = (clone $baseQuery)->setEagerLoads([]);
+        $exactIds = (clone $searchQuery)
+            ->whereHas('crrs', fn (Builder $query) => $query->whereJsonContains('po_numbers', $term))
+            ->limit(2)
+            ->pluck('shipments.id');
+
+        if ($exactIds->count() === 1) {
+            return (clone $baseQuery)->whereKey($exactIds->first())->first();
+        }
+
+        if ($exactIds->count() > 1) {
+            return null;
+        }
+
+        $likePattern = $this->assistantIdentifierLikePattern($term);
+
+        if ($likePattern === null) {
+            return null;
+        }
+
+        $candidateIds = (clone $searchQuery)
+            ->with(['crrs:id,po_numbers'])
+            ->whereHas('crrs', fn (Builder $query) => $query->where('po_numbers', 'like', $likePattern))
+            ->get(['shipments.id'])
+            ->filter(fn (Shipment $shipment) => $this->assistantShipmentHasPoMatch($shipment, $term))
+            ->pluck('id')
+            ->unique()
+            ->values();
+
+        if ($candidateIds->count() !== 1) {
+            return null;
+        }
+
+        return (clone $baseQuery)->whereKey($candidateIds->first())->first();
+    }
+
+    private function assistantAddTransportReferenceMatch(
+        Builder $query,
+        string $relation,
+        string $column,
+        string $term
+    ): void {
+        $lowerTerm = Str::lower(trim($term));
+        $normalizedTerm = $this->normalizeAssistantTransportReference($term);
+
+        $query->orWhereHas($relation, function (Builder $relationQuery) use ($column, $lowerTerm, $normalizedTerm): void {
+            if ($lowerTerm !== '') {
+                $relationQuery->whereRaw('LOWER(COALESCE(' . $column . ", '')) = ?", [$lowerTerm]);
+            }
+
+            if ($normalizedTerm === '') {
+                return;
+            }
+
+            $normalizedColumn = $this->assistantNormalizedTransportReferenceSql($column);
+
+            $relationQuery->orWhereRaw($normalizedColumn . ' = ?', [$normalizedTerm]);
+
+            if (preg_match('/^\d{5,}$/', $normalizedTerm) === 1) {
+                $relationQuery->orWhereRaw($normalizedColumn . ' LIKE ?', ['%' . $normalizedTerm]);
+            }
+        });
+    }
+
+    private function assistantNormalizedTransportReferenceSql(string $column): string
+    {
+        return "REPLACE(REPLACE(REPLACE(REPLACE(LOWER(COALESCE($column, '')), '-', ''), ' ', ''), '/', ''), ':', '')";
+    }
+
+    private function assistantIdentifierLikePattern(string $value): ?string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $digits = $this->assistantTrailingDigits($value);
+        $needle = $digits !== '' && preg_match('/^\d{5,}$/', $digits) === 1
+            ? $digits
+            : $value;
+
+        return '%' . addcslashes($needle, "%_\\") . '%';
+    }
+
+    private function assistantShipmentHasPoMatch(Shipment $shipment, string $term): bool
+    {
+        return $shipment->crrs->contains(
+            fn (Crr $crr) => $this->assistantPoValuesMatchLookup($crr->po_numbers, $term)
+        );
+    }
+
+    private function assistantPoValuesMatchLookup(mixed $values, string $term): bool
+    {
+        $normalizedTerm = $this->normalizeAssistantLookupIdentifier($term);
+
+        if ($normalizedTerm === '') {
+            return false;
+        }
+
+        $termDigits = $this->assistantTrailingDigits($term);
+
+        return collect($this->assistantLookupValueList($values))
+            ->contains(function (string $value) use ($normalizedTerm, $termDigits): bool {
+                $normalizedValue = $this->normalizeAssistantLookupIdentifier($value);
+
+                if ($normalizedValue === '') {
+                    return false;
+                }
+
+                if ($normalizedValue === $normalizedTerm) {
+                    return true;
+                }
+
+                if ($termDigits !== '' && preg_match('/^\d{5,}$/', $termDigits) === 1) {
+                    $valueDigits = $this->assistantTrailingDigits($value);
+
+                    return ($valueDigits !== '' && Str::endsWith($valueDigits, $termDigits))
+                        || Str::endsWith($normalizedValue, $termDigits);
+                }
+
+                return false;
+            });
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function assistantLookupValueList(mixed $values): array
+    {
+        if (is_array($values)) {
+            return collect($values)
+                ->map(fn ($value) => $this->normalizeText($value))
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        $value = $this->normalizeText($values);
+
+        if ($value === null) {
+            return [];
+        }
+
+        return collect(preg_split('/\s*,\s*/', $value) ?: [])
+            ->map(fn ($item) => $this->normalizeText($item))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function assistantTrailingDigits(string $value): string
+    {
+        preg_match_all('/\d+/', $value, $matches);
+
+        $digits = $matches[0] ?? [];
+
+        return $digits === [] ? '' : (string) end($digits);
+    }
+
+    private function normalizeAssistantLookupIdentifier(string $value): string
+    {
+        return Str::lower(preg_replace('/[^a-z0-9]+/i', '', trim($value)) ?? '');
+    }
+
+    private function normalizeAssistantTransportReference(string $value): string
+    {
+        return $this->normalizeAssistantLookupIdentifier($value);
     }
 
     private function assistantShipmentLookupPattern(string $term): ?string

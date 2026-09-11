@@ -3,7 +3,10 @@
     $assistantStocksOnly = ($assistantScope['mode'] ?? null) === 'stocks-only';
 @endphp
 
-<div class="mc-assistant-shell" id="mcAssistantShell">
+<div
+    class="mc-assistant-shell"
+    id="mcAssistantShell"
+    data-storage-key="mc-assistant:{{ auth()->id() ?? 'guest' }}:{{ $assistantScope['mode'] ?? 'dashboard' }}">
     <div class="mc-assistant-panel" id="mcAssistantPanel" data-role="mc-assistant" aria-hidden="true">
         <div class="mc-assistant-header">
             <div class="mc-assistant-header-copy">
@@ -29,14 +32,14 @@
         <div class="mc-assistant-thread" id="mcAssistantThread" aria-live="polite"></div>
         <div class="mc-assistant-composer">
             <div class="mc-assistant-input-wrap">
-                <input
-                    type="text"
+                <textarea
                     class="form-control mc-assistant-input"
                     id="mcAssistantInput"
                     aria-label="MC assistant input"
                     autocomplete="off"
                     spellcheck="false"
-                    placeholder="{{ $assistantStocksOnly ? 'Example: What is the supplier for CN-72656522 stock?' : 'Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?' }}">
+                    rows="1"
+                    placeholder="{{ $assistantStocksOnly ? 'Example: What is the supplier for CN-72656522 stock?' : 'Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?' }}"></textarea>
             </div>
             <button type="button" class="mc-assistant-send" id="mcAssistantSend">Send</button>
         </div>

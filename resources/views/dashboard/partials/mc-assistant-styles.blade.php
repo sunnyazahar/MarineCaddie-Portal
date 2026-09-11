@@ -308,6 +308,101 @@
         margin-top: 6px;
     }
 
+    .mc-assistant-related-questions {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e4edf4;
+    }
+
+    .mc-assistant-related-questions__title {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #8191a7;
+        margin-bottom: 8px;
+    }
+
+    .mc-assistant-related-questions__list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .mc-assistant-related-questions__button {
+        appearance: none;
+        display: block;
+        border: 1px solid #cfe2ef;
+        border-radius: 999px;
+        background: #f4fbff;
+        color: #0e1d4a;
+        padding: 7px 11px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.35;
+        text-align: left;
+        cursor: pointer;
+        max-width: 100%;
+        transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+        white-space: normal;
+    }
+
+    .mc-assistant-related-questions__button:hover,
+    .mc-assistant-related-questions__button:focus {
+        outline: none;
+        border-color: #00aeef;
+        background: #ecf8fd;
+        transform: translateY(-1px);
+    }
+
+    .mc-assistant-record-links {
+        margin-top: 10px;
+    }
+
+    .mc-assistant-record-links__label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #58708f;
+        margin-bottom: 8px;
+    }
+
+    .mc-assistant-record-links__list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .mc-assistant-record-links__button {
+        appearance: none;
+        border: 0;
+        border-radius: 999px;
+        background: #eaf7ff;
+        color: #0f7aa7;
+        padding: 6px 11px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.2;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+        box-shadow: inset 0 0 0 1px rgba(0, 174, 239, 0.18);
+    }
+
+    .mc-assistant-record-links__button:hover,
+    .mc-assistant-record-links__button:focus {
+        outline: none;
+        background: #d9f1fd;
+        color: #0d5e82;
+        transform: translateY(-1px);
+    }
+
+    .mc-assistant-record-links__button--inline {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 4px;
+        margin-bottom: 4px;
+        vertical-align: middle;
+    }
+
     .mc-assistant-response-stack__item + .mc-assistant-response-stack__item {
         margin-top: 12px;
         padding-top: 12px;
@@ -331,8 +426,14 @@
         width: 100%;
         border-radius: 12px;
         border: 1px solid #d6e4ef;
-        min-height: 42px;
+        min-height: 48px;
+        max-height: 132px;
+        height: 48px;
+        padding: 12px 14px;
         font-size: 16px;
+        line-height: 1.45;
+        resize: none;
+        overflow-y: auto;
     }
 
     .mc-assistant-input:focus {
@@ -539,6 +640,10 @@
 
         .mc-assistant-message__bubble {
             padding: 10px 12px;
+        }
+
+        .mc-assistant-related-questions__button {
+            width: 100%;
         }
 
         .mc-assistant-help {

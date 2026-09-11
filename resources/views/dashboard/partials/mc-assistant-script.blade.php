@@ -43,6 +43,7 @@
         var $close = $('#mcAssistantClose');
         var $clear = $('#mcAssistantClear');
         var $send = $('#mcAssistantSend');
+        var storageKey = $.trim(String($shell.attr('data-storage-key') || 'mc-assistant:dashboard'));
         var lookupUrl = @json(route('dashboard.assistant-lookup'));
         var assistantTestingEnabled = @json(app()->environment('testing'));
 
@@ -72,7 +73,12 @@
             isOpen: false,
             hasWelcomed: false,
             isBusy: false,
-            language: 'english'
+            language: 'english',
+            lastLookupContext: null,
+            messages: [],
+            askedQuestionHistory: [],
+            suggestedQuestionHistory: [],
+            storageReady: null
         };
 
         function currentLanguage() {
@@ -85,6 +91,191 @@
 
         function choose(hinglishText, englishText) {
             return isEnglishResponse() ? englishText : hinglishText;
+        }
+
+        function isValidAssistantLanguage(value) {
+            return value === 'english' || value === 'hinglish';
+        }
+
+        function rememberHistoryValue(collection, value) {
+            var key = normalize(value);
+
+            if (! key || ! Array.isArray(collection) || collection.indexOf(key) !== -1) {
+                return false;
+            }
+
+            collection.push(key);
+
+            return true;
+        }
+
+        function hasHistoryValue(collection, value) {
+            var key = normalize(value);
+
+            return !!key && Array.isArray(collection) && collection.indexOf(key) !== -1;
+        }
+
+        function rememberAskedQuestion(value) {
+            rememberHistoryValue(state.askedQuestionHistory, value);
+        }
+
+        function rememberSuggestedQuestions(questions) {
+            (questions || []).forEach(function (question) {
+                rememberHistoryValue(state.suggestedQuestionHistory, question);
+            });
+        }
+
+        function filterFreshRelatedQuestions(questions) {
+            return uniqueQuestionList(questions, 8).filter(function (question) {
+                return ! hasHistoryValue(state.suggestedQuestionHistory, question)
+                    && ! hasHistoryValue(state.askedQuestionHistory, question);
+            }).slice(0, 4);
+        }
+
+        function canUseLocalStorage() {
+            if (typeof state.storageReady === 'boolean') {
+                return state.storageReady;
+            }
+
+            try {
+                if (! window.localStorage) {
+                    state.storageReady = false;
+                    return false;
+                }
+
+                var probeKey = storageKey + ':probe';
+                window.localStorage.setItem(probeKey, '1');
+                window.localStorage.removeItem(probeKey);
+                state.storageReady = true;
+
+                return true;
+            } catch (error) {
+                state.storageReady = false;
+
+                return false;
+            }
+        }
+
+        function clearStoredConversation() {
+            if (! canUseLocalStorage()) {
+                return;
+            }
+
+            try {
+                window.localStorage.removeItem(storageKey);
+            } catch (error) {
+                // Ignore storage clear failures so the assistant remains usable.
+            }
+        }
+
+        function buildStoredResponse(response) {
+            if (! response || typeof response !== 'object') {
+                return null;
+            }
+
+            return {
+                kind: $.trim(String(response.kind || '')),
+                status: $.trim(String(response.status || '')),
+                relatedQuestions: uniqueQuestionList(Array.isArray(response.relatedQuestions) ? response.relatedQuestions : [], 4)
+            };
+        }
+
+        function createStoredMessageEntry(role, message, isHtml, body, response) {
+            return {
+                role: role === 'user' ? 'user' : 'bot',
+                message: String(message == null ? '' : message),
+                isHtml: !! isHtml,
+                body: String(body == null ? '' : body),
+                response: buildStoredResponse(response)
+            };
+        }
+
+        function buildStoredConversation() {
+            return {
+                version: 1,
+                isOpen: !! state.isOpen,
+                language: currentLanguage(),
+                lastLookupContext: deepClone(lastLookupContext()),
+                messages: deepClone(state.messages)
+            };
+        }
+
+        function persistConversation() {
+            if (! canUseLocalStorage()) {
+                return;
+            }
+
+            if (! state.messages.length) {
+                clearStoredConversation();
+                return;
+            }
+
+            try {
+                window.localStorage.setItem(storageKey, JSON.stringify(buildStoredConversation()));
+            } catch (error) {
+                // Ignore storage write failures so the assistant remains usable.
+            }
+        }
+
+        function readStoredConversation() {
+            var raw;
+            var parsed;
+
+            if (! canUseLocalStorage()) {
+                return null;
+            }
+
+            try {
+                raw = window.localStorage.getItem(storageKey);
+            } catch (error) {
+                return null;
+            }
+
+            if (! raw) {
+                return null;
+            }
+
+            try {
+                parsed = JSON.parse(raw);
+            } catch (error) {
+                clearStoredConversation();
+                return null;
+            }
+
+            return parsed && typeof parsed === 'object' ? parsed : null;
+        }
+
+        function normalizeStoredMessageEntry(entry) {
+            var role;
+            var message;
+            var isHtml;
+            var response;
+            var body;
+
+            if (! entry || typeof entry !== 'object') {
+                return null;
+            }
+
+            role = entry.role === 'user' ? 'user' : (entry.role === 'bot' ? 'bot' : '');
+
+            if (! role) {
+                return null;
+            }
+
+            message = String(entry.message == null ? '' : entry.message);
+            isHtml = !! entry.isHtml;
+            response = buildStoredResponse(entry.response);
+            body = $.trim(String(entry.body || ''))
+                ? String(entry.body)
+                : (isHtml ? message : formatText(message));
+
+            return {
+                role: role,
+                message: message,
+                isHtml: isHtml,
+                body: body,
+                response: response
+            };
         }
 
         function scopeAllows(area) {
@@ -182,6 +373,15 @@
 
         function escapeHtml(value) {
             return $('<div></div>').text(String(value == null ? '' : value)).html();
+        }
+
+        function escapeAttribute(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
         }
 
         function formatText(text) {
@@ -601,6 +801,208 @@
                 && containsIntentPhrases(normalizedText, ['detail', 'details', 'summary', 'batao', 'dikhao']);
         }
 
+        function uniqueCompactValues(values) {
+            var seen = {};
+
+            return (values || []).map(function (value) {
+                return normalizeCompact(value);
+            }).filter(function (value) {
+                if (! value || seen[value]) {
+                    return false;
+                }
+
+                seen[value] = true;
+                return true;
+            });
+        }
+
+        function uniqueTextValues(values) {
+            var seen = {};
+
+            return (values || []).map(function (value) {
+                return $.trim(String(value || ''));
+            }).filter(function (value) {
+                var key = normalizeCompact(value);
+
+                if (! key || key === '—' || seen[key]) {
+                    return false;
+                }
+
+                seen[key] = true;
+                return true;
+            });
+        }
+
+        function queryExactlyMatchesAnyValue(query, values) {
+            var compactQuery = normalizeCompact(query);
+
+            if (! compactQuery) {
+                return false;
+            }
+
+            return (values || []).some(function (value) {
+                return normalizeCompact(value) === compactQuery;
+            });
+        }
+
+        function queryMatchesAnyLookupValue(query, values) {
+            return uniqueTextValues([query].concat(extractLookupTerms(query) || []))
+                .some(function (candidate) {
+                    return queryExactlyMatchesAnyValue(candidate, values);
+                });
+        }
+
+        function splitAssistantValues(value) {
+            if (Array.isArray(value)) {
+                return uniqueTextValues(value);
+            }
+
+            return uniqueTextValues(String(value || '').split(/\s*,\s*/));
+        }
+
+        function trailingDigitGroup(value) {
+            var digitGroups = String(value || '').match(/\d+/g) || [];
+
+            return digitGroups.length ? digitGroups[digitGroups.length - 1] : '';
+        }
+
+        function lookupKeysFromQuery(query) {
+            return uniqueCompactValues((extractLookupTerms(query) || []).concat([query]));
+        }
+
+        function hasLookupKeyMatch(referenceKeys, queryKeys) {
+            return (queryKeys || []).some(function (queryKey) {
+                return (referenceKeys || []).some(function (referenceKey) {
+                    if (queryKey === referenceKey) {
+                        return true;
+                    }
+
+                    return /^\d{5,}$/.test(queryKey) && referenceKey.slice(-queryKey.length) === queryKey;
+                });
+            });
+        }
+
+        function transportReferenceKeys(leg) {
+            var label = $.trim(String(leg && leg.referenceLabel || ''));
+            var reference = $.trim(String(leg && leg.reference || ''));
+            var strippedReference = reference;
+            var trailingDigits = trailingDigitGroup(reference);
+
+            if (label && reference) {
+                strippedReference = $.trim(reference.replace(new RegExp('^' + escapeRegex(label) + '[\\s:/#._-]*', 'i'), ''));
+            }
+
+            return uniqueCompactValues([
+                reference,
+                strippedReference,
+                trailingDigits,
+                label && trailingDigits ? label + ' ' + trailingDigits : '',
+                label && reference ? label + ' ' + reference : ''
+            ]);
+        }
+
+        function findMatchedTransportLeg(item, query) {
+            var legs = Array.isArray(item && item.transportLegs) ? item.transportLegs : [];
+            var queryKeys = lookupKeysFromQuery(query);
+
+            if (! legs.length || ! queryKeys.length) {
+                return null;
+            }
+
+            return legs.find(function (leg) {
+                return hasLookupKeyMatch(transportReferenceKeys(leg), queryKeys);
+            }) || null;
+        }
+
+        function stockLookupKeys(item) {
+            var poValues = splitAssistantValues(item && item.poNumber);
+            var values = [item && item.number].concat(poValues);
+
+            poValues.forEach(function (value) {
+                var digits = trailingDigitGroup(value);
+
+                if (! digits) {
+                    return;
+                }
+
+                values.push(digits);
+                values.push('po ' + digits);
+            });
+
+            return uniqueCompactValues(values);
+        }
+
+        function stockMatchesLookup(item, query) {
+            var queryKeys = lookupKeysFromQuery(query);
+
+            return !!queryKeys.length && hasLookupKeyMatch(stockLookupKeys(item), queryKeys);
+        }
+
+        function shipmentPoValues(item) {
+            var values = splitAssistantValues(item && item.poNumbers);
+
+            (item && Array.isArray(item.stockItems) ? item.stockItems : []).forEach(function (stock) {
+                values = values.concat(splitAssistantValues(stock && stock.poNumber));
+            });
+
+            return uniqueTextValues(values);
+        }
+
+        function shipmentPoLookupKeys(item) {
+            var values = shipmentPoValues(item);
+            var keys = values.slice();
+
+            values.forEach(function (value) {
+                var digits = trailingDigitGroup(value);
+
+                if (! digits) {
+                    return;
+                }
+
+                keys.push(digits);
+                keys.push('po ' + digits);
+            });
+
+            return uniqueCompactValues(keys);
+        }
+
+        function shipmentMatchesPoLookup(item, query) {
+            var queryKeys = lookupKeysFromQuery(query);
+
+            return !!queryKeys.length && hasLookupKeyMatch(shipmentPoLookupKeys(item), queryKeys);
+        }
+
+        function shipmentDirectLookupValues(item) {
+            return uniqueTextValues([
+                item && item.number,
+                item && item.customerReference
+            ]);
+        }
+
+        function shipmentMatchesDirectLookup(item, query) {
+            return queryMatchesAnyLookupValue(query, shipmentDirectLookupValues(item));
+        }
+
+        function isStandaloneLookupQuery(query) {
+            var raw = $.trim(String(query || ''));
+            var residual = raw;
+
+            if (! raw || ! extractLookupTerms(raw).length) {
+                return false;
+            }
+
+            (extractLookupTerms(raw) || []).forEach(function (term) {
+                residual = residual.replace(new RegExp(escapeRegex(term), 'gi'), ' ');
+            });
+
+            residual = residual
+                .replace(/\b(?:shipment|shipments|stock|stocks|awb|mawb|hawb|mbl|cmr|bl|bol|po|ref|reference|flight|leg|number|no)\b/gi, ' ')
+                .replace(/[\s,;:./#?_-]+/g, ' ')
+                .trim();
+
+            return residual === '';
+        }
+
         function isFullRecordRequest(text) {
             return containsIntentPhrases(text, [
                 'complete detail',
@@ -656,6 +1058,750 @@
                 'number',
                 'numbers'
             ]);
+        }
+
+        function uniqueQuestionList(questions, limit) {
+            var seen = {};
+            var max = Number(limit || 3);
+
+            return (questions || []).map(function (question) {
+                return $.trim(String(question || ''));
+            }).filter(function (question) {
+                var key = normalize(question);
+
+                if (! key || seen[key]) {
+                    return false;
+                }
+
+                seen[key] = true;
+                return true;
+            }).slice(0, max > 0 ? max : 3);
+        }
+
+        function normalizedFieldLabel(label) {
+            return $.trim(String(label || '')).replace(/\s+/g, ' ');
+        }
+
+        function administrationContextTypes() {
+            return ['office', 'hub', 'agent', 'supplier', 'customer', 'contact', 'vessel', 'user'];
+        }
+
+        function isAdministrationContextType(type) {
+            return administrationContextTypes().indexOf(String(type || '')) !== -1;
+        }
+
+        function administrationQuestionSubject(type, item) {
+            var name = $.trim(String(item && item.name || ''));
+            var identifier = $.trim(String(item && item.identifier || ''));
+
+            if (type === 'user' && identifier) {
+                return identifier;
+            }
+
+            return name || identifier || administrationEntityLabel(type, item);
+        }
+
+        function shipmentSuggestionQuestion(item, intent) {
+            var shipmentNumber = $.trim(String(item && item.number || ''));
+            var transportLabel = transportHeadingText(item).toLowerCase();
+
+            if (! shipmentNumber) {
+                return '';
+            }
+
+            switch (intent) {
+            case 'status':
+                return choose(shipmentNumber + ' ka status batao', 'What is the status of ' + shipmentNumber + '?');
+            case 'customer':
+                return choose(shipmentNumber + ' ka customer batao', 'Who is the customer for ' + shipmentNumber + '?');
+            case 'consignee':
+                return choose(shipmentNumber + ' ka consignee kon hai', 'Who is the consignee for ' + shipmentNumber + '?');
+            case 'stock-count':
+                return choose(shipmentNumber + ' me kitne stocks add hain', 'How many stocks are linked to ' + shipmentNumber + '?');
+            case 'documents':
+                return choose(shipmentNumber + ' ke documents batao', 'What documents are attached to ' + shipmentNumber + '?');
+            case 'transport':
+                return choose(shipmentNumber + ' ka ' + transportLabel + ' batao', 'Show ' + transportLabel + ' for ' + shipmentNumber + '.');
+            case 'last-modified-by':
+                return choose(shipmentNumber + ' me last modification kisne kiya tha', 'Who made the last modification on ' + shipmentNumber + '?');
+            case 'last-modified-field':
+                return choose(shipmentNumber + ' me last changed field kya tha', 'What was the last changed field for ' + shipmentNumber + '?');
+            case 'summary':
+                return choose(shipmentNumber + ' ka complete summary batao', 'Show the complete summary for ' + shipmentNumber + '.');
+            default:
+                return '';
+            }
+        }
+
+        function stockSuggestionQuestion(item, intent) {
+            var stockNumber = $.trim(String(item && item.number || ''));
+
+            if (! stockNumber) {
+                return '';
+            }
+
+            switch (intent) {
+            case 'status':
+                return choose(stockNumber + ' ka status batao', 'What is the status of ' + stockNumber + '?');
+            case 'supplier':
+                return choose(stockNumber + ' ka supplier batao', 'What is the supplier for ' + stockNumber + '?');
+            case 'hub-agent':
+                return choose(stockNumber + ' ka hub/agent batao', 'What is the hub/agent for ' + stockNumber + '?');
+            case 'packages':
+                return choose(stockNumber + ' me kitne packages hain', 'How many packages are in ' + stockNumber + '?');
+            case 'linked-shipments':
+                return choose(stockNumber + ' ke linked shipments batao', 'Which shipments are linked to ' + stockNumber + '?');
+            case 'customs-value':
+                return choose(stockNumber + ' ka customs value batao', 'What is the customs value for ' + stockNumber + '?');
+            case 'summary':
+                return choose(stockNumber + ' ka complete summary batao', 'Show the complete summary for ' + stockNumber + '.');
+            default:
+                return '';
+            }
+        }
+
+        function administrationSuggestionQuestion(type, item, label) {
+            var subject = administrationQuestionSubject(type, item);
+            var entityLabel = administrationEntityLabel(type, item).toLowerCase();
+            var fieldLabel = normalizedFieldLabel(label);
+
+            if (! subject || ! fieldLabel) {
+                return '';
+            }
+
+            return choose(
+                subject + ' ka ' + fieldLabel + ' batao',
+                'What is the ' + fieldLabel + ' for ' + entityLabel + ' ' + subject + '?'
+            );
+        }
+
+        function administrationSummarySuggestionQuestion(type, item) {
+            var subject = administrationQuestionSubject(type, item);
+            var entityLabel = administrationEntityLabel(type, item).toLowerCase();
+
+            if (! subject) {
+                return '';
+            }
+
+            return choose(
+                subject + ' ka complete summary batao',
+                'Show the complete summary for ' + entityLabel + ' ' + subject + '.'
+            );
+        }
+
+        function changeLogSuggestionQuestion(item, intent) {
+            var subject = $.trim(String(item && (item.name || item.identifier) || ''));
+
+            if (! subject) {
+                subject = choose('is record', 'this record');
+            }
+
+            switch (intent) {
+            case 'changed-by':
+                return choose(subject + ' me last change kisne kiya tha', 'Who made the last change for ' + subject + '?');
+            case 'field':
+                return choose(subject + ' me last changed field kya tha', 'What was the last changed field for ' + subject + '?');
+            case 'what-changed':
+                return choose(subject + ' me last change me kya hua tha', 'What changed last for ' + subject + '?');
+            case 'when':
+                return choose(subject + ' me last change kab hua tha', 'When was the last change for ' + subject + '?');
+            default:
+                return '';
+            }
+        }
+
+        function shipmentRelatedQuestions(item, query) {
+            var normalizedQuery = normalize(query);
+            var questions = [];
+
+            if (! containsIntentPhrases(normalizedQuery, ['status'])) {
+                questions.push(shipmentSuggestionQuestion(item, 'status'));
+            }
+
+            if (! containsIntentPhrases(normalizedQuery, ['customer'])) {
+                questions.push(shipmentSuggestionQuestion(item, 'customer'));
+            }
+
+            if (! containsIntentPhrases(normalizedQuery, ['consignee', 'receiver', 'consigenee'])) {
+                questions.push(shipmentSuggestionQuestion(item, 'consignee'));
+            }
+
+            if (! (containsIntentPhrases(normalizedQuery, ['stock', 'stocks']) && (queryHasCountIntent(normalizedQuery) || queryHasListIntent(normalizedQuery) || containsIntentPhrases(normalizedQuery, ['linked stock detail', 'linked stock details', 'stock detail', 'stock details'])))) {
+                questions.push(shipmentSuggestionQuestion(item, 'stock-count'));
+            }
+
+            if (! containsIntentPhrases(normalizedQuery, ['document', 'documents', 'attachment', 'attachments'])) {
+                questions.push(shipmentSuggestionQuestion(item, 'documents'));
+            }
+
+            if (! isTransportDetailsRequest(normalizedQuery)) {
+                questions.push(shipmentSuggestionQuestion(item, 'transport'));
+            }
+
+            if (! matchesIntent(normalizedQuery, [
+                'updated by',
+                'last updated by',
+                'who updated',
+                'who modified',
+                'who made the last modification',
+                'who made the last update',
+                'who last modified',
+                'kisne update kiya',
+                'kisne change kiya',
+                'last modification kisne kiya',
+                'last modification kisne kiya tha'
+            ])) {
+                questions.push(shipmentSuggestionQuestion(item, 'last-modified-by'));
+            }
+
+            if (! matchesIntent(normalizedQuery, [
+                'last modification field',
+                'last modified field',
+                'last updated field',
+                'last change field',
+                'which field changed',
+                'what field changed',
+                'kaunsi field',
+                'kis field'
+            ], [
+                'updated by',
+                'last updated by',
+                'who updated',
+                'who modified',
+                'kisne update kiya',
+                'kisne change kiya'
+            ])) {
+                questions.push(shipmentSuggestionQuestion(item, 'last-modified-field'));
+            }
+
+            if (! isFullRecordRequest(normalizedQuery)) {
+                questions.push(shipmentSuggestionQuestion(item, 'summary'));
+            }
+
+            return uniqueQuestionList(questions, 3);
+        }
+
+        function stockRelatedQuestions(item, query) {
+            var normalizedQuery = normalize(query);
+            var questions = [];
+
+            if (! containsIntentPhrases(normalizedQuery, ['status'])) {
+                questions.push(stockSuggestionQuestion(item, 'status'));
+            }
+
+            if (! containsIntentPhrases(normalizedQuery, ['supplier'])) {
+                questions.push(stockSuggestionQuestion(item, 'supplier'));
+            }
+
+            if (! containsIntentPhrases(normalizedQuery, ['hub agent', 'hub/agent', 'hub', 'agent'])) {
+                questions.push(stockSuggestionQuestion(item, 'hub-agent'));
+            }
+
+            if (! containsIntentPhrases(normalizedQuery, ['package', 'packages', 'pcs', 'pieces'])) {
+                questions.push(stockSuggestionQuestion(item, 'packages'));
+            }
+
+            if (! containsIntentPhrases(normalizedQuery, ['customs value', 'value'])) {
+                questions.push(stockSuggestionQuestion(item, 'customs-value'));
+            }
+
+            if (! containsIntentPhrases(normalizedQuery, ['shipment', 'shipments', 'linked shipment', 'linked shipments'])) {
+                questions.push(stockSuggestionQuestion(item, 'linked-shipments'));
+            }
+
+            if (! isFullRecordRequest(normalizedQuery)) {
+                questions.push(stockSuggestionQuestion(item, 'summary'));
+            }
+
+            return uniqueQuestionList(questions, 3);
+        }
+
+        function administrationRelatedQuestions(type, item, query) {
+            var intentText = administrationIntentText(item, query) || query;
+            var matchedFieldKeys = administrationFieldMatches(item, intentText).map(function (entry) {
+                return normalize((entry.field && (entry.field.key || entry.field.label)) || '');
+            });
+            var candidateLabels = ((item && Array.isArray(item.quickFields) && item.quickFields.length)
+                ? item.quickFields
+                : administrationFields(item).map(function (field) {
+                    return field.label;
+                }))
+                .map(normalizedFieldLabel)
+                .filter(function (label) {
+                    var normalizedLabel = normalize(label);
+
+                    if (! normalizedLabel || normalizedLabel.indexOf('password') !== -1 || normalizedLabel.indexOf('credential') !== -1) {
+                        return false;
+                    }
+
+                    return matchedFieldKeys.indexOf(normalizedLabel) === -1;
+                });
+
+            if (hasValue(item && item.status) && matchedFieldKeys.indexOf('status') === -1) {
+                candidateLabels.push('Status');
+            }
+
+            if (hasValue(item && item.updatedAt) && matchedFieldKeys.indexOf('last update') === -1 && matchedFieldKeys.indexOf('updated at') === -1) {
+                candidateLabels.push('Last update');
+            }
+
+            if (hasValue(item && item.createdBy) && matchedFieldKeys.indexOf('created by') === -1) {
+                candidateLabels.push('Created by');
+            }
+
+            candidateLabels = candidateLabels.filter(Boolean).filter(function (label, index, items) {
+                return items.indexOf(label) === index;
+            });
+
+            var questions = candidateLabels.slice(0, 4).map(function (label) {
+                return administrationSuggestionQuestion(type, item, label);
+            });
+
+            if (! isFullRecordRequest(intentText)) {
+                questions.push(administrationSummarySuggestionQuestion(type, item));
+            }
+
+            return uniqueQuestionList(questions, 3);
+        }
+
+        function changeLogRelatedQuestions(item, query) {
+            var normalizedQuery = normalize(query);
+            var questions = [];
+
+            if (! matchesIntent(normalizedQuery, [
+                'changed by',
+                'who changed',
+                'who modified',
+                'who updated',
+                'last modified by',
+                'last edited by',
+                'kisne change kiya',
+                'kisne modify kiya',
+                'kisne update kiya'
+            ])) {
+                questions.push(changeLogSuggestionQuestion(item, 'changed-by'));
+            }
+
+            if (! matchesIntent(normalizedQuery, [
+                'field',
+                'which field changed',
+                'last modification field',
+                'last changed field',
+                'last modified field',
+                'kaunsi field',
+                'kis field'
+            ], ['changed by', 'who changed', 'who modified'])) {
+                questions.push(changeLogSuggestionQuestion(item, 'field'));
+            }
+
+            if (! matchesIntent(normalizedQuery, [
+                'what changed',
+                'what was changed',
+                'last change',
+                'latest change',
+                'last modification',
+                'latest modification',
+                'change description',
+                'change detail',
+                'change details'
+            ], ['last modification field', 'last changed field', 'last modified field', 'changed by', 'who changed', 'who modified'])) {
+                questions.push(changeLogSuggestionQuestion(item, 'what-changed'));
+            }
+
+            if (! matchesIntent(normalizedQuery, [
+                'when changed',
+                'change date',
+                'last change date',
+                'latest change date',
+                'kab change hua',
+                'change kab hua'
+            ])) {
+                questions.push(changeLogSuggestionQuestion(item, 'when'));
+            }
+
+            return uniqueQuestionList(questions, 3);
+        }
+
+        function genericRelatedQuestions(query, response) {
+            var normalizedQuery = normalize(query);
+            var responseKind = $.trim(String(response && response.kind || ''));
+            var shipmentStatusRequest = detectShipmentStatusSummaryRequest(query);
+            var questions = [];
+
+            function pushIf(condition, question) {
+                if (condition && question) {
+                    questions.push(question);
+                }
+            }
+
+            if (isStockOnlyAssistant()) {
+                pushIf(scopeAllows('stocks'), choose('CN-72656522 stock ka supplier batao', 'What is the supplier for CN-72656522 stock?'));
+                pushIf(scopeAllows('stocks'), choose('CN-72656522 me kitne packages hain', 'How many packages are in CN-72656522?'));
+                pushIf(scopeAllows('stockFollowUps'), choose('Follow-up stocks batao', 'Show follow-up stocks.'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (responseKind === 'shipment-status-summary' && shipmentStatusRequest && shipmentStatusRequest.item && hasValue(shipmentStatusRequest.item.label)) {
+                pushIf(scopeAllows('shipments'), shipmentStatusRequest.countOnly
+                    ? choose(
+                        shipmentStatusRequest.item.label + ' shipment ka summary batao',
+                        'Describe ' + String(shipmentStatusRequest.item.label).toLowerCase() + ' shipment.'
+                    )
+                    : choose(
+                        shipmentStatusRequest.item.label + ' shipment kitne hain',
+                        'How many ' + String(shipmentStatusRequest.item.label).toLowerCase() + ' shipments are there?'
+                    ));
+                pushIf(scopeAllows('shipments'), choose('Shipment summary batao', 'Show shipment summary.'));
+                pushIf(scopeAllows('overdueShipments'), choose('Overdue arrivals batao', 'Show overdue arrivals.'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (responseKind === 'shipment-created-window' || responseKind === 'shipment-created-today') {
+                pushIf(scopeAllows('shipments'), choose('Shipment summary batao', 'Show shipment summary.'));
+                pushIf(scopeAllows('shipments'), choose('Completed shipment describe karo', 'Describe completed shipment.'));
+                pushIf(scopeAllows('overdueShipments'), choose('Overdue arrivals batao', 'Show overdue arrivals.'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (responseKind === 'stock-follow-ups') {
+                pushIf(scopeAllows('stocks'), choose('Stock summary batao', 'Show stock summary.'));
+                pushIf(scopeAllows('overview'), choose('Overview batao', 'Show overview.'));
+                pushIf(scopeAllows('overdueShipments'), choose('Overdue arrivals batao', 'Show overdue arrivals.'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (responseKind === 'overdue-arrivals') {
+                pushIf(scopeAllows('shipments'), choose('Shipment summary batao', 'Show shipment summary.'));
+                pushIf(scopeAllows('shipments'), choose('Aaj kitne new shipment create hue', 'How many shipments were created today?'));
+                pushIf(scopeAllows('overview'), choose('Overview batao', 'Show overview.'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (responseKind === 'stock-summary') {
+                pushIf(scopeAllows('stockFollowUps'), choose('Follow-up stocks batao', 'Show follow-up stocks.'));
+                pushIf(scopeAllows('shipments'), choose('Shipment summary batao', 'Show shipment summary.'));
+                pushIf(scopeAllows('overview'), choose('Overview batao', 'Show overview.'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (responseKind === 'shipment-summary' || responseKind === 'service-summary') {
+                pushIf(scopeAllows('shipments'), choose('Completed shipment describe karo', 'Describe completed shipment.'));
+                pushIf(scopeAllows('overdueShipments'), choose('Overdue arrivals batao', 'Show overdue arrivals.'));
+                pushIf(scopeAllows('shipments'), choose('Aaj kitne new shipment create hue', 'How many shipments were created today?'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (responseKind === 'overview') {
+                pushIf(scopeAllows('shipments'), choose('Shipment summary batao', 'Show shipment summary.'));
+                pushIf(scopeAllows('stocks'), choose('Stock summary batao', 'Show stock summary.'));
+                pushIf(scopeAllows('shipments'), choose('Aaj kitne new shipment create hue', 'How many shipments were created today?'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (containsIntentPhrases(normalizedQuery, ['shipment', 'shipments'])) {
+                pushIf(scopeAllows('shipments'), choose('Shipment summary batao', 'Show shipment summary.'));
+                pushIf(scopeAllows('shipments'), choose('Completed shipment describe karo', 'Describe completed shipment.'));
+                pushIf(scopeAllows('overdueShipments'), choose('Overdue arrivals batao', 'Show overdue arrivals.'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (containsIntentPhrases(normalizedQuery, ['stock', 'stocks'])) {
+                pushIf(scopeAllows('stocks'), choose('Stock summary batao', 'Show stock summary.'));
+                pushIf(scopeAllows('stockFollowUps'), choose('Follow-up stocks batao', 'Show follow-up stocks.'));
+                pushIf(scopeAllows('overview'), choose('Overview batao', 'Show overview.'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            if (containsAdministrationEntityHint(query)) {
+                pushIf(scopeAllows('administration'), choose('MarineCaddie Dubai Office ka address batao', 'What is the address for MarineCaddie Dubai Office?'));
+                pushIf(scopeAllows('administration'), choose('CAMPBELL SHIPPING ka complete summary batao', 'Show the complete summary for customer CAMPBELL SHIPPING.'));
+                pushIf(scopeAllows('administration'), choose('sunnyazahar@gmail.com ka user role batao', 'What is the role for user sunnyazahar@gmail.com?'));
+
+                return uniqueQuestionList(questions, 3);
+            }
+
+            pushIf(scopeAllows('overview'), choose('Overview batao', 'Show overview.'));
+            pushIf(scopeAllows('shipments'), choose('Shipment summary batao', 'Show shipment summary.'));
+            pushIf(scopeAllows('stocks'), choose('Stock summary batao', 'Show stock summary.'));
+            pushIf(scopeAllows('administration'), choose('sunnyazahar@gmail.com ka user role batao', 'What is the role for user sunnyazahar@gmail.com?'));
+
+            return uniqueQuestionList(questions, 3);
+        }
+
+        function relatedQuestionsForResponse(response, query) {
+            var kind = $.trim(String(response && response.kind || ''));
+            var context = lastLookupContext();
+
+            if (! kind) {
+                return [];
+            }
+
+            if (kind === 'shipment-detail' || kind === 'shipment-field-detail' || kind === 'shipment-field-clarify' || kind === 'shipment-compound-detail' || kind === 'shipment-transport-detail') {
+                return context && context.type === 'shipment'
+                    ? shipmentRelatedQuestions(context.item, query)
+                    : genericRelatedQuestions(query, response);
+            }
+
+            if (kind === 'stock-detail' || kind === 'stock-field-detail' || kind === 'stock-field-clarify') {
+                return context && context.type === 'stock'
+                    ? stockRelatedQuestions(context.item, query)
+                    : genericRelatedQuestions(query, response);
+            }
+
+            if (kind === 'change-log-detail' || kind === 'change-log-field-detail') {
+                return context && context.type === 'change_log'
+                    ? changeLogRelatedQuestions(context.item, query)
+                    : genericRelatedQuestions(query, response);
+            }
+
+            if (kind === 'sensitive-lookup-blocked' && context && isAdministrationContextType(context.type)) {
+                return administrationRelatedQuestions(context.type, context.item, query);
+            }
+
+            if (
+                kind === 'office-detail' || kind === 'hub-detail' || kind === 'agent-detail' || kind === 'supplier-detail'
+                || kind === 'customer-detail' || kind === 'contact-detail' || kind === 'vessel-detail' || kind === 'user-detail'
+                || kind === 'office-field-detail' || kind === 'hub-field-detail' || kind === 'agent-field-detail' || kind === 'supplier-field-detail'
+                || kind === 'customer-field-detail' || kind === 'contact-field-detail' || kind === 'vessel-field-detail' || kind === 'user-field-detail'
+                || kind === 'office-field-clarify' || kind === 'hub-field-clarify' || kind === 'agent-field-clarify' || kind === 'supplier-field-clarify'
+                || kind === 'customer-field-clarify' || kind === 'contact-field-clarify' || kind === 'vessel-field-clarify' || kind === 'user-field-clarify'
+            ) {
+                return context && isAdministrationContextType(context.type)
+                    ? administrationRelatedQuestions(context.type, context.item, query)
+                    : genericRelatedQuestions(query, response);
+            }
+
+            return genericRelatedQuestions(query, response);
+        }
+
+        function decorateResponseWithRelatedQuestions(response, query) {
+            var questions;
+
+            if (! response) {
+                return null;
+            }
+
+            questions = Array.isArray(response.relatedQuestions) && response.relatedQuestions.length
+                ? response.relatedQuestions
+                : relatedQuestionsForResponse(response, query);
+            questions = uniqueQuestionList(questions, response.kind === 'compound-response' ? 4 : 3);
+
+            if (! questions.length) {
+                return response;
+            }
+
+            return $.extend({}, response, {
+                relatedQuestions: questions
+            });
+        }
+
+        function renderRelatedQuestions(questions) {
+            var items = uniqueQuestionList(questions, 4);
+
+            if (! items.length) {
+                return '';
+            }
+
+            function labelFromPrompt(prompt) {
+                var normalizedPrompt = normalize(prompt);
+                var extracted = '';
+                var englishMatch;
+                var hinglishMatch;
+
+                if (containsIntentPhrases(normalizedPrompt, ['linked record name'])) {
+                    return 'Linked record name';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['linked record type'])) {
+                    return 'Linked record type';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['phone number', 'phone'])) {
+                    return 'Phone number';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['email', 'mail'])) {
+                    return 'Email';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['status'])) {
+                    return 'Status';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['role'])) {
+                    return 'Role';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['address'])) {
+                    return 'Address';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['customer'])) {
+                    return 'Customer';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['consignee', 'receiver', 'consigenee'])) {
+                    return 'Consignee';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['supplier'])) {
+                    return 'Supplier';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['hub agent', 'hub/agent'])) {
+                    return 'Hub / agent';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['imo'])) {
+                    return 'IMO';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['package', 'packages', 'pcs', 'pieces'])) {
+                    return 'Packages';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['customs value'])) {
+                    return 'Customs value';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['linked shipment', 'linked shipments'])) {
+                    return 'Linked shipments';
+                }
+
+                if (queryHasCountIntent(normalizedPrompt) && containsIntentPhrases(normalizedPrompt, ['stock', 'stocks'])) {
+                    return 'Linked stocks';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['linked stock', 'linked stocks']) || containsIntentPhrases(normalizedPrompt, ['stocks add'])) {
+                    return 'Linked stocks';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['document', 'documents', 'attachment'])) {
+                    return 'Documents';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['flight detail', 'flight details'])) {
+                    return 'Flight details';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['transport detail', 'transport details'])) {
+                    return 'Transport details';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['last modification field', 'last modified field', 'last changed field', 'what field changed', 'which field changed', 'kaunsi field', 'kis field'])) {
+                    return 'Last changed field';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['changed by', 'who changed', 'who modified', 'who updated', 'last modified by', 'last updated by', 'kisne change kiya', 'kisne update kiya', 'kisne modify kiya'])) {
+                    return 'Last modified by';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['what changed', 'last change', 'latest change', 'change detail', 'change details', 'change description'])) {
+                    return 'Last change details';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['change date', 'when changed', 'kab change hua'])) {
+                    return 'Last change date';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['created by'])) {
+                    return 'Created by';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['last update', 'updated at', 'last updated', 'kab update hua'])) {
+                    return 'Last update';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['complete summary', 'full summary', 'poora summary', 'pura summary'])) {
+                    return 'Complete summary';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['shipment summary'])) {
+                    return 'Shipment summary';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['stock summary'])) {
+                    return 'Stock summary';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['completed shipment']) && containsIntentPhrases(normalizedPrompt, ['describe', 'summary'])) {
+                    return 'Completed shipment summary';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['completed shipment']) && queryHasCountIntent(normalizedPrompt)) {
+                    return 'Completed shipment count';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['new shipment', 'new shipments']) && containsIntentPhrases(normalizedPrompt, ['today', 'aaj', 'created'])) {
+                    return 'New shipments today';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['overdue', 'late arrival', 'late arrivals'])) {
+                    return 'Overdue arrivals';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['follow up stocks', 'follow-up stocks', 'followup stocks'])) {
+                    return 'Follow-up stocks';
+                }
+
+                if (containsIntentPhrases(normalizedPrompt, ['overview', 'dashboard overview'])) {
+                    return 'Overview';
+                }
+
+                englishMatch = String(prompt || '').match(/^What is the (.+?) for /i)
+                    || String(prompt || '').match(/^Who is the (.+?) for /i)
+                    || String(prompt || '').match(/^Show (?:the )?(.+?) for /i)
+                    || String(prompt || '').match(/^Describe (.+)$/i);
+
+                if (englishMatch && englishMatch[1]) {
+                    extracted = $.trim(String(englishMatch[1] || ''))
+                        .replace(/^the\s+/i, '')
+                        .replace(/[?.]+$/g, '');
+
+                    if (extracted) {
+                        return extracted.charAt(0).toUpperCase() + extracted.slice(1);
+                    }
+                }
+
+                hinglishMatch = String(prompt || '').match(/^.+?\s+ka\s+(.+?)\s+batao$/i)
+                    || String(prompt || '').match(/^.+?\s+ke\s+(.+?)\s+batao$/i)
+                    || String(prompt || '').match(/^.+?\s+me\s+kitne\s+(.+?)(?:\s+add)?\s+h(?:ai|ain)$/i)
+                    || String(prompt || '').match(/^.+?\s+ka\s+(.+?)\s+kon\s+hai$/i);
+
+                if (hinglishMatch && hinglishMatch[1]) {
+                    extracted = $.trim(String(hinglishMatch[1] || ''))
+                        .replace(/[?.]+$/g, '');
+
+                    if (extracted) {
+                        return extracted.charAt(0).toUpperCase() + extracted.slice(1);
+                    }
+                }
+
+                return String(prompt || '').replace(/[?.]+$/g, '');
+            }
+
+            return '' +
+                '<div class="mc-assistant-related-questions">' +
+                    '<div class="mc-assistant-related-questions__title">' + escapeHtml(choose('Aage ke options', 'Next options')) + '</div>' +
+                    '<div class="mc-assistant-related-questions__list">' +
+                        items.map(function (question) {
+                            return '' +
+                                '<button type="button" class="mc-assistant-related-questions__button" data-question="' + escapeAttribute(question) + '">' +
+                                    escapeHtml(labelFromPrompt(question)) +
+                                '</button>';
+                        }).join('') +
+                    '</div>' +
+                '</div>';
         }
 
         function matchesExactIntent(text, phrases) {
@@ -893,6 +2039,24 @@
             $send.prop('disabled', isBusy);
         }
 
+        function autoResizeAssistantInput() {
+            var field = $input[0] || null;
+
+            if (! field) {
+                return;
+            }
+
+            if (! field.style) {
+                field.style = {};
+            }
+
+            field.style.height = '48px';
+
+            if (typeof field.scrollHeight === 'number' && field.scrollHeight > 0) {
+                field.style.height = Math.min(field.scrollHeight, 132) + 'px';
+            }
+        }
+
         function extractLookupTerms(text) {
             var unique = {};
             var terms = [];
@@ -945,6 +2109,16 @@
             );
         }
 
+        function shouldRetryDatabaseLookup(response) {
+            var kind = $.trim(String(response && response.kind || ''));
+
+            if (! kind) {
+                return false;
+            }
+
+            return kind === 'clarify' || /-field-clarify$/.test(kind);
+        }
+
         function shouldTryRemoteLookup(text, response) {
             if (state.isBusy || ! $.trim(String(text || ''))) {
                 return false;
@@ -962,10 +2136,36 @@
                 return ! isDetailResponse(response);
             }
 
-            return response && response.kind === 'clarify';
+            return shouldRetryDatabaseLookup(response);
+        }
+
+        function shouldShowRemoteLookupMiss(text, response) {
+            var hasStructuredLookup;
+
+            if (! $.trim(String(text || ''))) {
+                return false;
+            }
+
+            hasStructuredLookup = extractLookupTerms(text).length > 0;
+
+            if (hasStructuredLookup) {
+                return true;
+            }
+
+            if (lastLookupContext() && ! containsAdministrationEntityHint(text) && ! looksLikeAdministrationNameQuery(text)) {
+                return false;
+            }
+
+            if (shouldRetryDatabaseLookup(response)) {
+                return false;
+            }
+
+            return isAdministrationLookupRequest(text);
         }
 
         function rememberLookupItem(type, item) {
+            rememberLookupContext(type, item);
+
             if (! item || ! item.number) {
                 return;
             }
@@ -983,14 +2183,71 @@
             list[existingIndex] = item;
         }
 
-        function addMessage(role, message, isHtml) {
-            var label = 'MC Assistant';
-
-            if (role === 'user') {
-                label = detectResponseLanguage(message) === 'english' ? 'You' : 'Aap';
+        function rememberLookupContext(type, item) {
+            if (! type || ! item) {
+                return;
             }
 
-            var body = isHtml ? message : formatText(message);
+            state.lastLookupContext = {
+                type: String(type),
+                item: deepClone(item)
+            };
+        }
+
+        function lastLookupContext() {
+            return state.lastLookupContext && state.lastLookupContext.type && state.lastLookupContext.item
+                ? state.lastLookupContext
+                : null;
+        }
+
+        function queryUsesLastLookupContext(text) {
+            var normalizedText = normalize(text);
+
+            if (! normalizedText || ! lastLookupContext() || extractLookupTerms(text).length > 0) {
+                return false;
+            }
+
+            return containsIntentPhrases(normalizedText, [
+                'iska',
+                'iski',
+                'iske',
+                'isme',
+                'is mein',
+                'uska',
+                'uski',
+                'uske',
+                'usme',
+                'us mein',
+                'inka',
+                'inki',
+                'inke',
+                'unka',
+                'unki',
+                'unke',
+                'its',
+                'this record',
+                'that record',
+                'same record',
+                'same one',
+                'same user',
+                'same contact',
+                'same shipment',
+                'same stock',
+                'same office',
+                'same customer',
+                'same vessel'
+            ]);
+        }
+
+        function messageLabel(role, message) {
+            if (role === 'user') {
+                return detectResponseLanguage(message) === 'english' ? 'You' : 'Aap';
+            }
+
+            return 'MC Assistant';
+        }
+
+        function appendMessageNode(role, label, body) {
             var html = '' +
                 '<div class="mc-assistant-message mc-assistant-message--' + role + '">' +
                     '<div class="mc-assistant-message__label">' + label + '</div>' +
@@ -999,6 +2256,50 @@
 
             $thread.append(html);
             $thread.scrollTop($thread[0].scrollHeight);
+        }
+
+        function addMessage(role, message, isHtml, response, options) {
+            var settings = $.extend({
+                persist: true,
+                store: true,
+                useProvidedBody: false,
+                useProvidedRelatedQuestions: false,
+                providedBody: ''
+            }, options || {});
+            var label = messageLabel(role, message);
+            var responseSnapshot = buildStoredResponse(response);
+            var relatedQuestions = [];
+            var body = settings.useProvidedBody
+                ? String(settings.providedBody == null ? '' : settings.providedBody)
+                : (isHtml ? String(message == null ? '' : message) : formatText(message));
+
+            if (role === 'user') {
+                rememberAskedQuestion(message);
+            }
+
+            if (role === 'bot' && responseSnapshot && Array.isArray(responseSnapshot.relatedQuestions) && responseSnapshot.relatedQuestions.length) {
+                relatedQuestions = settings.useProvidedRelatedQuestions
+                    ? uniqueQuestionList(responseSnapshot.relatedQuestions, 4)
+                    : filterFreshRelatedQuestions(responseSnapshot.relatedQuestions);
+
+                responseSnapshot.relatedQuestions = relatedQuestions;
+
+                if (relatedQuestions.length && ! settings.useProvidedBody) {
+                    body += renderRelatedQuestions(relatedQuestions);
+                }
+
+                rememberSuggestedQuestions(relatedQuestions);
+            }
+
+            appendMessageNode(role, label, body);
+
+            if (settings.store) {
+                state.messages.push(createStoredMessageEntry(role, message, isHtml, body, responseSnapshot));
+            }
+
+            if (settings.persist) {
+                persistConversation();
+            }
         }
 
         function shouldApplyViewportLift(hiddenBottom) {
@@ -1038,8 +2339,21 @@
             shellNode.style.setProperty('--mc-assistant-visual-offset', keyboardLift + 'px');
         }
 
-        function setLauncher(isOpen) {
-            state.isOpen = isOpen;
+        function applyLauncherState(isOpen) {
+            state.isOpen = !! isOpen;
+            $shell.toggleClass('is-open', state.isOpen);
+            $launcher.attr('aria-expanded', state.isOpen ? 'true' : 'false');
+            $assistant.attr('aria-hidden', state.isOpen ? 'false' : 'true');
+            syncAssistantChrome(true);
+        }
+
+        function setLauncher(isOpen, options) {
+            var settings = $.extend({
+                focusInput: true,
+                returnFocus: true,
+                persist: true
+            }, options || {});
+
             syncViewportOffset();
 
             if (! isOpen) {
@@ -1051,20 +2365,23 @@
                 }
             }
 
-            $shell.toggleClass('is-open', isOpen);
-            $launcher.attr('aria-expanded', isOpen ? 'true' : 'false');
-            $assistant.attr('aria-hidden', isOpen ? 'false' : 'true');
-            syncAssistantChrome(true);
+            applyLauncherState(isOpen);
+
+            if (settings.persist) {
+                persistConversation();
+            }
 
             if (isOpen) {
-                window.setTimeout(function () {
-                    $input.trigger('focus');
-                }, 40);
+                if (settings.focusInput) {
+                    window.setTimeout(function () {
+                        $input.trigger('focus');
+                    }, 40);
+                }
 
                 return;
             }
 
-            if ($launcher.length && $launcher[0] && typeof $launcher[0].focus === 'function') {
+            if (settings.returnFocus && $launcher.length && $launcher[0] && typeof $launcher[0].focus === 'function') {
                 window.setTimeout(function () {
                     $launcher[0].focus();
                 }, 0);
@@ -1072,10 +2389,7 @@
         }
 
         function forceClosedLauncherState() {
-            state.isOpen = false;
-            $shell.removeClass('is-open');
-            $launcher.attr('aria-expanded', 'false');
-            $assistant.attr('aria-hidden', 'true');
+            applyLauncherState(false);
         }
 
         function shipmentSearchText(item) {
@@ -1083,10 +2397,13 @@
                 return document.name;
             });
             var transportBits = (item.transportLegs || []).map(function (leg) {
+                var referenceKeys = transportReferenceKeys(leg);
+
                 return [
                     leg.title,
                     leg.referenceLabel,
                     leg.reference,
+                    referenceKeys.join(' '),
                     leg.carrierLabel,
                     leg.carrier,
                     leg.departurePort,
@@ -1110,6 +2427,7 @@
                 item.consigneePort,
                 item.contactPerson,
                 item.customerReference,
+                item.poNumbers,
                 joinValues(item.linkedStocks),
                 item.accountManager,
                 joinValues(documentNames),
@@ -1121,6 +2439,7 @@
         function stockSearchText(item) {
             return [
                 item.number,
+                item.poNumber,
                 item.status,
                 item.priority,
                 item.vessel,
@@ -1171,20 +2490,17 @@
         }
 
         function findShipmentByNumber(query) {
-            var compactQuery = normalizeCompact(query);
             var matches = shipments.filter(function (item) {
-                var number = normalizeCompact(item.number);
-                return number && (number === compactQuery || compactQuery.indexOf(number) !== -1);
+                return shipmentMatchesDirectLookup(item, query);
             });
 
             return matches.length === 1 ? matches[0] : null;
         }
 
         function findStockByNumber(query) {
-            var compactQuery = normalizeCompact(query);
+            var queryKeys = lookupKeysFromQuery(query);
             var matches = stocks.filter(function (item) {
-                var number = normalizeCompact(item.number);
-                return number && (number === compactQuery || compactQuery.indexOf(number) !== -1);
+                return queryKeys.length && hasLookupKeyMatch(stockLookupKeys(item), queryKeys);
             });
 
             return matches.length === 1 ? matches[0] : null;
@@ -1292,6 +2608,7 @@
         function renderCombinedResponses(responses, kind, status) {
             var seen = {};
             var uniqueResponses = [];
+            var relatedQuestions = [];
 
             (responses || []).forEach(function (response) {
                 var key;
@@ -1308,6 +2625,7 @@
 
                 seen[key] = true;
                 uniqueResponses.push(response);
+                relatedQuestions = relatedQuestions.concat(Array.isArray(response.relatedQuestions) ? response.relatedQuestions : []);
             });
 
             if (! uniqueResponses.length) {
@@ -1325,7 +2643,8 @@
                     + uniqueResponses.map(function (response) {
                         return '<div class="mc-assistant-response-stack__item">' + String(response.html || '') + '</div>';
                     }).join('')
-                    + '</div>'
+                    + '</div>',
+                relatedQuestions: uniqueQuestionList(relatedQuestions, 4)
             };
         }
 
@@ -1376,6 +2695,165 @@
             return '<p><strong>' + escapeHtml(title) + '</strong></p>' + body;
         }
 
+        function uniqueTextValues(values) {
+            var seen = {};
+
+            return (values || []).map(function (value) {
+                return $.trim(String(value || ''));
+            }).filter(function (value) {
+                var key = normalizeCompact(value);
+
+                if (! key || seen[key]) {
+                    return false;
+                }
+
+                seen[key] = true;
+
+                return true;
+            });
+        }
+
+        function shipmentLinkedStockNumbers(item) {
+            return uniqueTextValues(
+                []
+                    .concat(Array.isArray(item && item.linkedStocks) ? item.linkedStocks : [])
+                    .concat((item && Array.isArray(item.stockItems) ? item.stockItems : []).map(function (stock) {
+                        return stock && stock.number ? stock.number : '';
+                    }))
+            );
+        }
+
+        function renderLinkedStockButtons(stockNumbers, label) {
+            var numbers = uniqueTextValues(stockNumbers);
+
+            if (! numbers.length) {
+                return '';
+            }
+
+            return '' +
+                '<div class="mc-assistant-record-links">' +
+                    (label
+                        ? '<div class="mc-assistant-record-links__label">' + escapeHtml(label) + '</div>'
+                        : '') +
+                    '<div class="mc-assistant-record-links__list">' +
+                        numbers.map(function (stockNumber) {
+                            return '' +
+                                '<button type="button" class="mc-assistant-record-links__button" data-record-query="' + escapeAttribute(stockNumber) + '">' +
+                                    escapeHtml(stockNumber) +
+                                '</button>';
+                        }).join('') +
+                    '</div>' +
+                '</div>';
+        }
+
+        function stockPackageFlags(packageItem) {
+            var flags = [];
+
+            if (packageItem && packageItem.isDgr) {
+                flags.push('DGR');
+            }
+
+            if (packageItem && packageItem.isNotStackable) {
+                flags.push(choose('Not stackable', 'Not stackable'));
+            }
+
+            if (packageItem && packageItem.isMedicine) {
+                flags.push(choose('Medicine', 'Medicine'));
+            }
+
+            if (packageItem && packageItem.isXray) {
+                flags.push('X-ray');
+            }
+
+            return flags;
+        }
+
+        function renderStockPackageDetails(items, expectedCount) {
+            var packageItems = Array.isArray(items) ? items : [];
+            var total = Number(expectedCount || packageItems.length || 0);
+
+            if (! packageItems.length) {
+                return '<p>' + escapeHtml(total > 0
+                    ? choose(
+                        'Package rows linked hain, lekin unka detail abhi visible nahi hai.',
+                        'Package rows are linked, but their details are not visible yet.'
+                    )
+                    : choose(
+                        'Is stock ke saath abhi koi package add nahi hai.',
+                        'No package is added to this stock right now.'
+                    )) + '</p>';
+            }
+
+            return '<ul>' + packageItems.map(function (packageItem, index) {
+                var measurements = [];
+                var segments = [];
+                var flags = stockPackageFlags(packageItem);
+                var dgrDetails = joinMeaningful([
+                    hasValue(packageItem && packageItem.dgrDescription) ? packageItem.dgrDescription : '',
+                    hasValue(packageItem && packageItem.unNumber) ? 'UN ' + packageItem.unNumber : '',
+                    hasValue(packageItem && packageItem.dgrClass) ? 'class ' + packageItem.dgrClass : ''
+                ], ', ');
+                var irregularities = uniqueTextValues(packageItem && packageItem.deliveryIrregularities || []);
+
+                if (hasValue(packageItem && packageItem.length)) {
+                    measurements.push('L ' + packageItem.length + ' cm');
+                }
+
+                if (hasValue(packageItem && packageItem.width)) {
+                    measurements.push('W ' + packageItem.width + ' cm');
+                }
+
+                if (hasValue(packageItem && packageItem.height)) {
+                    measurements.push('H ' + packageItem.height + ' cm');
+                }
+
+                if (measurements.length) {
+                    segments.push(choose('measurements ' + measurements.join(', '), 'measurements ' + measurements.join(', ')));
+                }
+
+                if (hasValue(packageItem && packageItem.weight)) {
+                    segments.push(choose('weight ' + packageItem.weight + ' kg', 'weight ' + packageItem.weight + ' kg'));
+                }
+
+                if (hasValue(packageItem && packageItem.cbm)) {
+                    segments.push(packageItem.cbm + ' CBM');
+                }
+
+                if (hasValue(packageItem && packageItem.warehouseLocation)) {
+                    segments.push(choose(
+                        'warehouse location ' + packageItem.warehouseLocation,
+                        'warehouse location ' + packageItem.warehouseLocation
+                    ));
+                }
+
+                if (flags.length) {
+                    segments.push(choose('flags ' + flags.join(', '), 'flags ' + flags.join(', ')));
+                }
+
+                if (hasValue(dgrDetails)) {
+                    segments.push(choose('DGR details ' + dgrDetails, 'DGR details ' + dgrDetails));
+                }
+
+                if (packageItem && packageItem.isDeliveryIrregularity) {
+                    segments.push(irregularities.length
+                        ? choose('delivery irregularities ' + irregularities.join(', '), 'delivery irregularities ' + irregularities.join(', '))
+                        : choose('delivery irregularity flag on hai', 'delivery irregularity flag is on'));
+                } else if (irregularities.length) {
+                    segments.push(choose('delivery irregularities ' + irregularities.join(', '), 'delivery irregularities ' + irregularities.join(', ')));
+                }
+
+                if (hasValue(packageItem && packageItem.remarks)) {
+                    segments.push(choose('remarks ' + packageItem.remarks, 'remarks ' + packageItem.remarks));
+                }
+
+                return '<li><strong>' + escapeHtml(choose('Package ', 'Package ') + formatNumber(index + 1)) + ':</strong> '
+                    + escapeHtml(segments.length
+                        ? segments.join(', ') + '.'
+                        : choose('details abhi add nahi hain.', 'details are not added yet.'))
+                    + '</li>';
+            }).join('') + '</ul>';
+        }
+
         function renderShipmentDocuments(items) {
             if (! items.length) {
                 return '';
@@ -1416,7 +2894,10 @@
                     choose('status ', 'status ') + displayValue(stock.status)
                 ];
 
-                return '<li><strong>' + escapeHtml(stock.number) + ':</strong> '
+                return '<li>'
+                    + '<button type="button" class="mc-assistant-record-links__button mc-assistant-record-links__button--inline" data-record-query="' + escapeAttribute(stock.number) + '">'
+                    + escapeHtml(stock.number)
+                    + '</button>: '
                     + escapeHtml(parts.join(', ') + choose(' dikh raha hai.', ' is visible.'))
                     + '</li>';
             }).join('') + '</ul>';
@@ -1476,8 +2957,10 @@
             return transportHeadingText(item).replace(/\s+details$/i, ' detail').toLowerCase();
         }
 
-        function renderTransportLegList(item) {
-            var legs = Array.isArray(item.transportLegs) ? item.transportLegs : [];
+        function renderTransportLegList(item, selectedLegs) {
+            var legs = Array.isArray(selectedLegs)
+                ? selectedLegs
+                : (Array.isArray(item.transportLegs) ? item.transportLegs : []);
 
             if (! legs.length) {
                 return '<p>' + escapeHtml(choose(
@@ -1852,9 +3335,14 @@
             var flagLine = item.flags && item.flags.length
                 ? choose('Flags me ' + item.flags.join(', ') + ' laga hua hai.', 'The flags on this shipment are ' + item.flags.join(', ') + '.')
                 : choose('Is shipment par abhi koi flag nahi laga hai.', 'No flag is set on this shipment right now.');
-            var linkedStocksText = item.linkedStocks && item.linkedStocks.length
-                ? item.linkedStocks.join(', ')
+            var linkedStockNumbers = shipmentLinkedStockNumbers(item);
+            var linkedStocksText = linkedStockNumbers.length
+                ? linkedStockNumbers.join(', ')
                 : choose('abhi koi linked stock number nahi hai', 'no linked stock number is available yet');
+            var poNumbers = shipmentPoValues(item);
+            var poNumbersText = poNumbers.length
+                ? poNumbers.join(', ')
+                : choose('abhi koi PO number add nahi hai', 'no PO number is added yet');
             var documentNames = item.documents && item.documents.length
                 ? item.documents.map(function (document) {
                     return document.name;
@@ -1922,6 +3410,10 @@
                             'This shipment has ' + describeCount(item.stockCount || 0, 'linked stock', 'linked stocks') + ': ' + linkedStocksText + '.'
                         ),
                         choose(
+                            'Linked PO numbers ' + poNumbersText + ' hain.',
+                            'The linked PO numbers are ' + poNumbersText + '.'
+                        ),
+                        choose(
                             'Total ' + describeCount(item.totalPackages || 0, 'package', 'packages') + ', '
                                 + (hasValue(item.totalWeight) ? item.totalWeight + ' kg weight' : 'weight abhi add nahi hai') + ', '
                                 + (hasValue(item.totalCbm) ? item.totalCbm + ' CBM' : 'CBM abhi add nahi hai') + ' aur '
@@ -1935,7 +3427,7 @@
                             'Open issues ' + formatNumber(item.irregularities || 0) + ' hain. Stock repacked ' + formatRepackedNarrative(item.stockRepackedItems, item.stockRepackedWeight) + ' aur service repacked ' + formatRepackedNarrative(item.serviceRepackedItems, item.serviceRepackedWeight) + '.',
                             'There are ' + formatNumber(item.irregularities || 0) + ' open issues. Stock repacked: ' + formatRepackedNarrative(item.stockRepackedItems, item.stockRepackedWeight) + '. Service repacked: ' + formatRepackedNarrative(item.serviceRepackedItems, item.serviceRepackedWeight) + '.'
                         )
-                    ])) +
+                    ]) + renderLinkedStockButtons(linkedStockNumbers, choose('Stock detail kholne ke liye number par click kijiye.', 'Click a stock number to open its details.'))) +
                     section(choose('Linked stock details', 'Linked stock details'), renderShipmentStockItems(item.stockItems || [])) +
                     section(choose('Documents', 'Documents'), textParagraphs([
                         item.documents && item.documents.length
@@ -1948,10 +3440,11 @@
             };
         }
 
-        function renderShipmentTransportDetail(item) {
+        function renderShipmentTransportDetail(item, matchedLeg) {
             var heading = transportHeadingText(item);
             var serviceText = joinMeaningful([item.service, item.additionalService], ' / ');
-            var legCount = Number(item.transportLegCount || ((item.transportLegs || []).length));
+            var legs = matchedLeg ? [matchedLeg] : (Array.isArray(item.transportLegs) ? item.transportLegs : []);
+            var legCount = Number(legs.length);
             var introLines = [
                 choose(
                     'Yeh ' + (serviceText || displayValue(item.service, 'shipment service')) + ' shipment hai. Route ' + displayValue(item.departurePort) + ' se ' + displayValue(item.consigneePort) + ' tak dikh raha hai.',
@@ -1967,6 +3460,13 @@
                 introLines.push(choose(
                     'Is shipment me flight ke bajay ' + heading.toLowerCase() + ' apply hote hain.',
                     'This shipment uses ' + heading.toLowerCase() + ' instead of flight details.'
+                ));
+            }
+
+            if (matchedLeg && hasValue(matchedLeg.reference) && hasValue(matchedLeg.referenceLabel)) {
+                introLines.push(choose(
+                    'Matched ' + matchedLeg.referenceLabel + ' ' + matchedLeg.reference + ' ka saved detail neeche dikh raha hai.',
+                    'The saved details for matched ' + matchedLeg.referenceLabel + ' ' + matchedLeg.reference + ' are shown below.'
                 ));
             }
 
@@ -1991,9 +3491,11 @@
                 kind: 'shipment-transport-detail',
                 status: choose(heading + ' ready', heading + ' ready'),
                 html: '' +
-                    '<strong>' + escapeHtml(choose('Shipment ' + item.number + ' ke ' + heading.toLowerCase(), heading + ' for shipment ' + item.number)) + '</strong>' +
+                    '<strong>' + escapeHtml(matchedLeg
+                        ? choose('Shipment ' + item.number + ' ke matched ' + heading.toLowerCase(), 'Matched ' + heading + ' for shipment ' + item.number)
+                        : choose('Shipment ' + item.number + ' ke ' + heading.toLowerCase(), heading + ' for shipment ' + item.number)) + '</strong>' +
                     textParagraphs(introLines) +
-                    section(choose('Saved details', 'Saved details'), renderTransportLegList(item))
+                    section(choose('Saved details', 'Saved details'), renderTransportLegList(item, legs))
             };
         }
 
@@ -2078,12 +3580,56 @@
                 .filter(Boolean);
         }
 
+        function assistantDigitSequence(value) {
+            var digitGroups = String(value || '').match(/\d+/g) || [];
+
+            return digitGroups.join('');
+        }
+
+        function administrationIdentityQueryCandidates(query) {
+            var raw = $.trim(String(query || ''));
+            var digitGroups = raw.match(/\d+/g) || [];
+            var candidates = [raw].concat(extractLookupTerms(raw) || []);
+
+            if (digitGroups.length > 1) {
+                candidates.push(digitGroups.join(' '));
+                candidates.push(digitGroups.join(''));
+            }
+
+            return uniqueTextValues(candidates);
+        }
+
+        function administrationIdentityValueMatchesQuery(value, candidate) {
+            var identity = normalizeCompact(value);
+            var compactCandidate = normalizeCompact(candidate);
+            var identityDigits = assistantDigitSequence(value);
+            var candidateDigits = assistantDigitSequence(candidate);
+            var looksStructuredCandidate = /[0-9@._-]/.test(String(candidate || ''));
+
+            if (! identity || ! compactCandidate) {
+                return false;
+            }
+
+            if (identity === compactCandidate || compactCandidate.indexOf(identity) !== -1) {
+                return true;
+            }
+
+            if (looksStructuredCandidate && compactCandidate.length >= 6 && identity.indexOf(compactCandidate) !== -1) {
+                return true;
+            }
+
+            return candidateDigits.length >= 5
+                && !!identityDigits
+                && (identityDigits === candidateDigits || identityDigits.slice(-candidateDigits.length) === candidateDigits);
+        }
+
         function administrationQueryMatchesIdentity(item, query) {
-            var compactQuery = normalizeCompact(query);
+            var candidates = administrationIdentityQueryCandidates(query);
 
             return administrationIdentityValues(item).some(function (value) {
-                var identity = normalizeCompact(value);
-                return identity && (identity === compactQuery || compactQuery.indexOf(identity) !== -1);
+                return candidates.some(function (candidate) {
+                    return administrationIdentityValueMatchesQuery(value, candidate);
+                });
             });
         }
 
@@ -2104,7 +3650,36 @@
             return intentText.replace(/\s+/g, ' ').trim();
         }
 
-        function administrationIntentSuggestsSpecificField(text) {
+        function administrationResidualFieldIntent(item, text) {
+            var cleaned = ' ' + administrationIntentRemainder(text) + ' ';
+
+            if (! $.trim(cleaned)) {
+                return '';
+            }
+
+            administrationIdentityQueryCandidates(text).forEach(function (candidate) {
+                var normalizedCandidate = normalize(candidate);
+
+                if (! normalizedCandidate) {
+                    return;
+                }
+
+                if (! administrationIdentityValues(item).some(function (value) {
+                    return administrationIdentityValueMatchesQuery(value, candidate);
+                })) {
+                    return;
+                }
+
+                cleaned = cleaned.replace(
+                    new RegExp('\\b' + escapeRegex(normalizedCandidate).replace(/\s+/g, '\\s+') + '\\b', 'g'),
+                    ' '
+                );
+            });
+
+            return cleaned.replace(/\s+/g, ' ').trim();
+        }
+
+        function administrationIntentRemainder(text) {
             var cleaned = ' ' + normalize(text || '') + ' ';
 
             [
@@ -2113,16 +3688,32 @@
                 'portal user', 'portal users', 'login user', 'login users',
                 'record', 'records', 'detail', 'details', 'summary', 'summery', 'overview',
                 'info', 'information', 'complete', 'full',
-                'what', 'who', 'which', 'when', 'where', 'how many', 'count', 'number of',
+                'what', 'who', 'which', 'when', 'where', 'is', 'are', 'how many', 'count', 'number of',
                 'kitna', 'kitne', 'kitni', 'kisne', 'kis', 'kon', 'kaun',
                 'show', 'tell', 'give', 'batao', 'dikhao', 'please',
+                'iska', 'iski', 'iske', 'uska', 'uski', 'uske', 'inka', 'inki', 'inke', 'unka', 'unki', 'unke',
+                'its', 'this', 'that', 'same',
                 'ka', 'ke', 'ki', 'ko', 'me', 'mein', 'hai', 'hain', 'tha', 'the', 'kya'
             ].forEach(function (phrase) {
                 var pattern = new RegExp('\\b' + escapeRegex(normalize(phrase)).replace(/\s+/g, '\\s+') + '\\b', 'g');
                 cleaned = cleaned.replace(pattern, ' ');
             });
 
-            return cleaned.replace(/\s+/g, ' ').trim() !== '';
+            return cleaned.replace(/\s+/g, ' ').trim();
+        }
+
+        function administrationIntentSuggestsSpecificField(item, text) {
+            return administrationResidualFieldIntent(item, text) !== '';
+        }
+
+        function administrationUnknownFieldName(item, text) {
+            var remainder = administrationResidualFieldIntent(item, text);
+
+            if (! remainder) {
+                return '';
+            }
+
+            return remainder.split(/\s+/).slice(0, 4).join(' ');
         }
 
         function administrationFieldValue(field) {
@@ -2559,21 +4150,28 @@
             );
         }
 
-        function renderAdministrationUnknownFieldResponse(type, item) {
+        function renderAdministrationUnknownFieldResponse(type, item, text) {
             var entityLabel = administrationEntityLabel(type, item);
             var quickFields = (item && Array.isArray(item.quickFields) ? item.quickFields : []).slice(0, 6);
             var fieldList = quickFields.length
                 ? quickFields.join(', ')
                 : choose('email, phone number, address ya complete summary', 'email, phone number, address, or the complete summary');
+            var missingField = administrationUnknownFieldName(item, text);
+            var message = missingField
+                ? choose(
+                    'Is ' + entityLabel.toLowerCase() + ' ke saved record me ' + missingField + ' field available nahi hai. Aap ' + fieldList + ' ya complete summary puchh sakte hain.',
+                    'The saved ' + entityLabel.toLowerCase() + ' record does not have a ' + missingField + ' field. You can ask for ' + fieldList + ' or the complete summary.'
+                )
+                : choose(
+                    'Main is ' + entityLabel.toLowerCase() + ' ka exact field samajh nahi paya. Aap ' + fieldList + ' ya complete summary puchh sakte hain.',
+                    'I could not identify the exact ' + entityLabel.toLowerCase() + ' field. You can ask for ' + fieldList + ' or the complete summary.'
+                );
 
             return renderRequestedFieldResponse(
                 type + '-field-clarify',
                 choose('Field clarification ready', 'Field clarification ready'),
                 choose(entityLabel + ' ' + item.name + ' ka answer', 'Answer for ' + entityLabel.toLowerCase() + ' ' + item.name),
-                ['<p>' + escapeHtml(choose(
-                    'Main is ' + entityLabel.toLowerCase() + ' ka exact field samajh nahi paya. Aap ' + fieldList + ' ya complete summary puchh sakte hain.',
-                    'I could not identify the exact ' + entityLabel.toLowerCase() + ' field. You can ask for ' + fieldList + ' or the complete summary.'
-                )) + '</p>']
+                ['<p>' + escapeHtml(message) + '</p>']
             );
         }
 
@@ -2595,16 +4193,63 @@
                     return renderSensitiveLookupResponse(type, 'credentials', item);
                 }
 
-                if (administrationIntentSuggestsSpecificField(fieldIntentText)) {
-                    return renderAdministrationUnknownFieldResponse(type, item);
+                if (administrationIntentSuggestsSpecificField(item, fieldIntentText)) {
+                    return renderAdministrationUnknownFieldResponse(type, item, fieldIntentText || normalizedQuery);
                 }
 
                 if (! isGenericRecordSummaryRequest(normalizedQuery) && ! isExactRecordLookup) {
-                    return renderAdministrationUnknownFieldResponse(type, item);
+                    return renderAdministrationUnknownFieldResponse(type, item, fieldIntentText || normalizedQuery);
                 }
             }
 
             return renderAdministrationDetail(type, item);
+        }
+
+        function responseForContextualQuery(query) {
+            var context = lastLookupContext();
+            var type;
+            var item;
+
+            if (! context || ! queryUsesLastLookupContext(query)) {
+                return null;
+            }
+
+            type = context.type;
+            item = context.item;
+
+            if (type === 'shipment') {
+                if (! scopeAllows('shipments')) {
+                    return renderScopeBlockedResponse('shipment');
+                }
+
+                return responseForShipmentQuery(item, query);
+            }
+
+            if (type === 'stock') {
+                if (! scopeAllows('stocks')) {
+                    return renderScopeBlockedResponse('stock');
+                }
+
+                return responseForStockQuery(item, query);
+            }
+
+            if (type === 'change_log') {
+                if (! scopeAllows('administration')) {
+                    return renderScopeBlockedResponse('change_log');
+                }
+
+                return responseForChangeLogQuery(item, query);
+            }
+
+            if (['office', 'hub', 'agent', 'supplier', 'customer', 'contact', 'vessel', 'user'].indexOf(type) !== -1) {
+                if (! scopeAllows('administration')) {
+                    return renderScopeBlockedResponse(type);
+                }
+
+                return responseForAdministrationQuery(type, item, query);
+            }
+
+            return null;
         }
 
         function responseForChangeLogQuery(item, query) {
@@ -2633,14 +4278,65 @@
             var consigneeNotePhrases = ['consignee note', 'receiver note', 'comments to consignee', 'consigenee note', 'comments to consigenee'];
             var consigneeEmailPhrases = ['email', 'mail id', 'email address'];
             var consigneeContactPhrases = ['contact person', 'contact name', 'attn', 'attention person'];
-            var linkedStocks = item.linkedStocks && item.linkedStocks.length
-                ? item.linkedStocks.join(', ')
-                : 'abhi koi linked stock number nahi hai';
+            var stockDetailPhrases = [
+                'stock details',
+                'stock detail',
+                'linked stock details',
+                'linked stock detail',
+                'associated stock details',
+                'associated stock detail',
+                'related stock details',
+                'related stock detail',
+                'attached stock details',
+                'attached stock detail',
+                'stock item details',
+                'stock item detail'
+            ];
+            var stockCountPhrases = [
+                'stock',
+                'stocks',
+                'linked stock',
+                'linked stocks',
+                'associated stock',
+                'associated stocks',
+                'related stock',
+                'related stocks',
+                'attached stock',
+                'attached stocks',
+                'stock add',
+                'stocks add'
+            ];
+            var stockListPhrases = [
+                'stock number',
+                'stock numbers',
+                'linked stock',
+                'linked stocks',
+                'associated stock',
+                'associated stocks',
+                'related stock',
+                'related stocks',
+                'attached stock',
+                'attached stocks',
+                'stock no',
+                'stock nos',
+                'which stock',
+                'kaun se stock',
+                'kaunse stock',
+                'stock list'
+            ];
+            var linkedStockNumbers = shipmentLinkedStockNumbers(item);
+            var linkedStocks = linkedStockNumbers.length
+                ? linkedStockNumbers.join(', ')
+                : choose('abhi koi linked stock number nahi hai', 'no linked stock number is available right now');
+            var poNumbers = shipmentPoValues(item);
+            var linkedPoNumbers = poNumbers.length
+                ? poNumbers.join(', ')
+                : choose('abhi koi PO number add nahi hai', 'no PO number is added right now');
             var documentNames = item.documents && item.documents.length
                 ? item.documents.map(function (document) {
                     return document.name;
                 }).join(', ')
-                : 'abhi koi document attached nahi hai';
+                : choose('abhi koi document attached nahi hai', 'no document is attached right now');
 
             function push(key, html) {
                 if (! html || seen[key]) {
@@ -2653,6 +4349,21 @@
 
             if (matchesIntent(text, ['status'], ['acceptance status'])) {
                 push('status', '<p>' + escapeHtml(choose('Is shipment ka status ' + displayValue(item.status) + ' hai.', 'The status of this shipment is ' + displayValue(item.status) + '.')) + '</p>');
+            }
+
+            if (matchesIntent(text, [
+                'shipment number',
+                'shipment numbers',
+                'shipment no',
+                'which shipment',
+                'kaunsa shipment',
+                'kaun sa shipment',
+                'kaunse shipment'
+            ], stockCountPhrases)) {
+                push('shipment-number', '<p>' + escapeHtml(choose(
+                    'Shipment number ' + displayValue(item.number) + ' hai.',
+                    'The shipment number is ' + displayValue(item.number) + '.'
+                )) + '</p>');
             }
 
             if (matchesIntent(text, [
@@ -2955,19 +4666,46 @@
                 push('port-agency', '<p>' + escapeHtml(choose('Port agency ' + (item.portAgency ? 'on hai.' : 'on nahi hai.'), 'Port agency is ' + (item.portAgency ? 'on.' : 'off.'))) + '</p>');
             }
 
-            if (matchesIntent(text, ['stock details', 'stock detail', 'linked stock details', 'linked stock detail', 'stock item details', 'stock item detail'])) {
+            if (matchesIntent(text, stockDetailPhrases)) {
                 push('stock-details', '<p>' + escapeHtml(choose('Is shipment ke linked stock details ye hain.', 'These are the linked stock details for this shipment.')) + '</p>' + renderShipmentStockItems(item.stockItems || []));
             }
 
-            if (containsIntentPhrases(text, ['stock', 'stocks', 'linked stock', 'linked stocks', 'stock add', 'stocks add']) && wantsCount) {
-                push('stock-count', '<p>' + escapeHtml(choose(
-                    'Is shipment ke saath ' + describeCount(item.stockCount || 0, 'stock', 'stocks') + ' add ' + countVerb(item.stockCount || 0, 'hai', 'hain') + '.',
-                    'This shipment has ' + describeCount(item.stockCount || 0, 'stock', 'stocks') + ' linked.'
-                )) + '</p>');
+            if (containsIntentPhrases(text, stockCountPhrases) && wantsCount) {
+                push('stock-count',
+                    '<p>' + escapeHtml(choose(
+                        'Is shipment ke saath ' + describeCount(item.stockCount || 0, 'stock', 'stocks') + ' add ' + countVerb(item.stockCount || 0, 'hai', 'hain') + '.',
+                        'This shipment has ' + describeCount(item.stockCount || 0, 'stock', 'stocks') + ' linked.'
+                    )) + '</p>'
+                    + (linkedStockNumbers.length
+                        ? '<p>' + escapeHtml(choose(
+                            linkedStockNumbers.length === 1
+                                ? 'Linked stock number yeh hai: ' + linkedStocks + '.'
+                                : 'Linked stock numbers yeh hain: ' + linkedStocks + '.',
+                            linkedStockNumbers.length === 1
+                                ? 'The linked stock number is: ' + linkedStocks + '.'
+                                : 'The linked stock numbers are: ' + linkedStocks + '.'
+                        )) + '</p>'
+                        + renderLinkedStockButtons(linkedStockNumbers, choose('Stock detail kholne ke liye number par click kijiye.', 'Click a stock number to open its details.'))
+                        : '')
+                );
             }
 
-            if (containsIntentPhrases(text, ['stock number', 'stock numbers', 'linked stock', 'linked stocks', 'stock no', 'stock nos', 'which stock', 'kaun se stock', 'kaunse stock', 'stock list']) || (containsIntentPhrases(text, ['stock', 'stocks']) && wantsList)) {
-                push('stock-list', '<p>' + escapeHtml(choose('Is shipment ke linked stock numbers ye hain: ' + linkedStocks + '.', 'The linked stock numbers for this shipment are: ' + linkedStocks + '.')) + '</p>');
+            if (containsIntentPhrases(text, stockListPhrases) || (containsIntentPhrases(text, ['stock', 'stocks']) && wantsList)) {
+                push('stock-list',
+                    '<p>' + escapeHtml(choose(
+                        'Is shipment ke linked stock numbers ye hain: ' + linkedStocks + '.',
+                        'The linked stock numbers for this shipment are: ' + linkedStocks + '.'
+                    )) + '</p>'
+                    + renderLinkedStockButtons(linkedStockNumbers, choose('Stock detail kholne ke liye number par click kijiye.', 'Click a stock number to open its details.'))
+                );
+            }
+
+            if (matchesIntent(text, ['po', 'po number', 'po numbers', 'purchase order', 'purchase orders'])
+                && ! queryExactlyMatchesAnyValue(text, poNumbers)) {
+                push('po-number', '<p>' + escapeHtml(choose(
+                    'Is shipment ke linked PO numbers ye hain: ' + linkedPoNumbers + '.',
+                    'The linked PO numbers for this shipment are: ' + linkedPoNumbers + '.'
+                )) + '</p>');
             }
 
             if (matchesIntent(text, ['package', 'packages', 'pcs', 'pieces'])) {
@@ -3032,6 +4770,11 @@
 
         function renderStockDetail(item) {
             var customsValue = item.customsValue ? [item.customsValue, item.currency || ''].filter(Boolean).join(' ') : '—';
+            var packageDetails = Array.isArray(item.packageDetails) ? item.packageDetails : [];
+            var poNumbers = splitAssistantValues(item && item.poNumber);
+            var poNumberText = poNumbers.length
+                ? poNumbers.join(', ')
+                : choose('abhi add nahi hai', 'not added yet');
 
             return {
                 kind: 'stock-detail',
@@ -3047,13 +4790,20 @@
                             'Yeh stock vessel ' + displayValue(item.vessel) + ' ke liye dikh raha hai. Customer ' + displayValue(item.customer) + ', supplier ' + displayValue(item.supplier) + ' aur hub/agent ' + displayValue(item.hubAgent) + ' dikh raha hai.',
                             'This stock is for vessel ' + displayValue(item.vessel) + '. The customer is ' + displayValue(item.customer) + ', the supplier is ' + displayValue(item.supplier) + ', and the hub/agent is ' + displayValue(item.hubAgent) + '.'
                         ),
+                        choose(
+                            'Is stock ka PO number ' + poNumberText + ' hai.',
+                            'The PO number for this stock is ' + poNumberText + '.'
+                        ),
                         hasValue(customsValue)
                             ? choose('Customs value ' + customsValue + ' hai.', 'The customs value is ' + customsValue + '.')
                             : choose('Customs value abhi add nahi hai.', 'The customs value is not added yet.'),
                         choose(
                             'Is stock me ' + describeCount(item.packageCount || 0, 'package', 'packages') + ' ' + countVerb(item.packageCount || 0, 'hai', 'hain') + ' aur expected delivery date ' + displayValue(item.expectedDeliveryDate) + ' hai.',
                             'This stock has ' + describeCount(item.packageCount || 0, 'package', 'packages') + ' and the expected delivery date is ' + displayValue(item.expectedDeliveryDate) + '.'
-                        ),
+                        )
+                    ]) +
+                    section(choose('Package details', 'Package details'), renderStockPackageDetails(packageDetails, item.packageCount || 0)) +
+                    textParagraphs([
                         item.linkedShipments && item.linkedShipments.length
                             ? choose('Yeh stock in shipments se linked hai: ' + item.linkedShipments.join(', ') + '.', 'This stock is linked to these shipments: ' + item.linkedShipments.join(', ') + '.')
                             : choose('Yeh stock abhi kisi shipment se linked nahi hai.', 'This stock is not linked to any shipment right now.'),
@@ -3070,6 +4820,10 @@
             var linkedShipments = item.linkedShipments && item.linkedShipments.length
                 ? item.linkedShipments.join(', ')
                 : 'abhi koi linked shipment nahi hai';
+            var poNumbers = splitAssistantValues(item && item.poNumber);
+            var poNumberText = poNumbers.length
+                ? poNumbers.join(', ')
+                : choose('abhi add nahi hai', 'not added yet');
             var customsValue = item.customsValue ? [item.customsValue, item.currency || ''].filter(Boolean).join(' ') : '—';
 
             function push(key, html) {
@@ -3099,6 +4853,14 @@
 
             if (matchesIntent(text, ['supplier'])) {
                 push('supplier', '<p>' + escapeHtml(choose('Is stock ka supplier ' + displayValue(item.supplier) + ' hai.', 'The supplier for this stock is ' + displayValue(item.supplier) + '.')) + '</p>');
+            }
+
+            if (matchesIntent(text, ['po', 'po number', 'po numbers', 'purchase order', 'purchase orders'])
+                && ! queryExactlyMatchesAnyValue(text, poNumbers)) {
+                push('po-number', '<p>' + escapeHtml(choose(
+                    'Is stock ka PO number ' + poNumberText + ' hai.',
+                    'The PO number for this stock is ' + poNumberText + '.'
+                )) + '</p>');
             }
 
             if (matchesIntent(text, ['hub agent', 'hub/agent', 'hub', 'agent'])) {
@@ -3137,10 +4899,13 @@
             }
 
             if (matchesIntent(text, ['package', 'packages', 'pcs', 'pieces'])) {
-                push('packages', '<p>' + escapeHtml(choose(
-                    'Is stock me ' + describeCount(item.packageCount || 0, 'package', 'packages') + ' ' + countVerb(item.packageCount || 0, 'hai', 'hain') + '.',
-                    'This stock has ' + describeCount(item.packageCount || 0, 'package', 'packages') + '.'
-                )) + '</p>');
+                push('packages', ''
+                    + '<p>' + escapeHtml(choose(
+                        'Is stock me ' + describeCount(item.packageCount || 0, 'package', 'packages') + ' ' + countVerb(item.packageCount || 0, 'hai', 'hain') + '.',
+                        'This stock has ' + describeCount(item.packageCount || 0, 'package', 'packages') + '.'
+                    )) + '</p>'
+                    + renderStockPackageDetails(item.packageDetails || [], item.packageCount || 0)
+                );
             }
 
             if (matchesIntent(text, ['last update', 'last updated', 'updated at', 'when was stock', 'when was this stock updated', 'update kab hua', 'kab update hua'])) {
@@ -3167,11 +4932,24 @@
 
         function responseForShipmentQuery(item, query) {
             var normalizedQuery = $.trim(String(query || ''));
-            var isExactRecordLookup = normalizeCompact(normalizedQuery) === normalizeCompact(item.number);
+            var isExactRecordLookup = shipmentMatchesDirectLookup(item, normalizedQuery);
             var responses = [];
+            var matchedTransportLeg = findMatchedTransportLeg(item, normalizedQuery);
+            var matchedShipmentPo = shipmentMatchesPoLookup(item, normalizedQuery);
+            var isStandaloneLookup = isStandaloneLookupQuery(normalizedQuery);
+
+            if (isStandaloneLookup) {
+                if (matchedTransportLeg) {
+                    return renderShipmentTransportDetail(item, matchedTransportLeg);
+                }
+
+                if (isExactRecordLookup || matchedShipmentPo) {
+                    return renderShipmentDetail(item);
+                }
+            }
 
             if (isTransportDetailsRequest(normalizedQuery)) {
-                responses.push(renderShipmentTransportDetail(item));
+                responses.push(renderShipmentTransportDetail(item, matchedTransportLeg));
             }
 
             if (! isFullRecordRequest(normalizedQuery)) {
@@ -3192,6 +4970,14 @@
                 }
 
                 if (! isGenericRecordSummaryRequest(normalizedQuery) && ! isExactRecordLookup) {
+                    if (matchedTransportLeg) {
+                        return renderShipmentTransportDetail(item, matchedTransportLeg);
+                    }
+
+                    if (matchedShipmentPo) {
+                        return renderShipmentDetail(item);
+                    }
+
                     return renderUnknownFieldResponse('shipment', item);
                 }
             }
@@ -3207,7 +4993,7 @@
 
         function responseForStockQuery(item, query) {
             var normalizedQuery = $.trim(String(query || ''));
-            var isExactRecordLookup = normalizeCompact(normalizedQuery) === normalizeCompact(item.number);
+            var isExactRecordLookup = stockMatchesLookup(item, normalizedQuery);
 
             if (! isFullRecordRequest(normalizedQuery)) {
                 var fieldResponse = renderStockFieldResponse(item, normalizedQuery);
@@ -3224,55 +5010,96 @@
             return renderStockDetail(item);
         }
 
-        function buildRemoteLookupResponse(payload, query) {
+        function renderRemoteLookupMiss(query) {
+            var raw = $.trim(String(query || ''));
+            var displayQuery = raw || choose('di hui value', 'the provided value');
+
+            return {
+                kind: 'lookup-miss',
+                status: choose('Record nahi mila', 'No matching record found'),
+                html: '' +
+                    '<strong>' + escapeHtml(choose('Koi matching record nahi mila', 'No matching record found')) + '</strong>' +
+                    '<p>' + escapeHtml(choose(
+                        'Maine database me "' + displayQuery + '" search kiya, lekin koi matching record nahi mila.',
+                        'I searched the database for "' + displayQuery + '", but I could not find a matching record.'
+                    )) + '</p>' +
+                    '<p>' + escapeHtml(choose(
+                        isStockOnlyAssistant()
+                            ? 'Aap full stock number, supplier name, ya exact phone ya email try kar sakte hain.'
+                            : 'Aap full shipment number, stock number, office, hub, agent, supplier, customer, contact, vessel, user name, email, phone, ya exact code try kar sakte hain.',
+                        isStockOnlyAssistant()
+                            ? 'Try the full stock number, supplier name, or the exact phone or email value.'
+                            : 'Try the full shipment number, stock number, office, hub, agent, supplier, customer, contact, vessel, user name, email, phone, or exact code.'
+                    )) + '</p>'
+            };
+        }
+
+        function buildRemoteLookupResponse(payload, query, options) {
+            var settings = $.extend({
+                showLookupMiss: false
+            }, options || {});
+
             if (! payload) {
                 return null;
             }
 
             if (payload.scopeBlocked) {
-                return renderScopeBlockedResponse(payload.type || '');
+                return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse(payload.type || ''), query || '');
             }
 
             if (payload.sensitiveBlocked) {
-                return renderSensitiveLookupResponse(payload.type || '', payload.blockedReason || '', payload.item || null);
+                if (payload.item && payload.type) {
+                    rememberLookupContext(payload.type, payload.item);
+                }
+
+                return decorateResponseWithRelatedQuestions(
+                    renderSensitiveLookupResponse(payload.type || '', payload.blockedReason || '', payload.item || null),
+                    query || ''
+                );
             }
 
             if (payload.matched !== true || ! payload.item) {
+                if (settings.showLookupMiss) {
+                    return decorateResponseWithRelatedQuestions(renderRemoteLookupMiss(query || ''), query || '');
+                }
+
                 return null;
             }
 
             if (payload.type === 'shipment') {
                 if (! scopeAllows('shipments')) {
-                    return renderScopeBlockedResponse('shipment');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('shipment'), query || '');
                 }
 
                 rememberLookupItem('shipment', payload.item);
-                return responseForShipmentQuery(payload.item, query || '');
+                return decorateResponseWithRelatedQuestions(responseForShipmentQuery(payload.item, query || ''), query || '');
             }
 
             if (payload.type === 'stock') {
                 if (! scopeAllows('stocks')) {
-                    return renderScopeBlockedResponse('stock');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('stock'), query || '');
                 }
 
                 rememberLookupItem('stock', payload.item);
-                return responseForStockQuery(payload.item, query || '');
+                return decorateResponseWithRelatedQuestions(responseForStockQuery(payload.item, query || ''), query || '');
             }
 
             if (payload.type === 'change_log') {
                 if (! scopeAllows('administration')) {
-                    return renderScopeBlockedResponse('change_log');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('change_log'), query || '');
                 }
 
-                return responseForChangeLogQuery(payload.item, query || '');
+                rememberLookupContext('change_log', payload.item);
+                return decorateResponseWithRelatedQuestions(responseForChangeLogQuery(payload.item, query || ''), query || '');
             }
 
             if (['office', 'hub', 'agent', 'supplier', 'customer', 'contact', 'vessel', 'user'].indexOf(payload.type) !== -1) {
                 if (! scopeAllows('administration')) {
-                    return renderScopeBlockedResponse(payload.type);
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse(payload.type), query || '');
                 }
 
-                return responseForAdministrationQuery(payload.type, payload.item, query || '');
+                rememberLookupContext(payload.type, payload.item);
+                return decorateResponseWithRelatedQuestions(responseForAdministrationQuery(payload.type, payload.item, query || ''), query || '');
             }
 
             return null;
@@ -3287,10 +5114,12 @@
             });
 
             if (shipmentMatches.length === 1 && stockMatches.length === 0) {
+                rememberLookupContext('shipment', shipmentMatches[0]);
                 return responseForShipmentQuery(shipmentMatches[0], query);
             }
 
             if (stockMatches.length === 1 && shipmentMatches.length === 0) {
+                rememberLookupContext('stock', stockMatches[0]);
                 return responseForStockQuery(stockMatches[0], query);
             }
 
@@ -3407,7 +5236,7 @@
             var shipmentStatusSummary = detectShipmentStatusSummaryRequest(input);
 
             if (! normalized) {
-                return renderHelp();
+                return decorateResponseWithRelatedQuestions(renderHelp(), input);
             }
 
             if (! options.skipCompound) {
@@ -3423,28 +5252,28 @@
                     : null;
 
                 if (combinedResponse) {
-                    return combinedResponse;
+                    return decorateResponseWithRelatedQuestions(combinedResponse, input);
                 }
             }
 
             if (isCancelledShipmentSummaryRequest(normalized)) {
                 if (! scopeAllows('shipments')) {
-                    return renderScopeBlockedResponse('shipment');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('shipment'), input);
                 }
 
-                return renderCancelledShipmentSummary();
+                return decorateResponseWithRelatedQuestions(renderCancelledShipmentSummary(), input);
             }
 
             if (shipmentCreationWindow) {
                 if (! scopeAllows('shipments')) {
-                    return renderScopeBlockedResponse('shipment');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('shipment'), input);
                 }
 
-                return renderShipmentCreationWindowSummary(shipmentCreationWindow);
+                return decorateResponseWithRelatedQuestions(renderShipmentCreationWindowSummary(shipmentCreationWindow), input);
             }
 
             if (isReadOnlyActionRequest(normalized)) {
-                return {
+                return decorateResponseWithRelatedQuestions({
                     kind: 'read-only',
                     status: choose('View-only help', 'View-only help'),
                     html: '' +
@@ -3457,96 +5286,169 @@
                                 ? 'You can view stock details or stock summaries here, but save, create, update, or delete actions are not available.'
                                 : 'You can view shipment and stock details or summaries here, but save, create, update, or delete actions are not available.'
                         )) + '</p>'
-                };
+                }, input);
             }
 
             var matchedShipment = findShipmentByNumber(input);
             if (matchedShipment) {
                 if (! scopeAllows('shipments')) {
-                    return renderScopeBlockedResponse('shipment');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('shipment'), input);
                 }
 
-                return responseForShipmentQuery(matchedShipment, input);
+                rememberLookupContext('shipment', matchedShipment);
+                return decorateResponseWithRelatedQuestions(responseForShipmentQuery(matchedShipment, input), input);
             }
 
             var matchedStock = findStockByNumber(input);
             if (matchedStock) {
                 if (! scopeAllows('stocks')) {
-                    return renderScopeBlockedResponse('stock');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('stock'), input);
                 }
 
-                return responseForStockQuery(matchedStock, input);
+                rememberLookupContext('stock', matchedStock);
+                return decorateResponseWithRelatedQuestions(responseForStockQuery(matchedStock, input), input);
+            }
+
+            var contextualResponse = responseForContextualQuery(input);
+            if (contextualResponse) {
+                return decorateResponseWithRelatedQuestions(contextualResponse, input);
             }
 
             if (shipmentStatusSummary) {
                 if (! scopeAllows('shipments')) {
-                    return renderScopeBlockedResponse('shipment');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('shipment'), input);
                 }
 
-                return renderShipmentStatusSummary(shipmentStatusSummary);
+                return decorateResponseWithRelatedQuestions(renderShipmentStatusSummary(shipmentStatusSummary), input);
             }
 
             if (containsAny(normalized, ['help', 'what can you', 'kya kar', 'capabilit', 'madad', 'samjha'])) {
-                return renderHelp();
+                return decorateResponseWithRelatedQuestions(renderHelp(), input);
             }
 
             if (isAdministrationLookupRequest(input)) {
                 if (! scopeAllows('administration')) {
-                    return renderScopeBlockedResponse('administration');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('administration'), input);
                 }
 
-                return renderSearchResults(input);
+                return decorateResponseWithRelatedQuestions(renderSearchResults(input), input);
             }
 
             if (containsAny(normalized, ['overdue', 'late arrival', 'past deadline', 'late', 'delay', 'der'])) {
                 if (! scopeAllows('overdueShipments')) {
-                    return renderScopeBlockedResponse('shipment');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('shipment'), input);
                 }
 
-                return renderOverdueShipments();
+                return decorateResponseWithRelatedQuestions(renderOverdueShipments(), input);
             }
 
             if (containsAny(normalized, ['follow up', 'follow-up', 'followup', 'unaccepted', 'awaiting acceptance', 'pickup queue', 'pending accept'])) {
                 if (! scopeAllows('stockFollowUps')) {
-                    return renderScopeBlockedResponse('stock');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('stock'), input);
                 }
 
-                return renderStockFollowUps();
+                return decorateResponseWithRelatedQuestions(renderStockFollowUps(), input);
             }
 
             if (isServiceSummaryRequest(input)) {
                 if (! scopeAllows('services')) {
-                    return renderScopeBlockedResponse('shipment');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('shipment'), input);
                 }
 
-                return renderServices();
+                return decorateResponseWithRelatedQuestions(renderServices(), input);
             }
 
             if (isShipmentSummaryRequest(input)) {
                 if (! scopeAllows('shipments')) {
-                    return renderScopeBlockedResponse('shipment');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('shipment'), input);
                 }
 
-                return renderShipmentSummary();
+                return decorateResponseWithRelatedQuestions(renderShipmentSummary(), input);
             }
 
             if (isStockSummaryRequest(input)) {
                 if (! scopeAllows('stocks')) {
-                    return renderScopeBlockedResponse('stock');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('stock'), input);
                 }
 
-                return renderStockSummary();
+                return decorateResponseWithRelatedQuestions(renderStockSummary(), input);
             }
 
             if (containsAny(normalized, ['overview', 'dashboard', 'summary', 'snapshot', 'kpi', 'metrics', 'everything', 'overall', 'sab kuch', 'poora summary'])) {
                 if (! scopeAllows('overview')) {
-                    return renderScopeBlockedResponse('overview');
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('overview'), input);
                 }
 
-                return renderOverview();
+                return decorateResponseWithRelatedQuestions(renderOverview(), input);
             }
 
-            return renderSearchResults(input);
+            return decorateResponseWithRelatedQuestions(renderSearchResults(input), input);
+        }
+
+        function resetConversationState() {
+            state.hasWelcomed = false;
+            state.language = detectInitialLanguage();
+            state.lastLookupContext = null;
+            state.messages = [];
+            state.askedQuestionHistory = [];
+            state.suggestedQuestionHistory = [];
+        }
+
+        function restoreConversation() {
+            var storedConversation = readStoredConversation();
+            var restoredMessages;
+
+            if (! storedConversation || ! Array.isArray(storedConversation.messages) || ! storedConversation.messages.length) {
+                return false;
+            }
+
+            restoredMessages = storedConversation.messages
+                .map(normalizeStoredMessageEntry)
+                .filter(Boolean);
+
+            if (! restoredMessages.length) {
+                clearStoredConversation();
+                return false;
+            }
+
+            $thread.empty();
+            resetConversationState();
+            state.language = isValidAssistantLanguage(storedConversation.language)
+                ? storedConversation.language
+                : detectInitialLanguage();
+            state.lastLookupContext = storedConversation.lastLookupContext && storedConversation.lastLookupContext.type && storedConversation.lastLookupContext.item
+                ? deepClone(storedConversation.lastLookupContext)
+                : null;
+
+            restoredMessages.forEach(function (entry) {
+                addMessage(entry.role, entry.message, entry.isHtml, entry.response, {
+                    persist: false,
+                    store: true,
+                    useProvidedBody: true,
+                    useProvidedRelatedQuestions: true,
+                    providedBody: entry.body
+                });
+            });
+
+            state.hasWelcomed = true;
+            $launcherStatus.text((function () {
+                var index;
+
+                for (index = state.messages.length - 1; index >= 0; index -= 1) {
+                    if (state.messages[index].role === 'bot' && state.messages[index].response && state.messages[index].response.status) {
+                        return state.messages[index].response.status;
+                    }
+                }
+
+                return launcherReadyText();
+            })());
+            setLauncher(!! storedConversation.isOpen, {
+                focusInput: false,
+                returnFocus: false,
+                persist: false
+            });
+
+            return true;
         }
 
         function showWelcome() {
@@ -3569,24 +5471,45 @@
                             : 'You can ask for a specific shipment, stock, office, hub, agent, supplier, customer, contact, vessel, user, or administration change log field, full details, overdue arrivals, follow-up stocks, or the dashboard summary.'
                     )) + '</p>' +
                     '<p><strong>' + escapeHtml(choose('Last update:', 'Last update:')) + '</strong> ' + escapeHtml(valueOrDash(assistantData.generatedAt)) + '</p>',
-                true
+                true,
+                null,
+                {
+                    persist: false,
+                    store: false
+                }
             );
         }
 
-        function clearConversation() {
+        function clearConversation(options) {
+            var settings = $.extend({
+                clearStorage: true,
+                showWelcome: false,
+                focusInput: true
+            }, options || {});
+
             if (state.isBusy) {
                 return;
             }
 
             $thread.empty();
             $input.val('');
-            state.hasWelcomed = false;
+            autoResizeAssistantInput();
+            resetConversationState();
             syncAssistantChrome(false);
-            showWelcome();
 
-            window.setTimeout(function () {
-                $input.trigger('focus');
-            }, 30);
+            if (settings.clearStorage) {
+                clearStoredConversation();
+            }
+
+            if (settings.showWelcome) {
+                showWelcome();
+            }
+
+            if (settings.focusInput) {
+                window.setTimeout(function () {
+                    $input.trigger('focus');
+                }, 30);
+            }
         }
 
         function submitPrompt(value) {
@@ -3609,8 +5532,9 @@
                     return {
                         query: segment,
                         localResponse: localResponse,
-                        fallbackResponse: targetedLookup ? renderSearchResults(segment) : localResponse,
-                        needsRemote: shouldTryRemoteLookup(segment, localResponse)
+                        fallbackResponse: targetedLookup ? decorateResponseWithRelatedQuestions(renderSearchResults(segment), segment) : localResponse,
+                        needsRemote: shouldTryRemoteLookup(segment, localResponse),
+                        showLookupMiss: shouldShowRemoteLookupMiss(segment, localResponse)
                     };
                 });
                 var needsRemoteLookup = segmentPlans.some(function (plan) {
@@ -3629,7 +5553,9 @@
                         return new PromiseCtor(function (resolve) {
                             $.getJSON(lookupUrl, { q: plan.query })
                                 .done(function (payload) {
-                                    resolve(buildRemoteLookupResponse(payload, plan.query) || plan.fallbackResponse);
+                                    resolve(buildRemoteLookupResponse(payload, plan.query, {
+                                        showLookupMiss: plan.showLookupMiss
+                                    }) || plan.fallbackResponse);
                                 })
                                 .fail(function () {
                                     resolve(plan.fallbackResponse);
@@ -3641,14 +5567,15 @@
                                 responses,
                                 'compound-response',
                                 choose('Combined answer ready', 'Combined answer ready')
-                            ) || renderHelp();
+                            ) || decorateResponseWithRelatedQuestions(renderHelp(), text);
 
-                            addMessage('bot', combinedRemoteResponse.html, true);
+                            addMessage('bot', combinedRemoteResponse.html, true, combinedRemoteResponse);
                             $launcherStatus.text(combinedRemoteResponse.status || snapshotReadyText());
                         })
                         .finally(function () {
                             setComposerBusy(false);
                             $input.val('');
+                            autoResizeAssistantInput();
                             window.setTimeout(function () {
                                 $input.trigger('focus');
                             }, 30);
@@ -3666,9 +5593,10 @@
                 );
 
                 if (combinedLocalResponse) {
-                    addMessage('bot', combinedLocalResponse.html, true);
+                    addMessage('bot', combinedLocalResponse.html, true, combinedLocalResponse);
                     $launcherStatus.text(combinedLocalResponse.status || snapshotReadyText());
                     $input.val('');
+                    autoResizeAssistantInput();
                     window.setTimeout(function () {
                         $input.trigger('focus');
                     }, 30);
@@ -3679,7 +5607,8 @@
 
             var response = buildResponse(text);
             var targetedLookup = extractLookupTerms(text).length > 0;
-            var fallbackResponse = targetedLookup ? renderSearchResults(text) : response;
+            var fallbackResponse = targetedLookup ? decorateResponseWithRelatedQuestions(renderSearchResults(text), text) : response;
+            var showLookupMiss = shouldShowRemoteLookupMiss(text, response);
 
             if (shouldTryRemoteLookup(text, response)) {
                 setComposerBusy(true);
@@ -3687,17 +5616,20 @@
 
                 $.getJSON(lookupUrl, { q: text })
                     .done(function (payload) {
-                        var remoteResponse = buildRemoteLookupResponse(payload, text) || fallbackResponse;
-                        addMessage('bot', remoteResponse.html, true);
+                        var remoteResponse = buildRemoteLookupResponse(payload, text, {
+                            showLookupMiss: showLookupMiss
+                        }) || fallbackResponse;
+                        addMessage('bot', remoteResponse.html, true, remoteResponse);
                         $launcherStatus.text(remoteResponse.status || snapshotReadyText());
                     })
                     .fail(function () {
-                        addMessage('bot', fallbackResponse.html, true);
+                        addMessage('bot', fallbackResponse.html, true, fallbackResponse);
                         $launcherStatus.text(fallbackResponse.status || snapshotReadyText());
                     })
                     .always(function () {
                         setComposerBusy(false);
                         $input.val('');
+                        autoResizeAssistantInput();
                         window.setTimeout(function () {
                             $input.trigger('focus');
                         }, 30);
@@ -3706,9 +5638,10 @@
                 return;
             }
 
-            addMessage('bot', response.html, true);
+            addMessage('bot', response.html, true, response);
             $launcherStatus.text(response.status || snapshotReadyText());
             $input.val('');
+            autoResizeAssistantInput();
             window.setTimeout(function () {
                 $input.trigger('focus');
             }, 30);
@@ -3737,9 +5670,21 @@
             window.__mcAssistantTestApi = {
                 buildResponse: buildResponse,
                 buildRemoteLookupResponse: buildRemoteLookupResponse,
+                renderRelatedQuestions: renderRelatedQuestions,
+                addMessage: addMessage,
+                submitPrompt: submitPrompt,
+                clearConversation: clearConversation,
+                restoreConversation: restoreConversation,
+                clearStoredConversation: clearStoredConversation,
                 detectResponseLanguage: detectResponseLanguage,
                 getScope: function () {
                     return deepClone(assistantScope);
+                },
+                getThreadHtml: function () {
+                    return $thread.html();
+                },
+                getStoredConversation: function () {
+                    return deepClone(readStoredConversation());
                 },
                 getState: function () {
                     return deepClone(state);
@@ -3748,9 +5693,12 @@
         }
 
         syncViewportOffset();
-        forceClosedLauncherState();
         syncAssistantChrome(false);
-        showWelcome();
+        autoResizeAssistantInput();
+        if (! restoreConversation()) {
+            forceClosedLauncherState();
+            showWelcome();
+        }
 
         $(window).on('resize orientationchange', syncViewportOffset);
 
@@ -3775,8 +5723,26 @@
             submitPrompt($input.val());
         });
 
+        $thread.on('click', '.mc-assistant-related-questions__button', function () {
+            if (state.isBusy) {
+                return;
+            }
+
+            submitPrompt($(this).attr('data-question'));
+        });
+
+        $thread.on('click', '.mc-assistant-record-links__button', function () {
+            if (state.isBusy) {
+                return;
+            }
+
+            submitPrompt($(this).attr('data-record-query'));
+        });
+
         $input.on('focus input', function () {
             var typedText = $.trim($input.val());
+
+            autoResizeAssistantInput();
 
             if (typedText) {
                 state.language = detectResponseLanguage(typedText);
@@ -3789,7 +5755,7 @@
         });
 
         $input.on('keydown', function (event) {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && ! event.shiftKey) {
                 event.preventDefault();
                 submitPrompt($input.val());
             }

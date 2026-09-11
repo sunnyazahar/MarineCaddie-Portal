@@ -104,6 +104,16 @@
                            
                             <li>
                                 <a href="{{ route('logout') }}" onclick="event.preventDefault();
+                                                             try {
+                                                                 if (window.localStorage) {
+                                                                     for (var index = window.localStorage.length - 1; index >= 0; index -= 1) {
+                                                                         var key = window.localStorage.key(index);
+                                                                         if (String(key || '').indexOf('mc-assistant:') === 0) {
+                                                                             window.localStorage.removeItem(key);
+                                                                         }
+                                                                     }
+                                                                 }
+                                                             } catch (error) {}
                                                              document.getElementById('logout-form').submit();">
                                     <i class="feather icon-log-out"></i> Logout
                                 </a>
