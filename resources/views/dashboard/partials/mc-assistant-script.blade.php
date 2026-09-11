@@ -956,6 +956,23 @@
             $thread.scrollTop($thread[0].scrollHeight);
         }
 
+        function shouldApplyViewportLift(hiddenBottom) {
+            if (hiddenBottom <= 120) {
+                return false;
+            }
+
+            var assistantNode = $assistant[0] || null;
+            var activeElement = document.activeElement || null;
+
+            if (! assistantNode || ! activeElement || typeof assistantNode.contains !== 'function' || ! assistantNode.contains(activeElement)) {
+                return false;
+            }
+
+            var tagName = String(activeElement.tagName || '').toLowerCase();
+
+            return /^(input|textarea|select)$/.test(tagName) || !!activeElement.isContentEditable;
+        }
+
         function syncViewportOffset() {
             var shellNode = $shell[0] || null;
 
@@ -971,7 +988,9 @@
                 hiddenBottom = Math.max(0, Math.round(window.innerHeight - (visualViewport.height + offsetTop)));
             }
 
-            shellNode.style.setProperty('--mc-assistant-visual-offset', hiddenBottom + 'px');
+            var keyboardLift = shouldApplyViewportLift(hiddenBottom) ? hiddenBottom : 0;
+
+            shellNode.style.setProperty('--mc-assistant-visual-offset', keyboardLift + 'px');
         }
 
         function setLauncher(isOpen) {
@@ -3648,7 +3667,7 @@
         }
 
         $launcher.on('click', function () {
-            setLauncher(! state.isOpen);
+            setLauncher(true);
         });
 
         $close.on('click', function () {
@@ -3677,11 +3696,6 @@
         });
 
         $input.on('keydown', function (event) {
-            if (event.key === 'Escape') {
-                setLauncher(false);
-                return;
-            }
-
             if (event.key === 'Enter') {
                 event.preventDefault();
                 submitPrompt($input.val());

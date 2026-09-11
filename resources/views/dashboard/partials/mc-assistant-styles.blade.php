@@ -6,7 +6,7 @@
     .mc-assistant-shell {
         --mc-assistant-inline-start: auto;
         --mc-assistant-inline-end: 24px;
-        --mc-assistant-bottom: 22px;
+        --mc-assistant-bottom: max(0px, env(safe-area-inset-bottom, 0px));
         --mc-assistant-visual-offset: 0px;
         --mc-assistant-screen-bottom: calc(var(--mc-assistant-bottom) + var(--mc-assistant-visual-offset));
         --mc-assistant-width: min(390px, calc(100vw - 24px));
@@ -19,7 +19,7 @@
         position: fixed;
         right: var(--mc-assistant-inline-end);
         left: var(--mc-assistant-inline-start);
-        bottom: calc(var(--mc-assistant-screen-bottom) + var(--mc-assistant-launcher-height) + var(--mc-assistant-panel-gap));
+        bottom: var(--mc-assistant-screen-bottom);
         width: var(--mc-assistant-width);
         max-height: min(640px, calc(100vh - 112px));
         padding: 18px;
@@ -428,9 +428,9 @@
         .mc-assistant-shell {
             --mc-assistant-inline-start: max(12px, env(safe-area-inset-left, 0px));
             --mc-assistant-inline-end: max(12px, env(safe-area-inset-right, 0px));
-            --mc-assistant-bottom: max(72px, calc(env(safe-area-inset-bottom, 0px) + 14px));
+            --mc-assistant-bottom: env(safe-area-inset-bottom, 0px);
             --mc-assistant-width: auto;
-            --mc-assistant-panel-gap: 10px;
+            --mc-assistant-panel-gap: 0px;
             --mc-assistant-launcher-height: 74px;
         }
 
@@ -461,7 +461,7 @@
 
     @media (max-width: 575.98px) {
         .mc-assistant-shell {
-            --mc-assistant-bottom: max(64px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+            --mc-assistant-bottom: env(safe-area-inset-bottom, 0px);
             --mc-assistant-launcher-height: 70px;
         }
 
