@@ -38,19 +38,15 @@
                     aria-label="MC assistant input"
                     autocomplete="off"
                     spellcheck="false"
-                    rows="1"
-                    placeholder="{{ $assistantStocksOnly ? 'Example: What is the supplier for CN-72656522 stock?' : 'Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?' }}"></textarea>
+                    rows="1"></textarea>
             </div>
             <button type="button" class="mc-assistant-send" id="mcAssistantSend">Send</button>
         </div>
-        <div class="mc-assistant-footer">
-            <p class="mc-assistant-help" id="mcAssistantHint">
-                {{ $assistantStocksOnly
-                    ? 'For your role, only stock details and stock summaries are available here.'
-                    : 'You can only view details and summaries here. Create, update, and delete actions are not available.' }}
-            </p>
-            <button type="button" class="mc-assistant-clear" id="mcAssistantClear">Clear chat</button>
-        </div>
+        @if ($assistantStocksOnly)
+            <div class="mc-assistant-footer">
+                <p class="mc-assistant-help" id="mcAssistantHint">For your role, only stock details and stock summaries are available here.</p>
+            </div>
+        @endif
     </div>
     <button
         type="button"

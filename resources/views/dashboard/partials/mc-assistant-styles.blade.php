@@ -467,7 +467,7 @@
     .mc-assistant-footer {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 12px;
         margin-top: 10px;
     }
@@ -477,38 +477,6 @@
         flex: 1 1 auto;
         font-size: 12px;
         color: #64748b;
-    }
-
-    .mc-assistant-clear {
-        flex: 0 0 auto;
-        min-height: 40px;
-        padding: 8px 12px;
-        border: 1px solid #d6e4ef;
-        border-radius: 10px;
-        background: #ffffff;
-        color: #0e1d4a;
-        font-size: 12px;
-        font-weight: 700;
-        line-height: 1.2;
-        box-shadow: 0 4px 12px rgba(14, 29, 74, 0.05);
-        cursor: pointer;
-        transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
-        touch-action: manipulation;
-    }
-
-    .mc-assistant-clear:hover,
-    .mc-assistant-clear:focus {
-        outline: none;
-        transform: translateY(-1px);
-        border-color: #00aeef;
-        background: #ecf8fd;
-        color: #0b2957;
-    }
-
-    .mc-assistant-clear:disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-        transform: none;
     }
 
     .mc-assistant-help code,
@@ -627,11 +595,6 @@
             align-items: stretch;
             gap: 10px;
             margin-top: 12px;
-        }
-
-        .mc-assistant-clear {
-            width: 100%;
-            min-height: 44px;
         }
 
         .mc-assistant-message {

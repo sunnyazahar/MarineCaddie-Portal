@@ -194,7 +194,7 @@ class OperationsDashboardService
                 'scope' => $assistantScope,
                 'period' => $period,
                 'generatedAt' => now()->format('d M Y H:i'),
-                'readOnly' => 'MC Assistant only shows details and summaries here. Create, update, and delete actions are not available.',
+                'readOnly' => '',
                 'kpis' => $assistantKpis,
                 'shipmentCreationWindowDays' => ($assistantScope['allows']['shipments'] ?? false)
                     ? $assistantShipmentCreationWindowDays

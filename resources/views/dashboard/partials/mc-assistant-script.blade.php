@@ -41,7 +41,6 @@
         var $copy = $('#mcAssistantCopy');
         var $hint = $('#mcAssistantHint');
         var $close = $('#mcAssistantClose');
-        var $clear = $('#mcAssistantClear');
         var $send = $('#mcAssistantSend');
         var storageKey = $.trim(String($shell.attr('data-storage-key') || 'mc-assistant:dashboard'));
         var lookupUrl = @json(route('dashboard.assistant-lookup'));
@@ -315,27 +314,14 @@
                     'Simple language me shipment, stock, office, hub, agent, supplier, customer, contact, vessel, user ya administration change log ka specific field, full details ya dashboard overview puchhiye.',
                     'Ask in simple language about shipments, stocks, offices, hubs, agents, suppliers, customers, contacts, vessels, users, or administration change logs for a specific field, full details, or a dashboard overview.'
                 ));
-            $input.attr('placeholder', isStockOnlyAssistant()
-                ? choose(
-                    'Jaise: CN-72656522 stock ka supplier batao',
-                    'Example: What is the supplier for CN-72656522 stock?'
-                )
-                : choose(
-                    'Jaise: MarineCaddie Dubai Office ka address kisne change kiya ya sunnyazahar@gmail.com ka user role batao',
-                    'Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?'
-                ));
             $hint.text(isStockOnlyAssistant()
                 ? choose(
                     'Aapke role ke liye yahan sirf stock details aur stock summary available hai.',
                     'For your role, only stock details and stock summaries are available here.'
                 )
-                : choose(
-                    'Yahan se sirf details aur summary dekhi ja sakti hai. Create, update ya delete yahan se nahi hoga.',
-                    'You can only view details and summaries here. Create, update, and delete actions are not available.'
-                ));
+                : '');
             $close.attr('aria-label', choose('Assistant band karo', 'Collapse assistant'));
             $send.text(choose('Bhejo', 'Send'));
-            $clear.text(choose('Chat saaf karo', 'Clear chat'));
             $launcherToggle.text(choose(state.isOpen ? 'Band' : 'Kholo', state.isOpen ? 'Close' : 'Open'));
 
             if (! preserveStatus && ! state.isBusy) {
@@ -2035,7 +2021,6 @@
         function setComposerBusy(isBusy) {
             state.isBusy = isBusy;
             $input.prop('disabled', isBusy);
-            $clear.prop('disabled', isBusy);
             $send.prop('disabled', isBusy);
         }
 
@@ -5713,10 +5698,6 @@
 
         $close.on('click', function () {
             setLauncher(false);
-        });
-
-        $clear.on('click', function () {
-            clearConversation();
         });
 
         $send.on('click', function () {
