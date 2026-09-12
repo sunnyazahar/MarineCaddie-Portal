@@ -162,7 +162,11 @@
                 icon="ti-anchor"
                 :count="$vessels->total()"
                 countLabel="vessels"
-            />
+            >
+                <x-slot:actions>
+                    <a href="{{ route('vessels.live-tracker') }}" class="btn btn-outline-teal btn-sm">Live tracker</a>
+                </x-slot:actions>
+            </x-lists.page-header>
 
             <div class="vessels-filters-area">
                 <x-lists.filter-toolbar

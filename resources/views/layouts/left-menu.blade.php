@@ -8,6 +8,12 @@
                     <span class="pcoded-mtext">Dashboard</span>
                 </a>
             </li>
+            <li class="{{ request()->routeIs('vessels.live-tracker', 'vessels.live-tracker.search') ? 'active' : '' }}">
+                <a href="{{ route('vessels.live-tracker') }}">
+                    <span class="pcoded-micon"><i class="feather icon-crosshair"></i></span>
+                    <span class="pcoded-mtext">Live Vessel Tracker</span>
+                </a>
+            </li>
 
             <li class="pcoded-hasmenu {{ request()->routeIs('stocks', 'stocks.edit', 'stock-follow-up', 'pickup-work-list', 'create-crr') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="stocks">
                 <a href="javascript:void(0)">
@@ -116,7 +122,7 @@
 
                 </ul>
             </li>
-            <li class="pcoded-hasmenu {{ request()->routeIs('offices.*', 'hub.*', 'agents.*', 'other-companies.*', 'suppliers.*', 'customers.*', 'contacts.*', 'vessels.*', 'administration.change-logs') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="administration">
+            <li class="pcoded-hasmenu {{ request()->routeIs('offices.*', 'hub.*', 'agents.*', 'other-companies.*', 'suppliers.*', 'customers.*', 'contacts.*', 'vessels.index', 'vessels.create', 'administration.change-logs') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="administration">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="feather icon-command"></i></span>
                     <span class="pcoded-mtext">Administration</span>
@@ -152,7 +158,7 @@
                             <span class="pcoded-mtext">Customers</span>
                         </a>
                     </li>
-                    <li class="{{ request()->routeIs('vessels.*') ? 'active' : '' }}">
+                    <li class="{{ request()->routeIs('vessels.index', 'vessels.create') ? 'active' : '' }}">
                         <a href="{{ route('vessels.index') }}">
                             <span class="pcoded-mtext">Vessels</span>
                         </a>

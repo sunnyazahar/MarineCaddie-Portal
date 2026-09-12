@@ -804,6 +804,9 @@ Route::put('/other-companies/{other_company}/contacts/{contact}', [App\Http\Cont
 Route::delete('/other-companies/{other_company}/contacts/{contact}', [App\Http\Controllers\OtherCompanyController::class, 'destroyContact'])->name('other-companies.contacts.destroy');
 
 Route::get('/Vessels', [App\Http\Controllers\VesselController::class, 'index'])->name('vessels.index');
+Route::get('/Vessels/live-tracker', [App\Http\Controllers\VesselLiveTrackerController::class, 'index'])->name('vessels.live-tracker');
+Route::post('/Vessels/live-tracker/search', [App\Http\Controllers\VesselLiveTrackerController::class, 'search'])->name('vessels.live-tracker.search');
+Route::post('/Vessels/live-tracker/suggestions', [App\Http\Controllers\VesselLiveTrackerController::class, 'suggestions'])->name('vessels.live-tracker.suggestions');
 
 Route::get('/administration/change-logs', [App\Http\Controllers\AdministrationChangeLogController::class, 'index'])
     ->name('administration.change-logs');
