@@ -17,6 +17,10 @@ class VesselLiveTrackerService
 {
     private const SOURCE_HOST = 'https://www.myshiptracking.com';
 
+    private const DISPLAY_TIMEZONE = 'Asia/Kolkata';
+
+    private const DISPLAY_TIMEZONE_LABEL = 'IST';
+
     private const STATION_LABELS = [
         'T-AIS' => 'Terrestrial AIS',
         'S-AIS' => 'Satellite AIS',
@@ -471,7 +475,7 @@ class VesselLiveTrackerService
                 return [
                     'port' => $stop['port'] ?? null,
                     'event' => $stop['event'] ?? null,
-                    'time' => $stop['time'] ?? null,
+                    'time' => $this->formatTimestamp($stop['time'] ?? null),
                 ];
             })
             ->filter(fn (array $stop) => filled($stop['port'] ?? null))
@@ -1198,19 +1202,17 @@ class VesselLiveTrackerService
             return null;
         }
 
-        $normalized = trim($value);
+        $normalized = trim(preg_replace('/\s+/', ' ', $value) ?? $value);
+        $sanitized = trim((string) preg_replace('/\s*\(UTC\)\s*$/i', '', $normalized));
+        $sanitized = trim((string) preg_replace('/\s+UTC\s*$/i', '', $sanitized));
 
         try {
-            if (preg_match('/^\d{4}-\d{2}-\d{2}(?:[ T])\d{2}:\d{2}(?::\d{2})?$/', $normalized)) {
-                $date = CarbonImmutable::parse($normalized, 'UTC');
-            } else {
-                $date = CarbonImmutable::parse($normalized)->utc();
-            }
+            $date = CarbonImmutable::parse($sanitized, 'UTC')->setTimezone(self::DISPLAY_TIMEZONE);
         } catch (Throwable) {
             return $normalized;
         }
 
-        return $date->format('d M Y H:i') . ' UTC';
+        return $date->format('d M Y H:i') . ' ' . self::DISPLAY_TIMEZONE_LABEL;
     }
 
     private function absoluteUrl(?string $value): ?string
