@@ -15,11 +15,25 @@ use Throwable;
 
 class VesselLiveTrackerService
 {
-    private const SOURCE_HOST = 'https://www.myshiptracking.com';
+    private const DETAIL_SOURCE_HOST = 'https://www.myshiptracking.com';
 
-    private const DISPLAY_TIMEZONE = 'Asia/Kolkata';
+    private const DETAIL_SOURCE_LABEL = 'MyShipTracking public AIS';
 
-    private const DISPLAY_TIMEZONE_LABEL = 'IST';
+    private const DETAIL_SOURCE_SHORT_LABEL = 'MyShipTracking AIS';
+
+    private const POSITION_SOURCE_HOST = 'https://www.vesselfinder.com';
+
+    private const POSITION_SOURCE_LABEL = 'VesselFinder public AIS';
+
+    private const POSITION_SOURCE_SHORT_LABEL = 'VesselFinder AIS';
+
+    private const STALE_SIGNAL_THRESHOLD_HOURS = 48;
+
+    private const DISPLAY_TIMEZONE = '+02:00';
+
+    private const DISPLAY_TIMEZONE_LABEL = 'UTC+2';
+
+    private const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
 
     private const STATION_LABELS = [
         'T-AIS' => 'Terrestrial AIS',
@@ -46,19 +60,26 @@ class VesselLiveTrackerService
         try {
             $detail = $this->fetchDetailPage($searchMatch['detail_url'] ?? null);
         } catch (RuntimeException) {
-            $warnings[] = 'Detailed live page could not be loaded, so a basic live snapshot is being shown.';
+            $warnings[] = 'Detailed source page could not be loaded, so a basic public AIS snapshot is being shown.';
         }
 
-        $header = $this->buildHeader($query, $lookupLabel, $searchMatch, $detail);
+        $positionSnapshot = $this->resolvePositionSnapshot($query, $portalMatch, $searchMatch, $detail, $warnings);
+        $freshness = $this->buildFreshness($positionSnapshot);
+
+        if ($freshness['warning'] !== null) {
+            $warnings[] = $freshness['warning'];
+        }
+
+        $header = $this->buildHeader($query, $lookupLabel, $searchMatch, $detail, $positionSnapshot, $freshness);
 
         return [
-            'summary' => $this->buildSummary($header, $searchMatch, $detail),
+            'summary' => $this->buildSummary($header, $detail, $positionSnapshot, $freshness),
             'header' => $header,
-            'visuals' => $this->buildVisuals($header, $searchMatch, $detail),
+            'visuals' => $this->buildVisuals($header, $searchMatch, $detail, $positionSnapshot, $freshness),
             'sections' => array_values(array_filter([
-                $this->buildPositionSection($searchMatch, $detail),
+                $this->buildPositionSection($positionSnapshot, $freshness),
                 $this->buildVoyageSection($searchMatch, $detail),
-                $this->buildParticularsSection($searchMatch, $detail),
+                $this->buildParticularsSection($searchMatch, $detail, $positionSnapshot),
                 $this->buildPortalSection($portalMatch),
             ])),
             'warnings' => array_values(array_unique(array_filter($warnings))),
@@ -374,101 +395,454 @@ class VesselLiveTrackerService
             'trip_stops' => $tripStops,
             'information' => $information,
             'map' => $map,
+            'out_of_coverage' => str_contains(Str::lower($html), 'out of coverage'),
         ];
     }
 
-    private function buildHeader(string $query, string $lookupLabel, array $searchMatch, ?array $detail): array
+    private function resolvePositionSnapshot(
+        string $query,
+        ?CustomerVessel $portalMatch,
+        array $searchMatch,
+        ?array $detail,
+        array &$warnings
+    ): array {
+        $fallback = $this->buildMyShipTrackingPositionSnapshot($searchMatch, $detail);
+        $identifier = $this->extractIdentifier($query);
+        $imo = $this->firstFilled(
+            $this->tableValue($detail['general'] ?? [], 'IMO'),
+            $searchMatch['imo'] ?? null,
+            $portalMatch !== null && filled($portalMatch->vessel_imo) ? trim((string) $portalMatch->vessel_imo) : null,
+            $identifier !== null && $identifier['type'] === 'imo' ? $identifier['value'] : null
+        );
+
+        if (! filled($imo)) {
+            return $fallback;
+        }
+
+        try {
+            $position = $this->fetchVesselFinderPosition($imo);
+        } catch (RuntimeException) {
+            $warnings[] = 'VesselFinder current position could not be loaded right now, so the position card is using MyShipTracking instead.';
+
+            return $fallback;
+        }
+
+        if (
+            ! filled($position['reported_raw'] ?? null)
+            && ! filled($position['area'] ?? null)
+            && ! filled($position['lat'] ?? null)
+            && ! filled($position['lon'] ?? null)
+        ) {
+            $warnings[] = 'VesselFinder returned an incomplete position snapshot, so the position card is using MyShipTracking instead.';
+
+            return $fallback;
+        }
+
+        $currentPort = $position['current_port'] ?? null;
+        $lastPort = $position['last_port'] ?? null;
+
+        return [
+            'provider' => 'vesselfinder',
+            'source_label' => self::POSITION_SOURCE_LABEL,
+            'source_short_label' => self::POSITION_SOURCE_SHORT_LABEL,
+            'detail_url' => $this->firstFilled(
+                $position['canonical_url'] ?? null,
+                $position['detail_url'] ?? null,
+                $fallback['detail_url'] ?? null
+            ),
+            'map_url' => $this->firstFilled($position['map_url'] ?? null, $fallback['map_url'] ?? null),
+            'title' => $this->firstFilled($position['name'] ?? null, $fallback['title'] ?? null),
+            'type' => $this->firstFilled($position['type'] ?? null, $fallback['type'] ?? null),
+            'imo' => $this->firstFilled($position['imo'] ?? null, $fallback['imo'] ?? null),
+            'mmsi' => $this->firstFilled($position['mmsi'] ?? null, $fallback['mmsi'] ?? null),
+            'flag' => $this->firstFilled($position['flag'] ?? null, $fallback['flag'] ?? null),
+            'call_sign' => $this->firstFilled($position['call_sign'] ?? null, $fallback['call_sign'] ?? null),
+            'status' => $position['status'] ?? null,
+            'area' => $position['area'] ?? null,
+            'current_port' => $currentPort,
+            'last_port' => $lastPort,
+            'last_port_event' => $position['last_port_event'] ?? null,
+            'last_port_time_raw' => $position['last_port_time_raw'] ?? null,
+            'port_value' => $this->firstFilled($currentPort, $lastPort),
+            'port_label' => filled($currentPort) ? 'Current Port' : (filled($lastPort) ? 'Last Port' : 'Port reference'),
+            'port_note' => filled($currentPort)
+                ? 'Position source port status'
+                : (filled($lastPort) ? 'Latest port shown by VesselFinder' : 'Position source did not publish a port'),
+            'speed' => $position['speed'] ?? null,
+            'course' => $position['course'] ?? null,
+            'station' => $position['station'] ?? null,
+            'reported_raw' => $position['reported_raw'] ?? null,
+            'lat' => $position['lat'] ?? null,
+            'lon' => $position['lon'] ?? null,
+            'out_of_coverage' => (bool) ($position['out_of_coverage'] ?? false),
+        ];
+    }
+
+    private function buildMyShipTrackingPositionSnapshot(array $searchMatch, ?array $detail): array
+    {
+        return [
+            'provider' => 'myshiptracking',
+            'source_label' => self::DETAIL_SOURCE_LABEL,
+            'source_short_label' => self::DETAIL_SOURCE_SHORT_LABEL,
+            'detail_url' => $this->firstFilled(
+                $detail['canonical_url'] ?? null,
+                $searchMatch['detail_url'] ?? null
+            ),
+            'map_url' => $searchMatch['map_url'] ?? null,
+            'title' => $this->firstFilled(
+                $detail['name'] ?? null,
+                $searchMatch['name'] ?? null
+            ),
+            'type' => $this->firstFilled(
+                $detail['type'] ?? null,
+                $searchMatch['type'] ?? null
+            ),
+            'imo' => $this->firstFilled(
+                $this->tableValue($detail['general'] ?? [], 'IMO'),
+                $searchMatch['imo'] ?? null
+            ),
+            'mmsi' => $this->firstFilled(
+                $this->tableValue($detail['general'] ?? [], 'MMSI'),
+                $searchMatch['mmsi'] ?? null
+            ),
+            'flag' => $this->firstFilled(
+                $this->tableValue($detail['general'] ?? [], 'Flag'),
+                $detail['information']['flag'] ?? null
+            ),
+            'call_sign' => $this->tableValue($detail['general'] ?? [], 'Call Sign'),
+            'status' => $this->tableValue($detail['position'] ?? [], 'Status'),
+            'area' => $this->firstFilled(
+                $this->tableValue($detail['position'] ?? [], 'Area'),
+                $detail['information']['area'] ?? null,
+                $searchMatch['area'] ?? null
+            ),
+            'current_port' => $detail['information']['current_port'] ?? null,
+            'last_port' => null,
+            'last_port_event' => null,
+            'last_port_time_raw' => null,
+            'port_value' => $detail['information']['current_port'] ?? null,
+            'port_label' => 'Current Port',
+            'port_note' => 'Latest detected port',
+            'speed' => $this->normalizeSpeedLabel($this->firstFilled(
+                $this->tableValue($detail['position'] ?? [], 'Speed'),
+                $detail['information']['speed'] ?? null,
+                $searchMatch['speed'] ?? null
+            )),
+            'course' => $this->firstFilled(
+                $this->tableValue($detail['position'] ?? [], 'Course'),
+                $this->formatDegrees($detail['map']['course'] ?? null)
+            ),
+            'station' => $this->stationLabel($this->tableValue($detail['position'] ?? [], 'Station')),
+            'reported_raw' => $this->firstFilled(
+                $this->tableTimestamp($detail['position'] ?? [], 'Position Received'),
+                $detail['information']['reported_at'] ?? null,
+                $searchMatch['received'] ?? null
+            ),
+            'lat' => $detail['map']['lat'] ?? null,
+            'lon' => $detail['map']['lon'] ?? null,
+            'out_of_coverage' => (bool) ($detail['out_of_coverage'] ?? false),
+        ];
+    }
+
+    private function fetchVesselFinderPosition(string $imo): array
+    {
+        $detailUrl = self::POSITION_SOURCE_HOST . '/vessels/details/' . rawurlencode($imo);
+
+        try {
+            $html = $this->requestHtml($detailUrl);
+        } catch (Throwable $exception) {
+            throw new RuntimeException('VesselFinder current position page could not be loaded right now.', previous: $exception);
+        }
+
+        return $this->parseVesselFinderDetailPage($html, $detailUrl);
+    }
+
+    private function parseVesselFinderDetailPage(string $html, string $detailUrl): array
+    {
+        $xpath = $this->xpath($html);
+        $table = $this->tableMapFromCells($xpath, "//table[contains(@class, 'aparams')]//tr");
+        $summary = $this->parseVesselFinderSummary(
+            $this->nodeText($this->firstNode($xpath->query("//section[contains(@class, 'text-section')]//p[contains(@class, 'text2')]")))
+        );
+        $payload = $this->parseVesselFinderEmbeddedPayload($xpath);
+        $identifiers = $this->parseCombinedIdentifiers($this->tableValue($table, 'IMO / MMSI'));
+        $mapLink = $this->firstNode($xpath->query("//a[contains(@href, '/?imo=') or contains(@href, '/?mmsi=')]"));
+        $lastPort = $this->parseVesselFinderLastPort($xpath);
+        $station = null;
+
+        if (array_key_exists('a2active', $payload)) {
+            $station = $payload['a2active'] ? 'Satellite AIS' : 'Terrestrial AIS';
+        } elseif (array_key_exists('ship_lat', $payload) || array_key_exists('ship_lon', $payload)) {
+            $station = 'Terrestrial AIS';
+        }
+
+        return [
+            'canonical_url' => $this->firstFilled(
+                $this->linkHref($xpath, 'canonical', self::POSITION_SOURCE_HOST),
+                $detailUrl
+            ),
+            'detail_url' => $detailUrl,
+            'map_url' => $this->absoluteUrl(
+                $mapLink instanceof DOMElement ? $mapLink->getAttribute('href') : null,
+                self::POSITION_SOURCE_HOST
+            ),
+            'name' => $this->nodeText($this->firstNode($xpath->query('//h1[1]'))),
+            'type' => $this->firstFilled(
+                $this->tableValue($table, 'AIS Type'),
+                $summary['type'] ?? null
+            ),
+            'imo' => $this->firstFilled(
+                $identifiers['imo'] ?? null,
+                $this->scalarToString($payload['imo'] ?? null)
+            ),
+            'mmsi' => $this->firstFilled(
+                $identifiers['mmsi'] ?? null,
+                $this->scalarToString($payload['mmsi'] ?? null)
+            ),
+            'flag' => $this->firstFilled(
+                $this->tableValue($table, 'AIS Flag'),
+                $summary['flag'] ?? null
+            ),
+            'call_sign' => $this->tableValue($table, 'Callsign'),
+            'status' => $this->tableValue($table, 'Navigation Status'),
+            'area' => $summary['area'] ?? null,
+            'current_port' => $summary['current_port'] ?? null,
+            'last_port' => $lastPort['port'] ?? null,
+            'last_port_event' => $lastPort['event'] ?? null,
+            'last_port_time_raw' => $lastPort['time_raw'] ?? null,
+            'speed' => $this->firstFilled(
+                $summary['speed'] ?? null,
+                $this->formatKnots($this->scalarToString($payload['ship_sog'] ?? null))
+            ),
+            'course' => $this->formatDegrees($this->scalarToString($payload['ship_cog'] ?? null)),
+            'station' => $station,
+            'reported_raw' => $this->firstFilled(
+                $this->tableTimestamp($table, 'Position Received'),
+                $summary['reported_at'] ?? null,
+                $this->scalarToString($payload['lrpd'] ?? null)
+            ),
+            'lat' => $this->scalarToString($payload['ship_lat'] ?? null),
+            'lon' => $this->scalarToString($payload['ship_lon'] ?? null),
+            'out_of_coverage' => str_contains(Str::lower($html), 'out of coverage'),
+        ];
+    }
+
+    private function parseVesselFinderSummary(?string $summary): array
+    {
+        if ($summary === null) {
+            return [];
+        }
+
+        $parsed = [];
+
+        if (preg_match('/current position of .*? is\s+(?:at|in)\s+(.+?)\s+reported\s+(.+?)\s+by AIS/i', $summary, $matches)) {
+            $parsed['area'] = $this->normalizePlaceholder($matches[1]);
+            $parsed['reported_at'] = $this->normalizePlaceholder($matches[2]);
+        }
+
+        if (preg_match('/sailing at a speed of\s+([0-9.]+\s+knots?)/i', $summary, $matches)) {
+            $parsed['speed'] = $this->normalizeSpeedLabel($matches[1]);
+        }
+
+        if (preg_match('/is a\s+(.+?)\s+built in\s+\d{4}.*?under the flag of\s+(.+?)\.?$/i', $summary, $matches)) {
+            $parsed['type'] = $this->normalizePlaceholder($matches[1]);
+            $parsed['flag'] = $this->normalizePlaceholder($matches[2]);
+        }
+
+        return $parsed;
+    }
+
+    private function parseVesselFinderEmbeddedPayload(DOMXPath $xpath): array
+    {
+        $node = $this->firstNode($xpath->query("//*[@id='djson']"));
+
+        if (! $node instanceof DOMElement || ! $node->hasAttribute('data-json')) {
+            return [];
+        }
+
+        $decoded = json_decode(html_entity_decode($node->getAttribute('data-json'), ENT_QUOTES | ENT_HTML5, 'UTF-8'), true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function parseCombinedIdentifiers(?string $value): array
+    {
+        if (! filled($value)) {
+            return [];
+        }
+
+        if (preg_match('/^\s*(\d{7})\s*\/\s*(\d{9})\s*$/', $value, $matches)) {
+            return [
+                'imo' => $matches[1],
+                'mmsi' => $matches[2],
+            ];
+        }
+
+        $identifiers = [];
+
+        if (preg_match('/(\d{7})/', $value, $imo)) {
+            $identifiers['imo'] = $imo[1];
+        }
+
+        if (preg_match('/(\d{9})/', $value, $mmsi)) {
+            $identifiers['mmsi'] = $mmsi[1];
+        }
+
+        return $identifiers;
+    }
+
+    private function parseVesselFinderLastPort(DOMXPath $xpath): array
+    {
+        $container = $this->firstNode($xpath->query("//*[contains(@class, 'vi__stp')][1]"));
+
+        if (! $container instanceof DOMElement) {
+            return [];
+        }
+
+        $port = $this->nodeText($this->firstNode($xpath->query(".//a[1]", $container)));
+        $value = $this->nodeText($this->firstNode($xpath->query(".//*[contains(@class, '_value')][1]", $container)));
+
+        if (! filled($value)) {
+            return array_filter([
+                'port' => $port,
+            ], fn (?string $item) => filled($item));
+        }
+
+        if (! preg_match('/^\s*([A-Z]{2,4}\*?)\s*:\s*(.+?)(?:\s+\([^)]*\))?\s*$/', $value, $matches)) {
+            return array_filter([
+                'port' => $port,
+            ], fn (?string $item) => filled($item));
+        }
+
+        return array_filter([
+            'port' => $port,
+            'event' => $this->normalizePlaceholder($matches[1] ?? null),
+            'time_raw' => $this->normalizePlaceholder($matches[2] ?? null),
+        ], fn (?string $item) => filled($item));
+    }
+
+    private function buildHeader(string $query, string $lookupLabel, array $searchMatch, ?array $detail, array $positionSnapshot, array $freshness): array
     {
         $title = $this->firstFilled(
+            $positionSnapshot['title'] ?? null,
             $detail['name'] ?? null,
             $searchMatch['name'] ?? null,
             $query
         ) ?? $query;
 
         $type = $this->firstFilled(
+            $positionSnapshot['type'] ?? null,
             $detail['type'] ?? null,
             $searchMatch['type'] ?? null
         );
 
+        $positionSource = $positionSnapshot['source_label'] ?? self::DETAIL_SOURCE_LABEL;
+        $subtitle = $type ? $type . ' - latest available public AIS snapshot' : 'Latest available public AIS snapshot';
+
+        if (($positionSnapshot['provider'] ?? null) === 'vesselfinder') {
+            $subtitle = $type
+                ? $type . ' - position from VesselFinder, voyage details from MyShipTracking'
+                : 'Position from VesselFinder, voyage details from MyShipTracking';
+        }
+
         return [
             'title' => $title,
-            'subtitle' => $type ? 'Live public vessel snapshot for ' . $type : 'Live public vessel snapshot',
+            'subtitle' => $subtitle,
             'lookup' => $lookupLabel,
             'external_url' => $this->firstFilled(
+                $positionSnapshot['detail_url'] ?? null,
                 $detail['canonical_url'] ?? null,
                 $searchMatch['detail_url'] ?? null
             ),
             'chips' => array_values(array_filter([
                 $this->chip('IMO', $this->firstFilled(
+                    $positionSnapshot['imo'] ?? null,
                     $this->tableValue($detail['general'] ?? [], 'IMO'),
                     $searchMatch['imo'] ?? null
                 )),
                 $this->chip('MMSI', $this->firstFilled(
+                    $positionSnapshot['mmsi'] ?? null,
                     $this->tableValue($detail['general'] ?? [], 'MMSI'),
                     $searchMatch['mmsi'] ?? null
                 )),
                 $this->chip('Flag', $this->firstFilled(
+                    $positionSnapshot['flag'] ?? null,
                     $this->tableValue($detail['general'] ?? [], 'Flag'),
                     $detail['information']['flag'] ?? null
                 )),
-                $this->chip('Call sign', $this->tableValue($detail['general'] ?? [], 'Call Sign')),
-                $this->chip('Live source', 'Public web scrape'),
+                $this->chip('Call sign', $this->firstFilled(
+                    $positionSnapshot['call_sign'] ?? null,
+                    $this->tableValue($detail['general'] ?? [], 'Call Sign')
+                )),
+                $this->chip('Position source', $positionSource),
+                ($positionSnapshot['provider'] ?? null) === 'vesselfinder'
+                    ? $this->chip('Voyage source', self::DETAIL_SOURCE_LABEL)
+                    : null,
+                $this->chip('Signal age', $freshness['age_label'] ?? null),
             ])),
         ];
     }
 
-    private function buildSummary(array $header, array $searchMatch, ?array $detail): string
+    private function buildSummary(array $header, ?array $detail, array $positionSnapshot, array $freshness): string
     {
         $name = $header['title'] ?? 'This vessel';
-        $status = $this->firstFilled(
-            $this->tableValue($detail['position'] ?? [], 'Status'),
-            $searchMatch['status'] ?? null
-        );
-        $area = $this->firstFilled(
-            $this->tableValue($detail['position'] ?? [], 'Area'),
-            $detail['information']['area'] ?? null,
-            $searchMatch['area'] ?? null
-        );
-        $currentPort = $detail['information']['current_port'] ?? null;
-        $speed = $this->firstFilled(
-            $this->tableValue($detail['position'] ?? [], 'Speed'),
-            $detail['information']['speed'] ?? null,
-            $searchMatch['speed'] ?? null
-        );
-        $lastSignal = $this->formatTimestamp($this->firstFilled(
-            $this->tableTimestamp($detail['position'] ?? [], 'Position Received'),
-            $detail['information']['reported_at'] ?? null,
-            $searchMatch['received'] ?? null
-        ));
+        $status = $positionSnapshot['status'] ?? null;
+        $area = $positionSnapshot['area'] ?? null;
+        $currentPort = $positionSnapshot['current_port'] ?? null;
+        $speed = $positionSnapshot['speed'] ?? null;
+        $lastSignal = $freshness['reported_at'] ?? null;
+        $signalSource = $positionSnapshot['source_label'] ?? self::DETAIL_SOURCE_LABEL;
 
         $sentences = [];
 
-        if ($status !== null) {
-            $sentences[] = $name . ' is currently ' . Str::of($status)->lower()->value();
-        }
+        if ($freshness['is_stale']) {
+            if ($status !== null) {
+                $sentences[] = $name . ' was last reported as ' . Str::of($status)->lower()->value();
+            }
 
-        if ($area !== null && $currentPort !== null) {
-            $sentences[] = 'Current area is ' . $area . ' near ' . $currentPort;
-        } elseif ($area !== null) {
-            $sentences[] = 'Current area is ' . $area;
-        } elseif ($currentPort !== null) {
-            $sentences[] = 'Current port is ' . $currentPort;
-        }
+            if ($area !== null && $currentPort !== null) {
+                $sentences[] = 'Last known area was ' . $area . ' near ' . $currentPort;
+            } elseif ($area !== null) {
+                $sentences[] = 'Last known area was ' . $area;
+            } elseif ($currentPort !== null) {
+                $sentences[] = 'Last known port was ' . $currentPort;
+            }
 
-        if ($speed !== null) {
-            $sentences[] = 'Speed showing as ' . $speed;
-        }
+            if ($speed !== null) {
+                $sentences[] = 'Recorded speed was ' . $speed;
+            }
 
-        if ($lastSignal !== null) {
-            $sentences[] = 'Last AIS update was ' . $lastSignal;
+            if ($lastSignal !== null) {
+                $sentences[] = $signalSource . ' last updated on ' . $lastSignal;
+            }
+        } else {
+            if ($status !== null) {
+                $sentences[] = $name . ' is currently ' . Str::of($status)->lower()->value();
+            }
+
+            if ($area !== null && $currentPort !== null) {
+                $sentences[] = 'Current area is ' . $area . ' near ' . $currentPort;
+            } elseif ($area !== null) {
+                $sentences[] = 'Current area is ' . $area;
+            } elseif ($currentPort !== null) {
+                $sentences[] = 'Current port is ' . $currentPort;
+            }
+
+            if ($speed !== null) {
+                $sentences[] = 'Speed showing as ' . $speed;
+            }
+
+            if ($lastSignal !== null) {
+                $sentences[] = 'Last AIS update was ' . $lastSignal;
+            }
         }
 
         return $sentences === []
-            ? 'Latest live vessel details are ready.'
+            ? 'Latest public vessel details are ready.'
             : Str::finish(implode('. ', $sentences), '.');
     }
 
-    private function buildVisuals(array $header, array $searchMatch, ?array $detail): array
+    private function buildVisuals(array $header, array $searchMatch, ?array $detail, array $positionSnapshot, array $freshness): array
     {
         $tripStops = collect($detail['trip_stops'] ?? [])
             ->map(function (array $stop) {
@@ -482,54 +856,34 @@ class VesselLiveTrackerService
             ->values()
             ->all();
 
-        $departureStop = collect($tripStops)->first(function (array $stop) {
-            return str_starts_with(strtoupper((string) ($stop['event'] ?? '')), 'ATD');
-        }) ?? ($tripStops[0] ?? null);
+        $routeHighlights = $this->buildRouteHighlights($tripStops, $searchMatch, $detail, $positionSnapshot, $freshness);
 
-        $arrivalStop = collect($tripStops)->reverse()->first(function (array $stop) {
-            return str_starts_with(strtoupper((string) ($stop['event'] ?? '')), 'ATA');
-        }) ?? (! empty($tripStops) ? $tripStops[array_key_last($tripStops)] : null);
-
-        $speedText = $this->firstFilled(
-            $this->tableValue($detail['position'] ?? [], 'Speed'),
-            $detail['information']['speed'] ?? null,
-            $searchMatch['speed'] ?? null
-        );
+        $speedText = $positionSnapshot['speed'] ?? null;
 
         return [
             'title' => $header['title'] ?? null,
             'subtitle' => $header['subtitle'] ?? null,
-            'area' => $this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Area'),
-                $detail['information']['area'] ?? null,
-                $searchMatch['area'] ?? null
-            ),
-            'current_port' => $detail['information']['current_port'] ?? null,
+            'source_label' => $positionSnapshot['source_label'] ?? self::DETAIL_SOURCE_LABEL,
+            'voyage_source_label' => self::DETAIL_SOURCE_LABEL,
+            'signal_label' => $freshness['signal_label'],
+            'signal_age' => $freshness['age_label'],
+            'is_stale' => $freshness['is_stale'],
+            'position_panel_kicker' => $freshness['is_stale'] ? 'Last known location' : 'Live location',
+            'position_panel_title' => $freshness['is_stale'] ? 'Last known world map' : 'Live world map',
+            'area' => $positionSnapshot['area'] ?? null,
+            'current_port' => $positionSnapshot['current_port'] ?? null,
+            'port_value' => $positionSnapshot['port_value'] ?? null,
+            'port_label' => $positionSnapshot['port_label'] ?? 'Current Port',
+            'port_note' => $positionSnapshot['port_note'] ?? 'Latest detected port',
             'destination' => $searchMatch['destination'] ?? null,
-            'reported_at' => $this->formatTimestamp($this->firstFilled(
-                $this->tableTimestamp($detail['position'] ?? [], 'Position Received'),
-                $detail['information']['reported_at'] ?? null,
-                $searchMatch['received'] ?? null
-            )),
-            'status' => $this->tableValue($detail['position'] ?? [], 'Status'),
-            'latitude' => $this->toFloat($detail['map']['lat'] ?? null),
-            'longitude' => $this->toFloat($detail['map']['lon'] ?? null),
-            'latitude_label' => $this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Latitude'),
-                $this->formatCoordinate($detail['map']['lat'] ?? null, 'lat')
-            ),
-            'longitude_label' => $this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Longitude'),
-                $this->formatCoordinate($detail['map']['lon'] ?? null, 'lon')
-            ),
-            'course' => $this->toFloat($this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Course'),
-                $this->formatDegrees($detail['map']['course'] ?? null)
-            )),
-            'course_label' => $this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Course'),
-                $this->formatDegrees($detail['map']['course'] ?? null)
-            ),
+            'reported_at' => $freshness['reported_at'],
+            'status' => $positionSnapshot['status'] ?? null,
+            'latitude' => $this->toFloat($positionSnapshot['lat'] ?? null),
+            'longitude' => $this->toFloat($positionSnapshot['lon'] ?? null),
+            'latitude_label' => $this->formatCoordinate($positionSnapshot['lat'] ?? null, 'lat'),
+            'longitude_label' => $this->formatCoordinate($positionSnapshot['lon'] ?? null, 'lon'),
+            'course' => $this->toFloat($positionSnapshot['course'] ?? null),
+            'course_label' => $positionSnapshot['course'] ?? null,
             'speed_knots' => $this->toFloat($speedText),
             'speed_label' => $speedText,
             'trip_distance_nm' => $this->toFloat($this->tableValue($detail['trip'] ?? [], 'Trip Distance')),
@@ -545,65 +899,88 @@ class VesselLiveTrackerService
                 $detail['information']['draught'] ?? null
             ),
             'trip_time_label' => $this->tableValue($detail['trip'] ?? [], 'Trip Time'),
-            'station' => $this->stationLabel($this->tableValue($detail['position'] ?? [], 'Station')),
-            'map_url' => $searchMatch['map_url'] ?? null,
+            'station' => $positionSnapshot['station'] ?? null,
+            'map_url' => $positionSnapshot['map_url'] ?? ($searchMatch['map_url'] ?? null),
             'detail_url' => $this->firstFilled(
+                $positionSnapshot['detail_url'] ?? null,
                 $detail['canonical_url'] ?? null,
                 $searchMatch['detail_url'] ?? null
             ),
-            'departure_port' => $departureStop['port'] ?? null,
-            'departure_event' => $departureStop['event'] ?? null,
-            'departure_time' => $departureStop['time'] ?? null,
-            'arrival_port' => $this->firstFilled(
-                $arrivalStop['port'] ?? null,
-                $searchMatch['destination'] ?? null,
-                $detail['information']['current_port'] ?? null
-            ),
-            'arrival_event' => $this->firstFilled(
-                $arrivalStop['event'] ?? null,
-                filled($searchMatch['destination'] ?? null) ? 'Destination' : null
-            ),
-            'arrival_time' => $arrivalStop['time'] ?? null,
+            'departure_label' => $routeHighlights['departure_label'],
+            'departure_port' => $routeHighlights['departure_port'],
+            'departure_event' => $routeHighlights['departure_event'],
+            'departure_time' => $routeHighlights['departure_time'],
+            'departure_empty_note' => $routeHighlights['departure_empty_note'],
+            'arrival_label' => $routeHighlights['arrival_label'],
+            'arrival_port' => $routeHighlights['arrival_port'],
+            'arrival_event' => $routeHighlights['arrival_event'],
+            'arrival_time' => $routeHighlights['arrival_time'],
+            'arrival_empty_note' => $routeHighlights['arrival_empty_note'],
             'route_stops' => $tripStops,
         ];
     }
 
-    private function buildPositionSection(array $searchMatch, ?array $detail): ?array
+    private function buildPositionSection(array $positionSnapshot, array $freshness): ?array
     {
-        $map = $detail['map'] ?? [];
-
-        return $this->section('Live position', 'ti-location-pin', [
-            $this->fact('Last AIS update', $this->formatTimestamp($this->firstFilled(
-                $this->tableTimestamp($detail['position'] ?? [], 'Position Received'),
-                $detail['information']['reported_at'] ?? null,
-                $searchMatch['received'] ?? null
-            ))),
-            $this->fact('Navigation status', $this->tableValue($detail['position'] ?? [], 'Status')),
-            $this->fact('Current area', $this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Area'),
-                $detail['information']['area'] ?? null,
-                $searchMatch['area'] ?? null
-            )),
-            $this->fact('Current port', $detail['information']['current_port'] ?? null),
-            $this->fact('Latitude', $this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Latitude'),
-                $this->formatCoordinate($map['lat'] ?? null, 'lat')
-            )),
-            $this->fact('Longitude', $this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Longitude'),
-                $this->formatCoordinate($map['lon'] ?? null, 'lon')
-            )),
-            $this->fact('Speed', $this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Speed'),
-                $detail['information']['speed'] ?? null,
-                $searchMatch['speed'] ?? null
-            )),
-            $this->fact('Course', $this->firstFilled(
-                $this->tableValue($detail['position'] ?? [], 'Course'),
-                $this->formatDegrees($map['course'] ?? null)
-            )),
-            $this->fact('Station', $this->stationLabel($this->tableValue($detail['position'] ?? [], 'Station'))),
+        return $this->section($freshness['is_stale'] ? 'Last known position' : 'Live position', 'ti-location-pin', [
+            $this->fact('Signal freshness', $freshness['signal_label']),
+            $this->fact('Last AIS update', $freshness['reported_at']),
+            $this->fact('Navigation status', $positionSnapshot['status'] ?? null),
+            $this->fact('Current area', $positionSnapshot['area'] ?? null),
+            $this->fact('Current port', $positionSnapshot['current_port'] ?? null),
+            $this->fact('Last port', $positionSnapshot['last_port'] ?? null),
+            $this->fact('Latitude', $this->formatCoordinate($positionSnapshot['lat'] ?? null, 'lat')),
+            $this->fact('Longitude', $this->formatCoordinate($positionSnapshot['lon'] ?? null, 'lon')),
+            $this->fact('Speed', $positionSnapshot['speed'] ?? null),
+            $this->fact('Course', $positionSnapshot['course'] ?? null),
+            $this->fact('Station', $positionSnapshot['station'] ?? null),
         ]);
+    }
+
+    private function buildFreshness(array $positionSnapshot): array
+    {
+        $reportedRaw = $positionSnapshot['reported_raw'] ?? null;
+        $reportedAt = $this->parseTimestamp($reportedRaw);
+        $reportedAtLabel = $this->formatTimestamp($reportedRaw);
+        $ageLabel = $reportedAt !== null
+            ? $this->humanizeSignalAge($reportedAt)
+            : $this->fallbackSignalAgeLabel($reportedRaw);
+        $isOutOfCoverage = (bool) ($positionSnapshot['out_of_coverage'] ?? false);
+        $sourceLabel = $positionSnapshot['source_label'] ?? 'Public AIS source';
+        $sourceShortLabel = $positionSnapshot['source_short_label'] ?? 'public AIS';
+        $isStale = $isOutOfCoverage;
+
+        if ($reportedAt !== null) {
+            $isStale = $isStale || $reportedAt->lessThan(CarbonImmutable::now('UTC')->subHours(self::STALE_SIGNAL_THRESHOLD_HOURS));
+        } elseif ($reportedRaw !== null) {
+            $isStale = $isStale || $this->signalLooksStale($reportedRaw);
+        }
+
+        $warning = null;
+
+        if ($isOutOfCoverage && $reportedAtLabel !== null) {
+            $warning = $sourceLabel . ' shows this vessel as out of coverage. The position below is last known data from '
+                . $reportedAtLabel
+                . ($ageLabel ? ' (' . $ageLabel . ')' : '')
+                . ' and may differ from fresher AIS services.';
+        } elseif ($isOutOfCoverage) {
+            $warning = $sourceLabel . ' shows this vessel as out of coverage, so the position below is last known data and may differ from fresher AIS services.';
+        } elseif ($isStale && $reportedAtLabel !== null) {
+            $warning = $sourceLabel . ' last updated this vessel on '
+                . $reportedAtLabel
+                . ($ageLabel ? ' (' . $ageLabel . ')' : '')
+                . '. Treat the map and position below as last known, not current real-time AIS.';
+        } elseif ($isStale) {
+            $warning = $sourceLabel . ' is older than the real-time window for this vessel. Treat the map and position below as last known, not current real-time AIS.';
+        }
+
+        return [
+            'is_stale' => $isStale,
+            'reported_at' => $reportedAtLabel,
+            'age_label' => $ageLabel,
+            'signal_label' => $isStale ? 'Last known ' . $sourceShortLabel : 'Current ' . $sourceShortLabel,
+            'warning' => $warning,
+        ];
     }
 
     private function buildVoyageSection(array $searchMatch, ?array $detail): ?array
@@ -627,26 +1004,33 @@ class VesselLiveTrackerService
         ]);
     }
 
-    private function buildParticularsSection(array $searchMatch, ?array $detail): ?array
+    private function buildParticularsSection(array $searchMatch, ?array $detail, array $positionSnapshot): ?array
     {
         return $this->section('Vessel particulars', 'ti-anchor', [
             $this->fact('Vessel type', $this->firstFilled(
+                $positionSnapshot['type'] ?? null,
                 $detail['type'] ?? null,
                 $searchMatch['type'] ?? null
             )),
             $this->fact('IMO', $this->firstFilled(
+                $positionSnapshot['imo'] ?? null,
                 $this->tableValue($detail['general'] ?? [], 'IMO'),
                 $searchMatch['imo'] ?? null
             )),
             $this->fact('MMSI', $this->firstFilled(
+                $positionSnapshot['mmsi'] ?? null,
                 $this->tableValue($detail['general'] ?? [], 'MMSI'),
                 $searchMatch['mmsi'] ?? null
             )),
             $this->fact('Flag', $this->firstFilled(
+                $positionSnapshot['flag'] ?? null,
                 $this->tableValue($detail['general'] ?? [], 'Flag'),
                 $detail['information']['flag'] ?? null
             )),
-            $this->fact('Call sign', $this->tableValue($detail['general'] ?? [], 'Call Sign')),
+            $this->fact('Call sign', $this->firstFilled(
+                $positionSnapshot['call_sign'] ?? null,
+                $this->tableValue($detail['general'] ?? [], 'Call Sign')
+            )),
             $this->fact('Size', $this->tableValue($detail['general'] ?? [], 'Size')),
             $this->fact('GT', $this->tableValue($detail['general'] ?? [], 'GT')),
             $this->fact('DWT', $this->tableValue($detail['general'] ?? [], 'DWT')),
@@ -729,6 +1113,75 @@ class VesselLiveTrackerService
         return $parsed;
     }
 
+    private function buildRouteHighlights(
+        array $tripStops,
+        array $searchMatch,
+        ?array $detail,
+        array $positionSnapshot,
+        array $freshness
+    ): array {
+        $confirmedDepartureStop = $this->selectConfirmedTripStop($tripStops, 'ATD');
+        $confirmedArrivalStop = $this->selectConfirmedTripStop($tripStops, 'ATA', true);
+        $lastPortEvent = $positionSnapshot['last_port_event'] ?? null;
+        $lastPortTime = $this->formatTimestamp($positionSnapshot['last_port_time_raw'] ?? null);
+        $usesLastPortReference = filled($positionSnapshot['last_port'] ?? null);
+        $hasConfirmedLeg = ! $freshness['is_stale']
+            && $confirmedDepartureStop !== null
+            && ($confirmedArrivalStop !== null || filled($searchMatch['destination'] ?? null));
+
+        if ($hasConfirmedLeg) {
+            return [
+                'departure_label' => 'Departure',
+                'departure_port' => $confirmedDepartureStop['port'] ?? null,
+                'departure_event' => $confirmedDepartureStop['event'] ?? null,
+                'departure_time' => $confirmedDepartureStop['time'] ?? null,
+                'departure_empty_note' => 'Departure update is not available yet.',
+                'arrival_label' => 'Arrival',
+                'arrival_port' => $this->firstFilled(
+                    $confirmedArrivalStop['port'] ?? null,
+                    $searchMatch['destination'] ?? null,
+                    $detail['information']['current_port'] ?? null
+                ),
+                'arrival_event' => $this->firstFilled(
+                    $confirmedArrivalStop['event'] ?? null,
+                    filled($searchMatch['destination'] ?? null) ? 'Destination' : null
+                ),
+                'arrival_time' => $confirmedArrivalStop['time'] ?? null,
+                'arrival_empty_note' => 'Arrival or destination update is not available yet.',
+            ];
+        }
+
+        $fallbackDeparturePort = $this->firstFilled(
+            $confirmedDepartureStop['port'] ?? null,
+            $searchMatch['destination'] ?? null,
+            $tripStops[0]['port'] ?? null
+        );
+        $fallbackArrivalPort = $this->firstFilled(
+            $positionSnapshot['last_port'] ?? null,
+            $confirmedArrivalStop['port'] ?? null,
+            $detail['information']['current_port'] ?? null,
+            $searchMatch['destination'] ?? null,
+            ! empty($tripStops) ? $tripStops[array_key_last($tripStops)]['port'] ?? null : null
+        );
+
+        return [
+            'departure_label' => $confirmedDepartureStop !== null ? 'Departure reference' : 'Route reference',
+            'departure_port' => $fallbackDeparturePort,
+            'departure_event' => $freshness['is_stale'] ? null : ($confirmedDepartureStop['event'] ?? null),
+            'departure_time' => $freshness['is_stale'] ? null : ($confirmedDepartureStop['time'] ?? null),
+            'departure_empty_note' => $freshness['is_stale']
+                ? 'Historical route reference from MyShipTracking public AIS.'
+                : 'Public route sources did not publish a confirmed departure update.',
+            'arrival_label' => $usesLastPortReference ? 'Last port' : 'Route arrival',
+            'arrival_port' => $fallbackArrivalPort,
+            'arrival_event' => $usesLastPortReference ? $lastPortEvent : ($confirmedArrivalStop['event'] ?? null),
+            'arrival_time' => $usesLastPortReference ? $lastPortTime : ($confirmedArrivalStop['time'] ?? null),
+            'arrival_empty_note' => $usesLastPortReference
+                ? 'Latest last-port reference from VesselFinder public AIS.'
+                : 'Showing the latest route or port reference from the public sources.',
+        ];
+    }
+
     private function parseTripStops(DOMXPath $xpath): array
     {
         $nodes = $xpath->query("//*[@id='vpage-current-trip']//div[contains(@class, 'myst-arrival-cont')]");
@@ -763,6 +1216,18 @@ class VesselLiveTrackerService
         return $stops;
     }
 
+    private function selectConfirmedTripStop(array $tripStops, string $event, bool $reverse = false): ?array
+    {
+        $collection = $reverse ? collect($tripStops)->reverse() : collect($tripStops);
+
+        $match = $collection->first(function (array $stop) use ($event) {
+            return str_starts_with(strtoupper((string) ($stop['event'] ?? '')), strtoupper($event))
+                && filled($stop['time'] ?? null);
+        });
+
+        return is_array($match) ? $match : null;
+    }
+
     private function parseMapSnapshot(string $html): array
     {
         if (! preg_match('/canvas_map_generate\("map_locator",\s*\d+,\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/', $html, $matches)) {
@@ -775,6 +1240,44 @@ class VesselLiveTrackerService
             'course' => $matches[3],
             'speed' => $matches[4],
         ];
+    }
+
+    private function tableMapFromCells(DOMXPath $xpath, string $query): array
+    {
+        $rows = $xpath->query($query);
+
+        if ($rows === false) {
+            return [];
+        }
+
+        $map = [];
+
+        foreach ($rows as $row) {
+            if (! $row instanceof DOMElement) {
+                continue;
+            }
+
+            $labelNode = $this->firstNode($xpath->query('./td[1]', $row));
+            $valueNode = $this->firstNode($xpath->query('./td[2]', $row));
+
+            if (! $labelNode instanceof DOMNode || ! $valueNode instanceof DOMNode) {
+                continue;
+            }
+
+            $label = $this->normalizePlaceholder($this->nodeText($labelNode));
+
+            if ($label === null) {
+                continue;
+            }
+
+            $map[$this->normalizeLabel($label)] = [
+                'label' => $label,
+                'value' => $this->normalizePlaceholder($this->nodeText($valueNode)),
+                'title' => $this->normalizePlaceholder($this->nestedTitle($xpath, $valueNode)),
+            ];
+        }
+
+        return $map;
     }
 
     private function tableMap(DOMXPath $xpath, string $query): array
@@ -840,7 +1343,7 @@ class VesselLiveTrackerService
     private function requestHtml(string $url): string
     {
         $response = Http::timeout(20)
-            ->withUserAgent('Mozilla/5.0 (compatible; MarineCaddieBot/1.0; +https://portal.marinecaddie.com)')
+            ->withUserAgent(self::DEFAULT_USER_AGENT)
             ->withHeaders([
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language' => 'en-US,en;q=0.9',
@@ -857,12 +1360,16 @@ class VesselLiveTrackerService
             throw new RuntimeException('Source page returned an empty response.');
         }
 
+        if ($this->looksLikeAntiBotChallenge($html)) {
+            throw new RuntimeException('Source page presented an anti-bot challenge.');
+        }
+
         return $html;
     }
 
     private function searchUrl(string $query): string
     {
-        return self::SOURCE_HOST . '/vessels?' . http_build_query([
+        return self::DETAIL_SOURCE_HOST . '/vessels?' . http_build_query([
             'name' => $query,
         ]);
     }
@@ -996,7 +1503,7 @@ class VesselLiveTrackerService
         return $node instanceof DOMNode ? $node : null;
     }
 
-    private function linkHref(DOMXPath $xpath, string $rel): ?string
+    private function linkHref(DOMXPath $xpath, string $rel, string $host = self::DETAIL_SOURCE_HOST): ?string
     {
         $node = $this->firstNode($xpath->query("//link[@rel='{$rel}']"));
 
@@ -1004,7 +1511,7 @@ class VesselLiveTrackerService
             return null;
         }
 
-        return $this->absoluteUrl($node->getAttribute('href'));
+        return $this->absoluteUrl($node->getAttribute('href'), $host);
     }
 
     private function metaContent(DOMXPath $xpath, string $property): ?string
@@ -1020,17 +1527,24 @@ class VesselLiveTrackerService
 
     private function nestedTitle(DOMXPath $xpath, DOMNode $node): ?string
     {
-        if ($node instanceof DOMElement && $node->hasAttribute('title')) {
-            return $node->getAttribute('title');
+        if ($node instanceof DOMElement) {
+            foreach (['title', 'data-title'] as $attribute) {
+                if ($node->hasAttribute($attribute)) {
+                    return $this->normalizePlaceholder($node->getAttribute($attribute));
+                }
+            }
         }
 
-        $titleNode = $this->firstNode($xpath->query('.//*[@title]', $node));
+        $titleNode = $this->firstNode($xpath->query('.//*[@title or @data-title]', $node));
 
         if (! $titleNode instanceof DOMElement) {
             return null;
         }
 
-        return $titleNode->getAttribute('title');
+        return $this->firstFilled(
+            $this->normalizePlaceholder($titleNode->getAttribute('title')),
+            $this->normalizePlaceholder($titleNode->getAttribute('data-title'))
+        );
     }
 
     private function nodeTitleOrText(DOMXPath $xpath, ?DOMNode $node): ?string
@@ -1080,7 +1594,7 @@ class VesselLiveTrackerService
 
         $normalized = trim(str_replace("\xc2\xa0", ' ', $value));
 
-        if ($normalized === '' || $normalized === '---') {
+        if ($normalized === '' || $normalized === '---' || $normalized === '-') {
             return null;
         }
 
@@ -1113,6 +1627,39 @@ class VesselLiveTrackerService
         }
 
         return $matches[0];
+    }
+
+    private function scalarToString(mixed $value): ?string
+    {
+        if ($value === null || is_array($value) || is_object($value)) {
+            return null;
+        }
+
+        return (string) $value;
+    }
+
+    private function formatKnots(?string $value): ?string
+    {
+        if ($value === null || ! is_numeric($value)) {
+            return null;
+        }
+
+        return rtrim(rtrim(number_format((float) $value, 1), '0'), '.') . ' Knots';
+    }
+
+    private function normalizeSpeedLabel(?string $value): ?string
+    {
+        $normalized = $this->normalizePlaceholder($value);
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        if (! preg_match('/-?\d+(?:\.\d+)?/', $normalized, $matches)) {
+            return $normalized;
+        }
+
+        return $this->formatKnots($matches[0]);
     }
 
     private function stationLabel(?string $value): ?string
@@ -1203,19 +1750,16 @@ class VesselLiveTrackerService
         }
 
         $normalized = trim(preg_replace('/\s+/', ' ', $value) ?? $value);
-        $sanitized = trim((string) preg_replace('/\s*\(UTC\)\s*$/i', '', $normalized));
-        $sanitized = trim((string) preg_replace('/\s+UTC\s*$/i', '', $sanitized));
+        $date = $this->parseTimestamp($normalized);
 
-        try {
-            $date = CarbonImmutable::parse($sanitized, 'UTC')->setTimezone(self::DISPLAY_TIMEZONE);
-        } catch (Throwable) {
+        if ($date === null) {
             return $normalized;
         }
 
-        return $date->format('d M Y H:i') . ' ' . self::DISPLAY_TIMEZONE_LABEL;
+        return $date->setTimezone(self::DISPLAY_TIMEZONE)->format('d M Y H:i') . ' ' . self::DISPLAY_TIMEZONE_LABEL;
     }
 
-    private function absoluteUrl(?string $value): ?string
+    private function absoluteUrl(?string $value, string $host = self::DETAIL_SOURCE_HOST): ?string
     {
         if ($value === null || trim($value) === '') {
             return null;
@@ -1235,7 +1779,106 @@ class VesselLiveTrackerService
             return 'https:' . $value;
         }
 
-        return rtrim(self::SOURCE_HOST, '/') . '/' . ltrim($value, '/');
+        return rtrim($host, '/') . '/' . ltrim($value, '/');
+    }
+
+    private function parseTimestamp(?string $value): ?CarbonImmutable
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim(preg_replace('/\s+/', ' ', $value) ?? $value);
+        $sanitized = trim((string) preg_replace('/\s*\(UTC\)\s*$/i', '', $normalized));
+        $sanitized = trim((string) preg_replace('/\s+UTC\s*$/i', '', $sanitized));
+
+        if (preg_match('/^[A-Z][a-z]{2}\s+\d{1,2},\s+\d{1,2}:\d{2}$/', $sanitized)) {
+            return $this->parseTimestampWithoutYear($sanitized);
+        }
+
+        if (! preg_match('/\d{4}-\d{2}-\d{2}|(?:\d{1,2}\s+[A-Z][a-z]{2}\s+\d{4}|[A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})/', $sanitized)) {
+            return null;
+        }
+
+        try {
+            return CarbonImmutable::parse($sanitized, 'UTC');
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private function parseTimestampWithoutYear(string $value): ?CarbonImmutable
+    {
+        $reference = CarbonImmutable::now('UTC');
+
+        try {
+            $parsed = CarbonImmutable::createFromFormat('M j, H:i Y', $value . ' ' . $reference->year, 'UTC');
+        } catch (Throwable) {
+            return null;
+        }
+
+        if ($parsed === false) {
+            return null;
+        }
+
+        if ($parsed->greaterThan($reference->addDays(2))) {
+            return $parsed->subYear();
+        }
+
+        return $parsed;
+    }
+
+    private function humanizeSignalAge(CarbonImmutable $reportedAt): string
+    {
+        $seconds = max(0, $reportedAt->diffInSeconds(CarbonImmutable::now('UTC'), true));
+
+        if ($seconds < 90) {
+            return 'moments old';
+        }
+
+        $minutes = intdiv($seconds, 60);
+
+        if ($minutes < 90) {
+            return $minutes . ' ' . Str::plural('minute', $minutes) . ' old';
+        }
+
+        $hours = intdiv($seconds, 3600);
+
+        if ($hours < 48) {
+            return $hours . ' ' . Str::plural('hour', $hours) . ' old';
+        }
+
+        $days = intdiv($seconds, 86400);
+
+        return $days . ' ' . Str::plural('day', $days) . ' old';
+    }
+
+    private function fallbackSignalAgeLabel(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return $this->normalizePlaceholder($value);
+    }
+
+    private function signalLooksStale(string $value): bool
+    {
+        $normalized = Str::of($value)->lower()->squish()->value();
+
+        if (preg_match('/(\d+)\s*(day|days|d)\b/', $normalized)) {
+            return true;
+        }
+
+        if (preg_match('/(\d+)\s*(hour|hours|hr|hrs|h)\b/', $normalized, $matches)) {
+            return (int) $matches[1] >= self::STALE_SIGNAL_THRESHOLD_HOURS;
+        }
+
+        if (preg_match('/(\d+)\s*(minute|minutes|min|mins|m)\b/', $normalized, $matches)) {
+            return (int) $matches[1] >= self::STALE_SIGNAL_THRESHOLD_HOURS * 60;
+        }
+
+        return false;
     }
 
     private function toFloat(?string $value): ?float
@@ -1249,5 +1892,18 @@ class VesselLiveTrackerService
         }
 
         return (float) $matches[0];
+    }
+
+    private function looksLikeAntiBotChallenge(string $html): bool
+    {
+        $normalized = Str::lower($html);
+
+        return str_contains($normalized, '<title>just a moment')
+            || str_contains($normalized, '<title>attention required')
+            || str_contains($normalized, 'cf-browser-verification')
+            || str_contains($normalized, 'checking your browser before accessing')
+            || str_contains($normalized, '/cdn-cgi/challenge-platform/')
+            || str_contains($normalized, 'window._cf_chl_opt')
+            || str_contains($normalized, 'cf_chl_');
     }
 }

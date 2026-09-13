@@ -1386,7 +1386,7 @@
         <div class="vessel-live-tracker-layout">
             <x-lists.page-header
                 title="Live Vessel Tracker"
-                subtitle="Search by vessel name or IMO and pull a live vessel snapshot without leaving the portal"
+                subtitle="Search by vessel name or IMO and pull the latest public vessel position without leaving the portal"
                 icon="ti-anchor"
             >
                 <x-slot:actions>
@@ -1396,20 +1396,20 @@
 
             <section class="tracker-hero-card">
                 <div class="tracker-hero-top">
-                    <span class="tracker-eyebrow">MarineCaddie live lookup</span>
+                    <span class="tracker-eyebrow">MarineCaddie public AIS lookup</span>
 
                     <div class="tracker-hero-title-row">
                         <div>
-                            <h1 class="tracker-hero-title">Search a vessel in real time</h1>
+                            <h1 class="tracker-hero-title">Search a vessel and review current position plus route details</h1>
                             <p class="tracker-hero-subtitle">
-                                Search by vessel name, saved vessel alias, 7-digit IMO, or 9-digit MMSI. Results appear instantly below without reloading the page with a pinned world map view.
+                                Search by vessel name, saved vessel alias, 7-digit IMO, or 9-digit MMSI. Results load below without reloading the page. Current position comes from VesselFinder, while voyage history and vessel particulars stay anchored to MyShipTracking, with clear stale-signal warnings when the public feed lags.
                             </p>
                         </div>
 
                         <div class="tracker-hero-mini-grid">
                             <div class="tracker-hero-mini-card">
-                                <span>Live Result</span>
-                                <strong>Instant update</strong>
+                                <span>Sources</span>
+                                <strong>VesselFinder + MyShipTracking</strong>
                             </div>
                             <div class="tracker-hero-mini-card">
                                 <span>Map view</span>
@@ -1429,7 +1429,7 @@
 
                 <div class="tracker-hero-body">
                     <p class="tracker-help-text">
-                        Submit a vessel query to render a live world map pin, movement insight, and detailed facts in one smart dashboard panel. If the live source returns partial data, the page still shows the best available snapshot gracefully.
+                        Submit a vessel query to load a VesselFinder map pin plus MyShipTracking voyage and vessel facts in one dashboard panel. If the public AIS signal is stale or out of coverage, the page flags the result before you rely on it.
                     </p>
 
                     <form
@@ -1468,7 +1468,7 @@
 
                             <button id="tracker-submit" type="submit" class="tracker-submit-btn">
                                 <span class="tracker-submit-loader" aria-hidden="true"></span>
-                                <span class="tracker-submit-label">Fetch live details</span>
+                                <span class="tracker-submit-label">Fetch snapshot</span>
                             </button>
                         </div>
 
@@ -1547,8 +1547,8 @@
                             '<div class="tracker-surface tracker-loading-card tracker-skeleton-box"></div>' +
                         '</div>' +
                         '<div class="tracker-status-card alert-info tracker-fade-in">' +
-                            '<span class="tracker-status-kicker">Loading live snapshot</span>' +
-                            '<div class="tracker-status-copy">Fetching latest public vessel details for ' + safeQuery + '.</div>' +
+                            '<span class="tracker-status-kicker">Loading AIS snapshot</span>' +
+                            '<div class="tracker-status-copy">Fetching the latest available public AIS details for ' + safeQuery + '.</div>' +
                         '</div>' +
                     '</section>';
             }
@@ -1812,7 +1812,7 @@
 
                 if (!window.L || typeof window.L.map !== 'function') {
                     destroyTrackerMap(scope);
-                    appendMapFallback(mapLayer, 'Interactive map could not load right now, but the live vessel details are still shown below.');
+                    appendMapFallback(mapLayer, 'Interactive map could not load right now, but the vessel snapshot is still shown below.');
                     return;
                 }
 
@@ -1951,7 +1951,7 @@
                     mount.innerHTML = '' +
                         '<div class="tracker-status-card alert-danger tracker-fade-in">' +
                             '<span class="tracker-status-kicker">Live lookup update</span>' +
-                            '<div class="tracker-status-copy">The live result could not be loaded right now. Please try again.</div>' +
+                            '<div class="tracker-status-copy">The AIS snapshot could not be loaded right now. Please try again.</div>' +
                         '</div>';
                 });
 

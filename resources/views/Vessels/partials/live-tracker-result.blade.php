@@ -39,14 +39,14 @@
                 <p class="tracker-result-summary">{{ $result['summary'] }}</p>
 
                 <div class="tracker-keyline">
+                    <span class="tracker-key-pill">{{ $visuals['signal_label'] ?? 'Public AIS snapshot' }}</span>
                     <span class="tracker-key-pill">{{ $visuals['status'] ?? 'Status pending' }}</span>
                     <span class="tracker-key-pill">{{ $visuals['area'] ?? 'Area pending' }}</span>
-                    <span class="tracker-key-pill">{{ $visuals['station'] ?? 'AIS station pending' }}</span>
                     <span class="tracker-key-pill">{{ $visuals['reported_at'] ?? 'Latest signal pending' }}</span>
                 </div>
 
                 @if (! empty($result['header']['chips']))
-                    <div class="tracker-chip-grid">
+                <div class="tracker-chip-grid">
                         @foreach ($result['header']['chips'] as $chip)
                             <div class="tracker-chip">
                                 <span class="tracker-chip-label">{{ $chip['label'] }}</span>
@@ -59,9 +59,9 @@
 
             <div class="tracker-summary-stack">
                 <div class="tracker-stat-card">
-                    <span class="tracker-stat-label">Current Port</span>
-                    <strong class="tracker-stat-value">{{ $visuals['current_port'] ?? '—' }}</strong>
-                    <span class="tracker-stat-note">Latest detected port</span>
+                    <span class="tracker-stat-label">{{ $visuals['port_label'] ?? 'Current Port' }}</span>
+                    <strong class="tracker-stat-value">{{ $visuals['port_value'] ?? '—' }}</strong>
+                    <span class="tracker-stat-note">{{ $visuals['port_note'] ?? 'Latest detected port' }}</span>
                 </div>
 
                 <div class="tracker-stat-card">
@@ -83,8 +83,8 @@
             <section class="tracker-surface tracker-map-card">
                 <div class="tracker-panel-top">
                     <div>
-                        <span class="tracker-panel-kicker">Live location</span>
-                        <h3 class="tracker-panel-title">Live world map</h3>
+                        <span class="tracker-panel-kicker">{{ $visuals['position_panel_kicker'] ?? 'Live location' }}</span>
+                        <h3 class="tracker-panel-title">{{ $visuals['position_panel_title'] ?? 'Live world map' }}</h3>
                     </div>
                     <span class="tracker-panel-badge">{{ $visuals['area'] ?? 'AIS area pending' }}</span>
                 </div>
@@ -97,15 +97,15 @@
 
                 <div class="tracker-map-locations">
                     <article class="tracker-map-location">
-                        <span class="tracker-map-location-label">Departure</span>
+                        <span class="tracker-map-location-label">{{ $visuals['departure_label'] ?? 'Departure' }}</span>
                         <strong>{{ $visuals['departure_port'] ?? 'Route point pending' }}</strong>
-                        <small>{{ $departureMeta ?: 'Departure update is not available yet.' }}</small>
+                        <small>{{ $departureMeta ?: ($visuals['departure_empty_note'] ?? 'Departure update is not available yet.') }}</small>
                     </article>
 
                     <article class="tracker-map-location">
-                        <span class="tracker-map-location-label">Arrival</span>
+                        <span class="tracker-map-location-label">{{ $visuals['arrival_label'] ?? 'Arrival' }}</span>
                         <strong>{{ $visuals['arrival_port'] ?? 'Route point pending' }}</strong>
-                        <small>{{ $arrivalMeta ?: 'Arrival or destination update is not available yet.' }}</small>
+                        <small>{{ $arrivalMeta ?: ($visuals['arrival_empty_note'] ?? 'Arrival or destination update is not available yet.') }}</small>
                     </article>
                 </div>
             </section>
@@ -205,10 +205,10 @@
             <span class="tracker-empty-orbit-ring tracker-empty-orbit-ring-b"></span>
         </div>
 
-        <span class="tracker-empty-kicker">Realtime lookup ready</span>
-        <h2 class="tracker-empty-title">Search and watch the vessel snapshot appear instantly</h2>
+        <span class="tracker-empty-kicker">AIS lookup ready</span>
+        <h2 class="tracker-empty-title">Search and load the latest available public vessel position</h2>
         <p class="tracker-empty-copy">
-            Type a vessel name, IMO, or MMSI. The result appears here instantly with a pinned world map, movement insight, and detailed vessel facts.
+            Type a vessel name, IMO, or MMSI. The result appears here with VesselFinder position data, MyShipTracking voyage details, and clear flags when the public AIS signal is only last-known data.
         </p>
 
         <div class="tracker-empty-examples">
