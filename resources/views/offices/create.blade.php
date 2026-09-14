@@ -137,14 +137,9 @@
 
         .office-pillars {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 16px;
-            align-items: stretch;
-        }
-
-        .office-pillar-col {
-            display: flex;
-            min-width: 0;
+            align-items: start;
         }
 
         .office-pillar {
@@ -191,6 +186,20 @@
             border-radius: 10px;
         }
 
+        .office-section-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e8eef4;
+        }
+
+        .office-section-toolbar .office-section-shell__title {
+            margin: 0;
+        }
+
         .office-section-shell__title {
             margin: 0 0 10px;
             font-size: 11px;
@@ -202,6 +211,18 @@
 
         .form-group-custom {
             margin-bottom: 0;
+        }
+
+        .office-primary-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .billing-primary-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
         }
 
         .address-sub-grid {
@@ -390,17 +411,13 @@
             overflow: visible !important;
         }
 
-        @media (max-width: 1399.98px) {
-            .office-pillars {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
         @media (max-width: 991.98px) {
             .office-pillars {
                 grid-template-columns: 1fr;
             }
 
+            .office-primary-row,
+            .billing-primary-row,
             .address-sub-grid,
             .account-row-grid {
                 grid-template-columns: 1fr !important;
@@ -470,15 +487,14 @@
                     @csrf
 
                     <div class="office-pillars">
-                        {{-- Pillar 1: Office information --}}
-                        <div class="office-pillar-col">
-                            <div class="office-pillar">
-                                <div class="office-pillar__title">
-                                    <span class="office-pillar__title-text">Office information</span>
-                                </div>
+                        <div class="office-pillar">
+                            <div class="office-pillar__title">
+                                <span class="office-pillar__title-text">Office information</span>
+                            </div>
 
+                            <div class="office-primary-row">
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom">Office name</label>
+                                    <label class="form-label-custom">Legal office name</label>
                                     <input type="text" class="form-control-custom" name="office_name"
                                         value="{{ old('office_name') }}" required>
                                 </div>
@@ -488,52 +504,43 @@
                                     <input type="text" class="form-control-custom" name="office_short_name"
                                         value="{{ old('office_short_name') }}">
                                 </div>
+                            </div>
 
+                            <div class="office-primary-row">
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom">Phone number (with country code)</label>
+                                    <label class="form-label-custom">Office phone number</label>
                                     <input type="text" class="form-control-custom" name="phone_number"
                                         value="{{ old('phone_number') }}">
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom">Email</label>
+                                    <label class="form-label-custom">Office email address</label>
                                     <input type="email" class="form-control-custom" name="email"
                                         value="{{ old('email') }}">
                                 </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom">EORI number</label>
-                                    <input type="text" class="form-control-custom" name="eori_number"
-                                        value="{{ old('eori_number') }}">
-                                </div>
                             </div>
-                        </div>
 
-                        {{-- Pillar 2: Addresses --}}
-                        <div class="office-pillar-col">
-                            <div class="office-pillar">
-                                <div class="office-pillar__title">
-                                    <span class="office-pillar__title-text">Main address</span>
-                                </div>
+                            <div class="office-section-shell">
+                                <p class="office-section-shell__title">Office address</p>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom">Office address</label>
+                                    <label class="form-label-custom">Street address</label>
                                     <textarea class="form-textarea-custom" name="address" rows="3">{{ old('address') }}</textarea>
                                 </div>
 
                                 <div class="address-sub-grid">
                                     <div class="form-group-custom">
-                                        <label class="form-label-custom">City</label>
+                                        <label class="form-label-custom">City / Town</label>
                                         <input type="text" class="form-control-custom" name="city"
                                             value="{{ old('city') }}">
                                     </div>
                                     <div class="form-group-custom">
-                                        <label class="form-label-custom">District/state</label>
+                                        <label class="form-label-custom">State / Region</label>
                                         <input type="text" class="form-control-custom" name="district_state"
                                             value="{{ old('district_state') }}">
                                     </div>
                                     <div class="form-group-custom">
-                                        <label class="form-label-custom">Zip code</label>
+                                        <label class="form-label-custom">Postal code</label>
                                         <input type="text" class="form-control-custom" name="zip_code"
                                             value="{{ old('zip_code') }}">
                                     </div>
@@ -541,135 +548,78 @@
 
                                 <x-forms.country-select
                                     name="country_id"
-                                    label="Country"
+                                    label="Country / Region"
                                     :countries="$countries"
                                     wrapperClass="form-group-custom"
                                 />
-
-                                <div class="office-section-shell">
-                                    <p class="office-section-shell__title">Office address (optional)</p>
-
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom">Postal address (optional)</label>
-                                        <textarea class="form-textarea-custom" name="postal_address" rows="3">{{ old('postal_address') }}</textarea>
-                                    </div>
-
-                                    <div class="address-sub-grid">
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">City</label>
-                                            <input type="text" class="form-control-custom" name="postal_city"
-                                                value="{{ old('postal_city') }}">
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">District/state</label>
-                                            <input type="text" class="form-control-custom" name="postal_district_state"
-                                                value="{{ old('postal_district_state') }}">
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Zip code</label>
-                                            <input type="text" class="form-control-custom" name="postal_zip_code"
-                                                value="{{ old('postal_zip_code') }}">
-                                        </div>
-                                    </div>
-
-                                    <x-forms.country-select
-                                        name="office_country_id"
-                                        label="Country"
-                                        :countries="$countries"
-                                        wrapperClass="form-group-custom"
-                                    />
-                                </div>
                             </div>
                         </div>
 
-                        {{-- Pillar 3: Billing --}}
-                        <div class="office-pillar-col">
-                            <div class="office-pillar">
-                                <div class="office-pillar__title">
-                                    <span class="office-pillar__title-text">Billing details</span>
-                                </div>
+                        <div class="office-pillar">
+                            <div class="office-pillar__title">
+                                <span class="office-pillar__title-text">Billing details &amp; accounts</span>
+                            </div>
 
-                                <div class="address-sub-grid is-two-col">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom">Invoicing currency</label>
-                                        <select class="form-control-custom select2-simple" name="invoicing_currency">
-                                            <option value="">Select currency</option>
-                                            @foreach ($countries->pluck('currency')->unique()->filter()->sort() as $curr)
-                                                <option value="{{ $curr }}" {{ old('invoicing_currency') == $curr ? 'selected' : '' }}>{{ $curr }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom">Reporting currency</label>
-                                        <select class="form-control-custom select2-simple" name="reporting_currency">
-                                            <option value="">Select currency</option>
-                                            @foreach ($countries->pluck('currency')->unique()->filter()->sort() as $curr)
-                                                <option value="{{ $curr }}" {{ old('reporting_currency') == $curr ? 'selected' : '' }}>{{ $curr }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                            <div class="billing-primary-row">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom">Invoice currency</label>
+                                    <select class="form-control-custom select2-simple" name="invoicing_currency">
+                                        <option value="">Select currency</option>
+                                        @foreach ($countries->pluck('currency')->unique()->filter()->sort() as $curr)
+                                            <option value="{{ $curr }}" {{ old('invoicing_currency') == $curr ? 'selected' : '' }}>{{ $curr }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom">Reporting currency</label>
+                                    <select class="form-control-custom select2-simple" name="reporting_currency">
+                                        <option value="">Select currency</option>
+                                        @foreach ($countries->pluck('currency')->unique()->filter()->sort() as $curr)
+                                            <option value="{{ $curr }}" {{ old('reporting_currency') == $curr ? 'selected' : '' }}>{{ $curr }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom">VAT rates</label>
+                                    <label class="form-label-custom">VAT treatment</label>
                                     <select class="select-custom" name="vat_rates">
                                         <option value="standard">Standard</option>
                                         <option value="zero">Zero</option>
                                         <option value="exempt">Exempt</option>
                                     </select>
                                 </div>
+                            </div>
 
+                            <div class="billing-primary-row">
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom">VAT country specific name</label>
-                                    <input type="text" class="form-control-custom" name="vat_country_specific_name"
-                                        value="{{ old('vat_country_specific_name') }}">
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom">VAT number</label>
+                                    <label class="form-label-custom">VAT registration number</label>
                                     <input type="text" class="form-control-custom" name="vat_number"
                                         value="{{ old('vat_number') }}">
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom">Invoicing e-mails</label>
+                                    <label class="form-label-custom">Billing email address</label>
                                     <input type="email" class="form-control-custom" name="invoicing_emails"
                                         value="{{ old('invoicing_emails') }}">
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom">Heading of invoice</label>
+                                    <label class="form-label-custom">Invoice heading</label>
                                     <input type="text" class="form-control-custom" name="heading_invoice"
                                         value="{{ old('heading_invoice') }}">
                                 </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom">Information on invoice</label>
-                                    <textarea class="form-textarea-custom" name="information_invoice" rows="4">{{ old('information_invoice') }}</textarea>
-                                </div>
-
-                                <div class="checkbox-group">
-                                    <input type="checkbox" class="checkbox-custom" name="use_vat_check" id="use_vat_check" {{ old('use_vat_check') ? 'checked' : '' }}>
-                                    <label class="checkbox-label" for="use_vat_check">Use VAT check when creating invoice</label>
-                                </div>
-                                <div class="checkbox-group">
-                                    <input type="checkbox" class="checkbox-custom" name="show_imo" id="show_imo" {{ old('show_imo') ? 'checked' : '' }}>
-                                    <label class="checkbox-label" for="show_imo">Show IMO numbers on invoices</label>
-                                </div>
-                                <div class="checkbox-group">
-                                    <input type="checkbox" class="checkbox-custom" name="enable_reader" id="enable_reader" {{ old('enable_reader') ? 'checked' : '' }}>
-                                    <label class="checkbox-label" for="enable_reader">Enable incoming invoice reader</label>
-                                </div>
                             </div>
-                        </div>
 
-                        {{-- Pillar 4: Accounts --}}
-                        <div class="office-pillar-col">
-                            <div class="office-pillar">
-                                <div class="office-pillar__title">
-                                    <span class="office-pillar__title-text">Accounts</span>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom">Invoice notes</label>
+                                <textarea class="form-textarea-custom" name="information_invoice" rows="4">{{ old('information_invoice') }}</textarea>
+                            </div>
+
+                            <div class="office-section-shell">
+                                <div class="office-section-toolbar">
+                                    <p class="office-section-shell__title">Bank accounts</p>
                                     <button type="button" class="btn-add-account">
-                                        <i class="ti-plus"></i> Add account
+                                        <i class="ti-plus"></i> Add bank account
                                     </button>
                                 </div>
                                 <div id="accounts-container"></div>
@@ -711,19 +661,19 @@
                 var accountHtml = ''
                     + '<div class="account-block">'
                     + '  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">'
-                    + '    <label class="form-label-custom" style="margin-bottom:0;">Bank</label>'
-                    + '    <button type="button" class="remove-account-btn" title="Remove account">'
+                    + '    <label class="form-label-custom" style="margin-bottom:0;">Bank details</label>'
+                    + '    <button type="button" class="remove-account-btn" title="Remove bank account">'
                     + '      <i class="feather icon-trash-2" style="font-size:16px;"></i>'
                     + '    </button>'
                     + '  </div>'
                     + '  <textarea class="form-textarea-custom" name="bank[]" rows="3" style="margin-top:8px;"></textarea>'
                     + '  <div class="account-row-grid">'
                     + '    <div class="form-group-custom">'
-                    + '      <label class="form-label-custom">Currency</label>'
+                    + '      <label class="form-label-custom">Account currency</label>'
                     + '      <select class="form-control-custom select2-simple-dynamic" name="currency[]">' + currencyOptions + '</select>'
                     + '    </div>'
                     + '    <div class="form-group-custom">'
-                    + '      <label class="form-label-custom">Account number</label>'
+                    + '      <label class="form-label-custom">Bank account number</label>'
                     + '      <input type="text" class="form-control-custom" name="account_number[]">'
                     + '    </div>'
                     + '  </div>'
@@ -733,14 +683,14 @@
                     + '      <input type="text" class="form-control-custom" name="iban[]">'
                     + '    </div>'
                     + '    <div class="form-group-custom">'
-                    + '      <label class="form-label-custom">Swift</label>'
+                    + '      <label class="form-label-custom">SWIFT / BIC</label>'
                     + '      <input type="text" class="form-control-custom" name="swift[]">'
                     + '    </div>'
                     + '  </div>'
                     + '  <div class="checkbox-group" style="margin-top:12px;">'
                     + '    <input type="hidden" name="is_main_account_status[]" class="main-account-hidden" value="0">'
                     + '    <input type="checkbox" class="checkbox-custom main-account-checkbox" id="main-account-' + Date.now() + '">'
-                    + '    <label class="checkbox-label">Set as main account</label>'
+                    + '    <label class="checkbox-label">Set as primary account</label>'
                     + '  </div>'
                     + '</div>';
 

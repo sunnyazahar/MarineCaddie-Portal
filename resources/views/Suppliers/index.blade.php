@@ -250,7 +250,7 @@
                 countLabel="suppliers"
             />
 
-            <div class="suppliers-filters-area">
+            <div class="suppliers-filters-area" data-mc-filter-persist-key="suppliers-list-filter-values-v1">
                 <x-lists.filter-toolbar
                     toggle-id="btn-suppliers-filters-toggle"
                     body-class="suppliers-filters-open"

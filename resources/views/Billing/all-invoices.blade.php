@@ -509,7 +509,7 @@
                         <i class="ti-filter"></i> <span class="invoicing-filters-toggle-label">Show filters</span>
                     </button>
                 </div>
-                <div class="d-flex justify-content-between align-items-start pt-2 invoicing-filters-fields list-dense-filter-bar">
+                <div class="d-flex justify-content-between align-items-start pt-2 invoicing-filters-fields list-dense-filter-bar" data-mc-filter-persist-key="invoicing-list-filter-values-v1">
                     <div class="list-dense-filter-shell" style="width: 100%;">
                         <div class="list-dense-filter-controls invoicing-filter-controls">
                             <select id="filter-multiselect" multiple="multiple" data-storage-key="invoicing-list-filters">
@@ -778,6 +778,36 @@
                 }
             }
 
+            function syncInvoicingDateRangeFromInput() {
+                var rawValue = $.trim($invoicingDateRange.val() || '');
+                if (rawValue === '') {
+                    clearInvoicingDateRange();
+                    return;
+                }
+
+                var parts = rawValue.split(/\s*-\s*/);
+                if (parts.length !== 2) {
+                    clearInvoicingDateRange();
+                    return;
+                }
+
+                var start = moment(parts[0], 'DD.MM.YYYY', true);
+                var end = moment(parts[1], 'DD.MM.YYYY', true);
+                if (!start.isValid() || !end.isValid()) {
+                    clearInvoicingDateRange();
+                    return;
+                }
+
+                invoicingDateFrom = start.format('YYYY-MM-DD');
+                invoicingDateTo = end.format('YYYY-MM-DD');
+
+                var picker = $invoicingDateRange.data('daterangepicker');
+                if (picker) {
+                    picker.setStartDate(start);
+                    picker.setEndDate(end);
+                }
+            }
+
             $invoicingDateRange.daterangepicker({
                 autoUpdateInput: false,
                 opens: 'left',
@@ -832,6 +862,7 @@
             $('#filter-multiselect').multiselect('selectAll', false);
             $('#filter-multiselect').multiselect('updateButtonText');
             toggleInvoicingFilterVisibility();
+            syncInvoicingDateRangeFromInput();
 
             function isInvoicingMobile() {
                 return window.matchMedia('(max-width: 991.98px)').matches;

@@ -15,7 +15,7 @@
 <div class="release-leg-row">
     <div class="release-leg-field">
         <div class="form-group-custom mb-0">
-            <label>Freight company</label>
+            <label>Release carrier</label>
             <input type="text" name="release_legs[{{ $rowIndex }}][freight_company]" class="form-control-sm-custom" value="{{ old('release_legs.' . $rowIndex . '.freight_company', isset($leg) ? ($leg->freight_company ?? '') : '') }}">
         </div>
     </div>

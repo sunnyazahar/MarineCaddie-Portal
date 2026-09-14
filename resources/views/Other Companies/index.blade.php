@@ -266,7 +266,7 @@
                 countLabel="companies"
             />
 
-            <div class="other-companies-filters-area">
+            <div class="other-companies-filters-area" data-mc-filter-persist-key="other-companies-list-filter-values-v1">
                 <x-lists.filter-toolbar
                     toggle-id="btn-other-companies-filters-toggle"
                     body-class="other-companies-filters-open"

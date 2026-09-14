@@ -192,7 +192,7 @@
                 countLabel="entries"
             />
 
-            <div class="change-logs-filters-area">
+            <div class="change-logs-filters-area" data-mc-filter-persist-key="administration-change-logs-filter-values-v1">
                 <x-lists.filter-toolbar
                     toggle-id="btn-change-logs-filters-toggle"
                     body-class="change-logs-filters-open"
@@ -406,6 +406,36 @@
                 }
             }
 
+            function syncChangeLogDateRangeFromInput() {
+                var rawValue = $.trim($dateRange.val() || '');
+                if (rawValue === '') {
+                    clearDateRange();
+                    return;
+                }
+
+                var parts = rawValue.split(/\s*-\s*/);
+                if (parts.length !== 2) {
+                    clearDateRange();
+                    return;
+                }
+
+                var start = moment(parts[0], 'DD.MM.YYYY', true);
+                var end = moment(parts[1], 'DD.MM.YYYY', true);
+                if (!start.isValid() || !end.isValid()) {
+                    clearDateRange();
+                    return;
+                }
+
+                dateFrom = start.format('YYYY-MM-DD');
+                dateTo = end.format('YYYY-MM-DD');
+
+                var picker = $dateRange.data('daterangepicker');
+                if (picker) {
+                    picker.setStartDate(start);
+                    picker.setEndDate(end);
+                }
+            }
+
             $('#filter-entity-type, #filter-user-id').select2({
                 placeholder: 'Click here',
                 allowClear: true,
@@ -446,6 +476,8 @@
                 $dateRange.trigger('focus');
                 $dateRange.data('daterangepicker').show();
             });
+
+            syncChangeLogDateRangeFromInput();
 
             $('#filter-entity-type, #filter-user-id').on('change', function () {
                 queueFetch(true);

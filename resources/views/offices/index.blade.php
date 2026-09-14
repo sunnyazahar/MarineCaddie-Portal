@@ -284,7 +284,7 @@
                 </x-slot:actions>
             </x-lists.page-header>
 
-            <div class="offices-toolbar">
+            <div class="offices-toolbar" data-mc-filter-persist-key="offices-list-filter-values-v1">
                 <div class="offices-search-wrap">
                     <i class="ti-search" aria-hidden="true"></i>
                     <input type="search" class="offices-search-input search-input-custom" placeholder="Search offices…" aria-label="Search offices">
@@ -407,6 +407,14 @@
                     emptyTable: 'No offices found.'
                 }
             });
+
+            var officesFilterStore = typeof window.mcEnsureFilterPersistence === 'function'
+                ? window.mcEnsureFilterPersistence({ root: '.offices-toolbar[data-mc-filter-persist-key]' })
+                : null;
+
+            if (officesFilterStore && officesFilterStore.restore()) {
+                table.search($('.offices-search-input').val() || '').draw();
+            }
 
             $('.offices-search-input').on('input', function () {
                 table.search(this.value).draw();

@@ -223,14 +223,9 @@
 
     .office-pillars {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
-        align-items: stretch;
-    }
-
-    .office-pillar-col {
-        display: flex;
-        min-width: 0;
+        align-items: start;
     }
 
     .office-pillar {
@@ -265,12 +260,38 @@
         line-height: 1.2;
     }
 
+    .office-primary-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .billing-primary-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
     .office-section-shell {
         margin-top: 4px;
         padding: 12px 12px 10px;
         background: linear-gradient(180deg, #f8fcfd 0%, #ffffff 100%);
         border: 1px dashed #c5dde8;
         border-radius: 10px;
+    }
+
+    .office-section-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #e8eef4;
+    }
+
+    .office-section-toolbar .office-section-shell__title {
+        margin: 0;
     }
 
     .office-section-shell__title {
@@ -382,6 +403,13 @@
         padding-bottom: 0;
     }
 
+    .account-row-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 10px;
+    }
+
     .account-block__header {
         display: flex;
         justify-content: space-between;
@@ -470,6 +498,12 @@
 
     body.edit-office-page .edit-footer .audit-info b {
         color: #64748b;
+    }
+
+    body.edit-office-page .office-form-container,
+    body.edit-office-page .edit-office-card,
+    body.edit-office-page .office-pillars {
+        overflow: visible !important;
     }
 
     .edit-office-tab-pane {
@@ -595,89 +629,16 @@
         font-weight: 600;
     }
 
-    .coming-soon-pane {
-        padding: 48px 16px;
-        text-align: center;
-        color: #64748b;
-    }
-
     .select2-dropdown {
         z-index: 10060 !important;
     }
 
-    .custom-modal-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.45);
-        z-index: 10050;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .custom-modal {
-        background: #fff;
-        width: 450px;
-        max-width: calc(100vw - 24px);
-        border-radius: 12px;
-        box-shadow: 0 20px 40px rgba(14, 29, 74, 0.18);
-        overflow: hidden;
-    }
-
-    .modal-body {
-        padding: 24px;
-    }
-
-    .modal-label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: #0e1d4a;
-        margin-bottom: 6px;
-    }
-
-    .modal-input {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #d6e3ee;
-        border-radius: 8px;
-        font-size: 13px;
-    }
-
-    .modal-footer {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-top: 24px;
-    }
-
-    .btn-modal-save {
-        background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
-        color: #fff;
-        border: none;
-        padding: 9px 22px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 700;
-        cursor: pointer;
-    }
-
-    .btn-modal-cancel {
-        color: #64748b;
-        font-size: 13px;
-        font-weight: 600;
-        text-decoration: none;
-    }
-
-    @media (max-width: 1399.98px) {
-        .office-pillars {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
     @media (max-width: 991.98px) {
         .office-pillars,
-        .address-sub-grid {
+        .office-primary-row,
+        .billing-primary-row,
+        .address-sub-grid,
+        .account-row-grid {
             grid-template-columns: 1fr !important;
         }
 

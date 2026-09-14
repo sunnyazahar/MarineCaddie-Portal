@@ -451,7 +451,7 @@
                                         <!-- Base Style - Compact start -->
                                         <div class="card">
                                             <div class="card-block p-1 mt-2">
-                                                <div class="container-fluid p-0">
+                                                <div class="container-fluid p-0" data-mc-filter-persist-key="billing-all-costs-filter-values-v1">
                                                     <!-- Row 1 -->
                                                     <div class="row no-gutters filter-row">
                                                         <div class="col-auto mr-2">

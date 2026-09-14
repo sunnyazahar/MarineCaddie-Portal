@@ -168,7 +168,7 @@
                 </x-slot:actions>
             </x-lists.page-header>
 
-            <div class="vessels-filters-area">
+            <div class="vessels-filters-area" data-mc-filter-persist-key="vessels-list-filter-values-v1">
                 <x-lists.filter-toolbar
                     toggle-id="btn-vessels-filters-toggle"
                     body-class="vessels-filters-open"

@@ -276,7 +276,7 @@
                 countLabel="agents"
             />
 
-            <div class="agents-filters-area">
+            <div class="agents-filters-area" data-mc-filter-persist-key="agents-list-filter-values-v1">
                 <x-lists.filter-toolbar
                     toggle-id="btn-agents-filters-toggle"
                     body-class="agents-filters-open"

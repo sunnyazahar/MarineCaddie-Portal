@@ -468,135 +468,191 @@ Route::get('/api/parties', function (\Illuminate\Http\Request $request) {
 // API: combined parties search for Consignee select2 (hubs, agents, offices, other_companies, suppliers, customers)
 Route::get('/api/consignees', function (\Illuminate\Http\Request $request) {
     $q = $request->query('q');
+    $selected = trim((string) $request->query('selected'));
+
+    $mapHub = static function (\App\Models\Hub $h): array {
+        return [
+            'id' => 'hub:'.$h->id,
+            'text' => $h->hub_name,
+            'subtitle' => ($h->city ? $h->city . ', ' : '') . ($h->country ?? ''),
+            'type' => 'hub',
+            'address' => $h->hub_address,
+            'city' => $h->city,
+            'district' => $h->district_state,
+            'zip' => $h->zip_code,
+            'country' => $h->country,
+            'port_code' => $h->port_code,
+            'code' => $h->code,
+            'email' => $h->email,
+            'contact_person' => $h->contact_person,
+            'special_considerations' => $h->special_considerations,
+        ];
+    };
+
+    $mapAgent = static function (\App\Models\Agent $a): array {
+        return [
+            'id' => 'agent:'.$a->id,
+            'text' => $a->agent_name,
+            'subtitle' => ($a->city ? $a->city . ', ' : '') . (optional($a->country)->name ?? ''),
+            'type' => 'agent',
+            'address' => $a->agent_address,
+            'city' => $a->city,
+            'district' => $a->district_state,
+            'zip' => $a->zip_code,
+            'country' => optional($a->country)->name,
+            'port_code' => $a->port_code,
+            'code' => $a->code,
+            'email' => $a->email,
+            'contact_person' => $a->contact_person,
+            'special_considerations' => $a->special_considerations,
+        ];
+    };
+
+    $mapOffice = static function (\App\Models\Office $o): array {
+        return [
+            'id' => 'office:'.$o->id,
+            'text' => $o->office_name,
+            'subtitle' => ($o->city ? $o->city . ', ' : '') . (optional($o->country)->name ?? ''),
+            'type' => 'office',
+            'address' => $o->address,
+            'city' => $o->city,
+            'district' => $o->district_state,
+            'zip' => $o->zip_code,
+            'country' => optional($o->country)->name,
+            'port_code' => $o->port_code,
+            'code' => $o->office_short_name,
+            'email' => $o->email,
+            'contact_person' => null,
+            'special_considerations' => null,
+        ];
+    };
+
+    $mapOtherCompany = static function (\App\Models\OtherCompany $oc): array {
+        return [
+            'id' => 'other_company:'.$oc->id,
+            'text' => $oc->company_name,
+            'subtitle' => ($oc->city ? $oc->city . ', ' : '') . (optional($oc->country)->name ?? ''),
+            'type' => 'other_company',
+            'address' => $oc->street_address,
+            'city' => $oc->city,
+            'district' => $oc->district_state,
+            'zip' => $oc->zip_code,
+            'country' => optional($oc->country)->name,
+            'port_code' => $oc->port_code,
+            'email' => $oc->email,
+            'contact_person' => $oc->contact_person,
+            'special_considerations' => $oc->special_considerations,
+        ];
+    };
+
+    $mapSupplier = static function (\App\Models\Supplier $s): array {
+        return [
+            'id' => 'supplier:'.$s->id,
+            'text' => $s->supplier_name,
+            'subtitle' => ($s->city ? $s->city . ', ' : '') . (optional($s->country)->name ?? ''),
+            'type' => 'supplier',
+            'address' => $s->supplier_address,
+            'city' => $s->city,
+            'district' => $s->district_state,
+            'zip' => $s->zip_code,
+            'country' => optional($s->country)->name,
+            'port_code' => $s->port_code,
+            'email' => $s->email,
+            'contact_person' => $s->contact_person,
+            'special_considerations' => $s->special_considerations,
+        ];
+    };
+
+    $mapCustomer = static function (\App\Models\Customer $c): array {
+        $address = $c->primaryAddress;
+
+        return [
+            'id' => 'customer:'.$c->id,
+            'text' => $c->customer_name,
+            'subtitle' => ($address ? ($address->city ? $address->city . ', ' : '') . (optional($address->country)->name ?? '') : ''),
+            'type' => 'customer',
+            'address' => $address ? $address->street : null,
+            'city' => $address ? $address->city : null,
+            'district' => $address ? $address->state : null,
+            'zip' => $address ? $address->zip_code : null,
+            'country' => $address ? optional($address->country)->name : null,
+            'port_code' => $address ? $address->port_code : null,
+            'email' => $c->email,
+            'contact_person' => $c->contact_person,
+            'special_considerations' => $c->special_considerations,
+        ];
+    };
+
+    if ($selected !== '') {
+        [$selectedType, $selectedId] = array_pad(explode(':', $selected, 2), 2, '');
+        $selectedId = (int) $selectedId;
+        $selectedConsignee = null;
+
+        if ($selectedId > 0) {
+            switch ($selectedType) {
+                case 'hub':
+                    $hub = \App\Models\Hub::find($selectedId);
+                    $selectedConsignee = $hub ? $mapHub($hub) : null;
+                    break;
+                case 'agent':
+                    $agent = \App\Models\Agent::with('country')->find($selectedId);
+                    $selectedConsignee = $agent ? $mapAgent($agent) : null;
+                    break;
+                case 'office':
+                    $office = \App\Models\Office::with('country')->find($selectedId);
+                    $selectedConsignee = $office ? $mapOffice($office) : null;
+                    break;
+                case 'other_company':
+                    $otherCompany = \App\Models\OtherCompany::with('country')->find($selectedId);
+                    $selectedConsignee = $otherCompany ? $mapOtherCompany($otherCompany) : null;
+                    break;
+                case 'supplier':
+                    $supplier = \App\Models\Supplier::with('country')->find($selectedId);
+                    $selectedConsignee = $supplier ? $mapSupplier($supplier) : null;
+                    break;
+                case 'customer':
+                    $customer = \App\Models\Customer::with(['primaryAddress.country'])->find($selectedId);
+                    $selectedConsignee = $customer ? $mapCustomer($customer) : null;
+                    break;
+            }
+        }
+
+        if ($selectedConsignee === null) {
+            return response()->json([], 404);
+        }
+
+        return response()->json($selectedConsignee);
+    }
 
     $hubs = \App\Models\Hub::orderBy('hub_name')
         ->when($q, function ($qbuilder) use ($q) {
             $qbuilder->where('hub_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
-        })->get()->map(function ($h) {
-            return [
-                'id' => 'hub:'.$h->id,
-                'text' => $h->hub_name,
-                'subtitle' => ($h->city ? $h->city . ', ' : '') . ($h->country ?? ''),
-                'type' => 'hub',
-                'address' => $h->hub_address,
-                'city' => $h->city,
-                'district' => $h->district_state,
-                'zip' => $h->zip_code,
-                'country' => $h->country,
-                'port_code' => $h->port_code,
-                'code' => $h->code,
-                'email' => $h->email,
-                'contact_person' => $h->contact_person,
-                'special_considerations' => $h->special_considerations,
-            ];
-        });
+        })->get()->map($mapHub);
 
     $agents = \App\Models\Agent::orderBy('agent_name')
         ->when($q, function ($qbuilder) use ($q) {
             $qbuilder->where('agent_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
-        })->get()->map(function ($a) {
-            return [
-                'id' => 'agent:'.$a->id,
-                'text' => $a->agent_name,
-                'subtitle' => ($a->city ? $a->city . ', ' : '') . (optional($a->country)->name ?? ''),
-                'type' => 'agent',
-                'address' => $a->agent_address,
-                'city' => $a->city,
-                'district' => $a->district_state,
-                'zip' => $a->zip_code,
-                'country' => optional($a->country)->name,
-                'port_code' => $a->port_code,
-                'code' => $a->code,
-                'email' => $a->email,
-                'contact_person' => $a->contact_person,
-                'special_considerations' => $a->special_considerations,
-            ];
-        });
+        })->get()->map($mapAgent);
 
     $offices = \App\Models\Office::with('country')->orderBy('office_name')
         ->when($q, function ($qbuilder) use ($q) {
             $qbuilder->where('office_name', 'like', "%{$q}%")->orWhere('office_short_name', 'like', "%{$q}%");
-        })->get()->map(function ($o) {
-            return [
-                'id' => 'office:'.$o->id,
-                'text' => $o->office_name,
-                'subtitle' => ($o->city ? $o->city . ', ' : '') . (optional($o->country)->name ?? ''),
-                'type' => 'office',
-                'address' => $o->address,
-                'city' => $o->city,
-                'district' => $o->district_state,
-                'zip' => $o->zip_code,
-                'country' => optional($o->country)->name,
-                'port_code' => $o->port_code,
-                'code' => $o->office_short_name,
-                'email' => $o->email,
-                'contact_person' => null,
-            ];
-        });
+        })->get()->map($mapOffice);
 
     $otherCompanies = \App\Models\OtherCompany::with('country')->orderBy('company_name')
         ->when($q, function ($qbuilder) use ($q) {
             $qbuilder->where('company_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
-        })->get()->map(function ($oc) {
-            return [
-                'id' => 'other_company:'.$oc->id,
-                'text' => $oc->company_name,
-                'subtitle' => ($oc->city ? $oc->city . ', ' : '') . (optional($oc->country)->name ?? ''),
-                'type' => 'other_company',
-                'address' => $oc->street_address,
-                'city' => $oc->city,
-                'district' => $oc->district_state,
-                'zip' => $oc->zip_code,
-                'country' => optional($oc->country)->name,
-                'port_code' => $oc->port_code,
-                'email' => $oc->email,
-                'contact_person' => $oc->contact_person,
-                'special_considerations' => $oc->special_considerations,
-            ];
-        });
+        })->get()->map($mapOtherCompany);
 
     $suppliers = \App\Models\Supplier::with('country')->orderBy('supplier_name')
         ->when($q, function ($qbuilder) use ($q) {
             $qbuilder->where('supplier_name', 'like', "%{$q}%");
-        })->get()->map(function ($s) {
-            return [
-                'id' => 'supplier:'.$s->id,
-                'text' => $s->supplier_name,
-                'subtitle' => ($s->city ? $s->city . ', ' : '') . (optional($s->country)->name ?? ''),
-                'type' => 'supplier',
-                'address' => $s->supplier_address,
-                'city' => $s->city,
-                'district' => $s->district_state,
-                'zip' => $s->zip_code,
-                'country' => optional($s->country)->name,
-                'port_code' => $s->port_code,
-                'email' => $s->email,
-                'contact_person' => $s->contact_person,
-                'special_considerations' => $s->special_considerations,
-            ];
-        });
+        })->get()->map($mapSupplier);
 
     $customers = \App\Models\Customer::with(['primaryAddress.country'])->orderBy('customer_name')
         ->when($q, function ($qbuilder) use ($q) {
             $qbuilder->where('customer_name', 'like', "%{$q}%");
-        })->get()->map(function ($c) {
-            $address = $c->primaryAddress;
-            return [
-                'id' => 'customer:'.$c->id,
-                'text' => $c->customer_name,
-                'subtitle' => ($address ? ($address->city ? $address->city . ', ' : '') . (optional($address->country)->name ?? '') : ''),
-                'type' => 'customer',
-                'address' => $address ? $address->street : null,
-                'city' => $address ? $address->city : null,
-                'district' => $address ? $address->state : null,
-                'zip' => $address ? $address->zip_code : null,
-                'country' => $address ? optional($address->country)->name : null,
-                'port_code' => $address ? $address->port_code : null,
-                'email' => $c->email,
-                'contact_person' => $c->contact_person,
-                'special_considerations' => $c->special_considerations,
-            ];
-        });
+        })->get()->map($mapCustomer);
 
     // Group results by type
     $results = [];
@@ -638,7 +694,7 @@ Route::get('/api/consignees', function (\Illuminate\Http\Request $request) {
     }
 
     return response()->json($results);
-});
+})->name('api.consignees');
 
 // API: account managers from office contacts (all user types, grouped)
 Route::get('/api/account-managers', function (\Illuminate\Http\Request $request) {

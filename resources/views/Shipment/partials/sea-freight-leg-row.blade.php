@@ -1,6 +1,6 @@
 @php
     $rowIndex = $index ?? 0;
-    $firstLabel = $rowIndex === 0 ? 'Bill of lading' : 'Port of departure';
+    $firstLabel = $rowIndex === 0 ? 'B/L number' : 'Departure port';
     $formatLegDate = function ($value) {
         if (!$value) {
             return '';
@@ -22,25 +22,25 @@
     </div>
     <div class="sea-leg-field">
         <div class="form-group-custom mb-0">
-            <label>Container number</label>
+            <label>Container no.</label>
             <input type="text" name="sea_legs[{{ $rowIndex }}][container_number]" class="form-control-sm-custom" value="{{ old('sea_legs.' . $rowIndex . '.container_number', isset($leg) ? ($leg->container_number ?? '') : '') }}">
         </div>
     </div>
     <div class="sea-leg-field">
         <div class="form-group-custom mb-0">
-            <label>Transport vessel IMO</label>
+            <label>Carrier vessel IMO</label>
             <input type="text" name="sea_legs[{{ $rowIndex }}][transport_vessel_imo]" class="form-control-sm-custom" value="{{ old('sea_legs.' . $rowIndex . '.transport_vessel_imo', isset($leg) ? ($leg->transport_vessel_imo ?? '') : '') }}">
         </div>
     </div>
     <div class="sea-leg-field">
         <div class="form-group-custom mb-0">
-            <label>Transport vessel name</label>
+            <label>Carrier vessel name</label>
             <input type="text" name="sea_legs[{{ $rowIndex }}][transport_vessel_name]" class="form-control-sm-custom" value="{{ old('sea_legs.' . $rowIndex . '.transport_vessel_name', isset($leg) ? ($leg->transport_vessel_name ?? '') : '') }}">
         </div>
     </div>
     <div class="sea-leg-field">
         <div class="form-group-custom mb-0">
-            <label>ETD</label>
+            <label>Departure date</label>
             <div class="input-with-icon">
                 <input type="text" name="sea_legs[{{ $rowIndex }}][etd]" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY" value="{{ old('sea_legs.' . $rowIndex . '.etd', isset($leg) ? $formatLegDate($leg->etd ?? null) : '') }}">
                 <i class="ti-calendar"></i>
@@ -49,7 +49,7 @@
     </div>
     <div class="sea-leg-field">
         <div class="form-group-custom mb-0">
-            <label>ETA</label>
+            <label>Arrival date</label>
             <div class="input-with-icon">
                 <input type="text" name="sea_legs[{{ $rowIndex }}][eta]" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY" value="{{ old('sea_legs.' . $rowIndex . '.eta', isset($leg) ? $formatLegDate($leg->eta ?? null) : '') }}">
                 <i class="ti-calendar"></i>

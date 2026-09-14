@@ -66,6 +66,7 @@
             height: auto !important;
             min-height: 72px;
             max-height: none !important;
+            overflow-y: hidden;
         }
 
         /* —— Create shipment visual layout (no behavior change) —— */
@@ -130,7 +131,7 @@
         #shipment-form .cs-pillar .filter-input {
             height: var(--mc-control-height, 34px) !important;
             min-height: var(--mc-control-height, 34px) !important;
-            font-size: 12px !important;
+            font-size: var(--shipment-input-font-size, 14px) !important;
             border-radius: 8px !important;
             border-color: #d6e3ee !important;
             background: #fff !important;
@@ -144,7 +145,8 @@
             padding-top: 8px !important;
             padding-bottom: 8px !important;
             line-height: 1.4;
-            resize: vertical;
+            resize: none;
+            overflow-y: hidden;
         }
 
         #shipment-form .cs-pillar .input-group .form-control {
@@ -309,6 +311,7 @@
 
         /* Footer — fixed full-width under content (appended to body in JS) */
         body.create-shipment-page {
+            --shipment-input-font-size: var(--mc-control-font-size, 14px);
             padding-bottom: 84px;
         }
 
@@ -639,13 +642,13 @@
 
         #shipment-form .filter-input:not(textarea) {
             height: var(--mc-control-height, 34px);
-            font-size: 12px;
+            font-size: var(--shipment-input-font-size, 14px);
             border-radius: 8px;
         }
 
         .filter-input {
             height: 30px;
-            font-size: 11px;
+            font-size: var(--shipment-input-font-size, 14px);
             border-radius: 2px;
         }
 
@@ -954,7 +957,7 @@
         }
         .form-control-sm-custom {
             height: 30px;
-            font-size: 11px;
+            font-size: var(--shipment-input-font-size, 14px);
             border: 1px solid #e5e7eb;
             border-radius: 4px;
             width: 100%;
@@ -1179,9 +1182,9 @@
                                                         <div class="cs-pillar__title">Departure</div>
                                                         <div class="row">
                                                         <div class="form-group col-md-12 mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Departure</label>
+                                                            <label class="mb-0" style="font-size: 11px;">Hub / Agent <span class="text-danger">*</span></label>
                                                             <div class="input-group mb-0" style="height: 30px;">
-                                                                <select id="departure-select" name="departure" class="form-control select2-departure">
+                                                                <select id="departure-select" name="departure" class="form-control select2-departure" required>
                                                                     <option></option>
                                                                 </select>
                                                             </div>
@@ -1189,13 +1192,14 @@
                                                         <x-forms.port-select
                                                             name="departure_port_code"
                                                             id="departure-port-code"
-                                                            label="Port code"
+                                                            label="Departure port code"
                                                             wrapperClass="form-group col-md-12 mb-2"
                                                             labelClass="mb-0"
                                                             class="form-control"
+                                                            :required="true"
                                                         />
                                                         <div class="form-group col-md-6 mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Service <span class="text-danger">*</span></label>
+                                                            <label class="mb-0" style="font-size: 11px;">Shipment mode <span class="text-danger">*</span></label>
                                                             <select name="service" class="form-control select2" required>
                                                                 <option></option>
                                                                 <option {{ old('service') === 'Courier' ? 'selected' : '' }}>Courier</option>
@@ -1208,7 +1212,7 @@
                                                             </select>
                                                         </div>
                                                         <div class="form-group col-md-6 mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Additional service </label>
+                                                            <label class="mb-0" style="font-size: 11px;">Optional services </label>
                                                             <select name="additional_service" class="form-control select2">
                                                                 <option></option>
                                                                 @php
@@ -1237,8 +1241,8 @@
                                                         <div class="row">
                                                             <div class="col-md-6 pr-1">
                                                                 <div class="form-group mb-2">
-                                                                    <label class="mb-0" style="font-size: 11px;">Preferred
-                                                                        shipment date</label>
+                                                                    <label class="mb-0" style="font-size: 11px;">Shipment
+                                                                        date</label>
                                                                     <div class="input-group mb-0" style="height: 30px;">
                                                                         <input type="text" name="preferred_shipment_date"
                                                                             class="form-control filter-input datepicker"
@@ -1308,7 +1312,7 @@
                                                             <div class="col-md-6 pr-1">
                                                                 <div class="form-group mb-2">
                                                                     <label class="mb-0" style="font-size: 11px;">Pre-alert
-                                                                        reminder</label>
+                                                                        date</label>
                                                                     <div class="input-group mb-0" style="height: 30px;">
                                                                         <input type="text" name="pre_alert_reminder"
                                                                             class="form-control filter-input datepicker"
@@ -1324,19 +1328,11 @@
                                                             <div class="col-md-6 pl-1">
                                                                 <div class="form-group mb-2">
                                                                     <label class="mb-0" style="font-size: 11px;">Customer
-                                                                        reference</label>
+                                                                        reference no.</label>
                                                                     <input type="text" name="customer_reference" class="form-control filter-input"
                                                                         placeholder="" value="{{ old('customer_reference') }}">
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="form-check p-0 mt-2">
-                                                            <input type="checkbox" id="not_conso" name="not_applicable_for_consolidation" value="1"
-                                                                {{ old('not_applicable_for_consolidation') ? 'checked' : '' }}
-                                                                style="width: 14px; height: 14px; vertical-align: middle;">
-                                                            <label class="form-check-label ml-1" for="not_conso"
-                                                                style="font-size: 11px; vertical-align: middle;">Not
-                                                                applicable for consolidation</label>
                                                         </div>
                                                         </div>
                                                     </div>
@@ -1346,39 +1342,40 @@
                                                         <div class="cs-pillar">
                                                         <div class="cs-pillar__title">Consignee</div>
                                                         <div class="form-group mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Consignee</label>
+                                                            <label class="mb-0" style="font-size: 11px;">Consignee <span class="text-danger">*</span></label>
                                                             <div class="input-group mb-0" style="height: 30px;">
-                                                                <select id="consignee-select" name="consignee" class="form-control select2-consignee">
+                                                                <select id="consignee-select" name="consignee" class="form-control select2-consignee" required>
                                                                     <option></option>
                                                                 </select>
                                                             </div>
                                                         </div>
                                                         <div class="form-group mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Consignee
+                                                            <label class="mb-0" style="font-size: 11px;">Delivery
+                                                                <span class="text-danger">*</span>
                                                                 address</label>
                                                             <textarea id="consignee-address" name="consignee_address" class="form-control filter-input" rows="3"
-                                                                style="height: auto !important; min-height: 80px;">{{ old('consignee_address') }}</textarea>
+                                                                style="height: auto !important; min-height: 80px;" required>{{ old('consignee_address') }}</textarea>
                                                         </div>
                                                         <div class="row">
                                                             <div class="col-md-4 pr-1">
                                                                 <div class="form-group mb-2">
                                                                     <label class="mb-0"
-                                                                        style="font-size: 11px;">City</label>
+                                                                        style="font-size: 11px;">City <span class="text-danger">*</span></label>
                                                                     <input type="text" id="consignee-city" name="consignee_city" class="form-control filter-input"
-                                                                        placeholder="" value="{{ old('consignee_city') }}">
+                                                                        placeholder="" value="{{ old('consignee_city') }}" required>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-4 px-1">
                                                                 <div class="form-group mb-2">
                                                                     <label class="mb-0"
-                                                                        style="font-size: 11px;">District</label>
+                                                                        style="font-size: 11px;">State / district</label>
                                                                     <input type="text" id="consignee-district" name="consignee_district" class="form-control filter-input"
                                                                         placeholder="" value="{{ old('consignee_district') }}">
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-4 pl-1">
                                                                 <div class="form-group mb-2">
-                                                                    <label class="mb-0" style="font-size: 11px;">Zip
+                                                                    <label class="mb-0" style="font-size: 11px;">Postal
                                                                         code</label>
                                                                     <input type="text" id="consignee-zip" name="consignee_zip" class="form-control filter-input"
                                                                         placeholder="" value="{{ old('consignee_zip') }}">
@@ -1388,7 +1385,7 @@
                                                         <x-forms.country-select
                                                             name="consignee_country"
                                                             id="consignee-country"
-                                                            label="Consignee country"
+                                                            label="Country / region"
                                                             :countries="$countries"
                                                             valueKey="name"
                                                             wrapperClass="form-group mb-2"
@@ -1396,31 +1393,40 @@
                                                             class="form-control"
                                                             placeholder="Select country"
                                                             :allowClear="true"
-                                                        />
-                                                        <div class="form-group mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Contact person <span class="text-danger">*</span></label>
-                                                            <input type="text" id="consignee-att" name="consignee_att" class="form-control filter-input"
-                                                                placeholder="" value="{{ old('consignee_att') }}" required>
-                                                        </div>
-                                                        <x-forms.port-select
-                                                            name="consignee_port_code"
-                                                            id="consignee-port-code"
-                                                            label="Port code"
-                                                            wrapperClass="form-group mb-2"
-                                                            labelClass="mb-0"
-                                                            class="form-control"
                                                             :required="true"
                                                         />
                                                         <div class="form-group mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Location</label>
-                                                            <input type="text" id="location" name="location" class="form-control filter-input"
-                                                                placeholder="" value="{{ old('location') }}">
+                                                            <label class="mb-0" style="font-size: 11px;">Consignee contact</label>
+                                                            <input type="text" id="consignee-att" name="consignee_att" class="form-control filter-input"
+                                                                placeholder="" value="{{ old('consignee_att') }}">
                                                         </div>
-                                                        <div class="form-group mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Consignee
-                                                                email</label>
-                                                            <input type="email" id="consignee-email" name="consignee_email" class="form-control filter-input"
-                                                                placeholder="" value="{{ old('consignee_email') }}">
+                                                        <div class="row">
+                                                            <div class="col-md-4 pr-1">
+                                                                <x-forms.port-select
+                                                                    name="consignee_port_code"
+                                                                    id="consignee-port-code"
+                                                                    label="Arrival port code"
+                                                                    wrapperClass="form-group mb-2"
+                                                                    labelClass="mb-0"
+                                                                    class="form-control"
+                                                                    :required="true"
+                                                                />
+                                                            </div>
+                                                            <div class="col-md-4 px-1">
+                                                                <div class="form-group mb-2">
+                                                                    <label class="mb-0" style="font-size: 11px;">Delivery location</label>
+                                                                    <input type="text" id="location" name="location" class="form-control filter-input"
+                                                                        placeholder="" value="{{ old('location') }}">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4 pl-1">
+                                                                <div class="form-group mb-2">
+                                                                    <label class="mb-0" style="font-size: 11px;">Contact
+                                                                        email</label>
+                                                                    <input type="email" id="consignee-email" name="consignee_email" class="form-control filter-input"
+                                                                        placeholder="" value="{{ old('consignee_email') }}">
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         </div>
                                                     </div>
@@ -1431,75 +1437,28 @@
                                                         <div class="cs-pillar__title">Account &amp; comments</div>
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Account
-                                                                manager</label>
-                                                            <select id="account-manager-select" name="account_manager" class="form-control select2-account-manager">
+                                                                manager <span class="text-danger">*</span></label>
+                                                            <select id="account-manager-select" name="account_manager" class="form-control select2-account-manager" required>
                                                                 <option></option>
                                                             </select>
                                                         </div>
                                                         <div class="form-group mb-2">
                                                             <label class="mb-0" style="font-size: 11px;">Special
-                                                                considerations for destination</label>
+                                                                Handling Instructions</label>
                                                             <textarea name="special_considerations_destination" class="form-control filter-input" rows="2"
                                                                 style="height: auto !important; min-height: 50px;">{{ old('special_considerations_destination') }}</textarea>
                                                         </div>
-                                                        <div class="form-check p-0 mb-3">
-                                                            <input type="checkbox" id="skip_instruction_dest" name="skip_instruction_dest" value="1"
-                                                                {{ old('skip_instruction_dest') ? 'checked' : '' }}
-                                                                style="width: 14px; height: 14px; vertical-align: middle;">
-                                                            <label class="form-check-label ml-1" for="skip_instruction_dest"
-                                                                style="font-size: 11px; vertical-align: middle;">Don't show
-                                                                on shipping instruction</label>
-                                                        </div>
                                                         <div class="form-group mb-1">
-                                                            <label class="mb-0" style="font-size: 11px;">Comments to
-                                                                departure hub</label>
+                                                            <label class="mb-0" style="font-size: 11px;">Notes for hub /
+                                                                agent</label>
                                                             <textarea name="comments_departure_hub" class="form-control filter-input" rows="2"
                                                                 style="height: auto !important; min-height: 50px;">{{ old('comments_departure_hub') }}</textarea>
                                                         </div>
-                                                        <div class="form-check p-0 mb-3">
-                                                            <input type="checkbox" id="skip_instruction_hub" name="skip_instruction_hub" value="1"
-                                                                {{ old('skip_instruction_hub') ? 'checked' : '' }}
-                                                                style="width: 14px; height: 14px; vertical-align: middle;">
-                                                            <label class="form-check-label ml-1" for="skip_instruction_hub"
-                                                                style="font-size: 11px; vertical-align: middle;">Don't show
-                                                                on shipping instruction</label>
-                                                        </div>
                                                         <div class="form-group mb-1">
-                                                            <label class="mb-0" style="font-size: 11px;">Comments to
+                                                            <label class="mb-0" style="font-size: 11px;">Notes for
                                                                 consignee</label>
                                                             <textarea name="comments_consignee" class="form-control filter-input" rows="2"
                                                                 style="height: auto !important; min-height: 50px;">{{ old('comments_consignee') }}</textarea>
-                                                        </div>
-                                                        <div class="form-check p-0 mb-3">
-                                                            <input type="checkbox" id="skip_prealert" name="skip_prealert" value="1"
-                                                                {{ old('skip_prealert') ? 'checked' : '' }}
-                                                                style="width: 14px; height: 14px; vertical-align: middle;">
-                                                            <label class="form-check-label ml-1" for="skip_prealert"
-                                                                style="font-size: 11px; vertical-align: middle;">Don't show
-                                                                on pre-alert</label>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <div class="form-check p-0">
-                                                                    <input type="checkbox" id="project_logistics" name="project_logistics" value="1"
-                                                                        {{ old('project_logistics') ? 'checked' : '' }}
-                                                                        style="width: 14px; height: 14px; vertical-align: middle;">
-                                                                    <label class="form-check-label ml-1"
-                                                                        for="project_logistics"
-                                                                        style="font-size: 11px; vertical-align: middle;">Project
-                                                                        logistics</label>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <div class="form-check p-0">
-                                                                    <input type="checkbox" id="port_agency" name="port_agency" value="1"
-                                                                        {{ old('port_agency') ? 'checked' : '' }}
-                                                                        style="width: 14px; height: 14px; vertical-align: middle;">
-                                                                    <label class="form-check-label ml-1" for="port_agency"
-                                                                        style="font-size: 11px; vertical-align: middle;">Port
-                                                                        agency</label>
-                                                                </div>
-                                                            </div>
                                                         </div>
                                                         </div>
                                                     </div>
@@ -1512,19 +1471,14 @@
                                                         <ul class="nav nav-tabs md-tabs" role="tablist">
                                                             <li class="nav-item">
                                                                 <a class="nav-link active" data-toggle="tab"
-                                                                    href="#stock-items" role="tab">Stock
-                                                                    items (0)</a>
+                                                                    href="#stock-items" role="tab">Selected
+                                                                    stock items (0)</a>
                                                                 <div class="slide" style="background: #008080;"></div>
                                                             </li>
                                                             <li class="nav-item">
                                                                 <a class="nav-link" data-toggle="tab"
-                                                                    href="#service-details" role="tab">Service
-                                                                    details</a>
-                                                                <div class="slide" style="background: #008080;"></div>
-                                                            </li>
-                                                            <li class="nav-item">
-                                                                <a class="nav-link" data-toggle="tab" href="#irregularities"
-                                                                    role="tab">Irregularities</a>
+                                                                    href="#service-details" role="tab">Carrier
+                                                                    Details</a>
                                                                 <div class="slide" style="background: #008080;"></div>
                                                             </li>
                                                         </ul>
@@ -1574,24 +1528,24 @@
                                                                             <tr id="empty-row">
                                                                                 <td colspan="11"
                                                                                     class="text-center py-4 text-muted">No
-                                                                                    stock items added yet.</td>
+                                                                                    stock items selected yet.</td>
                                                                             </tr>
                                                                         </tbody>
                                                                     </table>
                                                                 </div>
                                                                 <div class="stock-totals">
-                                                                    <span>Total packages: <span id="stock-total-packages">0 pcs</span></span>
+                                                                    <span>Total pcs: <span id="stock-total-packages">0 pcs</span></span>
                                                                     <span>Total weight: <span id="stock-total-weight">0.00 kg</span></span>
                                                                     <span>Total CBM: <span id="stock-total-cbm">0.00</span></span>
                                                                     <span>Total value: <span id="stock-total-value">0.00</span></span>
                                                                     <div class="ml-auto">
                                                                         <button type="button" id="add-stock-items-btn" class="btn btn-outline-teal px-3 py-1 ml-2"
-                                                                            style="font-size: 11px; height: 30px;">Add stock items</button>
+                                                                            style="font-size: 11px; height: 30px;">Select stock items</button>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="tab-pane" id="service-details" role="tabpanel">
-                                                                <div id="service-details-placeholder" class="p-4 text-center text-muted">Select a service type to enter service details.</div>
+                                                                <div id="service-details-placeholder" class="p-4 text-center text-muted">Select a shipment mode to enter carrier details.</div>
                                                                 <div id="service-details-airfreight" class="p-3" style="display: none;">
                                                                     <div id="airfreight-flights-container">
                                                                         @if (old('flights'))
@@ -1601,7 +1555,7 @@
                                                                         @endif
                                                                     </div>
                                                                     <div class="d-flex justify-content-end pt-2">
-                                                                        <a href="#" id="add-airfreight-flight-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add flight</a>
+                                                                        <a href="#" id="add-airfreight-flight-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add air leg</a>
                                                                     </div>
                                                                 </div>
                                                                 <div id="service-details-sea-freight" class="p-3" style="display: none;">
@@ -1613,7 +1567,7 @@
                                                                         @endif
                                                                     </div>
                                                                     <div class="d-flex justify-content-end pt-2">
-                                                                        <a href="#" id="add-sea-freight-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add leg</a>
+                                                                        <a href="#" id="add-sea-freight-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add sea leg</a>
                                                                     </div>
                                                                 </div>
                                                                 <div id="service-details-truck" class="p-3" style="display: none;">
@@ -1625,7 +1579,7 @@
                                                                         @endif
                                                                     </div>
                                                                     <div class="d-flex justify-content-end pt-2">
-                                                                        <a href="#" id="add-truck-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add truck</a>
+                                                                        <a href="#" id="add-truck-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add truck leg</a>
                                                                     </div>
                                                                 </div>
                                                                 <div id="service-details-courier" class="p-3" style="display: none;">
@@ -1637,7 +1591,7 @@
                                                                         @endif
                                                                     </div>
                                                                     <div class="d-flex justify-content-end pt-2">
-                                                                        <a href="#" id="add-courier-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add courier</a>
+                                                                        <a href="#" id="add-courier-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add courier leg</a>
                                                                     </div>
                                                                 </div>
                                                                 <div id="service-details-release" class="p-3" style="display: none;">
@@ -1649,7 +1603,7 @@
                                                                         @endif
                                                                     </div>
                                                                     <div class="d-flex justify-content-end pt-2">
-                                                                        <a href="#" id="add-release-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add release</a>
+                                                                        <a href="#" id="add-release-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add release leg</a>
                                                                     </div>
                                                                 </div>
                                                                 <div id="service-details-hand-carry" class="p-3" style="display: none;">
@@ -1661,7 +1615,7 @@
                                                                         @endif
                                                                     </div>
                                                                     <div class="d-flex justify-content-end pt-2">
-                                                                        <a href="#" id="add-hand-carry-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add hand carry</a>
+                                                                        <a href="#" id="add-hand-carry-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add hand-carry leg</a>
                                                                     </div>
                                                                 </div>
                                                                 <div id="service-details-on-board" class="p-3" style="display: none;">
@@ -1673,7 +1627,7 @@
                                                                         @endif
                                                                     </div>
                                                                     <div class="d-flex justify-content-end pt-2">
-                                                                        <a href="#" id="add-on-board-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add delivery</a>
+                                                                        <a href="#" id="add-on-board-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add onboard delivery</a>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -2060,9 +2014,36 @@
 
             // Initialize Select2 for standard filters
             $('.select2').select2({
-                placeholder: "Click here",
+                placeholder: "Select an option",
                 allowClear: false
             });
+
+            function autoResizeTextarea(textarea) {
+                if (!textarea) {
+                    return;
+                }
+
+                var computedStyle = window.getComputedStyle(textarea);
+                var minHeight = parseFloat(computedStyle.minHeight) || 0;
+
+                textarea.style.setProperty('height', 'auto', 'important');
+                textarea.style.setProperty('overflow-y', 'hidden', 'important');
+                textarea.style.setProperty('height', Math.max(textarea.scrollHeight, minHeight) + 'px', 'important');
+            }
+
+            function refreshAutoResizeTextareas(scope) {
+                var $textareas = (scope ? $(scope) : $('#shipment-form')).find('textarea').addBack('textarea');
+
+                $textareas.each(function () {
+                    autoResizeTextarea(this);
+                });
+            }
+
+            $(document).on('input.autoResizeTextarea change.autoResizeTextarea', '#shipment-form textarea', function () {
+                autoResizeTextarea(this);
+            });
+
+            refreshAutoResizeTextareas($('#shipment-form'));
 
             // Flag display formatting for Country
             // Departure select2 (hubs / agents / customers)
@@ -2123,8 +2104,54 @@
                 setPortCodeSelect($('#departure-port-code'), data.port_code || '');
             }
 
+            var consigneeLookupUrl = @json(route('api.consignees'));
+
+            function applyConsigneeDetails(data) {
+                data = data || {};
+
+                $('#consignee-address').val(data.address || '');
+                $('#consignee-city').val(data.city || '');
+                $('#consignee-district').val(data.district || '');
+                $('#consignee-zip').val(data.zip || '');
+                $('#consignee-country').val(data.country || '').trigger('change');
+                setPortCodeSelect($('#consignee-port-code'), data.port_code || '');
+                $('#consignee-email').val(data.email || '');
+                $('#consignee-att').val(data.contact_person || '');
+                $('textarea[name="special_considerations_destination"]').val(data.special_considerations || '');
+                refreshAutoResizeTextareas($('#consignee-address, textarea[name="special_considerations_destination"]'));
+            }
+
+            function clearConsigneeDetails() {
+                $('#consignee-address').val('');
+                $('#consignee-city').val('');
+                $('#consignee-district').val('');
+                $('#consignee-zip').val('');
+                $('#consignee-country').val('').trigger('change');
+                setPortCodeSelect($('#consignee-port-code'), '');
+                $('#location').val('');
+                $('#consignee-email').val('');
+                $('#consignee-att').val('');
+                $('textarea[name="special_considerations_destination"]').val('');
+                refreshAutoResizeTextareas($('#consignee-address, textarea[name="special_considerations_destination"]'));
+            }
+
+            function refreshSelectedConsigneeDetails(consigneeId) {
+                consigneeId = $.trim((consigneeId || '').toString());
+                if (!consigneeId) {
+                    return;
+                }
+
+                $.getJSON(consigneeLookupUrl, { selected: consigneeId }).done(function (freshData) {
+                    if ($('#consignee-select').val() !== consigneeId || !freshData || !freshData.id) {
+                        return;
+                    }
+
+                    applyConsigneeDetails(freshData);
+                });
+            }
+
             $('#departure-select').select2({
-                placeholder: 'Type departure',
+                placeholder: 'Search hub / agent',
                 allowClear: false,
                 width: '100%',
                 ajax: {
@@ -2153,7 +2180,7 @@
 
             // Consignee select2 (hubs / agents / offices / other_companies / suppliers / customers)
             $('#consignee-select').select2({
-                placeholder: 'Type consignee',
+                placeholder: 'Search consignee',
                 allowClear: false,
                 width: '100%',
                 ajax: {
@@ -2176,26 +2203,10 @@
                 minimumInputLength: 0
             }).on('select2:select', function (e) {
                 var data = e.params.data;
-                $('#consignee-address').val(data.address || '');
-                $('#consignee-city').val(data.city || '');
-                $('#consignee-district').val(data.district || '');
-                $('#consignee-zip').val(data.zip || '');
-                $('#consignee-country').val(data.country || '').trigger('change');
-                setPortCodeSelect($('#consignee-port-code'), data.port_code || '');
-                $('#consignee-email').val(data.email || '');
-                $('#consignee-att').val(data.contact_person || '');
-                $('textarea[name="special_considerations_destination"]').val(data.special_considerations || '');
+                applyConsigneeDetails(data);
+                refreshSelectedConsigneeDetails(data && data.id ? data.id : '');
             }).on('select2:clear', function (e) {
-                $('#consignee-address').val('');
-                $('#consignee-city').val('');
-                $('#consignee-district').val('');
-                $('#consignee-zip').val('');
-                $('#consignee-country').val('').trigger('change');
-                setPortCodeSelect($('#consignee-port-code'), '');
-                $('#location').val('');
-                $('#consignee-email').val('');
-                $('#consignee-att').val('');
-                $('textarea[name="special_considerations_destination"]').val('');
+                clearConsigneeDetails();
             });
 
             // Account Manager select2 (all office user types)
@@ -2428,6 +2439,8 @@
                     changeYear: true,
                     yearRange: 'c-10:c+10'
                 });
+
+                refreshAutoResizeTextareas($newItem);
             });
 
             // Removal logic
@@ -2529,14 +2542,14 @@
 
             function updateAirfreightFlightLabels() {
                 $('#airfreight-flights-container .airfreight-flight-row').each(function (index) {
-                    var label = index === 0 ? 'Airway bill' : 'Departure port';
+                    var label = index === 0 ? 'AWB number' : 'Departure point';
                     $(this).find('.flight-first-field label').text(label);
                 });
             }
 
             function buildAirfreightFlightRowHtml() {
                 var rowIndex = $('#airfreight-flights-container .airfreight-flight-row').length;
-                var firstLabel = rowIndex === 0 ? 'Airway bill' : 'Departure port';
+                var firstLabel = rowIndex === 0 ? 'AWB number' : 'Departure point';
 
                 return `
                     <div class="airfreight-flight-row">
@@ -2548,7 +2561,7 @@
                         </div>
                         <div class="flight-field">
                             <div class="form-group-custom mb-0">
-                                <label>Flight number</label>
+                                <label>Flight no.</label>
                                 <input type="text" name="flights[${rowIndex}][flight_number]" class="form-control-sm-custom">
                             </div>
                         </div>
@@ -2631,7 +2644,7 @@
 
             function buildSeaFreightLegRowHtml() {
                 var rowIndex = $('#sea-freight-legs-container .sea-freight-leg-row').length;
-                var firstLabel = rowIndex === 0 ? 'Bill of lading' : 'Port of departure';
+                var firstLabel = rowIndex === 0 ? 'B/L number' : 'Departure port';
                 return `
                     <div class="sea-freight-leg-row">
                         <div class="sea-leg-field sea-leg-first-field">
@@ -2642,25 +2655,25 @@
                         </div>
                         <div class="sea-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>Container number</label>
+                                <label>Container no.</label>
                                 <input type="text" name="sea_legs[${rowIndex}][container_number]" class="form-control-sm-custom">
                             </div>
                         </div>
                         <div class="sea-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>Transport vessel IMO</label>
+                                <label>Carrier vessel IMO</label>
                                 <input type="text" name="sea_legs[${rowIndex}][transport_vessel_imo]" class="form-control-sm-custom">
                             </div>
                         </div>
                         <div class="sea-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>Transport vessel name</label>
+                                <label>Carrier vessel name</label>
                                 <input type="text" name="sea_legs[${rowIndex}][transport_vessel_name]" class="form-control-sm-custom">
                             </div>
                         </div>
                         <div class="sea-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>ETD</label>
+                                <label>Departure date</label>
                                 <div class="input-with-icon">
                                     <input type="text" name="sea_legs[${rowIndex}][etd]" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY">
                                     <i class="ti-calendar"></i>
@@ -2669,7 +2682,7 @@
                         </div>
                         <div class="sea-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>ETA</label>
+                                <label>Arrival date</label>
                                 <div class="input-with-icon">
                                     <input type="text" name="sea_legs[${rowIndex}][eta]" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY">
                                     <i class="ti-calendar"></i>
@@ -2690,7 +2703,7 @@
 
             function updateSeaFreightLegLabels() {
                 $('#sea-freight-legs-container .sea-freight-leg-row').each(function (index) {
-                    var label = index === 0 ? 'Bill of lading' : 'Port of departure';
+                    var label = index === 0 ? 'B/L number' : 'Departure port';
                     $(this).find('.sea-leg-first-field label').text(label);
                 });
             }
@@ -2714,13 +2727,13 @@
                     <div class="truck-leg-row">
                         <div class="truck-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>CMR</label>
+                                <label>CMR no.</label>
                                 <input type="text" name="truck_legs[${rowIndex}][cmr]" class="form-control-sm-custom">
                             </div>
                         </div>
                         <div class="truck-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>Freight company</label>
+                                <label>Carrier name</label>
                                 <input type="text" name="truck_legs[${rowIndex}][freight_company]" class="form-control-sm-custom">
                             </div>
                         </div>
@@ -2772,13 +2785,13 @@
                     <div class="courier-leg-row">
                         <div class="courier-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>Airway bill</label>
+                                <label>Tracking number</label>
                                 <input type="text" name="courier_legs[${rowIndex}][airway_bill]" class="form-control-sm-custom">
                             </div>
                         </div>
                         <div class="courier-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>Carrier</label>
+                                <label>Courier name</label>
                                 <input type="text" name="courier_legs[${rowIndex}][carrier]" class="form-control-sm-custom">
                             </div>
                         </div>
@@ -2830,7 +2843,7 @@
                     <div class="release-leg-row">
                         <div class="release-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>Freight company</label>
+                                <label>Release carrier</label>
                                 <input type="text" name="release_legs[${rowIndex}][freight_company]" class="form-control-sm-custom">
                             </div>
                         </div>
@@ -2897,13 +2910,13 @@
                         </div>
                         <div class="hand-carry-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>Contact name</label>
+                                <label>Courier contact</label>
                                 <input type="text" name="hand_carry_legs[${rowIndex}][contact_name]" class="form-control-sm-custom">
                             </div>
                         </div>
                         <div class="hand-carry-leg-field">
                             <div class="form-group-custom mb-0">
-                                <label>Contact phone</label>
+                                <label>Courier phone</label>
                                 <input type="text" name="hand_carry_legs[${rowIndex}][contact_phone]" class="form-control-sm-custom">
                             </div>
                         </div>
@@ -2912,7 +2925,7 @@
                                 <label class="mb-0 d-flex align-items-center" style="white-space: nowrap;">
                                     <input type="checkbox" name="hand_carry_legs[${rowIndex}][onboard_hand_carry]" value="1">
                                     <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                                    <span class="text-inverse" style="font-size: 10px;">Onboard hand carry</span>
+                                    <span class="text-inverse" style="font-size: 10px;">Onboard courier</span>
                                 </label>
                             </div>
                         </div>
@@ -3198,7 +3211,7 @@
                 });
 
                 if ($('.modal-empty-state').length === 0) {
-                    $('#stock-items-modal-table tbody').append('<tr class="modal-empty-state"><td colspan="15" class="text-center py-4 text-muted" style="font-size: 12px;">No matching stock entries found.</td></tr>');
+                    $('#stock-items-modal-table tbody').append('<tr class="modal-empty-state"><td colspan="15" class="text-center py-4 text-muted" style="font-size: 12px;">No matching stock items found.</td></tr>');
                 }
 
                 $('.modal-empty-state').toggle(visibleRows === 0);
@@ -3208,7 +3221,7 @@
                 clearStockModalError();
                 $('#modal-add-selected').prop('disabled', false);
                 $('.modal-select2').select2({
-                    placeholder: "Click here",
+                    placeholder: "Select an option",
                     allowClear: false,
                     width: '100%',
                     dropdownParent: $('#stock-items-modal')
@@ -3274,13 +3287,13 @@
 
                 if (count === 0) {
                     if ($emptyRow.length === 0) {
-                        $('#stock-items-table tbody').append('<tr id="empty-row"><td colspan="11" class="text-center py-4 text-muted">No stock items added yet.</td></tr>');
+                        $('#stock-items-table tbody').append('<tr id="empty-row"><td colspan="11" class="text-center py-4 text-muted">No stock items selected yet.</td></tr>');
                     }
                 } else {
                     $emptyRow.remove();
                 }
 
-                $('.nav-link[href="#stock-items"]').text('Stock items (' + count + ')');
+                $('.nav-link[href="#stock-items"]').text('Selected stock items (' + count + ')');
                 refreshStockTotals();
             }
 

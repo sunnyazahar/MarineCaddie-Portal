@@ -937,7 +937,7 @@
                                                     body-class="followup-filters-open"
                                                     toolbar-class="followup-filters-toolbar"
                                                 />
-                                                <div class="d-flex pt-2 followup-filters-fields list-dense-filter-bar">
+                                                <div class="d-flex pt-2 followup-filters-fields list-dense-filter-bar" data-mc-filter-persist-key="shipment-followup-filter-values-v1">
                                                     <div class="list-dense-filter-shell" style="width: 100%;">
                                                         <div class="list-dense-filter-controls followup-filter-controls">
                                                             <select id="filter-multiselect" multiple="multiple" data-storage-key="followup-list-filters-v2">

@@ -89,10 +89,6 @@
         }
 
         .tracker-hero-title-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
-            gap: 18px;
-            align-items: end;
             margin-top: 14px;
         }
 
@@ -112,50 +108,10 @@
             color: rgba(255, 255, 255, 0.86);
         }
 
-        .tracker-hero-mini-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
-        }
-
-        .tracker-hero-mini-card {
-            padding: 14px 14px 12px;
-            border-radius: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.10);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-
-        .tracker-hero-mini-card span {
-            display: block;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.62);
-        }
-
-        .tracker-hero-mini-card strong {
-            display: block;
-            margin-top: 5px;
-            color: #fff;
-            font-size: 18px;
-            font-weight: 800;
-            line-height: 1.2;
-        }
-
         .tracker-hero-body {
             position: relative;
             z-index: 2;
             padding: 20px 24px 24px;
-        }
-
-        .tracker-help-text {
-            margin: 0 0 18px;
-            max-width: 900px;
-            color: #506178;
-            font-size: 15px;
-            line-height: 1.75;
         }
 
         .tracker-search-form {
@@ -488,14 +444,6 @@
             font-size: 28px;
             font-weight: 800;
             line-height: 1.1;
-        }
-
-        .tracker-empty-copy {
-            margin: 0 auto;
-            max-width: 700px;
-            color: #54677f;
-            font-size: 16px;
-            line-height: 1.8;
         }
 
         .tracker-empty-examples {
@@ -1279,10 +1227,6 @@
             .tracker-loading-visual {
                 grid-template-columns: minmax(0, 1fr);
             }
-
-            .tracker-hero-title-row {
-                grid-template-columns: minmax(0, 1fr);
-            }
         }
 
         @media (max-width: 991.98px) {
@@ -1320,7 +1264,6 @@
                 font-size: 25px;
             }
 
-            .tracker-hero-mini-grid,
             .tracker-summary-stack,
             .tracker-skeleton-grid {
                 grid-template-columns: minmax(0, 1fr);
@@ -1368,9 +1311,7 @@
                 width: 100%;
             }
 
-            .tracker-help-text,
-            .tracker-result-summary,
-            .tracker-empty-copy {
+            .tracker-result-summary {
                 font-size: 15px;
             }
         }
@@ -1399,39 +1340,14 @@
                     <span class="tracker-eyebrow">MarineCaddie public AIS lookup</span>
 
                     <div class="tracker-hero-title-row">
-                        <div>
-                            <h1 class="tracker-hero-title">Search a vessel and review current position plus route details</h1>
-                            <p class="tracker-hero-subtitle">
-                                Search by vessel name, saved vessel alias, 7-digit IMO, or 9-digit MMSI. Results load below without reloading the page. Current position comes from VesselFinder, while voyage history and vessel particulars stay anchored to MyShipTracking, with clear stale-signal warnings when the public feed lags.
-                            </p>
-                        </div>
-
-                        <div class="tracker-hero-mini-grid">
-                            <div class="tracker-hero-mini-card">
-                                <span>Sources</span>
-                                <strong>VesselFinder + MyShipTracking</strong>
-                            </div>
-                            <div class="tracker-hero-mini-card">
-                                <span>Map view</span>
-                                <strong>World pin</strong>
-                            </div>
-                            <div class="tracker-hero-mini-card">
-                                <span>Search inputs</span>
-                                <strong>Name / IMO / MMSI</strong>
-                            </div>
-                            <div class="tracker-hero-mini-card">
-                                <span>Route focus</span>
-                                <strong>Departure to arrival</strong>
-                            </div>
-                        </div>
+                        <h1 class="tracker-hero-title">Search a vessel and review current position plus route details</h1>
+                        <p class="tracker-hero-subtitle">
+                            Search by vessel name, saved vessel alias, 7-digit IMO, or 9-digit MMSI. Results load below without reloading the page.
+                        </p>
                     </div>
                 </div>
 
                 <div class="tracker-hero-body">
-                    <p class="tracker-help-text">
-                        Submit a vessel query to load a VesselFinder map pin plus MyShipTracking voyage and vessel facts in one dashboard panel. If the public AIS signal is stale or out of coverage, the page flags the result before you rely on it.
-                    </p>
-
                     <form
                         id="tracker-search-form"
                         method="POST"

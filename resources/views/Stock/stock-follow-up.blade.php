@@ -73,9 +73,9 @@
             padding: 0;
         }
         .office-table {
-            width: 1900px !important;
-            min-width: 1900px !important;
-            table-layout: fixed;
+            width: max-content !important;
+            min-width: 100% !important;
+            table-layout: auto;
             border-collapse: separate;
             border-spacing: 0;
             background: #fff;
@@ -176,14 +176,6 @@
             background-color: #ffeeba !important;
             color: #856404 !important;
             border: 1px solid #ffeeba;
-        }
-        .shipment-badge {
-            background-color: #fde68a;
-            color: #92400e;
-            padding: 2px 8px;
-            border-radius: 2px;
-            font-size: 10px;
-            font-weight: 600;
         }
         .po-badge {
             background-color: #fecaca;
@@ -379,41 +371,13 @@
             position: relative;
         }
         .office-table {
-            width: 1900px !important;
-            min-width: 1900px !important;
+            width: max-content !important;
+            min-width: 100% !important;
             max-width: none !important;
-            table-layout: fixed;
+            table-layout: auto;
             border-collapse: separate;
             border-spacing: 0;
         }
-        .office-table th:nth-child(1),
-        .office-table td:nth-child(1) { width: 90px; min-width: 90px; }
-        .office-table th:nth-child(2),
-        .office-table td:nth-child(2) { width: 180px; min-width: 180px; }
-        .office-table th:nth-child(3),
-        .office-table td:nth-child(3) { width: 240px; min-width: 240px; }
-        .office-table th:nth-child(4),
-        .office-table td:nth-child(4) { width: 180px; min-width: 180px; }
-        .office-table th:nth-child(5),
-        .office-table td:nth-child(5) { width: 200px; min-width: 200px; }
-        .office-table th:nth-child(6),
-        .office-table td:nth-child(6) { width: 180px; min-width: 180px; }
-        .office-table th:nth-child(7),
-        .office-table td:nth-child(7) { width: 60px; min-width: 60px; }
-        .office-table th:nth-child(8),
-        .office-table td:nth-child(8) { width: 80px; min-width: 80px; }
-        .office-table th:nth-child(9),
-        .office-table td:nth-child(9) { width: 110px; min-width: 110px; }
-        .office-table th:nth-child(10),
-        .office-table td:nth-child(10) { width: 140px; min-width: 140px; }
-        .office-table th:nth-child(11),
-        .office-table td:nth-child(11) { width: 140px; min-width: 140px; }
-        .office-table th:nth-child(12),
-        .office-table td:nth-child(12) { width: 90px; min-width: 90px; }
-        .office-table th:nth-child(13),
-        .office-table td:nth-child(13) { width: 110px; min-width: 110px; }
-        .office-table th:nth-child(14),
-        .office-table td:nth-child(14) { width: 90px; min-width: 90px; }
 
         /* Freeze Accept column during horizontal scroll */
         .office-table thead th.stock-col-accept,
@@ -565,7 +529,7 @@
                                                     :count="$crrs->total()"
                                                     countLabel="items"
                                                 />
-                                                <div class="followup-filters-fixed">
+                                                <div class="followup-filters-fixed" data-mc-filter-persist-key="stock-followup-filter-values-v1">
                                                 <x-lists.filter-toolbar toggleId="btn-stock-followup-filters-toggle" />
 
                                                 <!-- Filter Row -->
@@ -591,22 +555,6 @@
                                                 <!-- Data Table -->
                                                 <div class="stock-followup-table-area">
                                                     <table id="offices-table" class="office-table">
-                                                        <colgroup>
-                                                            <col style="width: 90px">
-                                                            <col style="width: 180px">
-                                                            <col style="width: 240px">
-                                                            <col style="width: 180px">
-                                                            <col style="width: 200px">
-                                                            <col style="width: 180px">
-                                                            <col style="width: 60px">
-                                                            <col style="width: 80px">
-                                                            <col style="width: 110px">
-                                                            <col style="width: 140px">
-                                                            <col style="width: 140px">
-                                                            <col style="width: 90px">
-                                                            <col style="width: 110px">
-                                                            <col style="width: 90px">
-                                                        </colgroup>
                                                         <thead>
                                                             <tr>
                                                                 <th>Hub</th>
@@ -615,12 +563,8 @@
                                                                 <th>Vessel</th>
                                                                 <th>PO numbers</th>
                                                                 <th>Supplier</th>
-                                                                <th class="text-center">Items</th>
+                                                                <th class="text-center">Pcs</th>
                                                                 <th class="text-center">Weight</th>
-                                                                <th class="text-right">Value</th>
-                                                                <th>Shipment</th>
-                                                                <th>Reg.by</th>
-                                                                <th>ETL</th>
                                                                 <th>Status</th>
                                                                 <th class="stock-col-accept"></th>
                                                             </tr>
@@ -671,12 +615,9 @@
                 "searching": false,
                 "ordering": true,
                 "order": [],
-                "autoWidth": false,
+                "autoWidth": true,
                 "columnDefs": [
-                    { "orderable": false, "targets": [13] },
-                    { "targets": 2, "width": "240px" },
-                    { "targets": 4, "width": "200px" },
-                    { "targets": 5, "width": "180px" }
+                    { "orderable": false, "targets": [9] }
                 ]
             });
 

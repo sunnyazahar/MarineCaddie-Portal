@@ -13,15 +13,10 @@
                                                                 $isNotStackable = $crr->packages->where('is_not_stackable', true)->isNotEmpty();
                                                                 $hasDeliveryIrreg = is_array($crr->delivery_irregularities) && in_array('Yes', $crr->delivery_irregularities, true);
                                                                 $statusLabel = \App\Models\Crr::getStatusLabels()[$crr->status] ?? 'Unknown';
-                                                                $valueDisplay = $crr->customs_value
-                                                                    ? number_format((float) $crr->customs_value, 2) . ' ' . ($crr->currency ?: 'USD')
-                                                                    : '—';
-                                                                $isEtl = strtoupper((string) $crr->internal_shipment) === 'ETL';
                                                             @endphp
                                                             <tr
                                                                 data-account-manager="{{ $accountManager }}"
                                                                 data-customer="{{ $customerName }}"
-                                                                data-has-etl="{{ $isEtl ? '1' : '0' }}"
                                                             >
                                                                 <td title="{{ $crr->hub_code ?? ($crr->hub_agent ?? '—') }}"><span class="cell-ellipsis">{{ $crr->hub_code ?? ($crr->hub_agent ?? '—') }}</span></td>
                                                                 <td class="stock-no-cell">
@@ -63,18 +58,6 @@
                                                                 <td title="{{ $crr->supplier ?? '—' }}"><span class="cell-ellipsis">{{ $crr->supplier ?? '—' }}</span></td>
                                                                 <td class="text-center">{{ $totalItems ?: '—' }}</td>
                                                                 <td class="text-center">{{ $totalWeight > 0 ? number_format((float) $totalWeight, 1) : '—' }}</td>
-                                                                <td class="text-right" title="{{ $valueDisplay }}"><span class="cell-ellipsis">{{ $valueDisplay }}</span></td>
-                                                                <td title="{{ $crr->shipments->pluck('shipment_number')->filter()->implode(', ') ?: '—' }}">
-                                                                    <span class="cell-ellipsis">
-                                                                    @forelse ($crr->shipments as $shipment)
-                                                                        <span class="shipment-badge">{{ $shipment->shipment_number }}</span>
-                                                                    @empty
-                                                                        —
-                                                                    @endforelse
-                                                                    </span>
-                                                                </td>
-                                                                <td title="{{ $crr->registeredBy?->name ?? '—' }}"><span class="cell-ellipsis">{{ $crr->registeredBy?->name ?? '—' }}</span></td>
-                                                                <td title="{{ $isEtl ? 'ETL' : ($crr->internal_shipment ?: '—') }}"><span class="cell-ellipsis">{{ $isEtl ? 'ETL' : ($crr->internal_shipment ?: '—') }}</span></td>
                                                                 <td class="stock-status-cell"><span class="stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ $statusLabel }}</span></td>
                                                                 <td class="text-center stock-action-cell">
                                                                     <button type="button"
@@ -86,19 +69,6 @@
                                                             </tr>
                                                             @empty
                                                             <tr>
-                                                                <td class="text-center py-4 text-muted">No stocks found.</td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
+                                                                <td colspan="10" class="text-center py-4 text-muted">No stocks found.</td>
                                                             </tr>
                                                             @endforelse

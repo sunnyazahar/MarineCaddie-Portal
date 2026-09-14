@@ -21,13 +21,6 @@
         ])->filter()->implode(' · ');
     @endphp
 
-    @foreach ($result['warnings'] as $warning)
-        <div class="tracker-status-card alert-info tracker-fade-in">
-            <span class="tracker-status-kicker">Source note</span>
-            <div class="tracker-status-copy">{{ $warning }}</div>
-        </div>
-    @endforeach
-
     <section class="tracker-result-shell tracker-fade-in" data-tracker-result="loaded">
         <script type="application/json" class="tracker-result-payload">@json($visuals)</script>
 
@@ -207,9 +200,6 @@
 
         <span class="tracker-empty-kicker">AIS lookup ready</span>
         <h2 class="tracker-empty-title">Search and load the latest available public vessel position</h2>
-        <p class="tracker-empty-copy">
-            Type a vessel name, IMO, or MMSI. The result appears here with VesselFinder position data, MyShipTracking voyage details, and clear flags when the public AIS signal is only last-known data.
-        </p>
 
         <div class="tracker-empty-examples">
             <button type="button" class="tracker-example-chip" data-tracker-example="CS JOLA">CS JOLA</button>

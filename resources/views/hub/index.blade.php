@@ -276,7 +276,7 @@
                 countLabel="hubs"
             />
 
-            <div class="hubs-filters-area">
+            <div class="hubs-filters-area" data-mc-filter-persist-key="hubs-list-filter-values-v1">
                 <x-lists.filter-toolbar
                     toggle-id="btn-hubs-filters-toggle"
                     body-class="hubs-filters-open"

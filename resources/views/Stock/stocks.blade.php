@@ -993,14 +993,14 @@
                                         <div class="card stocks-list-card">
                                             <div class="card-block">
                                                 <x-lists.page-header
-                                                    title="Stock list"
+                                                    title="Vessel's stock list"
                                                     subtitle="Search, filter, and manage warehouse stock"
                                                     icon="ti-package"
                                                     :count="$crrs->total()"
                                                     countLabel="stocks"
                                                 >
                                                     <x-slot:actions>
-                                                        <a href="{{ route('create-crr') }}" class="btn btn-teal btn-sm d-none d-lg-inline-flex">Create CRR</a>
+                                                        <a href="{{ route('create-crr') }}" class="btn btn-teal btn-sm d-none d-lg-inline-flex">Create new stock</a>
                                                     </x-slot:actions>
                                                 </x-lists.page-header>
                                                 <div class="stocks-filters-fixed">
@@ -1010,10 +1010,10 @@
                                                     </button>
                                                     <div class="stocks-filters-toolbar-actions">
                                                         @include('Stock.partials.export-dropdown')
-                                                        <a href="{{ route('create-crr') }}" class="btn btn-outline-teal btn-sm">Create CRR</a>
+                                                        <a href="{{ route('create-crr') }}" class="btn btn-outline-teal btn-sm">Create new stock</a>
                                                     </div>
                                                 </div>
-                                                <div class="d-flex justify-content-between align-items-start pt-2 stocks-filters-fields list-dense-filter-bar">
+                                                <div class="d-flex justify-content-between align-items-start pt-2 stocks-filters-fields list-dense-filter-bar" data-mc-filter-persist-key="stocks-list-filter-values-v1">
                                                     <div class="list-dense-filter-shell" style="width: 100%;">
                                                         <div class="list-dense-filter-controls stocks-filter-controls">
                                                             <select id="filter-multiselect" multiple="multiple" data-storage-key="stocks-list-filters">
@@ -1088,7 +1088,7 @@
                                                             </div>
                                                             <div class="custom-col d-flex justify-content-end align-items-center" style="flex: 0 0 auto; margin-left: auto; gap: 8px;">
                                                                 @include('Stock.partials.export-dropdown', ['compact' => true])
-                                                                <a href="{{ route('create-crr') }}" class="btn btn-outline-teal btn-sm" style="height: 32px; padding: 0 15px; display: inline-flex; align-items: center;">Create CRR</a>
+                                                                <a href="{{ route('create-crr') }}" class="btn btn-outline-teal btn-sm" style="height: 32px; padding: 0 15px; display: inline-flex; align-items: center;">Create new stock</a>
                                                             </div>
                                                             
                                                         </div>

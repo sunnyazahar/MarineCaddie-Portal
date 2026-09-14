@@ -15,13 +15,13 @@
 <div class="truck-leg-row">
     <div class="truck-leg-field">
         <div class="form-group-custom mb-0">
-            <label>CMR</label>
+            <label>CMR no.</label>
             <input type="text" name="truck_legs[{{ $rowIndex }}][cmr]" class="form-control-sm-custom" value="{{ old('truck_legs.' . $rowIndex . '.cmr', isset($leg) ? ($leg->cmr ?? '') : '') }}">
         </div>
     </div>
     <div class="truck-leg-field">
         <div class="form-group-custom mb-0">
-            <label>Freight company</label>
+            <label>Carrier name</label>
             <input type="text" name="truck_legs[{{ $rowIndex }}][freight_company]" class="form-control-sm-custom" value="{{ old('truck_legs.' . $rowIndex . '.freight_company', isset($leg) ? ($leg->freight_company ?? '') : '') }}">
         </div>
     </div>

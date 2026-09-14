@@ -621,7 +621,7 @@
                                                </x-slot:actions>
                                            </x-lists.page-header>
 
-                                           <div class="users-toolbar">
+                                           <div class="users-toolbar" data-mc-filter-persist-key="users-list-filter-values-v1">
                                                <input type="text" class="users-search-input search-input-custom" placeholder="Search users…" aria-label="Search users">
                                                <button type="button" id="btn-add-user-mobile" class="btn btn-teal btn-sm d-lg-none" data-toggle="modal" data-target="#addUserModal">
                                                    Add user
@@ -1264,6 +1264,14 @@
                 "responsive": false,
                 "scrollX": true
             });
+
+            var usersFilterStore = typeof window.mcEnsureFilterPersistence === 'function'
+                ? window.mcEnsureFilterPersistence({ root: '.users-toolbar[data-mc-filter-persist-key]' })
+                : null;
+
+            if (usersFilterStore && usersFilterStore.restore()) {
+                table.search($('.search-input-custom').val() || '').draw();
+            }
 
             // Link custom search input to DataTable
             $('.search-input-custom').on('keyup', function() {

@@ -78,7 +78,7 @@ class VesselLiveTrackerService
             'visuals' => $this->buildVisuals($header, $searchMatch, $detail, $positionSnapshot, $freshness),
             'sections' => array_values(array_filter([
                 $this->buildPositionSection($positionSnapshot, $freshness),
-                $this->buildVoyageSection($searchMatch, $detail),
+                $this->buildVoyageSection($searchMatch, $detail, $positionSnapshot),
                 $this->buildParticularsSection($searchMatch, $detail, $positionSnapshot),
                 $this->buildPortalSection($portalMatch),
             ])),
@@ -460,6 +460,8 @@ class VesselLiveTrackerService
             'status' => $position['status'] ?? null,
             'area' => $position['area'] ?? null,
             'current_port' => $currentPort,
+            'current_port_event' => $position['current_port_event'] ?? null,
+            'current_port_time_raw' => $position['current_port_time_raw'] ?? null,
             'last_port' => $lastPort,
             'last_port_event' => $position['last_port_event'] ?? null,
             'last_port_time_raw' => $position['last_port_time_raw'] ?? null,
@@ -517,6 +519,8 @@ class VesselLiveTrackerService
                 $searchMatch['area'] ?? null
             ),
             'current_port' => $detail['information']['current_port'] ?? null,
+            'current_port_event' => null,
+            'current_port_time_raw' => null,
             'last_port' => null,
             'last_port_event' => null,
             'last_port_time_raw' => null,
@@ -607,6 +611,8 @@ class VesselLiveTrackerService
             'status' => $this->tableValue($table, 'Navigation Status'),
             'area' => $summary['area'] ?? null,
             'current_port' => $summary['current_port'] ?? null,
+            'current_port_event' => $summary['current_port_event'] ?? null,
+            'current_port_time_raw' => $summary['current_port_time_raw'] ?? null,
             'last_port' => $lastPort['port'] ?? null,
             'last_port_event' => $lastPort['event'] ?? null,
             'last_port_time_raw' => $lastPort['time_raw'] ?? null,
@@ -642,6 +648,12 @@ class VesselLiveTrackerService
 
         if (preg_match('/sailing at a speed of\s+([0-9.]+\s+knots?)/i', $summary, $matches)) {
             $parsed['speed'] = $this->normalizeSpeedLabel($matches[1]);
+        }
+
+        if (preg_match('/arrived at the port of\s+(.+?)\s+on\s+([A-Z][a-z]{2}\s+\d{1,2},\s+\d{2}:\d{2}\s+UTC)/i', $summary, $matches)) {
+            $parsed['current_port'] = $this->normalizePlaceholder($matches[1]);
+            $parsed['current_port_event'] = 'ATA';
+            $parsed['current_port_time_raw'] = $this->normalizePlaceholder($matches[2]);
         }
 
         if (preg_match('/is a\s+(.+?)\s+built in\s+\d{4}.*?under the flag of\s+(.+?)\.?$/i', $summary, $matches)) {
@@ -736,7 +748,6 @@ class VesselLiveTrackerService
             $searchMatch['type'] ?? null
         );
 
-        $positionSource = $positionSnapshot['source_label'] ?? self::DETAIL_SOURCE_LABEL;
         $subtitle = $type ? $type . ' - latest available public AIS snapshot' : 'Latest available public AIS snapshot';
 
         if (($positionSnapshot['provider'] ?? null) === 'vesselfinder') {
@@ -774,10 +785,6 @@ class VesselLiveTrackerService
                     $positionSnapshot['call_sign'] ?? null,
                     $this->tableValue($detail['general'] ?? [], 'Call Sign')
                 )),
-                $this->chip('Position source', $positionSource),
-                ($positionSnapshot['provider'] ?? null) === 'vesselfinder'
-                    ? $this->chip('Voyage source', self::DETAIL_SOURCE_LABEL)
-                    : null,
                 $this->chip('Signal age', $freshness['age_label'] ?? null),
             ])),
         ];
@@ -983,16 +990,27 @@ class VesselLiveTrackerService
         ];
     }
 
-    private function buildVoyageSection(array $searchMatch, ?array $detail): ?array
+    private function buildVoyageSection(array $searchMatch, ?array $detail, array $positionSnapshot): ?array
     {
         $stops = $detail['trip_stops'] ?? [];
-        $departurePort = $stops[0]['port'] ?? null;
-        $latestPort = $stops[count($stops) - 1]['port'] ?? null;
+        $firstTripStopPort = ! empty($stops) ? ($stops[0]['port'] ?? null) : null;
+        $latestTripStopPort = ! empty($stops) ? ($stops[array_key_last($stops)]['port'] ?? null) : null;
+        $currentPortCallAvailable = filled($positionSnapshot['current_port'] ?? null)
+            && ($positionSnapshot['current_port_event'] ?? null) === 'ATA';
+        $departurePort = $currentPortCallAvailable
+            ? $this->firstFilled($positionSnapshot['last_port'] ?? null, $firstTripStopPort)
+            : $firstTripStopPort;
+        $latestPort = $currentPortCallAvailable
+            ? ($positionSnapshot['current_port'] ?? null)
+            : $latestTripStopPort;
+        $latestPortValue = $currentPortCallAvailable
+            ? $latestPort
+            : $this->firstFilled($detail['information']['current_port'] ?? null, $latestPort);
 
         return $this->section('Voyage snapshot', 'ti-direction-alt', [
             $this->fact('Destination', $searchMatch['destination'] ?? null),
             $this->fact('Departure port', $departurePort),
-            $this->fact('Latest port', $this->firstFilled($detail['information']['current_port'] ?? null, $latestPort)),
+            $this->fact('Latest port', $latestPortValue),
             $this->fact('Trip time', $this->tableValue($detail['trip'] ?? [], 'Trip Time')),
             $this->fact('Trip distance', $this->tableValue($detail['trip'] ?? [], 'Trip Distance')),
             $this->fact('Average speed', $this->tableValue($detail['trip'] ?? [], 'AVG Speed')),
@@ -1122,12 +1140,36 @@ class VesselLiveTrackerService
     ): array {
         $confirmedDepartureStop = $this->selectConfirmedTripStop($tripStops, 'ATD');
         $confirmedArrivalStop = $this->selectConfirmedTripStop($tripStops, 'ATA', true);
+        $currentPort = $positionSnapshot['current_port'] ?? null;
+        $currentPortEvent = $positionSnapshot['current_port_event'] ?? null;
+        $currentPortTime = $this->formatTimestamp($positionSnapshot['current_port_time_raw'] ?? null);
         $lastPortEvent = $positionSnapshot['last_port_event'] ?? null;
         $lastPortTime = $this->formatTimestamp($positionSnapshot['last_port_time_raw'] ?? null);
         $usesLastPortReference = filled($positionSnapshot['last_port'] ?? null);
+        $hasConfirmedPortCallLeg = ! $freshness['is_stale']
+            && filled($currentPort)
+            && $currentPortEvent === 'ATA'
+            && filled($currentPortTime)
+            && filled($positionSnapshot['last_port'] ?? null)
+            && filled($lastPortEvent);
         $hasConfirmedLeg = ! $freshness['is_stale']
             && $confirmedDepartureStop !== null
             && ($confirmedArrivalStop !== null || filled($searchMatch['destination'] ?? null));
+
+        if ($hasConfirmedPortCallLeg) {
+            return [
+                'departure_label' => 'Departure',
+                'departure_port' => $positionSnapshot['last_port'] ?? null,
+                'departure_event' => $lastPortEvent,
+                'departure_time' => $lastPortTime,
+                'departure_empty_note' => 'Departure update is not available yet.',
+                'arrival_label' => 'Arrival',
+                'arrival_port' => $currentPort,
+                'arrival_event' => $currentPortEvent,
+                'arrival_time' => $currentPortTime,
+                'arrival_empty_note' => 'Arrival or destination update is not available yet.',
+            ];
+        }
 
         if ($hasConfirmedLeg) {
             return [

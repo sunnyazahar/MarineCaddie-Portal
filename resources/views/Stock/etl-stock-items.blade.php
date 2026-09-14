@@ -299,7 +299,7 @@
                                     <div class="page-header">
                                       
                                    <div class="card">
-                                       <div class="filter-container mt-5">
+                                       <div class="filter-container mt-5" data-mc-filter-persist-key="stock-etl-filter-values-v1">
                                            <div class="filter-item" style="min-width: 250px;">
                                                <span class="filter-item-label">Hub</span>
                                                <div class="filter-item-content" style="flex: 1;">
@@ -314,13 +314,13 @@
                                                <div class="filter-item-content">
                                                    <div class="type-segments">
                                                        <label class="type-segment active">
-                                                           <input type="radio" name="stock_type" checked> ETL
+                                                           <input type="radio" name="stock_type" value="ETL" checked> ETL
                                                        </label>
                                                        <label class="type-segment">
-                                                           <input type="radio" name="stock_type"> KTL
+                                                           <input type="radio" name="stock_type" value="KTL"> KTL
                                                        </label>
                                                        <label class="type-segment">
-                                                           <input type="radio" name="stock_type"> RTL
+                                                           <input type="radio" name="stock_type" value="RTL"> RTL
                                                        </label>
                                                    </div>
                                                </div>
@@ -448,6 +448,13 @@
         $(document).ready(function() {
             initializeSearchableFilterMultiselect('#filter-hub, #filter-status');
 
+            function syncTypeSegments() {
+                $('.type-segment').removeClass('active');
+                $('.type-segment').has('input:checked').addClass('active');
+            }
+
+            syncTypeSegments();
+
             // Initialize DataTable
             var table = $('#etl-table').DataTable({
                 "dom": '<"table-scroll-wrapper"rt><"pagination-sticky-footer"p>',
@@ -501,8 +508,11 @@
             
             // Handle Type Segment click
             $('.type-segment').on('click', function() {
-                $(this).find('input').prop('checked', true);
+                $(this).find('input').prop('checked', true).trigger('change');
+                syncTypeSegments();
             });
+
+            $('.type-segments input[type="radio"]').on('change', syncTypeSegments);
         });
     </script>
 @endsection

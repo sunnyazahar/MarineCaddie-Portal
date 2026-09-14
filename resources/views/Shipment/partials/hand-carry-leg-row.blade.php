@@ -43,13 +43,13 @@
     </div>
     <div class="hand-carry-leg-field">
         <div class="form-group-custom mb-0">
-            <label>Contact name</label>
+            <label>Courier contact</label>
             <input type="text" name="hand_carry_legs[{{ $rowIndex }}][contact_name]" class="form-control-sm-custom" value="{{ old('hand_carry_legs.' . $rowIndex . '.contact_name', isset($leg) ? ($leg->contact_name ?? '') : '') }}">
         </div>
     </div>
     <div class="hand-carry-leg-field">
         <div class="form-group-custom mb-0">
-            <label>Contact phone</label>
+            <label>Courier phone</label>
             <input type="text" name="hand_carry_legs[{{ $rowIndex }}][contact_phone]" class="form-control-sm-custom" value="{{ old('hand_carry_legs.' . $rowIndex . '.contact_phone', isset($leg) ? ($leg->contact_phone ?? '') : '') }}">
         </div>
     </div>
@@ -58,7 +58,7 @@
             <label class="mb-0 d-flex align-items-center" style="white-space: nowrap;">
                 <input type="checkbox" name="hand_carry_legs[{{ $rowIndex }}][onboard_hand_carry]" value="1" {{ $onboardChecked ? 'checked' : '' }}>
                 <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                <span class="text-inverse" style="font-size: 10px;">Onboard hand carry</span>
+                <span class="text-inverse" style="font-size: 10px;">Onboard courier</span>
             </label>
         </div>
     </div>

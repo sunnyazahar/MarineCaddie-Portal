@@ -14,6 +14,14 @@
                 <div class="mc-assistant-heading-row">
                     <h2 class="mc-assistant-title">MC Assistant</h2>
                     <span class="mc-assistant-badge" id="mcAssistantBadge">View only</span>
+                    <button
+                        type="button"
+                        class="mc-assistant-panel-clear"
+                        id="mcAssistantPanelClear"
+                        aria-label="Clear chat"
+                        title="Clear chat">
+                        Clear
+                    </button>
                 </div>
                 <p class="mc-assistant-copy" id="mcAssistantCopy">
                     {{ $assistantStocksOnly
@@ -48,17 +56,24 @@
             </div>
         @endif
     </div>
-    <button
-        type="button"
-        class="mc-assistant-launcher"
-        id="mcAssistantLauncher"
-        aria-expanded="false"
-        aria-controls="mcAssistantPanel">
-        <span class="mc-assistant-launcher__pulse" aria-hidden="true"></span>
-        <span class="mc-assistant-launcher__copy">
-            <span class="mc-assistant-launcher__title">MC Assistant</span>
-            <span class="mc-assistant-launcher__status" id="mcAssistantLauncherStatus">Details ready</span>
-        </span>
-        <span class="mc-assistant-launcher__toggle" id="mcAssistantLauncherToggle">Open</span>
-    </button>
+    <div class="mc-assistant-launcher-row">
+        <button
+            type="button"
+            class="mc-assistant-launcher"
+            id="mcAssistantLauncher"
+            aria-expanded="false"
+            aria-controls="mcAssistantPanel">
+            <span class="mc-assistant-launcher__icon" aria-hidden="true">
+                <img
+                    src="{{ asset('files/assets/images/mc-assistant-headset.png') }}?v=20260913"
+                    alt=""
+                    class="mc-assistant-launcher__icon-image">
+            </span>
+            <span class="mc-assistant-launcher__copy">
+                <span class="mc-assistant-launcher__title">MC Assistant</span>
+                <span class="mc-assistant-launcher__status" id="mcAssistantLauncherStatus">Details ready</span>
+            </span>
+            <span class="mc-assistant-launcher__toggle" id="mcAssistantLauncherToggle">Open</span>
+        </button>
+    </div>
 </div>

@@ -18,12 +18,17 @@
             <li class="pcoded-hasmenu {{ request()->routeIs('stocks', 'stocks.edit', 'stock-follow-up', 'pickup-work-list', 'create-crr') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="stocks">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span>
-                    <span class="pcoded-mtext">Stocks</span>
+                    <span class="pcoded-mtext">Vessel stocks</span>
                 </a>
                 <ul class="pcoded-submenu">
                     <li class="{{ request()->routeIs('stocks', 'stocks.edit') ? 'active' : '' }}">
                         <a href="{{route('stocks')}}">
-                            <span class="pcoded-mtext">Stock list</span>
+                            <span class="pcoded-mtext">Vessel's stock list</span>
+                        </a>
+                    </li>
+                    <li class="{{ request()->routeIs('create-crr') ? 'active' : '' }}">
+                        <a href="{{route('create-crr')}}">
+                            <span class="pcoded-mtext">Create new stock</span>
                         </a>
                     </li>
                     <li class="{{ request()->routeIs('stock-follow-up') ? 'active' : '' }}">
@@ -31,14 +36,9 @@
                             <span class="pcoded-mtext">Stock follow-up</span>
                         </a>
                     </li>
-                    <li class="{{ request()->routeIs('pickup-work-list') ? 'active' : '' }}">
+                    <li class="{{ request()->routeIs('pickup-work-list') ? 'active' : '' }}" style="display: none;">
                         <a href="{{route('pickup-work-list')}}">
                             <span class="pcoded-mtext">Pick up work list</span>
-                        </a>
-                    </li>
-                    <li class="{{ request()->routeIs('create-crr') ? 'active' : '' }}">
-                        <a href="{{route('create-crr')}}">
-                            <span class="pcoded-mtext">Create CRR</span>
                         </a>
                     </li>
                     <!-- <li class="{{ request()->routeIs('etl-stock-items') ? 'active' : '' }}">

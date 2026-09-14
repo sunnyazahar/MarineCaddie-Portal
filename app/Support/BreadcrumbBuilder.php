@@ -165,7 +165,7 @@ class BreadcrumbBuilder
             ],
             'create-crr' => [
                 ['label' => 'Stocks', 'url' => route('stocks')],
-                ['label' => 'Create CRR', 'url' => null],
+                ['label' => 'Create new stock', 'url' => null],
             ],
             'etl-stock-items' => [
                 ['label' => 'Stocks', 'url' => route('stocks')],

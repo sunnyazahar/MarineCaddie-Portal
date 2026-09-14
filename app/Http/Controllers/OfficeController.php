@@ -446,9 +446,9 @@ class OfficeController extends Controller
                 'invoicing_emails' => $request->invoicing_emails,
                 'heading_invoice' => $request->heading_invoice,
                 'information_invoice' => $request->information_invoice,
-                'use_vat_check' => $request->has('use_vat_check'),
-                'show_imo' => $request->has('show_imo'),
-                'enable_reader' => $request->has('enable_reader'),
+                'use_vat_check' => $request->boolean('use_vat_check'),
+                'show_imo' => $request->boolean('show_imo'),
+                'enable_reader' => $request->boolean('enable_reader'),
                 'status' => $request->status ?? 1,
             ]);
 

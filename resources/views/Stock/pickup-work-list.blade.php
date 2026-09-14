@@ -732,7 +732,7 @@
                                                         <i class="ti-filter"></i> <span class="pickup-filters-toggle-label">Show filters</span>
                                                     </button>
                                                 </div>
-                                                <div class="d-flex pt-2 pickup-filters-fields list-dense-filter-bar">
+                                                <div class="d-flex pt-2 pickup-filters-fields list-dense-filter-bar" data-mc-filter-persist-key="pickup-list-filter-values-v1">
                                                     <div class="list-dense-filter-shell" style="width: 100%;">
                                                         <div class="list-dense-filter-controls pickup-filter-controls">
                                                             <select id="filter-multiselect" multiple="multiple" data-storage-key="pickup-list-filters-v2">

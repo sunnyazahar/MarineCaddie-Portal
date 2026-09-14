@@ -1,6 +1,6 @@
 @php
     $rowIndex = $index ?? 0;
-    $firstLabel = $rowIndex === 0 ? 'Airway bill' : 'Departure port';
+    $firstLabel = $rowIndex === 0 ? 'AWB number' : 'Departure point';
     $formatFlightDate = function ($value) {
         if (!$value) {
             return '';
@@ -22,7 +22,7 @@
     </div>
     <div class="flight-field">
         <div class="form-group-custom mb-0">
-            <label>Flight number</label>
+            <label>Flight no.</label>
             <input type="text" name="flights[{{ $rowIndex }}][flight_number]" class="form-control-sm-custom" value="{{ old('flights.' . $rowIndex . '.flight_number', isset($flight) ? ($flight->flight_number ?? '') : '') }}">
         </div>
     </div>

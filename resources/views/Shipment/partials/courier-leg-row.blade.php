@@ -15,13 +15,13 @@
 <div class="courier-leg-row">
     <div class="courier-leg-field">
         <div class="form-group-custom mb-0">
-            <label>Airway bill</label>
+            <label>Tracking number</label>
             <input type="text" name="courier_legs[{{ $rowIndex }}][airway_bill]" class="form-control-sm-custom" value="{{ old('courier_legs.' . $rowIndex . '.airway_bill', isset($leg) ? ($leg->airway_bill ?? '') : '') }}">
         </div>
     </div>
     <div class="courier-leg-field">
         <div class="form-group-custom mb-0">
-            <label>Carrier</label>
+            <label>Courier name</label>
             <input type="text" name="courier_legs[{{ $rowIndex }}][carrier]" class="form-control-sm-custom" value="{{ old('courier_legs.' . $rowIndex . '.carrier', isset($leg) ? ($leg->carrier ?? '') : '') }}">
         </div>
     </div>

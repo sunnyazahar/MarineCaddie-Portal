@@ -1,4 +1,63 @@
 <script>
+    function getSearchableFilterSummaryOptions($select) {
+        return $select.data('mcSearchableFilterSummaryOptions') || {
+            placeholderText: 'Click here',
+            numberDisplayed: 1
+        };
+    }
+
+    function summaryLabelForSearchableFilter($select) {
+        var summaryOptions = getSearchableFilterSummaryOptions($select);
+        var placeholderText = summaryOptions.placeholderText || 'Click here';
+        var numberDisplayed = typeof summaryOptions.numberDisplayed === 'number' ? summaryOptions.numberDisplayed : 1;
+        var $selected = $select.find('option:selected').filter(function () {
+            return $(this).val() !== '';
+        });
+
+        if (!$selected.length) {
+            return { text: placeholderText, placeholder: true };
+        }
+
+        var first = $.trim($selected.first().text());
+        if ($selected.length === 1 || numberDisplayed <= 1) {
+            return {
+                text: $selected.length === 1 ? first : (first + ', ...'),
+                placeholder: false
+            };
+        }
+
+        var labels = [];
+        $selected.slice(0, numberDisplayed).each(function () {
+            labels.push($.trim($(this).text()));
+        });
+        if ($selected.length > numberDisplayed) {
+            labels.push('...');
+        }
+        return { text: labels.join(', '), placeholder: false };
+    }
+
+    function refreshSearchableFilterSummary($select) {
+        var $rendered = $select.next('.select2-container').find('.select2-selection__rendered');
+        if (!$rendered.length) {
+            return;
+        }
+
+        var summary = summaryLabelForSearchableFilter($select);
+        var $label = $rendered.find('.mc-filter-summary');
+        if (!$label.length) {
+            $label = $('<span class="mc-filter-summary"></span>');
+            $rendered.prepend($label);
+        }
+        $label.text(summary.text);
+        $label.toggleClass('is-placeholder', !!summary.placeholder);
+    }
+
+    window.refreshSearchableFilterMultiselectSummary = function(selector) {
+        $(selector).each(function() {
+            refreshSearchableFilterSummary($(this));
+        });
+    };
+
     window.initializeSearchableFilterMultiselect = function(selector, options) {
         var legacyKeys = {
             enableCaseInsensitiveFiltering: true,
@@ -31,49 +90,6 @@
 
         function escapeHtml(text) {
             return $('<div>').text(text == null ? '' : String(text)).html();
-        }
-
-        function summaryLabel($select) {
-            var $selected = $select.find('option:selected').filter(function () {
-                return $(this).val() !== '';
-            });
-
-            if (!$selected.length) {
-                return { text: placeholderText, placeholder: true };
-            }
-
-            var first = $.trim($selected.first().text());
-            if ($selected.length === 1 || numberDisplayed <= 1) {
-                return {
-                    text: $selected.length === 1 ? first : (first + ', ...'),
-                    placeholder: false
-                };
-            }
-
-            var labels = [];
-            $selected.slice(0, numberDisplayed).each(function () {
-                labels.push($.trim($(this).text()));
-            });
-            if ($selected.length > numberDisplayed) {
-                labels.push('...');
-            }
-            return { text: labels.join(', '), placeholder: false };
-        }
-
-        function refreshSummary($select) {
-            var $rendered = $select.next('.select2-container').find('.select2-selection__rendered');
-            if (!$rendered.length) {
-                return;
-            }
-
-            var summary = summaryLabel($select);
-            var $label = $rendered.find('.mc-filter-summary');
-            if (!$label.length) {
-                $label = $('<span class="mc-filter-summary"></span>');
-                $rendered.prepend($label);
-            }
-            $label.text(summary.text);
-            $label.toggleClass('is-placeholder', !!summary.placeholder);
         }
 
         var settings = $.extend({
@@ -118,8 +134,12 @@
                 $select.parent().addClass('searchable-filter-wrapper');
             }
 
+            $select.data('mcSearchableFilterSummaryOptions', {
+                placeholderText: placeholderText,
+                numberDisplayed: numberDisplayed
+            });
             $select.select2(settings);
-            refreshSummary($select);
+            refreshSearchableFilterSummary($select);
 
             $select.off('change.searchableFilter select2:open.searchableFilter select2:close.searchableFilter');
 
@@ -160,7 +180,7 @@
                             e.stopPropagation();
 
                             window.clearSearchableFilterMultiselect($select, true);
-                            refreshSummary($select);
+                            refreshSearchableFilterSummary($select);
 
                             $tools.find('.mc-filter-dropdown-search').val('');
                             var $inline = $select.next('.select2-container').find('.select2-search__field');
@@ -175,7 +195,7 @@
             });
 
             $select.on('change.searchableFilter', function() {
-                refreshSummary($select);
+                refreshSearchableFilterSummary($select);
 
                 if ($select.data('suppress-searchable-change')) {
                     return;
@@ -228,6 +248,8 @@
         var filtersReady = false;
         var requestToken = 0;
         var suppressFilterLoad = false;
+        var filterPersistence = null;
+        var restoredPersistedFilters = false;
         var debounceMs = config.debounceMs || 200;
         var table = config.existingTable || null;
         var dataTableOptions = $.extend({
@@ -242,6 +264,38 @@
 
         function shouldLoad() {
             return filtersReady && !suppressFilterLoad;
+        }
+
+        function resolveFilterPersistence() {
+            if (filterPersistence !== null) {
+                return filterPersistence || null;
+            }
+
+            if (typeof window.mcEnsureFilterPersistence !== 'function') {
+                filterPersistence = false;
+                return null;
+            }
+
+            var persistenceOptions = $.extend({}, config.filterPersistence || {});
+            if (!persistenceOptions.root && !persistenceOptions.rootSelector && !persistenceOptions.scopeSelector && config.clearSelector) {
+                var $clearTrigger = $(config.clearSelector).first();
+                if ($clearTrigger.length) {
+                    var $root = $clearTrigger.closest('[data-mc-filter-persist-key]');
+                    if ($root.length) {
+                        persistenceOptions.root = $root;
+                    }
+                }
+            }
+
+            filterPersistence = window.mcEnsureFilterPersistence(persistenceOptions) || false;
+            return filterPersistence || null;
+        }
+
+        function persistCurrentFilters() {
+            var filterStore = resolveFilterPersistence();
+            if (filterStore) {
+                filterStore.save();
+            }
         }
 
         function initTable() {
@@ -295,6 +349,8 @@
             var params = config.getParams(page || 1);
             var token = ++requestToken;
 
+            persistCurrentFilters();
+
             $.ajax({
                 url: indexUrl,
                 method: 'GET',
@@ -331,16 +387,19 @@
         if (config.multiselectSelector) {
             initializeSearchableFilterMultiselect(config.multiselectSelector, {
                 onChange: function () {
+                    persistCurrentFilters();
                     if (shouldLoad()) {
                         load(1);
                     }
                 },
                 onSelectAll: function () {
+                    persistCurrentFilters();
                     if (shouldLoad()) {
                         load(1);
                     }
                 },
                 onDeselectAll: function () {
+                    persistCurrentFilters();
                     if (shouldLoad()) {
                         load(1);
                     }
@@ -348,8 +407,14 @@
             });
         }
 
+        var filterStore = resolveFilterPersistence();
+        if (filterStore) {
+            restoredPersistedFilters = filterStore.restore();
+        }
+
         if (config.textSelectors) {
             $(config.textSelectors).on('input keyup', function (e) {
+                persistCurrentFilters();
                 if (e.type === 'keyup' && e.key === 'Enter') {
                     e.preventDefault();
                     clearTimeout(searchTimer);
@@ -365,6 +430,7 @@
 
         if (config.changeSelectors) {
             $(config.changeSelectors).on('change', function () {
+                persistCurrentFilters();
                 if (shouldLoad()) {
                     load(1);
                 }
@@ -390,6 +456,9 @@
             clearTimeout(searchTimer);
             suppressFilterLoad = true;
             config.resetFields();
+            if (filterStore) {
+                filterStore.clear();
+            }
             suppressFilterLoad = false;
             load(1);
             return false;
@@ -397,11 +466,15 @@
 
         setTimeout(function () {
             filtersReady = true;
+            if (restoredPersistedFilters && config.loadOnRestore !== false) {
+                load(1);
+            }
         }, 200);
 
         return {
             load: load,
             queueLoad: queueLoad,
+            filterStore: filterStore,
             getTable: function () {
                 return table;
             }

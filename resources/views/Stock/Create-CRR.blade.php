@@ -533,7 +533,7 @@
             display: none !important;
         }
 
-        /* Transit type: show clear (×) on the right, before the arrow */
+        /* Carrier: show clear (×) on the right, before the arrow */
         .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__rendered {
             position: relative !important;
             padding-right: 44px !important;
@@ -1117,7 +1117,7 @@
                                                 </span>
                                                 <div>
                                                     <p class="create-crr-kicker">Stocks</p>
-                                                    <h1 class="create-crr-title">Create CRR</h1>
+                                                    <h1 class="create-crr-title">Create new stock</h1>
                                                     <p class="create-crr-sub">Register a new stock item with vessel, packages, and costs.</p>
                                                 </div>
                                             </div>
@@ -1144,7 +1144,7 @@
                                                 <!-- Column 1 -->
                                                 <div class="crr-col">
                                                     <div class="crr-pillar">
-                                                    <div class="crr-pillar__title">Vessel &amp; PO</div>
+                                                    <div class="crr-pillar__title">Vessel Details:</div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Vessel <span class="text-danger">*</span></label>
                                                         <select class="form-control select2-vessel" name="vessel_name" required>
@@ -1165,69 +1165,22 @@
                                                             name="vessels_customer_name" readonly class="crr-input">
                                                     </div>
                                                     <div class="crr-field-group">
-                                                        <label class="crr-label">PO numbers (Separate by commas or
-                                                            spaces)</label>
+                                                        <label class="crr-label">PO numbers</label>
                                                         <textarea class="crr-input" name="po_numbers" rows="3"
                                                             style="height: auto; min-height: 70px; resize: vertical;"></textarea>
                                                     </div>
                                                     <div class="crr-field-group">
-                                                        <label class="crr-label">PO remarks</label>
-                                                        <select class="form-control select2 select2-po-remarks" name="po_remarks">
-                                                            <option value=""></option>
-                                                            <option value="Awaiting supplier confirmation">Awaiting supplier confirmation</option>
-                                                            <option value="Backordered">Backordered</option>
-                                                            <option value="Cancelled by supplier">Cancelled by supplier</option>
-                                                            <option value="Consolidated shipment">Consolidated shipment</option>
-                                                            <option value="Delivery delayed">Delivery delayed</option>
-                                                            <option value="Delivery on hold">Delivery on hold</option>
-                                                            <option value="Incomplete delivery">Incomplete delivery</option>
-                                                            <option value="Incorrect item received">Incorrect item received</option>
-                                                            <option value="Partial delivery">Partial delivery</option>
-                                                            <option value="Priority shipment">Priority shipment</option>
-                                                            <option value="Short shipment">Short shipment</option>
-                                                            <option value="Split delivery">Split delivery</option>
-                                                            <option value="Urgent delivery required">Urgent delivery required</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="crr-field-group">
-                                                        <label class="crr-label">Content</label>
+                                                        <label class="crr-label">Description</label>
                                                         <input type="text" class="crr-input" name="content"
                                                             value="Ship spares">
                                                     </div>
                                                     <div class="crr-field-group">
-                                                        <label class="crr-label">First mile updates</label>
-                                                        <select class="form-control select2" name="first_mile_updates">
-                                                            <option></option>
-                                                            <option value="Emailed to supplier">Emailed to supplier</option>
-                                                            <option
-                                                                value="Emailed to supplier for missing commercial invoice">
-                                                                Emailed to supplier for missing commercial invoice</option>
-                                                            <option value="Reminder 1 for missing commercial invoice">
-                                                                Reminder 1
-                                                                for missing commercial invoice</option>
-                                                            <option value="Reminder 2 for missing commercial invoice">
-                                                                Reminder 2
-                                                                for missing commercial invoice</option>
-                                                            <option value="Reminder 1 sent to supplier">Reminder 1 sent to
-                                                                supplier</option>
-                                                            <option value="Reminder 2 sent to supplier">Reminder 2 sent to
-                                                                supplier</option>
-                                                            <option value="Reminder 3 sent to supplier; escalate">Reminder 3
-                                                                sent to supplier; escalate</option>
-                                                            <option value="Marked as pick-up">Marked as pick-up</option>
-                                                            <option value="No supplier email address">No supplier email
-                                                                address
-                                                            </option>
-                                                            <option value="No reply from supplier">No reply from supplier
-                                                            </option>
-                                                            <option value="Not delivered on time">Not delivered on time
-                                                            </option>
-                                                            <option value="Unknown supplier">Unknown supplier</option>
+                                                        <label class="crr-label">Status</label>
+                                                        <select class="form-control select2" name="status" id="crr_status">
+                                                            @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
+                                                                <option value="{{ $value }}" {{ (string) $value === (string) \App\Models\Crr::STATUS_NEW ? 'selected' : '' }}>{{ $label }}</option>
+                                                            @endforeach
                                                         </select>
-                                                    </div>
-                                                    <div class="crr-field-group">
-                                                        <label class="crr-label">First mile comment</label>
-                                                        <input type="text" class="crr-input" name="first_mile_comment">
                                                     </div>
                                                     </div>{{-- .crr-pillar --}}
                                                 </div>
@@ -1235,7 +1188,7 @@
                                                 <!-- Column 2 -->
                                                 <div class="crr-col">
                                                     <div class="crr-pillar">
-                                                    <div class="crr-pillar__title">Supplier &amp; delivery</div>
+                                                    <div class="crr-pillar__title">Supplier Details</div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Supplier <span class="text-danger">*</span></label>
                                                         <div id="supplier-select-wrapper">
@@ -1280,14 +1233,14 @@
                                                     <div class="row">
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label">Expected delivery date</label>
+                                                                <label class="crr-label">Arrival date</label>
                                                                 <input type="text" class="crr-input datepicker"
                                                                     name="expected_delivery_date" placeholder="YYYY-MM-DD">
                                                             </div>
                                                         </div>
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label" id="actual-delivery-date-label">Actual delivery date <span id="actual-delivery-required-mark" style="color:#dc3545; display:none;">*</span></label>
+                                                                <label class="crr-label" id="actual-delivery-date-label">Actual arrival date <span id="actual-delivery-required-mark" style="color:#dc3545; display:none;">*</span></label>
                                                                 <input type="text" class="crr-input datepicker" id="actual_delivery_date"
                                                                     name="actual_delivery_date" placeholder="YYYY-MM-DD">
                                                                 <div id="actual-delivery-validation-error" style="display:none; margin-top: 6px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 12px; position: relative; padding-right: 32px;">
@@ -1298,48 +1251,16 @@
                                                         </div>
                                                     </div>
                                                     <div class="crr-field-group">
-                                                        <label class="crr-label">Supplier reference</label>
-                                                        <input type="text" class="crr-input" name="supplier_reference">
-                                                    </div>
-                                                    <div class="crr-field-group">
                                                         <label class="crr-label">Deadline warehouse</label>
                                                         <input type="text" class="crr-input datepicker"
                                                             name="deadline_warehouse" placeholder="YYYY-MM-DD">
                                                     </div>
                                                     <div class="crr-field-group">
-                                                        <label class="crr-label">Internal shipment</label>
-                                                        <select class="form-control select2" name="internal_shipment">
-                                                            <option></option>
-                                                            <option value="ETL">ETL</option>
-                                                            <option value="KTL">KTL</option>
-                                                            <option value="RTL">RTL</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="crr-field-group">
-                                                        <label class="crr-label">Delivery irregularities</label>
+                                                        <label class="crr-label">Irregularities</label>
                                                         <select class="form-control select2-irregularities"
                                                             name="delivery_irregularities[]" >
                                                             <option value="No">No</option>
                                                             <option value="Yes">Yes</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="crr-field-group">
-                                                        <label class="crr-label">Incoterm</label>
-                                                        <select class="form-control select2-incoterm"
-                                                            name="incoterm" >
-                                                            <option value=""></option>
-                                                            <option value="CFR - Cost and Freight">CFR - Cost and Freight</option>
-                                                            <option value="CIF - Cost, Insurance and Freight">CIF - Cost, Insurance and Freight</option>
-                                                            <option value="CIP - Carriage and Insurance Paid To">CIP - Carriage and Insurance Paid To</option>
-                                                            <option value="CPT - Carriage Paid To">CPT - Carriage Paid To</option>
-                                                            <option value="DAP - Delivered at Place">DAP - Delivered at Place</option>
-                                                            <option value="DDP - Delivered Duty Paid">DDP - Delivered Duty Paid</option>
-                                                            <option value="DDU - Delivered Duty Unpaid">DDU - Delivered Duty Unpaid</option>
-                                                            <option value="DPU - Delivered at Place Unloaded">DPU - Delivered at Place Unloaded</option>
-                                                            <option value="EXW - Ex Works">EXW - Ex Works</option>
-                                                            <option value="FAS - Free Alongside Ship">FAS - Free Alongside Ship</option>
-                                                            <option value="FCA - Free Carrier">FCA - Free Carrier</option>
-                                                            <option value="FOB - Free On Board">FOB - Free On Board</option>
                                                         </select>
                                                     </div>
                                                     </div>{{-- .crr-pillar --}}
@@ -1348,7 +1269,7 @@
                                                 <!-- Column 3 -->
                                                 <div class="crr-col">
                                                     <div class="crr-pillar">
-                                                    <div class="crr-pillar__title">Hub &amp; customs</div>
+                                                    <div class="crr-pillar__title">Location Details</div>
                                                     <div class="crr-field-group">
                                                         <label class="crr-label">Hub/agent <span class="text-danger">*</span></label>
                                                         <select class="form-control select2-hub" name="hub_agent" required>
@@ -1383,8 +1304,8 @@
                                                     <div class="row">
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label">Transit type</label>
-                                                                <select class="form-control select2 select2-transit-type" name="transit_type" data-placeholder="Select transit type">
+                                                                <label class="crr-label">Carrier</label>
+                                                                <select class="form-control select2 select2-transit-type" name="transit_type" data-placeholder="Select carrier">
                                                                     <option value=""></option>
                                                                     <option value="AMAZON">AMAZON</option>
                                                                     <option value="AWB">AWB</option>
@@ -1399,7 +1320,6 @@
                                                                     <option value="FEDEX">FEDEX</option>
                                                                     <option value="GLS">GLS</option>
                                                                     <option value="MSX">MSX</option>
-                                                                    <option value="MT ref">MT ref</option>
                                                                     <option value="Other">Other</option>
                                                                     <option value="SF">SF</option>
                                                                     <option value="TNT">TNT</option>
@@ -1411,23 +1331,36 @@
                                                         </div>
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label">Transit ID</label>
+                                                                <label class="crr-label">Number</label>
                                                                 <input type="text" class="crr-input" name="transit_id">
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <div class="crr-field-group">
+                                                        <label class="crr-label">Receiver's remarks</label>
+                                                        <textarea class="form-control crr-input" name="internal_comments" rows="8"
+                                                            style="height: auto; min-height: 120px; resize: vertical;"></textarea>
+                                                    </div>
+                                                    </div>{{-- .crr-pillar --}}
+                                                </div>
+
+                                                <!-- Column 4 -->
+                                                <div class="crr-col">
+                                                    <div class="crr-pillar">
+                                                    <div class="crr-pillar__title">Customs Details</div>
                                                     <div class="crr-checkbox-group">
                                                         <input type="checkbox" id="bonded-goods" name="is_bonded_goods">
-                                                        <label for="bonded-goods" class="mb-0">Bonded goods</label>
+                                                        <label for="bonded-goods" class="mb-0">Bonded cargo</label>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label">Customs doc type</label>
+                                                                <label class="crr-label">Document type</label>
                                                                 <select class="form-control select2"
                                                                     name="customs_doc_type">
                                                                     <option></option>
                                                                     <option value="T1">T1</option>
+                                                                    <option value="eWay Bill">eWay Bill</option>
                                                                     <option value="EX-A">EX-A</option>
                                                                     <option value="ZGST">ZGST</option>
                                                                 </select>
@@ -1435,47 +1368,18 @@
                                                         </div>
                                                         <div class="col-sm-6">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label">Bonded date</label>
+                                                                <label class="crr-label">Date</label>
                                                                 <input type="text" class="crr-input datepicker"
                                                                     name="bonded_date" placeholder="YYYY-MM-DD">
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="row">
-                                                        <div class="col-sm-6">
+                                                        <div class="col-sm-12">
                                                             <div class="crr-field-group">
-                                                                <label class="crr-label">Customs doc reference</label>
+                                                                <label class="crr-label">Document number</label>
                                                                 <input type="text" class="crr-input"
                                                                     name="customs_doc_reference">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                            <div class="crr-field-group">
-                                                                <label class="crr-label">Customs lot number</label>
-                                                                <input type="text" class="crr-input"
-                                                                    name="customs_lot_number">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-sm-6">
-                                                            <div class="crr-field-group">
-                                                                <label class="crr-label">Country of origin</label>
-                                                                <x-forms.country-select
-                                                                    name="country_of_origin"
-                                                                    :countries="$countries"
-                                                                    valueKey="name"
-                                                                    wrapperClass=""
-                                                                    class="form-control"
-                                                                    placeholder="Select country"
-                                                                    :allowClear="true"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                            <div class="crr-field-group">
-                                                                <label class="crr-label">HS code</label>
-                                                                <input type="text" class="crr-input" name="hs_code">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1503,50 +1407,15 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="row">
-                                                        <div class="col-sm-6">
-                                                            <div class="crr-field-group">
-                                                                <label class="crr-label">Priority</label>
-                                                                <select class="form-control select2" name="priority">
-                                                                    <option></option>
-                                                                    <option value="Low">Low</option>
-                                                                    <option value="Normal">Normal</option>
-                                                                    <option value="Urgent">Urgent</option>
-                                                                    <option value="Prevent offhire">Prevent offhire</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                            <div class="crr-field-group">
-                                                                <label class="crr-label">Customs value USD</label>
-                                                                <div class="crr-value-display">0.00</div>
-                                                                <input type="hidden" name="customs_value_usd"
-                                                                    id="customs_value_usd_hidden" value="0">
-                                                            </div>
-                                                        </div>
+                                                    <div class="crr-field-group">
+                                                        <label class="crr-label">Customs value USD</label>
+                                                        <div class="crr-value-display">0.00</div>
+                                                        <input type="hidden" name="customs_value_usd"
+                                                            id="customs_value_usd_hidden" value="0">
                                                     </div>
                                                     </div>{{-- .crr-pillar --}}
                                                 </div>
 
-                                                <!-- Column 4 -->
-                                                <div class="crr-col">
-                                                    <div class="crr-pillar">
-                                                    <div class="crr-pillar__title">Status &amp; notes</div>
-                                                    <div class="crr-field-group">
-                                                        <label class="crr-label">Status</label>
-                                                        <select class="form-control select2" name="status" id="crr_status">
-                                                            @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
-                                                                <option value="{{ $value }}" {{ (string) $value === (string) \App\Models\Crr::STATUS_NEW ? 'selected' : '' }}>{{ $label }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                    <div class="crr-field-group">
-                                                        <label class="crr-label">Internal comments</label>
-                                                        <textarea class="form-control crr-input" name="internal_comments" rows="8"
-                                                            style="height: auto; min-height: 120px; resize: vertical;"></textarea>
-                                                    </div>
-                                                    </div>{{-- .crr-pillar --}}
-                                                </div>
                                             </div>
 
                                             <!-- Packages Table -->
@@ -1593,7 +1462,7 @@
                                             </div>{{-- .crr-section-shell packages --}}
 
                                             <!-- Costs Table -->
-                                            <div class="crr-section-shell">
+                                            <div class="crr-section-shell" data-section="costs" hidden>
                                             <div class="crr-table-header">Costs</div>
                                             <div class="table-responsive">
                                                 <table class="crr-data-table" id="costsTable">
@@ -2046,17 +1915,11 @@
             }
 
             $('.select2-transit-type').select2({
-                placeholder: 'Select transit type',
+                placeholder: 'Select carrier',
                 allowClear: true,
                 width: '100%'
             }).each(function () {
                 $(this).next('.select2-container').addClass('select2-transit-type-container');
-            });
-
-            $('.select2-incoterm').select2({
-                placeholder: 'Select incoterm',
-                allowClear: true,
-                width: '100%'
             });
 
             // Initialize Delivery Irregularities select2 (multi-select with fixed height)
@@ -2210,7 +2073,7 @@
                                                                                                                                                                                                  <div class="dgr-container" style="background: #fff9e6; border: 1px solid #ffeeba;">
                                                                                                                                                                                                      <i class="icofont icofont-warning dgr-warning-icon" style="color: #f0ad4e;"></i>
                                                                                                                                                                                                      <div class="dgr-field" style="flex: 1;">
-                                                                                                                                                                                                         <label class="crr-label">Delivery irregularities</label>
+                                                                                                                                                                                                         <label class="crr-label">Irregularities</label>
                                                                                                                                                                                                          <select class="form-control select2-irregularities" name="packages[${packageIndex}][delivery_irregularities][]" multiple="multiple">
                                                                                                                                                                                                              <option value="Damaged packaging - no repacking required">Damaged packaging - no repacking required</option>
                                                                                                                                                                                                              <option value="Damaged packaging - repacking required">Damaged packaging - repacking required</option>
@@ -2785,7 +2648,7 @@
                 });
             });
 
-            // Require package details + Actual delivery date when status is Stock
+            // Require package details + Actual arrival date when status is Stock
             var STOCK_STATUS = {{ \App\Models\Crr::STATUS_ACTIVE }};
 
             function toggleActualDeliveryRequired() {
@@ -2933,7 +2796,7 @@
                 if (String($('#crr_status').val()) === String(STOCK_STATUS) && !$.trim(String($actualDelivery.val() || ''))) {
                     e.preventDefault();
                     $actualDelivery.css('border-color', '#dc3545');
-                    $actualErrorText.text('Actual delivery date is required when status is Stock.');
+                    $actualErrorText.text('Actual arrival date is required when status is Stock.');
                     $actualErrorBox.show();
                     $('html, body').animate({
                         scrollTop: $actualDelivery.offset().top - 100

@@ -23,7 +23,7 @@
             display: none !important;
         }
 
-        /* Transit type: show clear (×) on the right, before the arrow */
+        /* Carrier: show clear (×) on the right, before the arrow */
         .select2-transit-type-container.select2-container--default .select2-selection--single .select2-selection__rendered {
             position: relative !important;
             padding-right: 44px !important;
@@ -626,13 +626,15 @@
             letter-spacing: 0.02em;
         }
 
-        .meta-value-with-icon {
+        .meta-value-with-icon,
+        .summary-value-with-icon {
             display: inline-flex;
             align-items: center;
             gap: 6px;
         }
 
-        .meta-value-with-icon .meta-cal-icon {
+        .meta-value-with-icon .meta-cal-icon,
+        .summary-value-with-icon .meta-cal-icon {
             color: #008080;
             font-size: 12px;
             opacity: 0.95;
@@ -1067,6 +1069,21 @@
             overflow-x: hidden;
         }
 
+        .stock-right-panel > #crr-overview-panel {
+            flex: 0 0 auto;
+        }
+
+        .stock-summary-sidebar-card .summary-info-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .stock-summary-sidebar-card .summary-item {
+            width: 100%;
+            background: linear-gradient(180deg, rgba(248, 252, 255, 0.98), rgba(241, 245, 249, 0.95));
+        }
+
         /* Documents + Activity share column height; dropzone always visible */
         .stock-right-panel > #crr-documents-panel {
             flex: 1 1 46%;
@@ -1080,9 +1097,7 @@
         }
 
         .stock-right-panel .panel-title,
-        .stock-right-panel .crr-docs-header,
-        .stock-right-panel .panel-tabs,
-        .stock-right-panel > #crr-activity-panel > .panel-tabs {
+        .stock-right-panel .crr-docs-header {
             flex-shrink: 0;
         }
 
@@ -1274,41 +1289,8 @@
             font-weight: 500;
         }
 
-        /* Activity tabs */
-        .panel-tabs {
-            display: flex;
-            gap: 2px;
-            padding: 0 4px;
-            background: linear-gradient(180deg, #f8fafc, #fff);
-            border-bottom: 1px solid #e8edf2;
-            flex-shrink: 0;
-        }
-
-        .stock-right-panel .panel-tab {
-            flex: 1;
-            text-align: center;
-            padding: 12px 6px;
-            font-size: 12px !important;
-            font-weight: 700;
-            color: #94a3b8;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: color 0.15s ease, border-color 0.15s ease;
-            white-space: nowrap;
-        }
-
-        .stock-right-panel .panel-tab:hover {
-            color: #008080;
-        }
-
-        .stock-right-panel .panel-tab.active {
-            color: #0e1d4a !important;
-            border-bottom-color: #00aeef !important;
-            font-weight: 800;
-        }
-
         #crr-activity-panel {
-            padding: 0 !important;
+            padding: 14px 12px !important;
             overflow: hidden;
         }
 
@@ -1317,7 +1299,7 @@
         }
 
         #crr-activity-panel .panel-tab-content {
-            padding: 12px 14px;
+            padding: 0;
         }
 
         .change-log-item {
@@ -2479,10 +2461,8 @@
             padding: 14px 12px !important;
         }
 
-        /* Activity card keeps flush tabs (inline padding: 0) */
         .stock-right-panel .panel-card[style*="padding: 0"],
-        .stock-right-panel .panel-card[style*="padding:0"],
-        #crr-activity-panel {
+        .stock-right-panel .panel-card[style*="padding:0"] {
             padding: 0 !important;
         }
 
@@ -2503,6 +2483,94 @@
         .panel-title__count {
             background: #e8f6fc !important;
             color: #0088c7 !important;
+        }
+
+        .panel-title--toggle {
+            width: 100% !important;
+            border: 0 !important;
+            background: transparent !important;
+            text-align: left !important;
+            cursor: pointer !important;
+            appearance: none !important;
+            font: inherit !important;
+        }
+
+        .panel-title__main {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            min-width: 0 !important;
+        }
+
+        .panel-title__toggle-icon {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 24px !important;
+            height: 24px !important;
+            border-radius: 999px !important;
+            background: #f1f5f9 !important;
+            color: #0e1d4a !important;
+            transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease !important;
+            flex-shrink: 0 !important;
+        }
+
+        .panel-title--toggle:hover .panel-title__toggle-icon,
+        .panel-title--toggle:focus-visible .panel-title__toggle-icon {
+            background: #e8f6fc !important;
+            color: #0088c7 !important;
+        }
+
+        .panel-title--toggle:focus-visible {
+            outline: 2px solid rgba(0, 174, 239, 0.35) !important;
+            outline-offset: 2px !important;
+        }
+
+        .panel-card__body {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        #crr-documents-panel .panel-card__body {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        #crr-documents-panel .panel-card__body-stack {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 0 !important;
+            height: 100% !important;
+        }
+
+        .panel-card.is-collapsed {
+            flex: 0 0 auto !important;
+            min-height: 0 !important;
+        }
+
+        .stock-right-panel > #crr-documents-panel.is-collapsed,
+        .stock-right-panel > #crr-activity-panel.is-collapsed {
+            flex: 0 0 auto !important;
+            min-height: 0 !important;
+            height: auto !important;
+            max-height: none !important;
+        }
+
+        #crr-documents-panel.is-collapsed .panel-card__body,
+        #crr-activity-panel.is-collapsed .panel-card__body {
+            flex: 0 0 auto !important;
+        }
+
+        .panel-card.is-collapsed .panel-title {
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+            border-bottom: 0 !important;
+        }
+
+        .panel-card.is-collapsed .panel-title__toggle-icon {
+            transform: rotate(-180deg) !important;
         }
 
         .dropzone-placeholder {
@@ -2533,11 +2601,6 @@
         .doc-name {
             color: #008080 !important;
             font-weight: 700 !important;
-        }
-
-        .stock-right-panel .panel-tab.active {
-            color: #0e1d4a !important;
-            border-bottom-color: #00aeef !important;
         }
 
         .select2-container--default .select2-results__option--highlighted[aria-selected] {
@@ -2604,11 +2667,6 @@
                 max-height: none !important;
                 overflow: visible !important;
                 overflow-y: visible !important;
-            }
-
-            #line-items.stock-tab-content,
-            #irregularities.stock-tab-content {
-                padding: 12px !important;
             }
 
             .stock-form-scroll {
@@ -2901,23 +2959,6 @@
                                                     <span class="meta-value meta-value-primary">{{ $crr->stock_number }}</span>
                                             </div>
                                                 <div class="meta-item">
-                                                    <span class="meta-label">Registration date</span>
-                                                    <span class="meta-value meta-value-with-icon">
-                                                        <i class="ti-calendar meta-cal-icon" aria-hidden="true"></i>
-                                                        <span>{{ $crr->created_at->format('d.m.Y') }}</span>
-                                                    </span>
-                                            </div>
-                                                <div class="meta-item">
-                                                    <span class="meta-label">Registered by</span>
-                                                    <span class="meta-value text-primary">{{ $crr->registeredBy?->name ?? '—' }}</span>
-                                            </div>
-                                                <div class="meta-item">
-                                                    <span class="meta-label">Account manager</span>
-                                                    <span class="meta-value text-primary" id="summary-account-manager">
-                                                        {{ $crr->customerVessel?->customer?->responsible?->accountManager?->name ?? '—' }}
-                                                    </span>
-                                            </div>
-                                                <div class="meta-item">
                                                     <span class="meta-label">Flags</span>
                                                     <div class="header-inline-edit" id="flags-edit-container">
                                                         <div class="header-inline-display flags-display">
@@ -2951,7 +2992,7 @@
                                                             <i class="ti-pencil-alt" style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
                                                         </div>
                                                         <div class="header-inline-select status-select-wrapper" style="display: none; min-width: 150px;">
-                                                        <select class="select2-status-inline" name="status">
+                                                        <select class="select2-status-inline" data-status-editor="header">
                                                             @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
                                                                 <option value="{{ $value }}" {{ $crr->status == $value ? 'selected' : '' }}>{{ $label }}</option>
                                                             @endforeach
@@ -2981,20 +3022,30 @@
                                     <div class="stock-tabs-container">
                                         <div class="stock-tabs">
                                             <div class="stock-tab active" data-tab="stock-details">Stock details</div>
-                                            <div class="stock-tab" data-tab="line-items">Line items</div>
-                                            <div class="stock-tab" data-tab="irregularities">Irregularities</div>
                                         </div>
                                     </div>
 
                                     <!-- Main Form Content -->
                                     <div id="stock-details" class="stock-tab-content active">
                                         <div class="stock-form-scroll">
+                                            <input type="hidden" name="po_remarks" value="{{ $crr->po_remarks }}">
+                                            <input type="hidden" name="first_mile_updates" value="{{ $crr->first_mile_updates }}">
+                                            <input type="hidden" name="first_mile_comment" value="{{ $crr->first_mile_comment }}">
+                                            <input type="hidden" name="supplier_reference" value="{{ $crr->supplier_reference }}">
+                                            <input type="hidden" name="internal_shipment" value="{{ $crr->internal_shipment }}">
+                                            <input type="hidden" name="incoterm" value="{{ $crr->incoterm }}">
+                                            <input type="hidden" name="customs_lot_number" value="{{ $crr->customs_lot_number }}">
+                                            <input type="hidden" name="country_of_origin" value="{{ $crr->country_of_origin }}">
+                                            <input type="hidden" name="hs_code" value="{{ $crr->hs_code }}">
+                                            <input type="hidden" name="priority" value="{{ $crr->priority }}">
+
                                             <div class="edit-form-row crr-pillars">
                                                 <!-- Column 1 -->
                                                 <div class="edit-form-col">
                                                     <div class="crr-pillar">
-                                                    <div class="crr-pillar__title">Vessel &amp; PO</div>
+                                                    <div class="crr-pillar__title">Vessel Details:</div>
                                                     <div class="field-group">
+                                                        <label class="field-label">Vessel <span class="text-danger">*</span></label>
                                                         <select class="field-input select2-vessel" name="vessel_name">
                                                             <option value=""></option>
                                                             @foreach($vessels as $vessel)
@@ -3020,77 +3071,24 @@
                                                     </div>
 
                                                     <div class="field-group">
-                                                        <label class="field-label">PO numbers (Separate by commas or
-                                                            spaces)</label>
+                                                        <label class="field-label">PO numbers</label>
                                                         <textarea class="field-input" name="po_numbers" rows="3"
                                                             style="height: auto; min-height: 70px; resize: vertical;">{{ is_array($crr->po_numbers) ? implode(', ', $crr->po_numbers) : ($crr->po_numbers ?? '') }}</textarea>
                                                     </div>
 
                                                     <div class="field-group">
-                                                        <label class="field-label">PO remarks</label>
-                                                        <select class="field-input select2" name="po_remarks">
-                                                            <option value=""></option>
-                                                            @php
-                                                                $poRemarksOptions = [
-                                                                    "Awaiting supplier confirmation",
-                                                                    "Backordered",
-                                                                    "Cancelled by supplier",
-                                                                    "Consolidated shipment",
-                                                                    "Delivery delayed",
-                                                                    "Delivery on hold",
-                                                                    "Incomplete delivery",
-                                                                    "Incorrect item received",
-                                                                    "Partial delivery",
-                                                                    "Priority shipment",
-                                                                    "Short shipment",
-                                                                    "Split delivery",
-                                                                    "Urgent delivery required",
-                                                                ];
-                                                            @endphp
-                                                            @foreach($poRemarksOptions as $opt)
-                                                                <option value="{{ $opt }}" {{ $crr->po_remarks == $opt ? 'selected' : '' }}>{{ $opt }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-
-                                                    <div class="field-group">
-                                                        <label class="field-label">Content</label>
+                                                        <label class="field-label">Description</label>
                                                         <input type="text" class="field-input" name="content"
                                                             value="{{ $crr->content }}">
                                                     </div>
 
                                                     <div class="field-group">
-                                                        <label class="field-label">First mile updates</label>
-                                                        <select class="field-input select2" name="first_mile_updates">
-                                                            <option></option>
-                                                            @php
-                                                                $mileUpdates = [
-                                                                    "Emailed to supplier",
-                                                                    "Emailed to supplier for missing commercial invoice",
-                                                                    "Reminder 1 for missing commercial invoice",
-                                                                    "Reminder 2 for missing commercial invoice",
-                                                                    "Reminder 1 sent to supplier",
-                                                                    "Reminder 2 sent to supplier",
-                                                                    "Reminder 3 sent to supplier; escalate",
-                                                                    "Marked as pick-up",
-                                                                    "No supplier email address",
-                                                                    "No reply from supplier",
-                                                                    "Not delivered on time",
-                                                                    "Unknown supplier"
-                                                                ];
-                                                            @endphp
-                                                            @foreach($mileUpdates as $update)
-                                                                <option value="{{ $update }}" {{ $crr->first_mile_updates == $update ? 'selected' : '' }}>
-                                                                    {{ $update }}
-                                                                </option>
+                                                        <label class="field-label">Status</label>
+                                                        <select class="field-input select2" name="status" id="edit_crr_status">
+                                                            @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
+                                                                <option value="{{ $value }}" {{ (string) $crr->status === (string) $value ? 'selected' : '' }}>{{ $label }}</option>
                                                             @endforeach
                                                         </select>
-                                                    </div>
-
-                                                    <div class="field-group">
-                                                        <label class="field-label">First mile comment</label>
-                                                        <input type="text" class="field-input" name="first_mile_comment"
-                                                            value="{{ $crr->first_mile_comment }}">
                                                     </div>
                                                     </div>{{-- .crr-pillar --}}
                                                 </div>
@@ -3098,8 +3096,9 @@
                                                 <!-- Column 2 -->
                                                 <div class="edit-form-col">
                                                     <div class="crr-pillar">
-                                                    <div class="crr-pillar__title">Supplier &amp; delivery</div>
+                                                    <div class="crr-pillar__title">Supplier Details</div>
                                                     <div class="field-group">
+                                                        <label class="field-label">Supplier <span class="text-danger">*</span></label>
                                                         <div id="supplier-select-wrapper" {!! $crr->is_landed_goods ? 'style="display: none;"' : '' !!}>
                                                             <select class="field-input select2-supplier" name="supplier"
                                                                 id="supplier-select" {!! $crr->is_landed_goods ? 'disabled' : '' !!}>
@@ -3122,10 +3121,36 @@
                                                         </div>
                                                     </div>
 
+                                                    <div class="field-group">
+                                                        <div style="display: flex; gap: 8px; align-items: center;">
+                                                            <input type="checkbox" id="landed-goods-check"
+                                                                name="is_landed_goods" {{ $crr->is_landed_goods ? 'checked' : '' }}>
+                                                            <label for="landed-goods-check" class="field-label mb-0"
+                                                                style="color: #475569;">Landed goods</label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div id="landed-vessel-wrapper" class="mt-2" {!! $crr->is_landed_goods ? '' : 'style="display: none;"' !!}>
+                                                        <div class="field-group">
+                                                            <label class="field-label">Landed from vessel</label>
+                                                            <select class="field-input select2-vessel"
+                                                                name="landed_from_vessel" id="landed-from-vessel">
+                                                                <option value=""></option>
+                                                                @foreach($vessels as $vessel)
+                                                                    <option value="{{ $vessel->vessel }}"
+                                                                        data-customer="{{ optional($vessel->customer)->customer_name }}"
+                                                                        {{ $crr->landed_from_vessel == $vessel->vessel ? 'selected' : '' }}>
+                                                                        {{ $vessel->vessel }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
                                                     <div class="row">
                                                         <div class="col-sm-6">
                                                             <div class="field-group">
-                                                                <label class="field-label">Expected delivery date</label>
+                                                                <label class="field-label">Arrival date</label>
                                                                 <div class="icon-input-wrapper">
                                                                     <input type="text" class="field-input datepicker"
                                                                         name="expected_delivery_date"
@@ -3137,114 +3162,40 @@
                                                         </div>
                                                         <div class="col-sm-6">
                                                             <div class="field-group">
-                                                                <label class="field-label">Actual delivery date</label>
+                                                                <label class="field-label">Actual arrival date <span id="edit-actual-delivery-required-mark" class="text-danger" style="display: none;">*</span></label>
                                                                 <div class="icon-input-wrapper">
                                                                     <input type="text" class="field-input datepicker"
+                                                                        id="edit_actual_delivery_date"
                                                                         name="actual_delivery_date"
                                                                         value="{{ $crr->actual_delivery_date }}"
                                                                         placeholder="YYYY-MM-DD">
                                                                     <i class="fa fa-calendar"></i>
                                                                 </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="field-group">
-                                                        <label class="field-label">Supplier reference</label>
-                                                        <input type="text" class="field-input" name="supplier_reference"
-                                                            value="{{ $crr->supplier_reference }}">
-                                                    </div>
-
-                                                    <div class="row">
-                                                        <div class="col-sm-6">
-                                                            <div class="field-group">
-                                                                <label class="field-label">Deadline warehouse</label>
-                                                                <div class="icon-input-wrapper">
-                                                                    <input type="text" class="field-input datepicker"
-                                                                        name="deadline_warehouse"
-                                                                        value="{{ $crr->deadline_warehouse }}"
-                                                                        placeholder="YYYY-MM-DD">
-                                                                    <i class="fa fa-calendar"></i>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                            <div class="field-group"
-                                                                style="margin-top: 25px; display: none;">
-                                                                <div style="display: flex; gap: 8px; align-items: center;">
-                                                                    <input type="checkbox" id="landed-goods-check"
-                                                                        name="is_landed_goods" {{ $crr->is_landed_goods ? 'checked' : '' }}>
-                                                                    <label for="landed-goods-check" class="field-label mb-0"
-                                                                        style="color: #475569;">Landed goods</label>
-                                                                </div>
-                                                            </div>
-                                                            <div id="landed-vessel-wrapper" class="mt-2" {!! $crr->is_landed_goods ? '' : 'style="display: none;"' !!}>
-                                                                <div class="field-group">
-                                                                    <label class="field-label">Landed from vessel</label>
-                                                                    <select class="field-input select2-vessel"
-                                                                        name="landed_from_vessel" id="landed-from-vessel">
-                                                                        <option value=""></option>
-                                                                        @foreach($vessels as $vessel)
-                                                                            <option value="{{ $vessel->vessel }}"
-                                                                                data-customer="{{ optional($vessel->customer)->customer_name }}"
-                                                                                {{ $crr->landed_from_vessel == $vessel->vessel ? 'selected' : '' }}>
-                                                                                {{ $vessel->vessel }}
-                                                                            </option>
-                                                                        @endforeach
-                                                                    </select>
+                                                                <div id="actual-delivery-validation-error" style="display:none; margin-top: 6px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 12px; position: relative; padding-right: 32px;">
+                                                                    <span id="actual-delivery-validation-error-text"></span>
+                                                                    <button type="button" id="actual-delivery-validation-error-close" title="Close" aria-label="Close" style="position: absolute; top: 6px; right: 8px; border: none; background: transparent; color: #b91c1c; font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 4px;">&times;</button>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     <div class="field-group">
-                                                        <label class="field-label">Internal shipment</label>
-                                                        <select class="field-input select2" name="internal_shipment">
-                                                            <option></option>
-                                                            @php
-                                                                $internalShipment = (string) ($crr->internal_shipment ?? '');
-                                                                $internalShipmentCodes = ['ETL', 'KTL', 'RTL'];
-                                                                $isLinkedShipmentNumber = $internalShipment !== ''
-                                                                    && ! in_array(strtoupper($internalShipment), $internalShipmentCodes, true);
-                                                            @endphp
-                                                            @if ($isLinkedShipmentNumber)
-                                                                <option value="{{ $internalShipment }}" selected>{{ $internalShipment }}</option>
-                                                            @endif
-                                                            <option value="ETL" {{ $internalShipment == 'ETL' ? 'selected' : '' }}>ETL</option>
-                                                            <option value="KTL" {{ $internalShipment == 'KTL' ? 'selected' : '' }}>KTL</option>
-                                                            <option value="RTL" {{ $internalShipment == 'RTL' ? 'selected' : '' }}>RTL</option>
-                                                        </select>
+                                                        <label class="field-label">Deadline warehouse</label>
+                                                        <div class="icon-input-wrapper">
+                                                            <input type="text" class="field-input datepicker"
+                                                                name="deadline_warehouse"
+                                                                value="{{ $crr->deadline_warehouse }}"
+                                                                placeholder="YYYY-MM-DD">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
                                                     </div>
 
                                                     <div class="field-group">
-                                                        <label class="field-label">Delivery Irregularities</label>
+                                                        <label class="field-label">Irregularities</label>
                                                         <select class="field-input select2 select2-irregularities"
                                                             name="delivery_irregularities[]">
                                                             <option value="Yes" {{ is_array($crr->delivery_irregularities) && in_array('Yes', $crr->delivery_irregularities) ? 'selected' : '' }}>Yes</option>
                                                             <option value="No" {{ is_array($crr->delivery_irregularities) && in_array('No', $crr->delivery_irregularities) ? 'selected' : '' }}>No</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <div class="field-group">
-                                                        <label class="field-label">Incoterm</label>
-                                                        <select class="field-input select2-incoterm" name="incoterm">
-                                                            <option value=""></option>
-                                                            @foreach([
-                                                                'CFR - Cost and Freight',
-                                                                'CIF - Cost, Insurance and Freight',
-                                                                'CIP - Carriage and Insurance Paid To',
-                                                                'CPT - Carriage Paid To',
-                                                                'DAP - Delivered at Place',
-                                                                'DDP - Delivered Duty Paid',
-                                                                'DDU - Delivered Duty Unpaid',
-                                                                'DPU - Delivered at Place Unloaded',
-                                                                'EXW - Ex Works',
-                                                                'FAS - Free Alongside Ship',
-                                                                'FCA - Free Carrier',
-                                                                'FOB - Free On Board',
-                                                            ] as $incoterm)
-                                                                <option value="{{ $incoterm }}" {{ $crr->incoterm === $incoterm ? 'selected' : '' }}>{{ $incoterm }}</option>
-                                                            @endforeach
                                                         </select>
                                                     </div>
                                                     </div>{{-- .crr-pillar --}}
@@ -3253,8 +3204,9 @@
                                                 <!-- Column 3 -->
                                                 <div class="edit-form-col">
                                                     <div class="crr-pillar">
-                                                    <div class="crr-pillar__title">Hub &amp; customs</div>
+                                                    <div class="crr-pillar__title">Location Details</div>
                                                     <div class="field-group">
+                                                        <label class="field-label">Hub/agent <span class="text-danger">*</span></label>
                                                         <select class="field-input select2-hub" name="hub_agent">
                                                             <option></option>
                                                             <optgroup label="Hubs">
@@ -3287,70 +3239,74 @@
                                                     <div class="row">
                                                         <div class="col-sm-6">
                                                             <div class="field-group">
-                                                                <label class="field-label">Transit type</label>
-                                                                <select class="field-input select2 select2-transit-type" name="transit_type" data-placeholder="Select transit type">
+                                                                <label class="field-label">Carrier</label>
+                                                                @php
+                                                                    $transitTypeOptions = ['AMAZON', 'AWB', 'B/L', 'CADO', 'CMR', 'DHL', 'DHL E+', 'DPD', 'DSC', 'DSV', 'FEDEX', 'GLS', 'MSX', 'Other', 'SF', 'TNT', 'UPS', 'USPS', 'VIVAR'];
+                                                                    $selectedTransitType = (string) ($crr->transit_type ?? '');
+                                                                @endphp
+                                                                <select class="field-input select2 select2-transit-type" name="transit_type" data-placeholder="Select carrier">
                                                                     <option value=""></option>
-                                                                    <option value="AMAZON" {{ $crr->transit_type == 'AMAZON' ? 'selected' : '' }}>AMAZON</option>
-                                                                    <option value="AWB" {{ $crr->transit_type == 'AWB' ? 'selected' : '' }}>AWB</option>
-                                                                    <option value="B/L" {{ $crr->transit_type == 'B/L' ? 'selected' : '' }}>B/L</option>
-                                                                    <option value="CADO" {{ $crr->transit_type == 'CADO' ? 'selected' : '' }}>CADO</option>
-                                                                    <option value="CMR" {{ $crr->transit_type == 'CMR' ? 'selected' : '' }}>CMR</option>
-                                                                    <option value="DHL" {{ $crr->transit_type == 'DHL' ? 'selected' : '' }}>DHL</option>
-                                                                    <option value="DHL E+" {{ $crr->transit_type == 'DHL E+' ? 'selected' : '' }}>DHL E+</option>
-                                                                    <option value="DPD" {{ $crr->transit_type == 'DPD' ? 'selected' : '' }}>DPD</option>
-                                                                    <option value="DSC" {{ $crr->transit_type == 'DSC' ? 'selected' : '' }}>DSC</option>
-                                                                    <option value="DSV" {{ $crr->transit_type == 'DSV' ? 'selected' : '' }}>DSV</option>
-                                                                    <option value="FEDEX" {{ $crr->transit_type == 'FEDEX' ? 'selected' : '' }}>FEDEX</option>
-                                                                    <option value="GLS" {{ $crr->transit_type == 'GLS' ? 'selected' : '' }}>GLS</option>
-                                                                    <option value="MSX" {{ $crr->transit_type == 'MSX' ? 'selected' : '' }}>MSX</option>
-                                                                    <option value="MT ref" {{ $crr->transit_type == 'MT ref' ? 'selected' : '' }}>MT ref</option>
-                                                                    <option value="Other" {{ $crr->transit_type == 'Other' ? 'selected' : '' }}>Other</option>
-                                                                    <option value="SF" {{ $crr->transit_type == 'SF' ? 'selected' : '' }}>SF</option>
-                                                                    <option value="TNT" {{ $crr->transit_type == 'TNT' ? 'selected' : '' }}>TNT</option>
-                                                                    <option value="UPS" {{ $crr->transit_type == 'UPS' ? 'selected' : '' }}>UPS</option>
-                                                                    <option value="USPS" {{ $crr->transit_type == 'USPS' ? 'selected' : '' }}>USPS</option>
-                                                                    <option value="VIVAR" {{ $crr->transit_type == 'VIVAR' ? 'selected' : '' }}>VIVAR</option>
+                                                                    @if($selectedTransitType !== '' && !in_array($selectedTransitType, $transitTypeOptions, true))
+                                                                        <option value="{{ $selectedTransitType }}" selected hidden>{{ $selectedTransitType }}</option>
+                                                                    @endif
+                                                                    @foreach($transitTypeOptions as $transitType)
+                                                                        <option value="{{ $transitType }}" {{ $selectedTransitType === $transitType ? 'selected' : '' }}>{{ $transitType }}</option>
+                                                                    @endforeach
                                                                 </select>
                                                             </div>
                                                         </div>
                                                         <div class="col-sm-6">
                                                             <div class="field-group">
-                                                                <label class="field-label">Transit ID</label>
+                                                                <label class="field-label">Number</label>
                                                                 <input type="text" class="field-input" name="transit_id"
                                                                     value="{{ $crr->transit_id }}">
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    <div class="row">
-                                                        <div class="col-sm-6">
-                                                            <div class="field-group" style="margin-top: 10px;">
-                                                                <div style="display: flex; gap: 8px; align-items: center;">
-                                                                    <input type="checkbox" id="bonded-goods-check"
-                                                                        name="is_bonded_goods" {{ $crr->is_bonded_goods ? 'checked' : '' }}>
-                                                                    <label for="bonded-goods-check" class="field-label mb-0"
-                                                                        style="color: #475569;">Bonded goods</label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                            <div class="field-group">
-                                                                <label class="field-label">Customs doc type</label>
-                                                                <select class="field-input select2" name="customs_doc_type">
-                                                                    <option value=""></option>
-                                                                    <option value="T1" {{ $crr->customs_doc_type == 'T1' ? 'selected' : '' }}>T1</option>
-                                                                    <option value="T2" {{ $crr->customs_doc_type == 'T2' ? 'selected' : '' }}>T2</option>
-                                                                    <option value="IMA" {{ $crr->customs_doc_type == 'IMA' ? 'selected' : '' }}>IMA</option>
-                                                                    <option value="EXA" {{ $crr->customs_doc_type == 'EXA' ? 'selected' : '' }}>EXA</option>
-                                                                </select>
-                                                            </div>
+                                                    <div class="field-group">
+                                                        <label class="field-label">Receiver's remarks</label>
+                                                        <textarea class="field-input" name="internal_comments" rows="8"
+                                                            style="height: auto; min-height: 120px; resize: vertical;">{{ $crr->internal_comments }}</textarea>
+                                                    </div>
+                                                    </div>{{-- .crr-pillar --}}
+                                                </div>
+
+                                                <!-- Column 4 -->
+                                                <div class="edit-form-col">
+                                                    <div class="crr-pillar">
+                                                    <div class="crr-pillar__title">Customs Details</div>
+                                                    <div class="field-group">
+                                                        <div style="display: flex; gap: 8px; align-items: center;">
+                                                            <input type="checkbox" id="bonded-goods-check"
+                                                                name="is_bonded_goods" {{ $crr->is_bonded_goods ? 'checked' : '' }}>
+                                                            <label for="bonded-goods-check" class="field-label mb-0"
+                                                                style="color: #475569;">Bonded cargo</label>
                                                         </div>
                                                     </div>
 
                                                     <div class="row">
                                                         <div class="col-sm-6">
                                                             <div class="field-group">
-                                                                <label class="field-label">Bonded date</label>
+                                                                <label class="field-label">Document type</label>
+                                                                @php
+                                                                    $documentTypeOptions = ['T1', 'eWay Bill', 'EX-A', 'ZGST'];
+                                                                    $selectedDocumentType = (string) ($crr->customs_doc_type ?? '');
+                                                                @endphp
+                                                                <select class="field-input select2" name="customs_doc_type">
+                                                                    <option value=""></option>
+                                                                    @if($selectedDocumentType !== '' && !in_array($selectedDocumentType, $documentTypeOptions, true))
+                                                                        <option value="{{ $selectedDocumentType }}" selected hidden>{{ $selectedDocumentType }}</option>
+                                                                    @endif
+                                                                    @foreach($documentTypeOptions as $documentType)
+                                                                        <option value="{{ $documentType }}" {{ $selectedDocumentType === $documentType ? 'selected' : '' }}>{{ $documentType }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <div class="field-group">
+                                                                <label class="field-label">Date</label>
                                                                 <div class="icon-input-wrapper">
                                                                     <input type="text" class="field-input datepicker"
                                                                         name="bonded_date" value="{{ $crr->bonded_date }}"
@@ -3359,45 +3315,21 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-sm-6">
-                                                            <div class="field-group" id="country-of-origin-host">
-                                                                <label class="field-label">Country of origin</label>
-                                                                <x-forms.country-select
-                                                                    name="country_of_origin"
-                                                                    :countries="$countries"
-                                                                    :value="$crr->country_of_origin"
-                                                                    valueKey="name"
-                                                                    wrapperClass=""
-                                                                    class="field-input"
-                                                                    placeholder="Select country"
-                                                                    :allowClear="true"
-                                                                />
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-sm-12">
+                                                            <div class="field-group">
+                                                                <label class="field-label">Document number</label>
+                                                                <input type="text" class="field-input"
+                                                                    name="customs_doc_reference"
+                                                                    value="{{ $crr->customs_doc_reference }}">
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     <div class="row">
                                                         <div class="col-sm-6">
-                                                            <div class="field-group">
-                                                                <label class="field-label">HS code</label>
-                                                                <input type="text" class="field-input" name="hs_code"
-                                                                    value="{{ $crr->hs_code }}">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                            <div class="field-group">
-                                                                <label class="field-label">Priority</label>
-                                                                <select class="field-input select2" name="priority">
-                                                                    <option value="Standard" {{ $crr->priority == 'Standard' ? 'selected' : '' }}>Standard</option>
-                                                                    <option value="Urgent" {{ $crr->priority == 'Urgent' ? 'selected' : '' }}>Urgent</option>
-                                                                    <option value="Critical" {{ $crr->priority == 'Critical' ? 'selected' : '' }}>Critical</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row">
-                                                        <div class="col-sm-4">
                                                             <div class="field-group">
                                                                 <label class="field-label">Currency <span class="text-danger">*</span></label>
                                                                 <select class="field-input select2" name="currency"
@@ -3412,34 +3344,25 @@
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-sm-4">
+                                                        <div class="col-sm-6">
                                                             <div class="field-group">
                                                                 <label class="field-label">Customs value <span class="text-danger">*</span></label>
                                                                 <input type="text" step="0.01" class="field-input"
                                                                     name="customs_value" id="edit_customs_value"
                                                                     value="{{ $crr->customs_value }}" required>
                                                             </div>
-
                                                         </div>
-                                                        <div class="col-sm-4">
-                                                            <div class="field-group">
-                                                                <label class="field-label">Customs value USD</label>
-                                                                <div id="edit_customs_value_usd_display"
-                                                                    style="font-size: 12px; font-weight: 600; color: #1e293b; padding: 4px 0;">
-                                                                    {{ number_format($crr->customs_value_usd, 2) }}
-                                                                </div>
-                                                                <input type="hidden" name="customs_value_usd"
-                                                                    id="edit_customs_value_usd_hidden"
-                                                                    value="{{ $crr->customs_value_usd }}">
-                                                            </div>
-                                                        </div>
-
                                                     </div>
 
                                                     <div class="field-group">
-                                                        <label class="field-label">Internal comments</label>
-                                                        <textarea class="field-input" name="internal_comments"
-                                                            style="height: 60px; resize: none;">{{ $crr->internal_comments }}</textarea>
+                                                        <label class="field-label">Customs value USD</label>
+                                                        <div id="edit_customs_value_usd_display"
+                                                            style="font-size: 12px; font-weight: 600; color: #1e293b; padding: 4px 0;">
+                                                            {{ number_format((float) ($crr->customs_value_usd ?? 0), 2) }}
+                                                        </div>
+                                                        <input type="hidden" name="customs_value_usd"
+                                                            id="edit_customs_value_usd_hidden"
+                                                            value="{{ $crr->customs_value_usd }}">
                                                     </div>
                                                     </div>{{-- .crr-pillar --}}
                                                 </div>
@@ -3538,7 +3461,7 @@
                                                                       <div class="dgr-container dgr-container--irregularity">
                                                                           <i class="icofont icofont-warning dgr-warning-icon" style="color: #f0ad4e;"></i>
                                                                           <div class="dgr-field" style="flex: 1;">
-                                                                              <label class="field-label">Delivery irregularities</label>
+                                                                              <label class="field-label">Irregularities</label>
                                                                               <select class="form-control select2-irregularities" name="packages[{{ $index }}][delivery_irregularities][]" multiple="multiple">
                                                                                   <option value="Damaged packaging - no repacking required" {{ in_array('Damaged packaging - no repacking required', (array)($pkg->delivery_irregularities ?? [])) ? 'selected' : '' }}>Damaged packaging - no repacking required</option>
                                                                                   <option value="Damaged packaging - repacking required" {{ in_array('Damaged packaging - repacking required', (array)($pkg->delivery_irregularities ?? [])) ? 'selected' : '' }}>Damaged packaging - repacking required</option>
@@ -3606,7 +3529,7 @@
                                             </div><!-- /packages-section-card -->
 
                                             <!-- Costs Section -->
-                                            <div class="stock-grid-card crr-section-shell" id="costs-section-card">
+                                            <div class="stock-grid-card crr-section-shell" id="costs-section-card" data-section="costs" hidden>
                                             <div class="crr-table-header">
                                                 <div class="crr-table-header__title">
                                                     <span class="crr-table-header__icon" aria-hidden="true"><i class="icofont icofont-money"></i></span>
@@ -3718,359 +3641,6 @@
                                         </div> <!-- stock-form-scroll -->
                                     </div> <!-- stock-details -->
 
-                                    <div id="line-items" class="stock-tab-content"
-                                        style="display: none; padding: 25px; background: #fff; flex: 1; overflow-y: auto;">
-                                        <!-- Add line item button row -->
-                                        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-                                            <button class="btn btn-outline-teal"
-                                                style="font-size: 12px; padding: 5px 20px; border-radius: 4px; border-color: #008080; color: #008080; background: transparent;">Add
-                                                line item</button>
-                                        </div>
-
-                                        <!-- Line Items Table -->
-                                        <div class="table-responsive">
-                                            <table class="edit-table" style="min-width: 1200px;">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width: 30px;">#</th>
-                                                        <th>Part number</th>
-                                                        <th>HS code</th>
-                                                        <th style="width: 150px;">Description</th>
-                                                        <th>Manufact.</th>
-                                                        <th>Origin</th>
-                                                        <th class="text-right">Net wt.</th>
-                                                        <th class="text-right">Gr. wt.</th>
-                                                        <th class="text-right">Qty</th>
-                                                        <th class="text-right">Qty rec.</th>
-                                                        <th>Unit</th>
-                                                        <th class="text-right">Unit price</th>
-                                                        <th>Currency</th>
-                                                        <th class="text-right">Sub total</th>
-                                                        <th style="width: 80px;"></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td style="color: #94a3b8;">1</td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td>
-                                                            <select class="field-input select2" style="height: 28px;">
-                                                                <option></option>
-                                                            </select>
-                                                        </td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td>
-                                                            <select class="field-input select2" style="height: 28px;">
-                                                                <option>Pcs</option>
-                                                            </select>
-                                                        </td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td>
-                                                            <select class="field-input select2" style="height: 28px;">
-                                                                <option>USD</option>
-                                                            </select>
-                                                        </td>
-                                                        <td class="text-right" style="font-weight: 500;">0</td>
-                                                        <td class="text-right">
-                                                            <i class="ti-layers"
-                                                                style="color: #94a3b8; cursor: pointer; margin-right: 10px;"></i>
-                                                            <i class="ti-trash"
-                                                                style="color: #94a3b8; cursor: pointer;"></i>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="color: #94a3b8;">2</td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td>
-                                                            <select class="field-input select2" style="height: 28px;">
-                                                                <option></option>
-                                                            </select>
-                                                        </td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td>
-                                                            <select class="field-input select2" style="height: 28px;">
-                                                                <option>Pcs</option>
-                                                            </select>
-                                                        </td>
-                                                        <td><input type="text" class="field-input text-right"
-                                                                style="height: 28px;"></td>
-                                                        <td>
-                                                            <select class="field-input select2" style="height: 28px;">
-                                                                <option>USD</option>
-                                                            </select>
-                                                        </td>
-                                                        <td class="text-right" style="font-weight: 500;">0</td>
-                                                        <td class="text-right">
-                                                            <i class="ti-layers"
-                                                                style="color: #94a3b8; cursor: pointer; margin-right: 10px;"></i>
-                                                            <i class="ti-trash"
-                                                                style="color: #94a3b8; cursor: pointer;"></i>
-                                                        </td>
-                                                    </tr>
-                                                    <!-- Total Row -->
-                                                    <tr style="background: #fff; border-top: 2px solid #f1f5f9;">
-                                                        <td colspan="6" class="text-right"
-                                                            style="font-weight: 600; color: #64748b; font-size: 11px;">Total
-                                                        </td>
-                                                        <td class="text-right" style="font-weight: 700; color: #1e293b;">
-                                                            0.000</td>
-                                                        <td class="text-right" style="font-weight: 700; color: #1e293b;">
-                                                            0.000</td>
-                                                        <td colspan="3"></td>
-                                                        <td class="text-right"
-                                                            style="font-weight: 600; color: #64748b; font-size: 11px; padding-top: 15px;">
-                                                            Total USD</td>
-                                                        <td colspan="2" class="text-right"
-                                                            style="font-weight: 700; color: #1e293b; font-size: 14px; padding-top: 15px;">
-                                                            0.00</td>
-                                                        <td></td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        <!-- Manufacturer Section -->
-                                        <div style="margin-top: 50px;">
-                                            <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-                                                <button class="btn btn-outline-teal"
-                                                    style="font-size: 12px; padding: 5px 20px; border-radius: 4px; border-color: #008080; color: #008080; background: transparent;">Add
-                                                    manufacturer</button>
-                                            </div>
-                                            <table class="edit-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Manufacturer</th>
-                                                        <th>Street</th>
-                                                        <th>Zip</th>
-                                                        <th>City</th>
-                                                        <th>Country</th>
-                                                        <th style="width: 50px;"></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td>
-                                                            <select class="field-input select2" style="height: 28px;">
-                                                                <option></option>
-                                                            </select>
-                                                        </td>
-                                                        <td class="text-center">
-                                                            <i class="ti-trash"
-                                                                style="color: #94a3b8; cursor: pointer;"></i>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td><input type="text" class="field-input" style="height: 28px;">
-                                                        </td>
-                                                        <td>
-                                                            <select class="field-input select2" style="height: 28px;">
-                                                                <option></option>
-                                                            </select>
-                                                        </td>
-
-                                                        <td class="text-center">
-                                                            <i class="ti-trash"
-                                                                style="color: #94a3b8; cursor: pointer;"></i>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    <div id="irregularities" class="stock-tab-content"
-                                        style="display: none; padding: 25px; background: #fff; flex: 1; overflow-y: auto;">
-                                        <!-- Add irregularity button row -->
-                                        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-                                            <button class="btn btn-outline-teal"
-                                                style="font-size: 12px; padding: 5px 20px; border-radius: 4px; border-color: #008080; color: #008080; background: transparent;">Add
-                                                irregularity</button>
-                                        </div>
-
-                                        <!-- Irregularity Block 1 -->
-                                        <div class="irregularity-item"
-                                            style="margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
-                                            <!-- First row: Inputs and Status -->
-                                            <div style="display: flex; gap: 15px; align-items: flex-end;">
-                                                <div style="flex: 1;">
-                                                    <label class="field-label">Date</label>
-                                                    <div class="icon-input-wrapper">
-                                                        <input type="text" class="field-input" placeholder="DD.MM.YYYY">
-                                                        <i class="fa fa-calendar" style="color: #0ea5e9;"></i>
-                                                    </div>
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Irregularity</label>
-                                                    <select class="field-input select2">
-                                                        <option></option>
-                                                    </select>
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Party responsible</label>
-                                                    <select class="field-input select2">
-                                                        <option></option>
-                                                    </select>
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Hub/agent</label>
-                                                    <input type="text" class="field-input">
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Consequences</label>
-                                                    <select class="field-input select2">
-                                                        <option></option>
-                                                    </select>
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Extra costs (USD)</label>
-                                                    <input type="text" class="field-input">
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Status</label>
-                                                    <select class="field-input select2">
-                                                        <option></option>
-                                                    </select>
-                                                </div>
-                                                <div style="padding-bottom: 8px;">
-                                                    <i class="ti-trash"
-                                                        style="color: #94a3b8; cursor: pointer; font-size: 16px;"></i>
-                                                </div>
-                                            </div>
-
-                                            <!-- Second row: Textareas -->
-                                            <div class="row" style="margin-top: 70px;">
-                                                <div class="col-sm-4">
-                                                    <label class="field-label">Cause of irregularity</label>
-                                                    <textarea class="field-input"
-                                                        style="height: 100px; resize: none;"></textarea>
-                                                </div>
-                                                <div class="col-sm-4">
-                                                    <label class="field-label">Action taken</label>
-                                                    <textarea class="field-input"
-                                                        style="height: 100px; resize: none;"></textarea>
-                                                </div>
-                                                <div class="col-sm-4">
-                                                    <label class="field-label">Hub/agent comments</label>
-                                                    <textarea class="field-input"
-                                                        style="height: 100px; resize: none;"></textarea>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Irregularity Block 2 -->
-                                        <div class="irregularity-item" style="margin-bottom: 20px;">
-                                            <!-- First row -->
-                                            <div style="display: flex; gap: 15px; align-items: flex-end;">
-                                                <div style="flex: 1;">
-                                                    <label class="field-label">Date</label>
-                                                    <div class="icon-input-wrapper">
-                                                        <input type="text" class="field-input datepicker"
-                                                            placeholder="YYYY-MM-DD">
-                                                        <i class="fa fa-calendar" style="color: #0ea5e9;"></i>
-                                                    </div>
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Irregularity</label>
-                                                    <select class="field-input select2">
-                                                        <option></option>
-                                                    </select>
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Party responsible</label>
-                                                    <select class="field-input select2">
-                                                        <option></option>
-                                                    </select>
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Hub/agent</label>
-                                                    <input type="text" class="field-input">
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Consequences</label>
-                                                    <select class="field-input select2">
-                                                        <option></option>
-                                                    </select>
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Extra costs (USD)</label>
-                                                    <input type="text" class="field-input">
-                                                </div>
-                                                <div style="flex: 1.5;">
-                                                    <label class="field-label">Status</label>
-                                                    <select class="field-input select2">
-                                                        <option></option>
-                                                    </select>
-                                                </div>
-                                                <div style="padding-bottom: 8px;">
-                                                    <i class="ti-trash"
-                                                        style="color: #94a3b8; cursor: pointer; font-size: 16px;"></i>
-                                                </div>
-                                            </div>
-
-                                            <!-- Second row -->
-                                            <div class="row mt-3">
-                                                <div class="col-sm-4">
-                                                    <label class="field-label">Cause of irregularity</label>
-                                                    <textarea class="field-input"
-                                                        style="height: 100px; resize: none;"></textarea>
-                                                </div>
-                                                <div class="col-sm-4">
-                                                    <label class="field-label">Action taken</label>
-                                                    <textarea class="field-input"
-                                                        style="height: 100px; resize: none;"></textarea>
-                                                </div>
-                                                <div class="col-sm-4">
-                                                    <label class="field-label">Hub/agent comments</label>
-                                                    <textarea class="field-input"
-                                                        style="height: 100px; resize: none;"></textarea>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <!-- Footer (in-flow, shipment style) -->
                                     <div class="edit-footer">
                                         <button type="submit" class="btn-save-custom" form="crrEditForm">Save changes</button>
@@ -4081,107 +3651,135 @@
 
                             <!-- 3. RIGHT PANEL SIDEBAR -->
                             <div class="stock-right-panel">
+                                <div class="panel-card stock-summary-sidebar-card" id="crr-overview-panel">
+                                    <div class="panel-title">
+                                        <span class="panel-title__label">Stock overview</span>
+                                    </div>
+                                    <div class="summary-info-group">
+                                        <div class="summary-item">
+                                            <span class="summary-label">Registration date</span>
+                                            <span class="summary-value summary-value-with-icon">
+                                                <i class="ti-calendar meta-cal-icon" aria-hidden="true"></i>
+                                                <span>{{ $crr->created_at->format('d.m.Y') }}</span>
+                                            </span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Registered by</span>
+                                            <span class="summary-value text-primary">{{ $crr->registeredBy?->name ?? '—' }}</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Account manager</span>
+                                            <span class="summary-value text-primary" id="summary-account-manager">
+                                                {{ $crr->customerVessel?->customer?->responsible?->accountManager?->name ?? '—' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Documents Panel -->
-                                <div class="panel-card" id="crr-documents-panel">
+                                <div class="panel-card is-collapsed" id="crr-documents-panel">
                                     @php
                                         $crrDocTypeOptions = \App\Models\CrrDocument::fileTypeOptionsWithCustom();
                                     @endphp
-                                    <div class="panel-title">
-                                        <span class="panel-title__label">Documents</span>
-                                        <span class="panel-title__count"><span class="doc-count">{{ $crr->documents->count() }}</span></span>
-                                    </div>
-                                    <div class="crr-docs-header">
-                                        <span>Filename</span>
-                                        <span class="crr-docs-internal-label">Internal</span>
-                                    </div>
-                                    <div id="crr-doc-list">
-                                        @forelse($crr->documents as $doc)
-                                            @php
-                                                $selectedDocType = $doc->file_type ?: 'Unspecified';
-                                                if (strtolower($selectedDocType) === 'unspecified') {
-                                                    $selectedDocType = 'Unspecified';
-                                                }
-                                            @endphp
-                                            <div class="doc-item" data-id="{{ $doc->id }}">
-                                                <div class="doc-main">
-                                                    <a href="{{ $doc->fileUrl() }}" class="doc-name js-doc-preview" data-preview-url="{{ $doc->fileUrl() }}" data-title="{{ $doc->file_name }}" title="{{ $doc->file_name }}">
-                                                        {{ $doc->file_name }}
-                                                    </a>
-                                                    <select class="doc-type-select" data-id="{{ $doc->id }}">
-                                                        @foreach ($crrDocTypeOptions as $typeOption)
-                                                            <option value="{{ $typeOption }}" {{ $selectedDocType === $typeOption ? 'selected' : '' }}>{{ $typeOption }}</option>
-                                                        @endforeach
-                                                        @if (! in_array($selectedDocType, $crrDocTypeOptions, true))
-                                                            <option value="{{ $selectedDocType }}" selected>{{ $selectedDocType }}</option>
-                                                        @endif
-                                                    </select>
-                                                    </div>
-                                                <div class="doc-side">
-                                                    <div class="doc-side-row">
-                                                        <div class="doc-internal checkbox-fade fade-in-primary">
-                                                            <label>
-                                                                <input type="checkbox" class="doc-internal-check" data-id="{{ $doc->id }}" {{ $doc->is_internal ? 'checked' : '' }}>
-                                                                <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                                                            </label>
-                                                        </div>
-                                                        <i class="ti-trash doc-trash delete-doc" data-id="{{ $doc->id }}" title="Delete"></i>
-                                                    </div>
-                                                    <span class="doc-date">{{ $doc->created_at->format('d.m.Y') }}</span>
-                                                </div>
+                                    <button type="button" class="panel-title panel-title--toggle" id="crr-documents-toggle" aria-expanded="false" aria-controls="crr-documents-body">
+                                        <span class="panel-title__main">
+                                            <span class="panel-title__label">Documents</span>
+                                            <span class="panel-title__count"><span class="doc-count">{{ $crr->documents->count() }}</span></span>
+                                        </span>
+                                        <span class="panel-title__toggle-icon" aria-hidden="true"><i class="ti-angle-up"></i></span>
+                                    </button>
+                                    <div class="panel-card__body" id="crr-documents-body" aria-hidden="true" style="display: none;">
+                                        <div class="panel-card__body-stack">
+                                            <div class="crr-docs-header">
+                                                <span>Filename</span>
+                                                <span class="crr-docs-internal-label">Internal</span>
                                             </div>
-                                        @empty
-                                            <div class="no-docs-msg">No documents uploaded yet.</div>
-                                        @endforelse
-                                    </div>
+                                            <div id="crr-doc-list">
+                                                @forelse($crr->documents as $doc)
+                                                    @php
+                                                        $selectedDocType = $doc->file_type ?: 'Unspecified';
+                                                        if (strtolower($selectedDocType) === 'unspecified') {
+                                                            $selectedDocType = 'Unspecified';
+                                                        }
+                                                    @endphp
+                                                    <div class="doc-item" data-id="{{ $doc->id }}">
+                                                        <div class="doc-main">
+                                                            <a href="{{ $doc->fileUrl() }}" class="doc-name js-doc-preview" data-preview-url="{{ $doc->fileUrl() }}" data-title="{{ $doc->file_name }}" title="{{ $doc->file_name }}">
+                                                                {{ $doc->file_name }}
+                                                            </a>
+                                                            <select class="doc-type-select" data-id="{{ $doc->id }}">
+                                                                @foreach ($crrDocTypeOptions as $typeOption)
+                                                                    <option value="{{ $typeOption }}" {{ $selectedDocType === $typeOption ? 'selected' : '' }}>{{ $typeOption }}</option>
+                                                                @endforeach
+                                                                @if (! in_array($selectedDocType, $crrDocTypeOptions, true))
+                                                                    <option value="{{ $selectedDocType }}" selected>{{ $selectedDocType }}</option>
+                                                                @endif
+                                                            </select>
+                                                            </div>
+                                                        <div class="doc-side">
+                                                            <div class="doc-side-row">
+                                                                <div class="doc-internal checkbox-fade fade-in-primary">
+                                                                    <label>
+                                                                        <input type="checkbox" class="doc-internal-check" data-id="{{ $doc->id }}" {{ $doc->is_internal ? 'checked' : '' }}>
+                                                                        <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
+                                                                    </label>
+                                                                </div>
+                                                                <i class="ti-trash doc-trash delete-doc" data-id="{{ $doc->id }}" title="Delete"></i>
+                                                            </div>
+                                                            <span class="doc-date">{{ $doc->created_at->format('d.m.Y') }}</span>
+                                                        </div>
+                                                    </div>
+                                                @empty
+                                                    <div class="no-docs-msg">No documents uploaded yet.</div>
+                                                @endforelse
+                                            </div>
 
-                                    <div class="dropzone-placeholder" id="crr-dropzone">
-                                        <i class="ti-upload dropzone-icon"></i>
-                                        <div class="dropzone-text">Drag files here or click to browse</div>
+                                            <div class="dropzone-placeholder" id="crr-dropzone">
+                                                <i class="ti-upload dropzone-icon"></i>
+                                                <div class="dropzone-text">Drag files here or click to browse</div>
+                                            </div>
+                                            <input type="file" id="crr-file-input" style="display: none;" multiple>
+                                        </div>
                                     </div>
-                                    <input type="file" id="crr-file-input" style="display: none;" multiple>
                                 </div>
 
                                 <!-- Activity Panel -->
-                                <div class="panel-card" id="crr-activity-panel">
-                                    <div class="panel-tabs">
-                                        <div class="panel-tab active" data-panel="change-log">Change log</div>
-                                        <div class="panel-tab" data-panel="location-history">Location history</div>
-                                        <div class="panel-tab" data-panel="comments">Comments</div>
-                                    </div>
-                                    <div id="panel-contents">
-                                        <div id="change-log" class="panel-tab-content active">
-                                            @forelse ($crr->changeLogs as $changeLog)
-                                                <div class="change-log-item">
-                                                    <div class="change-log-row">
-                                                        <div class="change-log-body">
-                                                            <div class="change-log-title">{{ $changeLog->title }}</div>
-                                                            @if ($changeLog->description)
-                                                                <div class="change-log-desc">
-                                                                    {{ $changeLog->description }}
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                        <div class="change-log-meta">
-                                                            <div class="change-log-user">
-                                                                {{ $changeLog->user?->name ?? 'System' }}
+                                <div class="panel-card is-collapsed" id="crr-activity-panel">
+                                    <button type="button" class="panel-title panel-title--toggle" id="crr-activity-toggle" aria-expanded="false" aria-controls="crr-activity-body">
+                                        <span class="panel-title__main">
+                                            <span class="panel-title__label">Log History</span>
+                                        </span>
+                                        <span class="panel-title__toggle-icon" aria-hidden="true"><i class="ti-angle-up"></i></span>
+                                    </button>
+                                    <div class="panel-card__body" id="crr-activity-body" aria-hidden="true" style="display: none;">
+                                        <div id="panel-contents">
+                                            <div id="change-log" class="panel-tab-content active">
+                                                @forelse ($crr->changeLogs as $changeLog)
+                                                    <div class="change-log-item">
+                                                        <div class="change-log-row">
+                                                            <div class="change-log-body">
+                                                                <div class="change-log-title">{{ $changeLog->title }}</div>
+                                                                @if ($changeLog->description)
+                                                                    <div class="change-log-desc">
+                                                                        {{ $changeLog->description }}
+                                                                    </div>
+                                                                @endif
                                                             </div>
-                                                            <div class="change-log-time">
-                                                                {{ $changeLog->created_at->format('d.m.Y H:i') }}
+                                                            <div class="change-log-meta">
+                                                                <div class="change-log-user">
+                                                                    {{ $changeLog->user?->name ?? 'System' }}
+                                                                </div>
+                                                                <div class="change-log-time">
+                                                                    {{ $changeLog->created_at->format('d.m.Y H:i') }}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            @empty
-                                                <div class="panel-empty-msg">
-                                                    No changes recorded yet.
-                                        </div>
-                                            @endforelse
-                                            </div>
-                                        <div id="location-history" class="panel-tab-content" style="display: none;">
-                                            <div class="panel-empty-msg">No location history available</div>
-                                        </div>
-                                        <div id="comments" class="panel-tab-content" style="display: none;">
-                                            <div class="panel-empty-msg">No comments available</div>
+                                                @empty
+                                                    <div class="panel-empty-msg">
+                                                        No changes recorded yet.
+                                                    </div>
+                                                @endforelse
                                         </div>
                                     </div>
                                 </div>
@@ -4489,7 +4087,7 @@
             }
 
             $('.select2-transit-type').select2({
-                placeholder: 'Select transit type',
+                placeholder: 'Select carrier',
                 allowClear: true,
                 width: '100%',
                 dropdownParent: $(document.body)
@@ -4497,14 +4095,7 @@
                 $(this).next('.select2-container').addClass('select2-transit-type-container');
             });
 
-            $('.select2-incoterm').select2({
-                placeholder: 'Select incoterm',
-                allowClear: true,
-                width: '100%',
-                dropdownParent: $(document.body)
-            });
-
-            // Special handling for Delivery Irregularities to keep fixed height
+            // Special handling for Irregularities to keep fixed height
             $('.select2-irregularities').each(function () {
                 $(this).next('.select2-container').addClass('select2-irreg-container');
             });
@@ -4585,66 +4176,6 @@
                 dropdownParent: $(document.body)
             });
 
-            // Country of origin — host parent only (verified: body/body-pin misalign on this page)
-            (function initStockCountrySelect() {
-                var $country = $('#country_of_origin');
-                var $host = $('#country-of-origin-host');
-                if (!$country.length || !$host.length) {
-                    return;
-                }
-
-                function resolveFlag($option) {
-                    if (!$option || !$option.length) return null;
-                    var flagUrl = $option.attr('data-flag-url') || $option.data('flagUrl');
-                    if (flagUrl && String(flagUrl).indexOf('http') === 0) return flagUrl;
-                    var iso = $option.attr('data-iso') || $option.data('iso');
-                    if (iso && String(iso).length <= 3) {
-                        return 'https://flagcdn.com/w20/' + String(iso).toLowerCase() + '.png';
-                    }
-                    return null;
-                }
-
-                function formatCountry(state) {
-                    if (!state.id) return state.text;
-                    var flagUrl = resolveFlag($(state.element));
-                    if (!flagUrl) return state.text;
-                    var $row = $('<span class="mc-country-option"></span>');
-                    $row.append($('<img>', {
-                        src: flagUrl,
-                        class: 'country-select-flag',
-                        alt: '',
-                        css: {
-                            display: 'inline-block',
-                            width: '20px',
-                            height: '15px',
-                            marginRight: '8px',
-                            verticalAlign: 'middle',
-                            border: '1px solid #eee',
-                            flexShrink: '0'
-                        }
-                    }));
-                    $row.append($('<span class="mc-country-option__label"></span>').text(state.text));
-                    return $row;
-                }
-
-                if ($country.hasClass('select2-hidden-accessible')) {
-                    try { $country.select2('destroy'); } catch (e) {}
-                }
-
-                $host.css({ position: 'relative', overflow: 'visible' });
-
-                $country.select2({
-                    placeholder: 'Select country',
-                    allowClear: true,
-                    width: '100%',
-                    dropdownParent: $host,
-                    templateResult: formatCountry,
-                    templateSelection: formatCountry
-                });
-
-                $country.next('.select2.select2-container').css('width', '100%');
-            })();
-
             // Supplier Select2 is initialized in the quick-add script below.
 
             // --- Package Logic ---
@@ -4675,7 +4206,7 @@
                             <div class="dgr-container dgr-container--irregularity">
                                 <i class="icofont icofont-warning dgr-warning-icon" style="color: #f0ad4e;"></i>
                                 <div class="dgr-field" style="flex: 1;">
-                                    <label class="field-label">Delivery irregularities</label>
+                                    <label class="field-label">Irregularities</label>
                                     <select class="form-control select2-irregularities" name="packages[${packageIndex}][delivery_irregularities][]" multiple="multiple">
                                         <option value="Damaged packaging - no repacking required">Damaged packaging - no repacking required</option>
                                         <option value="Damaged packaging - repacking required">Damaged packaging - repacking required</option>
@@ -5030,6 +4561,22 @@ function updatePackageSummary() {
             // Initial calculation on load
             calculateEditCustomsUSD();
 
+            var EDIT_STOCK_STATUS = {{ \App\Models\Crr::STATUS_ACTIVE }};
+
+            function toggleEditActualDeliveryRequired() {
+                var isStock = String($('#edit_crr_status').val()) === String(EDIT_STOCK_STATUS);
+                $('#edit-actual-delivery-required-mark').toggle(isStock);
+
+                if (!isStock) {
+                    $('#edit_actual_delivery_date').css('border-color', '');
+                    $('#actual-delivery-validation-error-text').text('');
+                    $('#actual-delivery-validation-error').hide();
+                }
+            }
+
+            $('#edit_crr_status').on('change', toggleEditActualDeliveryRequired);
+            toggleEditActualDeliveryRequired();
+
             // Main Tab Switching — desktop: inner scroll; mobile: page scroll
             function isStockEditMobileLayout() {
                 return !!(window.matchMedia && window.matchMedia('(max-width: 991.98px)').matches);
@@ -5077,18 +4624,6 @@ function updatePackageSummary() {
                 activateStockTab(activeTab);
             });
 
-            // Right Panel Tab Switching
-            $('.panel-tab').on('click', function () {
-                var panelId = $(this).data('panel');
-                $('.panel-tab').removeClass('active');
-                $(this).addClass('active');
-                $('.panel-tab-content').removeClass('active').hide();
-                $('#' + panelId)
-                    .addClass('active')
-                    .css({ display: 'block', flex: '1 1 auto', minHeight: 0, overflowY: 'auto', maxHeight: 'none' })
-                    .show();
-            });
-
             // More Actions Dropdown
             $('.btn-more-circle').on('click', function (e) {
                 e.stopPropagation();
@@ -5104,6 +4639,60 @@ function updatePackageSummary() {
             const docList = $('#crr-doc-list');
             const docCountBadge = $('.doc-count');
             const crrId = "{{ $crr->id }}";
+            const documentsPanel = $('#crr-documents-panel');
+            const documentsToggle = $('#crr-documents-toggle');
+            const documentsBody = $('#crr-documents-body');
+            const activityPanel = $('#crr-activity-panel');
+            const activityToggle = $('#crr-activity-toggle');
+            const activityBody = $('#crr-activity-body');
+
+            function toggleDocumentsPanel(forceExpand) {
+                const shouldExpand = typeof forceExpand === 'boolean'
+                    ? forceExpand
+                    : documentsPanel.hasClass('is-collapsed');
+
+                if (shouldExpand) {
+                    toggleActivityPanel(false);
+                }
+
+                documentsPanel.toggleClass('is-collapsed', !shouldExpand);
+                documentsToggle.attr('aria-expanded', shouldExpand ? 'true' : 'false');
+                documentsBody.attr('aria-hidden', shouldExpand ? 'false' : 'true');
+
+                if (shouldExpand) {
+                    documentsBody.stop(true, true).slideDown(180);
+                } else {
+                    documentsBody.stop(true, true).slideUp(180);
+                }
+            }
+
+            documentsToggle.on('click', function () {
+                toggleDocumentsPanel();
+            });
+
+            function toggleActivityPanel(forceExpand) {
+                const shouldExpand = typeof forceExpand === 'boolean'
+                    ? forceExpand
+                    : activityPanel.hasClass('is-collapsed');
+
+                if (shouldExpand) {
+                    toggleDocumentsPanel(false);
+                }
+
+                activityPanel.toggleClass('is-collapsed', !shouldExpand);
+                activityToggle.attr('aria-expanded', shouldExpand ? 'true' : 'false');
+                activityBody.attr('aria-hidden', shouldExpand ? 'false' : 'true');
+
+                if (shouldExpand) {
+                    activityBody.stop(true, true).slideDown(180);
+                } else {
+                    activityBody.stop(true, true).slideUp(180);
+                }
+            }
+
+            activityToggle.on('click', function () {
+                toggleActivityPanel();
+            });
 
             function initCrrDocTypeSelect($select) {
                 if (!$select || !$select.length) {
@@ -6186,18 +5775,24 @@ function updatePackageSummary() {
             });
         });
 
-        // Require package details before save
+        // Require package details and actual arrival date when status is Stock
         $('#crrEditForm').on('submit', function (e) {
             var $errorBox = $('#packages-validation-error');
             var $errorText = $('#packages-validation-error-text');
             var $rows = $('#packagesTable tbody tr:not(.empty-row):not(.dgr-sub-row):not(.irregularity-sub-row)');
             var message = '';
             var incomplete = false;
+            var $actualDelivery = $('#edit_actual_delivery_date');
+            var $actualErrorBox = $('#actual-delivery-validation-error');
+            var $actualErrorText = $('#actual-delivery-validation-error-text');
             var $currency = $('#edit_currency_select');
             var $customsValue = $('#edit_customs_value');
             var $currencySelection = $currency.next('.select2-container').find('.select2-selection');
 
             $rows.find('.pkg-l, .pkg-w, .pkg-h, .pkg-weight').css('border-color', '');
+            $actualDelivery.css('border-color', '');
+            $actualErrorText.text('');
+            $actualErrorBox.hide();
             $customsValue.css('border-color', '');
             $currencySelection.css('border-color', '');
 
@@ -6255,6 +5850,23 @@ function updatePackageSummary() {
 
             $errorText.text('');
             $errorBox.hide();
+
+            if (String($('#edit_crr_status').val()) === String(EDIT_STOCK_STATUS) && !$.trim(String($actualDelivery.val() || ''))) {
+                e.preventDefault();
+                $actualDelivery.css('border-color', '#dc3545');
+                $actualErrorText.text('Actual arrival date is required when status is Stock.');
+                $actualErrorBox.show();
+                $('html, body').animate({
+                    scrollTop: $actualDelivery.offset().top - 100
+                }, 300);
+                return false;
+            }
+        });
+
+        $(document).on('click', '#actual-delivery-validation-error-close', function () {
+            $('#actual-delivery-validation-error-text').text('');
+            $('#actual-delivery-validation-error').hide();
+            $('#edit_actual_delivery_date').css('border-color', '');
         });
 
         $(document).on('click', '#packages-validation-error-close', function () {

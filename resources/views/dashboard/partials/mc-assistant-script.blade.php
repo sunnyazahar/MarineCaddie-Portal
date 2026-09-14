@@ -34,6 +34,7 @@
         var $thread = $('#mcAssistantThread');
         var $input = $('#mcAssistantInput');
         var $launcher = $('#mcAssistantLauncher');
+        var $panelClear = $('#mcAssistantPanelClear');
         var $launcherStatus = $('#mcAssistantLauncherStatus');
         var $launcherToggle = $('#mcAssistantLauncherToggle');
         var $kicker = $('#mcAssistantKicker');
@@ -321,6 +322,8 @@
                 )
                 : '');
             $close.attr('aria-label', choose('Assistant band karo', 'Collapse assistant'));
+            $panelClear.attr('aria-label', choose('Chat saaf karo', 'Clear chat'));
+            $panelClear.attr('title', choose('Chat saaf karo', 'Clear chat'));
             $send.text(choose('Bhejo', 'Send'));
             $launcherToggle.text(choose(state.isOpen ? 'Band' : 'Kholo', state.isOpen ? 'Close' : 'Open'));
 
@@ -2240,7 +2243,38 @@
                 '</div>';
 
             $thread.append(html);
-            $thread.scrollTop($thread[0].scrollHeight);
+            scrollThreadToLatest();
+        }
+
+        function scrollThreadToLatest() {
+            var threadNode = $thread[0] || null;
+
+            if (! threadNode) {
+                return;
+            }
+
+            var targetOffset = threadNode.scrollHeight || 0;
+
+            if (typeof threadNode.scrollTo === 'function') {
+                threadNode.scrollTo({
+                    top: targetOffset,
+                    behavior: 'auto'
+                });
+                return;
+            }
+
+            $thread.scrollTop(targetOffset);
+        }
+
+        function queueThreadScrollToLatest() {
+            scrollThreadToLatest();
+
+            if (typeof window.requestAnimationFrame === 'function') {
+                window.requestAnimationFrame(scrollThreadToLatest);
+            }
+
+            window.setTimeout(scrollThreadToLatest, 80);
+            window.setTimeout(scrollThreadToLatest, 220);
         }
 
         function addMessage(role, message, isHtml, response, options) {
@@ -2357,9 +2391,12 @@
             }
 
             if (isOpen) {
+                queueThreadScrollToLatest();
+
                 if (settings.focusInput) {
                     window.setTimeout(function () {
                         $input.trigger('focus');
+                        queueThreadScrollToLatest();
                     }, 40);
                 }
 
@@ -5694,6 +5731,17 @@
 
         $launcher.on('click', function () {
             setLauncher(true);
+        });
+
+        $panelClear.on('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            clearConversation({
+                clearStorage: true,
+                showWelcome: true,
+                focusInput: true
+            });
         });
 
         $close.on('click', function () {

@@ -35,41 +35,42 @@
     </div>
 @endif
 
-<div class="form-grid-3 cs-pillars">
-    <div class="form-col">
+<div class="row cs-pillars">
+    <div class="col-md-4 custom-col">
         <div class="cs-pillar{{ $workflowEditMode ? ' cs-pillar--locked' : '' }}">
-        <div class="cs-pillar__title">Departure</div>
-        <div class="form-group-custom">
-            <label>Departure</label>
-            <select id="departure-select" name="departure" class="form-control-sm-custom select2-departure">
-                @if ($shipment->departure)
-                    <option value="{{ $shipment->departure }}" selected>{{ $departureDisplay }}</option>
-                @endif
-            </select>
-        </div>
-        <x-forms.port-select
-            name="departure_port_code"
-            id="departure-port-code"
-            label="Port code"
-            :value="$shipment->departure_port_code"
-            class="form-control-sm-custom"
-        />
-        <div class="row">
-            <div class="col-6">
-                <div class="form-group-custom">
-                    <label>Service <span class="text-danger">*</span></label>
-                    <select name="service" class="form-control-sm-custom select2" required>
+            <div class="cs-pillar__title">Departure</div>
+            <div class="row">
+                <div class="form-group col-md-12 mb-2">
+                    <label class="mb-0" style="font-size: 11px;">Hub / Agent</label>
+                    <div class="input-group mb-0" style="height: 30px;">
+                        <select id="departure-select" name="departure" class="form-control select2-departure">
+                            @if ($shipment->departure)
+                                <option value="{{ $shipment->departure }}" selected>{{ $departureDisplay }}</option>
+                            @endif
+                        </select>
+                    </div>
+                </div>
+                <x-forms.port-select
+                    name="departure_port_code"
+                    id="departure-port-code"
+                    label="Departure port code"
+                    :value="$shipment->departure_port_code"
+                    wrapperClass="form-group col-md-12 mb-2"
+                    labelClass="mb-0"
+                    class="form-control"
+                />
+                <div class="form-group col-md-6 mb-2">
+                    <label class="mb-0" style="font-size: 11px;">Shipment mode <span class="text-danger">*</span></label>
+                    <select name="service" class="form-control select2" required>
                         <option></option>
                         @foreach ($serviceOptions as $serviceOption)
                             <option value="{{ $serviceOption }}" {{ old('service', $shipment->service) === $serviceOption ? 'selected' : '' }}>{{ $serviceOption }}</option>
                         @endforeach
                     </select>
                 </div>
-            </div>
-            <div class="col-6">
-                <div class="form-group-custom">
-                    <label>Additional service</label>
-                    <select name="additional_service" class="form-control-sm-custom select2">
+                <div class="form-group col-md-6 mb-2">
+                    <label class="mb-0" style="font-size: 11px;">Optional services</label>
+                    <select name="additional_service" class="form-control select2">
                         <option></option>
                         @foreach ($additionalServiceOptions as $additionalServiceOption)
                             <option value="{{ $additionalServiceOption }}" {{ old('additional_service', $shipment->additional_service) === $additionalServiceOption ? 'selected' : '' }}>{{ $additionalServiceOption }}</option>
@@ -77,202 +78,192 @@
                     </select>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                <div class="form-group-custom">
-                    <label>Preferred shipment date</label>
-                    <div class="input-with-icon">
-                        <input type="text" name="preferred_shipment_date" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY" value="{{ old('preferred_shipment_date', $shipment->preferred_shipment_date?->format('d.m.Y')) }}">
-                        <i class="ti-calendar"></i>
+
+            <div class="row">
+                <div class="col-md-6 pr-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Shipment date</label>
+                        <div class="input-group mb-0" style="height: 30px;">
+                            <input type="text" name="preferred_shipment_date" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('preferred_shipment_date', $shipment->preferred_shipment_date?->format('d.m.Y')) }}">
+                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                                <i class="ti-calendar" style="font-size: 12px;"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 pl-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Deadline arrival</label>
+                        <div class="input-group mb-0" style="height: 30px;">
+                            <input type="text" name="deadline_arrival" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('deadline_arrival', $shipment->deadline_arrival?->format('d.m.Y')) }}">
+                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                                <i class="ti-calendar" style="font-size: 12px;"></i>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-6">
-                <div class="form-group-custom">
-                    <label>Deadline arrival</label>
-                    <div class="input-with-icon">
-                        <input type="text" name="deadline_arrival" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY" value="{{ old('deadline_arrival', $shipment->deadline_arrival?->format('d.m.Y')) }}">
-                        <i class="ti-calendar"></i>
+            <div class="row">
+                <div class="col-md-6 pr-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Vessel ETA</label>
+                        <div class="input-group mb-0" style="height: 30px;">
+                            <input type="text" name="vessel_eta" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('vessel_eta', $shipment->vessel_eta?->format('d.m.Y')) }}">
+                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                                <i class="ti-calendar" style="font-size: 12px;"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 pl-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Vessel ETD</label>
+                        <div class="input-group mb-0" style="height: 30px;">
+                            <input type="text" name="vessel_etd" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('vessel_etd', $shipment->vessel_etd?->format('d.m.Y')) }}">
+                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                                <i class="ti-calendar" style="font-size: 12px;"></i>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                <div class="form-group-custom">
-                    <label>Vessel ETA</label>
-                    <div class="input-with-icon">
-                        <input type="text" name="vessel_eta" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY" value="{{ old('vessel_eta', $shipment->vessel_eta?->format('d.m.Y')) }}">
-                        <i class="ti-calendar"></i>
+            <div class="row">
+                <div class="col-md-6 pr-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Pre-alert date</label>
+                        <div class="input-group mb-0" style="height: 30px;">
+                            <input type="text" name="pre_alert_reminder" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('pre_alert_reminder', $shipment->pre_alert_reminder?->format('d.m.Y')) }}">
+                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                                <i class="ti-calendar" style="font-size: 12px;"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 pl-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Customer reference no.</label>
+                        <input type="text" name="customer_reference" class="form-control filter-input" value="{{ old('customer_reference', $shipment->customer_reference) }}">
                     </div>
                 </div>
             </div>
-            <div class="col-6">
-                <div class="form-group-custom">
-                    <label>Vessel ETD</label>
-                    <div class="input-with-icon">
-                        <input type="text" name="vessel_etd" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY" value="{{ old('vessel_etd', $shipment->vessel_etd?->format('d.m.Y')) }}">
-                        <i class="ti-calendar"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                <div class="form-group-custom">
-                    <label>Pre-alert reminder</label>
-                    <div class="input-with-icon">
-                        <input type="text" name="pre_alert_reminder" class="form-control-sm-custom datepicker" placeholder="DD.MM.YYYY" value="{{ old('pre_alert_reminder', $shipment->pre_alert_reminder?->format('d.m.Y')) }}">
-                        <i class="ti-calendar"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="form-group-custom">
-                    <label>Customer reference</label>
-                    <input type="text" name="customer_reference" class="form-control-sm-custom" value="{{ old('customer_reference', $shipment->customer_reference) }}">
-                </div>
-            </div>
-        </div>
-        <div class="checkbox-fade fade-in-primary mt-2">
-            <label>
-                <input type="checkbox" name="not_applicable_for_consolidation" value="1" {{ old('not_applicable_for_consolidation', $shipment->not_applicable_for_consolidation) ? 'checked' : '' }}>
-                <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                <span class="text-inverse" style="font-size: 11px;">Not applicable for consolidation</span>
-            </label>
-        </div>
+            <input type="hidden" name="not_applicable_for_consolidation" value="{{ old('not_applicable_for_consolidation', $shipment->not_applicable_for_consolidation) ? '1' : '0' }}">
         </div>{{-- .cs-pillar --}}
     </div>
 
-    <div class="form-col">
+    <div class="col-md-4 custom-col">
         <div class="cs-pillar">
-        <div class="cs-pillar__title">Consignee</div>
-        <div class="form-group-custom">
-            <label>Consignee</label>
-            <input type="hidden" id="consignee-party-code" value="{{ $consigneeCode ?? '' }}">
-            <select id="consignee-select" name="consignee" class="form-control-sm-custom select2-consignee">
-                @if ($shipment->consignee)
-                    <option value="{{ $shipment->consignee }}" selected>{{ $consigneeDisplay }}</option>
-                @endif
-            </select>
-        </div>
-        <div class="form-group-custom">
-            <label>Consignee address</label>
-            <textarea name="consignee_address" id="consignee-address" class="form-control" style="height: 120px;">{{ old('consignee_address', $shipment->consignee_address) }}</textarea>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                <div class="form-group-custom">
-                    <label>City</label>
-                    <input type="text" id="consignee-city" name="consignee_city" class="form-control-sm-custom" value="{{ old('consignee_city', $shipment->consignee_city) }}">
+            <div class="cs-pillar__title">Consignee</div>
+            <div class="form-group mb-2">
+                <label class="mb-0" style="font-size: 11px;">Consignee</label>
+                <input type="hidden" id="consignee-party-code" value="{{ $consigneeCode ?? '' }}">
+                <div class="input-group mb-0" style="height: 30px;">
+                    <select id="consignee-select" name="consignee" class="form-control select2-consignee">
+                        @if ($shipment->consignee)
+                            <option value="{{ $shipment->consignee }}" selected>{{ $consigneeDisplay }}</option>
+                        @endif
+                    </select>
                 </div>
             </div>
-            <div class="col-3">
-                <div class="form-group-custom">
-                    <label>District</label>
-                    <input type="text" id="consignee-district" name="consignee_district" class="form-control-sm-custom" value="{{ old('consignee_district', $shipment->consignee_district) }}">
+            <div class="form-group mb-2">
+                <label class="mb-0" style="font-size: 11px;">Delivery address</label>
+                <textarea name="consignee_address" id="consignee-address" class="form-control filter-input" rows="3" style="height: auto !important; min-height: 80px;">{{ old('consignee_address', $shipment->consignee_address) }}</textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-4 pr-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">City</label>
+                        <input type="text" id="consignee-city" name="consignee_city" class="form-control filter-input" value="{{ old('consignee_city', $shipment->consignee_city) }}">
+                    </div>
+                </div>
+                <div class="col-md-4 px-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">State / district</label>
+                        <input type="text" id="consignee-district" name="consignee_district" class="form-control filter-input" value="{{ old('consignee_district', $shipment->consignee_district) }}">
+                    </div>
+                </div>
+                <div class="col-md-4 pl-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Postal code</label>
+                        <input type="text" id="consignee-zip" name="consignee_zip" class="form-control filter-input" value="{{ old('consignee_zip', $shipment->consignee_zip) }}">
+                    </div>
                 </div>
             </div>
-            <div class="col-3 pl-0 pr-0">
-                <div class="form-group-custom">
-                    <label>Zip code</label>
-                    <input type="text" id="consignee-zip" name="consignee_zip" class="form-control-sm-custom" value="{{ old('consignee_zip', $shipment->consignee_zip) }}">
+            <x-forms.country-select
+                name="consignee_country"
+                id="consignee-country"
+                label="Country / region"
+                :countries="$countries"
+                valueKey="name"
+                :value="$shipment->consignee_country"
+                wrapperClass="form-group mb-2"
+                labelClass="mb-0"
+                class="form-control"
+                placeholder="Select country"
+                :allowClear="true"
+                dropdownParent="body"
+            />
+            <div class="form-group mb-2">
+                <label class="mb-0" style="font-size: 11px;">Consignee contact <span class="text-danger">*</span></label>
+                <input type="text" id="consignee-att" name="consignee_att" class="form-control filter-input" value="{{ old('consignee_att', $shipment->consignee_att) }}" required>
+            </div>
+            <div class="row">
+                <div class="col-md-4 pr-1">
+                    <x-forms.port-select
+                        name="consignee_port_code"
+                        id="consignee-port-code"
+                        label="Arrival port code"
+                        :value="$shipment->consignee_port_code"
+                        wrapperClass="form-group mb-2"
+                        labelClass="mb-0"
+                        class="form-control"
+                        :required="true"
+                    />
+                </div>
+                <div class="col-md-4 px-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Delivery location</label>
+                        <input type="text" id="location" name="location" class="form-control filter-input" value="{{ old('location', $shipment->location) }}">
+                    </div>
+                </div>
+                <div class="col-md-4 pl-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Contact email</label>
+                        <input type="email" id="consignee-email" name="consignee_email" class="form-control filter-input" value="{{ old('consignee_email', $shipment->consignee_email) }}">
+                    </div>
                 </div>
             </div>
-        </div>
-        <x-forms.country-select
-            name="consignee_country"
-            id="consignee-country"
-            label="Consignee country"
-            :countries="$countries"
-            valueKey="name"
-            :value="$shipment->consignee_country"
-            wrapperClass="form-group-custom"
-            class="form-control-sm-custom"
-            placeholder="Select country"
-            :allowClear="true"
-            dropdownParent="body"
-        />
-        <div class="form-group-custom">
-            <label>Contact person <span class="text-danger">*</span></label>
-            <input type="text" id="consignee-att" name="consignee_att" class="form-control-sm-custom" value="{{ old('consignee_att', $shipment->consignee_att) }}" required>
-        </div>
-        <x-forms.port-select
-            name="consignee_port_code"
-            id="consignee-port-code"
-            label="Port code"
-            :value="$shipment->consignee_port_code"
-            class="form-control-sm-custom"
-            :required="true"
-        />
-        <div class="form-group-custom">
-            <label>Location</label>
-            <input type="text" id="location" name="location" class="form-control-sm-custom" value="{{ old('location', $shipment->location) }}">
-        </div>
-        <div class="form-group-custom">
-            <label>Consignee email</label>
-            <input type="text" id="consignee-email" name="consignee_email" class="form-control-sm-custom" value="{{ old('consignee_email', $shipment->consignee_email) }}">
-        </div>
         </div>{{-- .cs-pillar --}}
     </div>
 
-    <div class="form-col">
+    <div class="col-md-4 custom-col">
         <div class="cs-pillar">
-        <div class="cs-pillar__title">Account &amp; comments</div>
-        <div class="form-group-custom{{ $workflowEditMode ? ' cs-field--locked' : '' }}">
-            <label>Special considerations for destination</label>
-            <textarea name="special_considerations_destination" class="form-control" style="height: 120px;">{{ old('special_considerations_destination', $shipment->special_considerations_destination) }}</textarea>
-            <div class="checkbox-fade fade-in-primary mt-1">
-                <label>
-                    <input type="checkbox" name="skip_instruction_dest" value="1" {{ old('skip_instruction_dest', $shipment->skip_instruction_dest) ? 'checked' : '' }}>
-                    <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                    <span class="text-inverse" style="font-size: 10px;">Don't show on shipping instruction</span>
-                </label>
+            <div class="cs-pillar__title">Account &amp; comments</div>
+            <div class="form-group mb-2{{ $workflowEditMode ? ' cs-field--locked' : '' }}">
+                <label class="mb-0" style="font-size: 11px;">Account manager</label>
+                <select id="account-manager-select" name="account_manager" class="form-control select2-account-manager">
+                    <option value=""></option>
+                    @if ($shipment->account_manager_id)
+                        <option value="{{ $shipment->account_manager_id }}" selected>{{ $shipment->accountManager?->name ?? ('Contact #' . $shipment->account_manager_id) }}</option>
+                    @endif
+                </select>
             </div>
-        </div>
-        <div class="form-group-custom{{ $workflowEditMode ? ' cs-field--locked' : '' }}">
-            <label>Comments to departure hub</label>
-            <textarea name="comments_departure_hub" id="comments_departure_hub" class="form-control" style="height: 120px;">{{ old('comments_departure_hub', $shipment->comments_departure_hub) }}</textarea>
-            <div class="checkbox-fade fade-in-primary mt-1">
-                <label>
-                    <input type="checkbox" name="skip_instruction_hub" value="1" {{ old('skip_instruction_hub', $shipment->skip_instruction_hub) ? 'checked' : '' }}>
-                    <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                    <span class="text-inverse" style="font-size: 10px;">Don't show on shipping instruction</span>
-                </label>
+            <input type="hidden" name="skip_instruction_dest" value="{{ old('skip_instruction_dest', $shipment->skip_instruction_dest ? '1' : '0') }}">
+            <div class="form-group mb-2{{ $workflowEditMode ? ' cs-field--locked' : '' }}">
+                <label class="mb-0" style="font-size: 11px;">Special Handling Instructions</label>
+                <textarea name="special_considerations_destination" class="form-control filter-input" rows="2" style="height: auto !important; min-height: 50px;">{{ old('special_considerations_destination', $shipment->special_considerations_destination) }}</textarea>
             </div>
-        </div>
-        <div class="form-group-custom">
-            <label>Comments to consignee</label>
-            <textarea name="comments_consignee" class="form-control" style="height: 120px;">{{ old('comments_consignee', $shipment->comments_consignee) }}</textarea>
-            <div class="checkbox-fade fade-in-primary mt-1">
-                <label>
-                    <input type="checkbox" name="skip_prealert" value="1" {{ old('skip_prealert', $shipment->skip_prealert) ? 'checked' : '' }}>
-                    <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                    <span class="text-inverse" style="font-size: 10px;">Don't show on pre-alert</span>
-                </label>
+            <input type="hidden" name="skip_instruction_hub" value="{{ old('skip_instruction_hub', $shipment->skip_instruction_hub ? '1' : '0') }}">
+            <div class="form-group mb-1{{ $workflowEditMode ? ' cs-field--locked' : '' }}">
+                <label class="mb-0" style="font-size: 11px;">Notes for hub / agent</label>
+                <textarea name="comments_departure_hub" id="comments_departure_hub" class="form-control filter-input" rows="2" style="height: auto !important; min-height: 50px;">{{ old('comments_departure_hub', $shipment->comments_departure_hub) }}</textarea>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                <div class="checkbox-fade fade-in-primary">
-                    <label>
-                        <input type="checkbox" name="project_logistics" value="1" {{ old('project_logistics', $shipment->project_logistics) ? 'checked' : '' }}>
-                        <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                        <span class="text-inverse" style="font-size: 10px;">Project logistics</span>
-                    </label>
-                </div>
+            <input type="hidden" name="skip_prealert" value="{{ old('skip_prealert', $shipment->skip_prealert ? '1' : '0') }}">
+            <div class="form-group mb-1">
+                <label class="mb-0" style="font-size: 11px;">Notes for consignee</label>
+                <textarea name="comments_consignee" class="form-control filter-input" rows="2" style="height: auto !important; min-height: 50px;">{{ old('comments_consignee', $shipment->comments_consignee) }}</textarea>
             </div>
-            <div class="col-6">
-                <div class="checkbox-fade fade-in-primary">
-                    <label>
-                        <input type="checkbox" name="port_agency" value="1" {{ old('port_agency', $shipment->port_agency) ? 'checked' : '' }}>
-                        <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
-                        <span class="text-inverse" style="font-size: 10px;">Port agency</span>
-                    </label>
-                </div>
-            </div>
-        </div>
+            <input type="hidden" name="project_logistics" value="{{ old('project_logistics', $shipment->project_logistics ? '1' : '0') }}">
+            <input type="hidden" name="port_agency" value="{{ old('port_agency', $shipment->port_agency ? '1' : '0') }}">
         </div>{{-- .cs-pillar --}}
     </div>
 </div>
@@ -283,15 +274,11 @@
     @endphp
     <div class="stock-tabs">
         <div class="stock-tab active" data-panel="stock-panel-items">
-            <span class="stock-tab__label">Stock items</span>
+            <span class="stock-tab__label">Selected stock items</span>
             <span class="stock-tab__count" data-stock-tab-count>{{ $stockCount }}</span>
         </div>
-        <div class="stock-tab{{ $lockServiceDetailsForInProcess ? ' stock-tab--disabled' : '' }}" data-panel="stock-panel-service" @if($lockServiceDetailsForInProcess) title="Service details not available. Please create pre alert." @endif>
-            <span class="stock-tab__label">Service details</span>
-        </div>
-        <div class="stock-tab" data-panel="stock-panel-irregularities">
-            <span class="stock-tab__label">Irregularities</span>
-            <span class="stock-tab__count" data-irregularity-tab-count>{{ $shipment->irregularities->count() }}</span>
+        <div class="stock-tab{{ $lockServiceDetailsForInProcess ? ' stock-tab--disabled' : '' }}" data-panel="stock-panel-service" @if($lockServiceDetailsForInProcess) title="Carrier details not available. Please create pre alert." @endif>
+            <span class="stock-tab__label">Carrier Details</span>
         </div>
     </div>
 
@@ -343,7 +330,7 @@
                         </tr>
                     @empty
                         <tr id="empty-row">
-                            <td colspan="11" class="text-center py-3 text-muted">No stock items added yet.</td>
+                            <td colspan="11" class="text-center py-4 text-muted">No stock items selected yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -351,23 +338,23 @@
         </div>
         <div class="stock-totals">
             <div class="stock-total-chip">
-                <span class="stock-total-chip__label">Packages</span>
+                <span class="stock-total-chip__label">Total pcs</span>
                 <span class="stock-total-chip__value">{{ $totalPackages }} pcs</span>
             </div>
             <div class="stock-total-chip">
-                <span class="stock-total-chip__label">Weight</span>
+                <span class="stock-total-chip__label">Total weight</span>
                 <span class="stock-total-chip__value">{{ number_format($totalWeight, 2) }} kg</span>
             </div>
             <div class="stock-total-chip">
-                <span class="stock-total-chip__label">CBM</span>
+                <span class="stock-total-chip__label">Total CBM</span>
                 <span class="stock-total-chip__value">{{ \App\Support\PackageVolumeMetrics::formatCbm($totalCbm) }}</span>
             </div>
             <div class="stock-total-chip">
-                <span class="stock-total-chip__label">Value</span>
+                <span class="stock-total-chip__label">Total value</span>
                 <span class="stock-total-chip__value">{{ number_format($totalValue, 2) }}</span>
             </div>
             <div class="ml-auto">
-                <button type="button" id="add-stock-items-btn" class="btn btn-premium btn-outline-custom ml-2" @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif>Add stock items</button>
+                <button type="button" id="add-stock-items-btn" class="btn btn-premium btn-outline-custom ml-2" @if(in_array($shipment->status, ['Completed', 'Cancelled'], true)) disabled @endif>Select stock items</button>
             </div>
         </div>
         @include('Shipment.partials.stock-repacked-fields', [
@@ -384,7 +371,7 @@
     </div>
 
     <div id="stock-panel-service" class="stock-panel{{ $lockServiceDetailsForInProcess ? ' stock-panel--locked' : '' }}">
-        <div id="service-details-placeholder" class="text-center">Select a service type to enter service details.</div>
+        <div id="service-details-placeholder" class="p-4 text-center text-muted">Select a shipment mode to enter carrier details.</div>
         <div id="service-details-airfreight" class="p-3" style="display: none;">
             <div id="airfreight-flights-container">
                 @forelse ($shipment->flights as $flight)
@@ -393,7 +380,7 @@
                 @endforelse
             </div>
             <div class="d-flex justify-content-end pt-2">
-                <a href="#" id="add-airfreight-flight-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add flight</a>
+                <a href="#" id="add-airfreight-flight-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add air leg</a>
             </div>
         </div>
         <div id="service-details-sea-freight" class="p-3" style="display: none;">
@@ -404,7 +391,7 @@
                 @endforelse
             </div>
             <div class="d-flex justify-content-end pt-2">
-                <a href="#" id="add-sea-freight-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add leg</a>
+                <a href="#" id="add-sea-freight-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add sea leg</a>
             </div>
         </div>
         <div id="service-details-truck" class="p-3" style="display: none;">
@@ -415,7 +402,7 @@
                 @endforelse
             </div>
             <div class="d-flex justify-content-end pt-2">
-                <a href="#" id="add-truck-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add truck</a>
+                <a href="#" id="add-truck-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add truck leg</a>
             </div>
         </div>
         <div id="service-details-courier" class="p-3" style="display: none;">
@@ -426,7 +413,7 @@
                 @endforelse
             </div>
             <div class="d-flex justify-content-end pt-2">
-                <a href="#" id="add-courier-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add courier</a>
+                <a href="#" id="add-courier-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add courier leg</a>
             </div>
         </div>
         <div id="service-details-release" class="p-3" style="display: none;">
@@ -437,7 +424,7 @@
                 @endforelse
             </div>
             <div class="d-flex justify-content-end pt-2">
-                <a href="#" id="add-release-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add release</a>
+                <a href="#" id="add-release-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add release leg</a>
             </div>
         </div>
         <div id="service-details-hand-carry" class="p-3" style="display: none;">
@@ -448,7 +435,7 @@
                 @endforelse
             </div>
             <div class="d-flex justify-content-end pt-2">
-                <a href="#" id="add-hand-carry-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add hand carry</a>
+                <a href="#" id="add-hand-carry-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add hand-carry leg</a>
             </div>
         </div>
         <div id="service-details-on-board" class="p-3" style="display: none;">
@@ -459,7 +446,7 @@
                 @endforelse
             </div>
             <div class="d-flex justify-content-end pt-2">
-                <a href="#" id="add-on-board-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add delivery</a>
+                <a href="#" id="add-on-board-leg-btn" class="text-primary" style="font-size: 11px; font-weight: 600; text-decoration: none;">Add onboard delivery</a>
             </div>
         </div>
         @include('Shipment.partials.stock-repacked-fields', [
@@ -475,7 +462,7 @@
         ])
     </div>
 
-    <div id="stock-panel-irregularities" class="stock-panel">
+    <div id="stock-panel-irregularities" class="stock-panel stock-panel--preserved" style="display: none !important;" aria-hidden="true">
         <div class="p-3" id="irregularities-container">
             @forelse ($shipment->irregularities as $irregularity)
                 @php $irIndex = $loop->index; @endphp

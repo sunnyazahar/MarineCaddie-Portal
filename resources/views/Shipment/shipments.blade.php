@@ -891,21 +891,167 @@
             $('body').addClass('shipments-list-page');
 
             var shipmentsIndexUrl = @json(route('shipments'));
+            var shipmentFilterStorageKey = 'shipments-list-filter-values-v1';
             var table = null;
             var searchTimer = null;
             var filtersReady = false;
             var requestToken = 0;
             var suppressFilterLoad = false;
+            var shipmentFilterFields = [
+                { key: 'customer', selector: '#col-Customer select', type: 'multi' },
+                { key: 'vessel', selector: '#col-Vessel select', type: 'multi' },
+                { key: 'shipment_number', selector: '#col-Shipment-no input', type: 'text' },
+                { key: 'service_reference', selector: '#col-Service-reference-number input', type: 'text' },
+                { key: 'po_number', selector: '#col-PO-number input', type: 'text' },
+                { key: 'departure_port_code', selector: '#col-Departure-hub select', type: 'multi' },
+                { key: 'consignee', selector: '#col-Consignee input', type: 'text' },
+                { key: 'destination', selector: '#col-Port-of-destination input', type: 'text' },
+                { key: 'account_manager', selector: '#col-Account-manager select', type: 'multi' },
+                { key: 'created_by', selector: '#col-Created-by select', type: 'multi' },
+                { key: 'office', selector: '#col-Office select', type: 'multi' },
+                { key: 'creation_date', selector: '#filter-creation-date', type: 'text' },
+                { key: 'service', selector: '#col-Service select', type: 'multi' },
+                { key: 'status', selector: '#col-Status select', type: 'multi' }
+            ];
+
+            function canUseShipmentFilterStorage() {
+                try {
+                    if (!window.localStorage) {
+                        return false;
+                    }
+
+                    var probeKey = shipmentFilterStorageKey + ':probe';
+                    window.localStorage.setItem(probeKey, '1');
+                    window.localStorage.removeItem(probeKey);
+                    return true;
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            function normalizeShipmentFilterValues(field, value) {
+                if (field.type === 'multi') {
+                    if (!Array.isArray(value)) {
+                        return [];
+                    }
+
+                    return value
+                        .map(function (item) {
+                            return $.trim(String(item || ''));
+                        })
+                        .filter(function (item) {
+                            return item !== '';
+                        });
+                }
+
+                return $.trim(String(value || ''));
+            }
+
+            function collectShipmentFilterValues() {
+                var payload = {};
+
+                shipmentFilterFields.forEach(function (field) {
+                    var $field = $(field.selector);
+                    if (!$field.length) {
+                        return;
+                    }
+
+                    payload[field.key] = normalizeShipmentFilterValues(field, $field.val());
+                });
+
+                return payload;
+            }
+
+            function shipmentFiltersHaveValues(payload) {
+                return shipmentFilterFields.some(function (field) {
+                    var value = normalizeShipmentFilterValues(field, payload ? payload[field.key] : null);
+
+                    if (field.type === 'multi') {
+                        return value.length > 0;
+                    }
+
+                    return value !== '';
+                });
+            }
+
+            function persistShipmentFilters() {
+                if (!canUseShipmentFilterStorage()) {
+                    return;
+                }
+
+                var payload = collectShipmentFilterValues();
+
+                if (!shipmentFiltersHaveValues(payload)) {
+                    window.localStorage.removeItem(shipmentFilterStorageKey);
+                    return;
+                }
+
+                window.localStorage.setItem(shipmentFilterStorageKey, JSON.stringify(payload));
+            }
+
+            function readStoredShipmentFilters() {
+                if (!canUseShipmentFilterStorage()) {
+                    return null;
+                }
+
+                var raw = window.localStorage.getItem(shipmentFilterStorageKey);
+                if (!raw) {
+                    return null;
+                }
+
+                try {
+                    var parsed = JSON.parse(raw);
+                    return parsed && typeof parsed === 'object' ? parsed : null;
+                } catch (error) {
+                    window.localStorage.removeItem(shipmentFilterStorageKey);
+                    return null;
+                }
+            }
+
+            function applyStoredShipmentFilters() {
+                var stored = readStoredShipmentFilters();
+                if (!stored) {
+                    return false;
+                }
+
+                shipmentFilterFields.forEach(function (field) {
+                    var $field = $(field.selector);
+                    if (!$field.length) {
+                        return;
+                    }
+
+                    var value = normalizeShipmentFilterValues(field, stored[field.key]);
+                    if (field.type === 'multi') {
+                        $field.val(value);
+                        return;
+                    }
+
+                    $field.val(value);
+                });
+
+                return shipmentFiltersHaveValues(collectShipmentFilterValues());
+            }
+
+            function clearPersistedShipmentFilters() {
+                if (!canUseShipmentFilterStorage()) {
+                    return;
+                }
+
+                window.localStorage.removeItem(shipmentFilterStorageKey);
+            }
 
             function shouldLoadFilters() {
                 return filtersReady && !suppressFilterLoad;
             }
 
             function loadShipmentsOnFilterChange() {
+                persistShipmentFilters();
                 if (shouldLoadFilters()) {
                     loadShipments(1);
                 }
             }
+
+            var restoredShipmentFilters = applyStoredShipmentFilters();
 
             initializeSearchableFilterMultiselect('.searchable-filter-multiselect', {
                 onChange: loadShipmentsOnFilterChange,
@@ -1168,6 +1314,8 @@
                 var params = currentFilterParams(page);
                 var token = ++requestToken;
 
+                persistShipmentFilters();
+
                 $.ajax({
                     url: shipmentsIndexUrl,
                     method: 'GET',
@@ -1200,6 +1348,7 @@
                 changeYear: true,
                 yearRange: 'c-10:c+2',
                 onSelect: function () {
+                    persistShipmentFilters();
                     loadShipments(1);
                 }
             });
@@ -1209,6 +1358,7 @@
             });
 
             $('#col-Shipment-no input, #col-Service-reference-number input, #col-PO-number input, #col-Consignee input, #col-Port-of-destination input').on('input keyup', function (e) {
+                persistShipmentFilters();
                 if (e.type === 'keyup' && e.key === 'Enter') {
                     e.preventDefault();
                     clearTimeout(searchTimer);
@@ -1223,6 +1373,7 @@
             });
 
             $('#filter-creation-date').on('change', function () {
+                persistShipmentFilters();
                 loadShipments(1);
             });
 
@@ -1243,6 +1394,7 @@
                 clearTimeout(searchTimer);
                 suppressFilterLoad = true;
                 resetShipmentFilterFields();
+                clearPersistedShipmentFilters();
                 suppressFilterLoad = false;
                 loadShipments(1);
                 return false;
@@ -1250,6 +1402,9 @@
 
             setTimeout(function () {
                 filtersReady = true;
+                if (restoredShipmentFilters) {
+                    loadShipments(1);
+                }
             }, 200);
         });
     </script>

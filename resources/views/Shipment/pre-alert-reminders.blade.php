@@ -558,7 +558,7 @@
                                                     body-class="prealert-filters-open"
                                                     toolbar-class="prealert-filters-toolbar"
                                                 />
-                                                <div class="d-flex pt-2 prealert-filters-fields list-dense-filter-bar">
+                                                <div class="d-flex pt-2 prealert-filters-fields list-dense-filter-bar" data-mc-filter-persist-key="prealert-reminder-filter-values-v1">
                                                     <div class="list-dense-filter-shell" style="width: 100%;">
                                                         <div class="list-dense-filter-controls prealert-filter-controls">
                                                             <select id="filter-multiselect" multiple="multiple" data-storage-key="prealert-list-filters-v2">

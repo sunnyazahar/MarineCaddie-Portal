@@ -238,7 +238,7 @@
                 countLabel="customers"
             />
 
-            <div class="customers-filters-area">
+            <div class="customers-filters-area" data-mc-filter-persist-key="customers-list-filter-values-v1">
                 <x-lists.filter-toolbar
                     toggle-id="btn-customers-filters-toggle"
                     body-class="customers-filters-open"

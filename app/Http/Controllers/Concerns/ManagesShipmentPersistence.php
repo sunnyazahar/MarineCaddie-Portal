@@ -14,9 +14,13 @@ trait ManagesShipmentPersistence
 {
     protected function validateShipmentRequest(Request $request, ?Shipment $shipment = null): array
     {
+        $isCreate = $shipment === null;
+        $requiredOnCreateString = static fn (int $max = 255): array => [$isCreate ? 'required' : 'nullable', 'string', 'max:' . $max];
+        $requiredOnCreateText = static fn (): array => [$isCreate ? 'required' : 'nullable', 'string'];
+
         $rules = [
-            'departure' => 'nullable|string|max:255',
-            'departure_port_code' => 'nullable|string|max:255',
+            'departure' => $requiredOnCreateString(),
+            'departure_port_code' => $requiredOnCreateString(),
             'service' => 'required|string|max:255',
             'additional_service' => 'nullable|string|max:255',
             'preferred_shipment_date' => 'nullable|string',
@@ -25,17 +29,17 @@ trait ManagesShipmentPersistence
             'vessel_etd' => 'nullable|string',
             'pre_alert_reminder' => 'nullable|string',
             'customer_reference' => 'nullable|string|max:255',
-            'consignee' => 'nullable|string|max:255',
-            'consignee_address' => 'nullable|string',
-            'consignee_city' => 'nullable|string|max:255',
+            'consignee' => $requiredOnCreateString(),
+            'consignee_address' => $requiredOnCreateText(),
+            'consignee_city' => $requiredOnCreateString(),
             'consignee_district' => 'nullable|string|max:255',
             'consignee_zip' => 'nullable|string|max:255',
-            'consignee_country' => 'nullable|string|max:255',
+            'consignee_country' => $requiredOnCreateString(),
             'consignee_port_code' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
-            'consignee_att' => 'required|string|max:255',
+            'consignee_att' => [$isCreate ? 'nullable' : 'required', 'string', 'max:255'],
             'consignee_email' => 'nullable|email|max:255',
-            'account_manager' => 'nullable|integer|exists:contacts,id',
+            'account_manager' => [$isCreate ? 'required' : 'nullable', 'integer', 'exists:contacts,id'],
             'status' => 'nullable|string|max:255',
             'repacked_items' => 'nullable|integer|min:0',
             'repacked_weight' => 'nullable|numeric|min:0',
@@ -102,9 +106,16 @@ trait ManagesShipmentPersistence
         ];
 
         $validator = validator($request->all(), $rules, [], [
-            'consignee_att' => 'contact person',
-            'service' => 'service',
-            'consignee_port_code' => 'consignee port code',
+            'departure' => 'hub / agent',
+            'departure_port_code' => 'departure port code',
+            'service' => 'shipment mode',
+            'consignee' => 'consignee',
+            'consignee_address' => 'delivery address',
+            'consignee_city' => 'city',
+            'consignee_country' => 'country / region',
+            'consignee_port_code' => 'arrival port code',
+            'consignee_att' => 'consignee contact',
+            'account_manager' => 'account manager',
         ]);
 
         $validator->after(function ($validator) use ($request, $shipment) {

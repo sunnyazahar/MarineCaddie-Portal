@@ -12,6 +12,7 @@
 
 <script type="text/javascript" src="{{ asset('files/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
 @include('partials.searchable-filter-multiselect-script')
+@include('partials.filter-state-persistence-script')
 @include('partials.multiselect-select2-shim')
 
 <script type="text/javascript" src="{{ asset('files/bower_components/i18next/i18next.min.js') }}"></script>

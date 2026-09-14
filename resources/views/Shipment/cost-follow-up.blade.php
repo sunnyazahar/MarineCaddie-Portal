@@ -515,7 +515,7 @@
                                                     body-class="cost-filters-open"
                                                     toolbar-class="cost-filters-toolbar"
                                                 />
-                                                <div class="d-flex justify-content-between align-items-start pt-2 cost-filters-fields list-dense-filter-bar">
+                                                <div class="d-flex justify-content-between align-items-start pt-2 cost-filters-fields list-dense-filter-bar" data-mc-filter-persist-key="cost-followup-filter-values-v1">
                                                     <div class="list-dense-filter-shell" style="width: 100%;">
                                                         <div class="list-dense-filter-controls cost-filter-controls">
                                                             <select id="filter-multiselect" multiple="multiple" data-storage-key="cost-list-filters">
@@ -971,6 +971,14 @@
                 $('.filter-input:not(select)').val('');
                 clearTableRows();
             });
+
+            var costFilterStore = typeof window.mcEnsureFilterPersistence === 'function'
+                ? window.mcEnsureFilterPersistence({ root: '.cost-filters-fields[data-mc-filter-persist-key]' })
+                : null;
+
+            if (costFilterStore && costFilterStore.restore() && hasActiveFilters(getActiveFilters())) {
+                scheduleFetch();
+            }
 
             @include('Shipment.partials.reminder-compose-script')
         });
