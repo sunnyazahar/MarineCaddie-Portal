@@ -468,7 +468,9 @@
                 var csrfToken = document.createElement('input');
                 csrfToken.type = 'hidden';
                 csrfToken.name = '_token';
-                csrfToken.value = '{{ csrf_token() }}';
+                csrfToken.value = (typeof window.mcCsrfToken === 'function' ? window.mcCsrfToken() : null)
+                    || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    || '{{ csrf_token() }}';
                 form.appendChild(csrfToken);
 
                 var methodField = document.createElement('input');

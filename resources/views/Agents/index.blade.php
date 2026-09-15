@@ -433,10 +433,14 @@
 
                     $.ajax({
                         url: $button.data('url'),
-                        type: 'PATCH',
+                        type: 'POST',
                         data: {
-                            _token: '{{ csrf_token() }}',
+                            _token: window.mcCsrfToken(),
+                            _method: 'PATCH',
                             status: nextStatus
+                        },
+                        headers: {
+                            'X-CSRF-TOKEN': window.mcCsrfToken()
                         },
                         success: function (response) {
                             if (!response.success) {
@@ -497,12 +501,8 @@
                         return;
                     }
 
-                    $.ajax({
+                    window.mcAjaxDelete({
                         url: '{{ url('/Agents') }}/' + id,
-                        type: 'DELETE',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
                         success: function (response) {
                             if (response.success) {
                                 swal({

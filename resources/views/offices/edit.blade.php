@@ -611,16 +611,8 @@
                         return;
                     }
 
-                    $.ajax({
+                    window.mcAjaxDelete({
                         url: url,
-                        type: 'POST',
-                        data: {
-                            _token: $('meta[name="csrf-token"]').attr('content'),
-                            _method: 'DELETE'
-                        },
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
                         success: function (response) {
                             if (response.success) {
                                 swal({

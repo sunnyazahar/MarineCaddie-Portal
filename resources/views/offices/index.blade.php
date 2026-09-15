@@ -468,12 +468,8 @@
                         return;
                     }
 
-                    $.ajax({
+                    window.mcAjaxDelete({
                         url: '{{ url('/offices') }}/' + id,
-                        type: 'DELETE',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
                         success: function (response) {
                             if (response.success) {
                                 swal({

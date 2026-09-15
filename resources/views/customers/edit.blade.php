@@ -831,12 +831,8 @@
                 var row = $(this).closest('tr');
 
                 if (confirm('Are you sure you want to delete this contact?')) {
-                    $.ajax({
-                        url: '/contacts/' + contactId,
-                        type: 'DELETE',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
+                    window.mcAjaxDelete({
+                        url: '{{ url('/contacts') }}/' + contactId,
                         success: function (response) {
                             if (response.success) {
                                 row.fadeOut(function () {
@@ -871,12 +867,8 @@
                         return;
                     }
 
-                    $.ajax({
+                    window.mcAjaxDelete({
                         url: '{{ url('/customers/vessels') }}/' + vesselId,
-                        type: 'DELETE',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
                         success: function (response) {
                             if (response.success) {
                                 swal({

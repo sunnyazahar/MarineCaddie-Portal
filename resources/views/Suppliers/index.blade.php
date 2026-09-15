@@ -365,12 +365,8 @@
                         return;
                     }
 
-                    $.ajax({
+                    window.mcAjaxDelete({
                         url: '{{ url('/Suppliers') }}/' + id,
-                        type: 'DELETE',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
                         success: function (response) {
                             if (response.success) {
                                 swal({

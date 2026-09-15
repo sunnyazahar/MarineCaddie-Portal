@@ -13,6 +13,40 @@
                 'X-CSRF-TOKEN': csrfToken
             }
         });
+
+        window.mcCsrfToken = function () {
+            return $('meta[name="csrf-token"]').attr('content') || csrfToken || '';
+        };
+
+        /**
+         * Hostinger/PHP often drop DELETE request bodies, which causes CSRF mismatches.
+         * Prefer POST + _method=DELETE with meta CSRF token + header.
+         */
+        window.mcAjaxDelete = function (options) {
+            var token = window.mcCsrfToken();
+            var settings = $.extend(true, {}, options || {});
+            var data = settings.data;
+
+            if (data == null) {
+                data = {};
+            } else if (typeof data === 'string') {
+                data = data + (data ? '&' : '') + '_token=' + encodeURIComponent(token) + '&_method=DELETE';
+            } else {
+                data = $.extend({}, data, {
+                    _token: token,
+                    _method: 'DELETE'
+                });
+            }
+
+            settings.type = 'POST';
+            settings.method = 'POST';
+            settings.data = data;
+            settings.headers = $.extend({}, settings.headers || {}, {
+                'X-CSRF-TOKEN': token
+            });
+
+            return $.ajax(settings);
+        };
     })(jQuery);
 </script>
 
