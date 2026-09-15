@@ -210,7 +210,7 @@ class PreAlertMailService
 
         if ($serviceReference !== null) {
             return sprintf(
-                'Pre-alert for Ref. %s / %s / %s /%s/ From %s to %s',
+                'MarineCaddie Pre-alert Ref. %s / Vessel: %s / %s /%s/ From %s to %s',
                 $shipment->shipment_number,
                 $vessel,
                 $service,
@@ -221,7 +221,7 @@ class PreAlertMailService
         }
 
         return sprintf(
-            'Pre-alert for Ref. %s / %s / %s / From %s to %s',
+            'MarineCaddie Pre-alert Ref. %s / Vessel: %s / %s / From %s to %s',
             $shipment->shipment_number,
             $vessel,
             $service,
@@ -363,7 +363,9 @@ class PreAlertMailService
         $vesselLine = $this->preAlertPdfBuilder->formatMailVesselLine($shipment);
 
         $lines = [
-            'This is to notify owner / management ' . $ownerName . ' about shipment from ' . $departure . ' to ' . $destination . ' with the below details',
+            'To ' . $ownerName . ',',
+            '',
+            'Please find the pre-alert details for an upcoming onboard delivery to your vessel from ' . $departure . ' to ' . $destination . '.',
             '',
             '',
             '**Shipment Details:**',
