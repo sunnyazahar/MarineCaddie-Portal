@@ -573,7 +573,8 @@ Modules like Agent, Hub, Customer, Shipment, Stock use tabbed edit UI:
 ### Delete from list
 
 - SweetAlert confirm → `window.mcAjaxDelete({ url, success, error })` (`partials/common-assets-scripts`)
-- Helper sends `POST` + `_method=DELETE` + `X-CSRF-TOKEN` / `_token` from `meta[name="csrf-token"]` (Hostinger/PHP often drop DELETE bodies → CSRF mismatch)
+- Helper uses real HTTP `DELETE` + `X-CSRF-TOKEN` from `meta[name="csrf-token"]` (do **not** POST+`_method` on nested admin routes that only register PUT/DELETE — spoof miss → “POST method is not supported”)
+- CSRF must be in the **header** because Hostinger/PHP often drop DELETE bodies (`_token` body alone caused production CSRF mismatch)
 - Global `$.ajaxSetup({ headers: { 'X-CSRF-TOKEN': … } })` also lives there
 - SweetAlert callback mein **destroyed DataTables** par `.draw()` / `.invalidate()` mat karo
 - Success par list row remove ya `bindAjaxListFilters` reload

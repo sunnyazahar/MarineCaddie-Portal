@@ -433,10 +433,9 @@
 
                     $.ajax({
                         url: $button.data('url'),
-                        type: 'POST',
+                        type: 'PATCH',
                         data: {
                             _token: window.mcCsrfToken(),
-                            _method: 'PATCH',
                             status: nextStatus
                         },
                         headers: {

@@ -3,47 +3,38 @@
 
 <script>
     (function ($) {
-        var csrfToken = $('meta[name="csrf-token"]').attr('content');
-        if (!csrfToken) {
-            return;
-        }
+        window.mcCsrfToken = function () {
+            return $('meta[name="csrf-token"]').attr('content') || '';
+        };
 
         $.ajaxSetup({
             headers: {
-                'X-CSRF-TOKEN': csrfToken
+                'X-CSRF-TOKEN': window.mcCsrfToken()
             }
         });
 
-        window.mcCsrfToken = function () {
-            return $('meta[name="csrf-token"]').attr('content') || csrfToken || '';
-        };
-
         /**
-         * Hostinger/PHP often drop DELETE request bodies, which causes CSRF mismatches.
-         * Prefer POST + _method=DELETE with meta CSRF token + header.
+         * Administration deletes: real HTTP DELETE + CSRF header.
+         * Do NOT use POST+_method spoofing here — nested admin routes only register PUT/DELETE,
+         * so an unspoofed POST returns "POST method is not supported".
+         * Hostinger may drop DELETE bodies, so CSRF must live in the header (not only _token body).
          */
         window.mcAjaxDelete = function (options) {
             var token = window.mcCsrfToken();
             var settings = $.extend(true, {}, options || {});
-            var data = settings.data;
 
-            if (data == null) {
-                data = {};
-            } else if (typeof data === 'string') {
-                data = data + (data ? '&' : '') + '_token=' + encodeURIComponent(token) + '&_method=DELETE';
-            } else {
-                data = $.extend({}, data, {
-                    _token: token,
-                    _method: 'DELETE'
-                });
-            }
-
-            settings.type = 'POST';
-            settings.method = 'POST';
-            settings.data = data;
+            settings.type = 'DELETE';
+            settings.method = 'DELETE';
             settings.headers = $.extend({}, settings.headers || {}, {
                 'X-CSRF-TOKEN': token
             });
+
+            // Keep _token in data when possible; header is the reliable source on Hostinger.
+            if (settings.data == null || typeof settings.data === 'object') {
+                settings.data = $.extend({}, settings.data || {}, {
+                    _token: token
+                });
+            }
 
             return $.ajax(settings);
         };
