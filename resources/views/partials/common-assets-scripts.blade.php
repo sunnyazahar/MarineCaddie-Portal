@@ -1,6 +1,21 @@
 {{-- Shared vendor JS for authenticated app pages (Tailwind v2). jQuery is loaded in layouts/app head. --}}
 <script type="text/javascript" src="{{ asset('files/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
 
+<script>
+    (function ($) {
+        var csrfToken = $('meta[name="csrf-token"]').attr('content');
+        if (!csrfToken) {
+            return;
+        }
+
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+    })(jQuery);
+</script>
+
 <script src="{{ asset('files/bower_components/datatables.net/js/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('files/bower_components/datatables.net-buttons/js/dataTables.buttons.min.js') }}"></script>
 <script src="{{ asset('files/assets/pages/data-table/js/jszip.min.js') }}"></script>

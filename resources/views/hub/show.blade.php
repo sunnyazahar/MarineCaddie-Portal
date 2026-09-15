@@ -443,9 +443,13 @@
 
                     $.ajax({
                         url: url,
-                        type: 'DELETE',
+                        type: 'POST',
                         data: {
-                            _token: '{{ csrf_token() }}'
+                            _token: $('meta[name="csrf-token"]').attr('content'),
+                            _method: 'DELETE'
+                        },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
                         success: function (response) {
                             if (response.success) {
