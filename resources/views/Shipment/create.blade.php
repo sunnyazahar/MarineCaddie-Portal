@@ -3416,6 +3416,12 @@
             });
 
             $('#shipment-form').on('submit', function() {
+                var selectedStockCount = $('#stock-items-table tbody tr.selected-stock-row').length;
+                if (selectedStockCount < 1) {
+                    showValidationSwal('Please select at least one stock item before creating the shipment.');
+                    return false;
+                }
+
                 var contactPerson = $.trim($('#consignee-att').val() || '');
                 if (!contactPerson) {
                     showValidationSwal('Please enter the contact person.');

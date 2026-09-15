@@ -1207,9 +1207,6 @@
                 <button type="button" class="btn btn-teal btn-sm" id="bulk-create-shipment">
                     Create shipment (<span class="bulk-action-count">0</span>)
                 </button>
-                <button type="button" class="btn btn-teal btn-sm" id="bulk-create-customer-request">
-                    Create customer request (<span class="bulk-action-count">0</span>)
-                </button>
                 <button type="button" class="stock-bulk-icon-btn" id="bulk-copy-selected" title="Copy selected rows">
                     <i class="ti-layers"></i>
                 </button>
@@ -1814,15 +1811,6 @@
                 }
 
                 window.location.href = '{{ route('create-shipment') }}?crr_ids=' + selectedIds.join(',');
-            });
-
-            $('#bulk-create-customer-request').on('click', function() {
-                var selectedIds = getSelectedIds();
-                if (selectedIds.length === 0) {
-                    return;
-                }
-
-                alert('Create customer request for ' + selectedIds.length + ' selected stock item(s).');
             });
 
             $('#bulk-copy-selected').on('click', function() {

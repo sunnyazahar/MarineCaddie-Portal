@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Concerns;
 
 use App\Models\Crr;
+use App\Models\Contact;
 use App\Models\Shipment;
 use App\Models\ShipmentManifest;
 use App\Models\ShipmentPreAlert;
@@ -48,7 +49,7 @@ trait ManagesShipmentPersistence
             'special_considerations_destination' => 'nullable|string',
             'comments_departure_hub' => 'nullable|string',
             'comments_consignee' => 'nullable|string',
-            'crr_ids' => 'nullable|array',
+            'crr_ids' => $isCreate ? 'required|array|min:1' : 'nullable|array',
             'crr_ids.*' => 'integer|exists:crrs,id',
             'irregularities' => 'nullable|array',
             'irregularities.*.irregularity_date' => 'nullable|string',
@@ -105,7 +106,10 @@ trait ManagesShipmentPersistence
             'on_board_legs.*.delivery_time' => 'nullable|string|max:5',
         ];
 
-        $validator = validator($request->all(), $rules, [], [
+        $validator = validator($request->all(), $rules, [
+            'crr_ids.required' => 'Please select at least one stock item before creating the shipment.',
+            'crr_ids.min' => 'Please select at least one stock item before creating the shipment.',
+        ], [
             'departure' => 'hub / agent',
             'departure_port_code' => 'departure port code',
             'service' => 'shipment mode',
@@ -116,6 +120,7 @@ trait ManagesShipmentPersistence
             'consignee_port_code' => 'arrival port code',
             'consignee_att' => 'consignee contact',
             'account_manager' => 'account manager',
+            'crr_ids' => 'stock items',
         ]);
 
         $validator->after(function ($validator) use ($request, $shipment) {
@@ -932,9 +937,13 @@ trait ManagesShipmentPersistence
         return $request->input('return_to') === 'create-pre-alert';
     }
 
-    protected function generateShipmentNumber(): string
+    protected function generateShipmentNumber(?string $accountManagerName = null): string
     {
-        $prefix = $this->shipmentNumberUserPrefix();
+        $prefix = $this->shipmentNumberPrefixFromName(
+            $accountManagerName !== null && trim($accountManagerName) !== ''
+                ? $accountManagerName
+                : (string) (auth()->user()?->name ?? '')
+        );
         $random = str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
         $monthYear = now()->format('my');
 
@@ -943,14 +952,32 @@ trait ManagesShipmentPersistence
 
     protected function shipmentNumberUserPrefix(): string
     {
-        $userName = (string) (auth()->user()?->name ?? '');
-        $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $userName) ?? '', 0, 3));
+        return $this->shipmentNumberPrefixFromName((string) (auth()->user()?->name ?? ''));
+    }
+
+    protected function shipmentNumberPrefixFromName(string $name): string
+    {
+        $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $name) ?? '', 0, 3));
 
         if (strlen($prefix) < 3) {
             $prefix = str_pad($prefix, 3, 'X');
         }
 
         return $prefix;
+    }
+
+    protected function resolveAccountManagerNameForShipmentNumber(mixed $accountManagerId): string
+    {
+        $id = (int) $accountManagerId;
+        if ($id <= 0) {
+            return (string) (auth()->user()?->name ?? '');
+        }
+
+        $name = Contact::query()->whereKey($id)->value('name');
+
+        return trim((string) ($name ?? '')) !== ''
+            ? (string) $name
+            : (string) (auth()->user()?->name ?? '');
     }
 
     protected function irregularityHasData(array $irregularity): bool

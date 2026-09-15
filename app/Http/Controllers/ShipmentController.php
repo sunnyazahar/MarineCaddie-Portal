@@ -550,8 +550,9 @@ class ShipmentController extends BaseShipmentController
         DB::beginTransaction();
 
         try {
+            $accountManagerName = $this->resolveAccountManagerNameForShipmentNumber($validated['account_manager'] ?? null);
             do {
-                $shipmentNumber = $this->generateShipmentNumber();
+                $shipmentNumber = $this->generateShipmentNumber($accountManagerName);
             } while ($this->shipmentRepository->shipmentNumberExists($shipmentNumber));
 
             $shipment = $this->shipmentRepository->createShipment(array_merge(
