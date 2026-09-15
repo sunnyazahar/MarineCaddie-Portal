@@ -994,17 +994,33 @@
             resize: none;
             overflow-y: hidden;
         }
-        #shipment-edit-form .cs-pillar .input-group {
-            flex-wrap: nowrap;
+        #shipment-edit-form .cs-pillar .input-group,
+        #shipment-edit-form .cs-pillar .input-group[style*="height"] {
+            height: var(--mc-control-height, 34px) !important;
+            min-height: var(--mc-control-height, 34px) !important;
+            max-height: var(--mc-control-height, 34px) !important;
+            flex-wrap: nowrap !important;
+            align-items: stretch !important;
             width: 100%;
             max-width: 100%;
         }
         #shipment-edit-form .cs-pillar .input-group .form-control {
+            height: 100% !important;
+            min-height: 0 !important;
+            max-height: none !important;
             border-top-right-radius: 0 !important;
             border-bottom-right-radius: 0 !important;
             min-width: 0;
         }
         #shipment-edit-form .cs-pillar .input-group-addon {
+            height: var(--mc-control-height, 34px) !important;
+            min-height: var(--mc-control-height, 34px) !important;
+            max-height: var(--mc-control-height, 34px) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 10px !important;
+            box-sizing: border-box !important;
             background: #f0f9fc !important;
             border: 1px solid #d6e3ee !important;
             border-left: none !important;

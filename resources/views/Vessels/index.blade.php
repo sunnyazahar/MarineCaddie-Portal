@@ -4,6 +4,7 @@
     @include('partials.list-pagination-footer-styles')
 
     <x-lists.base-styles bodyClass="vessels-filters-open" toolbarClass="vessels-filters-toolbar" />
+    <x-lists.multiselect-assets />
 
     <style>
         body.vessels-list-page {
@@ -59,6 +60,47 @@
             background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%);
         }
 
+        .btn-vessels-tracker {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            white-space: nowrap;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #00aeef 0%, #008080 100%);
+            box-shadow: 0 2px 8px rgba(0, 128, 128, 0.28);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-vessels-tracker:hover {
+            color: #fff;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.32);
+        }
+        .btn-vessels-tracker-mobile {
+            display: none;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: #fff;
+            color: #008080;
+            border: 1px solid #008080;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-vessels-tracker-mobile:hover {
+            background: #008080;
+            color: #fff;
+            text-decoration: none;
+        }
+
         .vessels-table-area {
             flex: 1;
             min-height: 0;
@@ -72,7 +114,7 @@
         #vessels-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 720px;
+            min-width: 900px;
         }
         #vessels-table thead th {
             position: sticky;
@@ -104,6 +146,12 @@
             border-bottom: none;
         }
 
+        .vessel-name-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
         .vessel-name-link,
         .vessel-customer-link {
             color: #008080;
@@ -114,6 +162,73 @@
         .vessel-customer-link:hover {
             color: #006666;
             text-decoration: underline;
+        }
+        .vessel-alias-meta {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 280px;
+        }
+
+        .vessel-imo {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0e1d4a;
+            letter-spacing: 0.02em;
+        }
+
+        .vessel-type-chip {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0e1d4a;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .vessel-status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            min-width: 72px;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.2;
+            border: 1px solid transparent;
+        }
+        .vessel-status-pill.is-active {
+            color: #065f46;
+            background: #ecfdf5;
+            border-color: #6ee7b7;
+        }
+        .vessel-status-pill.is-inactive {
+            color: #64748b;
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .vessel-status-pill.is-blocked {
+            color: #92400e;
+            background: #fffbeb;
+            border-color: #fcd34d;
+        }
+
+        .vessel-muted {
+            color: #94a3b8;
+            font-weight: 600;
         }
 
         .vessel-action-btn {
@@ -140,10 +255,20 @@
         }
 
         @media (max-width: 991.98px) {
+            .btn-vessels-tracker {
+                display: none !important;
+            }
+            .btn-vessels-tracker-mobile {
+                display: inline-flex !important;
+                align-items: center;
+            }
             .filter-row .select2-container {
                 width: 100% !important;
                 max-width: 100% !important;
                 display: block !important;
+            }
+            .vessel-alias-meta {
+                max-width: 180px;
             }
         }
     </style>
@@ -164,7 +289,9 @@
                 countLabel="vessels"
             >
                 <x-slot:actions>
-                    <a href="{{ route('vessels.live-tracker') }}" class="btn btn-outline-teal btn-sm">Live tracker</a>
+                    <a href="{{ route('vessels.live-tracker') }}" class="btn-vessels-tracker">
+                        <i class="ti-location-pin"></i> Live tracker
+                    </a>
                 </x-slot:actions>
             </x-lists.page-header>
 
@@ -173,7 +300,11 @@
                     toggle-id="btn-vessels-filters-toggle"
                     body-class="vessels-filters-open"
                     toolbar-class="vessels-filters-toolbar"
-                />
+                >
+                    <x-slot:actions>
+                        <a href="{{ route('vessels.live-tracker') }}" class="btn-vessels-tracker-mobile">Live tracker</a>
+                    </x-slot:actions>
+                </x-lists.filter-toolbar>
 
                 <x-lists.filter-bar>
                     <x-lists.filter-field label="Vessel name" width="200px">
@@ -243,7 +374,7 @@
                 autoWidth: false,
                 scrollX: false,
                 columnDefs: [
-                    { orderable: false, targets: 4 }
+                    { orderable: false, targets: 5 }
                 ],
                 language: {
                     emptyTable: 'No vessels found.'

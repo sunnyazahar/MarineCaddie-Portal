@@ -600,8 +600,32 @@
         transition: color 0.15s ease;
     }
 
+    .ops-action-icons {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
     .ops-action-icon:hover {
         color: #008080;
+    }
+
+    .ops-action-delete {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .ops-action-delete:hover,
+    .ops-action-delete:hover .ops-action-icon {
+        color: #b91c1c;
     }
 
     .activated-icon {

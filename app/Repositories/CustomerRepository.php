@@ -90,6 +90,7 @@ class CustomerRepository extends BaseRepository implements CustomerRepositoryInt
     public function filterAccountManagers(): Collection
     {
         return Contact::query()
+            ->active()
             ->whereIn('id', CustomerResponsible::query()->whereNotNull('account_manager_id')->pluck('account_manager_id'))
             ->orderBy('name')
             ->pluck('name')
@@ -99,6 +100,7 @@ class CustomerRepository extends BaseRepository implements CustomerRepositoryInt
     public function filterSalesManagers(): Collection
     {
         return Contact::query()
+            ->active()
             ->whereIn('id', CustomerResponsible::query()->whereNotNull('sales_manager_id')->pluck('sales_manager_id'))
             ->orderBy('name')
             ->pluck('name')

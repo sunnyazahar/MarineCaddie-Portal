@@ -131,114 +131,182 @@
         .hub-form-container {
             width: 100%;
             box-sizing: border-box;
-            padding: 20px 16px 24px !important;
+            padding: 0;
             background: transparent;
         }
 
-        .hub-pillars {
+        .form-pillar-container.hub-details-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            padding: 22px 18px 28px;
             align-items: stretch;
         }
 
-        .hub-pillar-col {
-            display: flex;
-            min-width: 0;
-        }
-
-        .hub-pillar {
-            width: 100%;
+        .form-pillar.hub-pillar-card {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
             background: linear-gradient(180deg, #fbfdff 0%, #ffffff 48%);
-            border: 1px solid #d6e3ee;
+            border: 1px solid #cfe0ec;
             border-radius: 14px;
-            padding: 14px 14px 12px;
-            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 8px 22px rgba(14, 29, 74, 0.04);
+            padding: 18px 18px 16px;
+            box-shadow:
+                0 1px 2px rgba(14, 29, 74, 0.04),
+                0 12px 28px rgba(14, 29, 74, 0.06);
             overflow: visible;
             position: relative;
             z-index: 1;
+            min-width: 0;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
-        .hub-pillar__title {
-            margin: 0 0 4px;
-            padding: 0 0 10px 10px;
+        .form-pillar.hub-pillar-card:hover {
+            border-color: #94c9e3;
+            box-shadow:
+                0 2px 4px rgba(14, 29, 74, 0.05),
+                0 16px 32px rgba(0, 136, 199, 0.08);
+        }
+
+        .hub-pillar-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 4px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #e8eef4;
-            border-left: 3px solid #00aeef;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
+        }
+
+        .hub-pillar-head-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+            color: #fff;
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 6px 14px rgba(0, 128, 128, 0.22);
+        }
+
+        .hub-pillar-head-icon.is-location {
+            background: linear-gradient(135deg, #0e1d4a 0%, #0088c7 100%);
+            box-shadow: 0 6px 14px rgba(14, 29, 74, 0.2);
+        }
+
+        .hub-pillar-head-title {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
             color: #0e1d4a;
             line-height: 1.2;
         }
 
+        .hub-pillar-head-sub {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.35;
+        }
+
+        .hub-soft-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 4px;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #f8fbfd 0%, #f1f7fb 100%);
+            border: 1px solid #dce8f1;
+        }
+
+        .hub-soft-panel-title {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #0e1d4a;
+        }
+
+        .hub-soft-panel-title span {
+            margin-left: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0;
+            text-transform: none;
+            color: #94a3b8;
+        }
+
         .form-group-custom {
             margin-bottom: 0;
+            position: relative;
+            overflow: visible;
         }
 
-        .address-sub-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+        .form-label-custom {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .input-row {
+            display: flex;
             gap: 10px;
+            align-items: flex-start;
         }
 
-        #hubForm .hub-pillar .form-control-custom,
-        #hubForm .hub-pillar .form-textarea-custom,
-        #hubForm .hub-pillar .select-custom {
+        .input-row > .form-group-custom {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #hubForm .form-input-custom,
+        #hubForm .form-select-custom,
+        #hubForm .form-textarea-custom {
             width: 100%;
             border: 1px solid #d6e3ee;
             border-radius: 8px;
             background: #fff;
             color: #0e1d4a;
+            font-size: 13px;
         }
 
-        #hubForm .hub-pillar .form-control-custom,
-        #hubForm .hub-pillar .select-custom {
+        #hubForm .form-input-custom,
+        #hubForm .form-select-custom {
             height: var(--mc-control-height, 34px);
             padding: 0 10px;
         }
 
-        #hubForm .hub-pillar .form-control-custom:focus,
-        #hubForm .hub-pillar .form-textarea-custom:focus,
-        #hubForm .hub-pillar .select-custom:focus {
+        #hubForm .form-textarea-custom {
+            padding: 8px 10px;
+            min-height: 72px;
+            height: auto;
+            overflow-y: hidden;
+            resize: none;
+            line-height: 1.4;
+            box-sizing: border-box;
+        }
+
+        #hubForm .form-input-custom:focus,
+        #hubForm .form-select-custom:focus,
+        #hubForm .form-textarea-custom:focus {
             outline: none;
             border-color: #0088c7;
             box-shadow: 0 0 0 3px rgba(0, 136, 199, 0.12);
         }
 
-        #hubForm .hub-pillar .form-textarea-custom {
-            padding: 8px 10px;
-            min-height: 72px;
-            resize: vertical;
-            line-height: 1.4;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin-top: 4px;
-        }
-
-        .checkbox-custom {
-            width: 16px;
-            height: 16px;
-            margin-top: 2px;
-            flex-shrink: 0;
-            accent-color: #008080;
-        }
-
-        .checkbox-label {
-            font-size: 13px;
-            color: #475569;
-            line-height: 1.35;
+        #hubForm .form-input-custom.error,
+        #hubForm .form-textarea-custom.error {
+            border-color: #dc2626 !important;
         }
 
         .hub-form-alert {
-            margin-bottom: 16px;
+            margin: 16px 18px 0;
             padding: 10px 14px;
             font-size: 13px;
             border-radius: 10px;
@@ -249,11 +317,6 @@
             font-size: 11px;
             margin-top: 4px;
             font-weight: 500;
-        }
-
-        #hubForm .form-control-custom.error,
-        #hubForm .form-textarea-custom.error {
-            border-color: #dc2626 !important;
         }
 
         .select2-container--default.error .select2-selection--single {
@@ -310,26 +373,26 @@
             text-decoration: none !important;
         }
 
-        body.create-hub-page .hub-pillar-col,
         body.create-hub-page .hub-form-container,
         body.create-hub-page .create-hub-card,
-        body.create-hub-page .hub-pillars {
+        body.create-hub-page .form-pillar-container {
             overflow: visible !important;
         }
 
-        @media (max-width: 1199.98px) {
-            .hub-pillars {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
         @media (max-width: 991.98px) {
-            .hub-pillars {
-                grid-template-columns: 1fr;
+            .form-pillar-container.hub-details-grid {
+                grid-template-columns: 1fr !important;
+                padding: 16px 12px 20px !important;
             }
 
-            .address-sub-grid {
-                grid-template-columns: 1fr !important;
+            .input-row {
+                flex-direction: column;
+            }
+
+            .form-pillar.hub-pillar-card:hover {
+                box-shadow:
+                    0 1px 2px rgba(14, 29, 74, 0.04),
+                    0 12px 28px rgba(14, 29, 74, 0.06);
             }
 
             body.create-hub-page .create-hub-footer {
@@ -345,10 +408,6 @@
 
             .create-hub-hero {
                 padding: 4px 12px 0;
-            }
-
-            .hub-form-container {
-                padding: 16px 12px 20px !important;
             }
         }
     </style>
@@ -368,7 +427,7 @@
                 <div>
                     <p class="create-hub-kicker">Administration</p>
                     <h1 class="create-hub-title">Create hub</h1>
-                    <p class="create-hub-sub">Add a warehouse hub with address, port, and customer portal settings.</p>
+                    <p class="create-hub-sub">Add a warehouse hub with identity, contact, and location details.</p>
                 </div>
             </div>
             <a href="{{ route('hub.index') }}" class="create-hub-back">
@@ -392,159 +451,164 @@
                 <form id="hubForm" action="{{ route('hub.store') }}" method="POST">
                     @csrf
 
-                    <div class="hub-pillars">
-                        <div class="hub-pillar-col">
-                            <div class="hub-pillar">
-                                <div class="hub-pillar__title">Hub information</div>
+                    <input type="hidden" name="company_id" value="{{ old('company_id') }}">
+                    <input type="hidden" name="customer_number_fm" value="{{ old('customer_number_fm') }}">
+                    <input type="hidden" name="is_gts_company" value="0">
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="hub_name">Hub name</label>
-                                    <input type="text" id="hub_name" name="hub_name" class="form-control-custom"
-                                        value="{{ old('hub_name') }}" required autocomplete="organization">
-                                </div>
-
-                                <input type="hidden" name="company_id" value="{{ old('company_id') }}">
-                                <input type="hidden" name="customer_number_fm" value="{{ old('customer_number_fm') }}">
-                                <input type="hidden" name="is_gts_company" value="0">
-
-                                <div class="address-sub-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="code">Code</label>
-                                        <input type="text" id="code" name="code" class="form-control-custom" value="{{ old('code') }}">
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="code_description">Code description</label>
-                                        <input type="text" id="code_description" name="code_description" class="form-control-custom"
-                                            value="{{ old('code_description') }}">
-                                    </div>
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="phone_number">Phone number (with country code)</label>
-                                    <input type="text" id="phone_number" name="phone_number" class="form-control-custom"
-                                        value="{{ old('phone_number') }}" autocomplete="tel">
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="email">Email</label>
-                                    <input type="text" id="email" name="email" class="form-control-custom"
-                                        value="{{ old('email') }}" placeholder="email@example.com; email2@example.com">
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="contact_person">Contact person <span class="text-danger">*</span></label>
-                                    <input type="text" id="contact_person" name="contact_person" class="form-control-custom"
-                                        value="{{ old('contact_person') }}" required autocomplete="name">
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="remarks">Remarks</label>
-                                    <textarea id="remarks" name="remarks" class="form-textarea-custom" rows="3">{{ old('remarks') }}</textarea>
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
-                                    <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
-                                </div>
-
-                                <div class="checkbox-group">
-                                    <input type="checkbox" class="checkbox-custom" name="show_pre_alert" id="show_pre_alert" value="1"
-                                        {{ old('show_pre_alert') ? 'checked' : '' }}>
-                                    <label class="checkbox-label" for="show_pre_alert">Show pre-alert warning when items in shipment are not scanned</label>
+                    <div class="form-pillar-container hub-details-grid hub-pillars">
+                        <div class="form-pillar hub-pillar-card">
+                            <div class="hub-pillar-head">
+                                <span class="hub-pillar-head-icon" aria-hidden="true"><i class="ti-briefcase"></i></span>
+                                <div>
+                                    <div class="hub-pillar-head-title">Identity &amp; contact</div>
+                                    <p class="hub-pillar-head-sub">Core hub profile and how to reach the desk.</p>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="hub-pillar-col">
-                            <div class="hub-pillar">
-                                <div class="hub-pillar__title">Hub address</div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="hub_address">Hub address</label>
-                                    <textarea id="hub_address" name="hub_address" class="form-textarea-custom" rows="3">{{ old('hub_address') }}</textarea>
-                                </div>
-
-                                <div class="address-sub-grid">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="city">City</label>
-                                        <input type="text" id="city" name="city" class="form-control-custom" value="{{ old('city') }}">
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="district_state">District/state</label>
-                                        <input type="text" id="district_state" name="district_state" class="form-control-custom"
-                                            value="{{ old('district_state') }}">
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="zip_code">Zip code</label>
-                                        <input type="text" id="zip_code" name="zip_code" class="form-control-custom" value="{{ old('zip_code') }}">
-                                    </div>
-                                </div>
-
-                                <x-forms.country-select
-                                    name="country"
-                                    label="Country"
-                                    :countries="$countries"
-                                    valueKey="name"
-                                    :value="old('country')"
-                                    wrapperClass="form-group-custom"
-                                    :allowClear="true"
-                                />
-
-                                <x-forms.port-select
-                                    name="port_code"
-                                    label="Port code"
-                                    :value="old('port_code')"
-                                    wrapperClass="form-group-custom"
-                                />
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="hub_name">Hub name <span class="text-danger">*</span></label>
+                                <input type="text" id="hub_name" name="hub_name" class="form-input-custom"
+                                    value="{{ old('hub_name') }}" required autocomplete="organization">
                             </div>
-                        </div>
 
-                        <div class="hub-pillar-col">
-                            <div class="hub-pillar">
-                                <div class="hub-pillar__title">Hub details &amp; portal</div>
+                            <div class="input-row">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="code">Code <span class="text-danger">*</span></label>
+                                    <input type="text" id="code" name="code" class="form-input-custom" value="{{ old('code') }}" required>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="code_description">Code description <span class="text-danger">*</span></label>
+                                    <input type="text" id="code_description" name="code_description" class="form-input-custom"
+                                        value="{{ old('code_description') }}" required>
+                                </div>
+                            </div>
 
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="phone_number">Phone number (with country code)</label>
+                                <input type="text" id="phone_number" name="phone_number" class="form-input-custom"
+                                    value="{{ old('phone_number') }}" autocomplete="tel">
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="email">Email <span class="text-danger">*</span></label>
+                                <input type="text" id="email" name="email" class="form-input-custom"
+                                    value="{{ old('email') }}" placeholder="email@example.com; email2@example.com" required>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="contact_person">Contact Person <span class="text-danger">*</span></label>
+                                <input type="text" id="contact_person" name="contact_person" class="form-input-custom"
+                                    value="{{ old('contact_person') }}" required autocomplete="name">
+                            </div>
+
+                            <div class="input-row">
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="eori_number">EORI number</label>
-                                    <input type="text" id="eori_number" name="eori_number" class="form-control-custom"
+                                    <input type="text" id="eori_number" name="eori_number" class="form-input-custom"
                                         value="{{ old('eori_number') }}">
                                 </div>
-
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="un_locode">UN/LOCODE</label>
-                                    <input type="text" id="un_locode" name="un_locode" class="form-control-custom"
+                                    <input type="text" id="un_locode" name="un_locode" class="form-input-custom"
                                         value="{{ old('un_locode') }}">
+                                </div>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="remarks">Remarks</label>
+                                <textarea id="remarks" name="remarks" class="form-textarea-custom" rows="3">{{ old('remarks') }}</textarea>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
+                                <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-pillar hub-pillar-card">
+                            <div class="hub-pillar-head">
+                                <span class="hub-pillar-head-icon is-location" aria-hidden="true"><i class="ti-map-alt"></i></span>
+                                <div>
+                                    <div class="hub-pillar-head-title">Location</div>
+                                    <p class="hub-pillar-head-sub">Physical hub address and port identifiers.</p>
+                                </div>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="hub_address">Hub address <span class="text-danger">*</span></label>
+                                <textarea id="hub_address" name="hub_address" class="form-textarea-custom" rows="3" required>{{ old('hub_address') }}</textarea>
+                            </div>
+
+                            <div class="input-row">
+                                <div class="form-group-custom" style="flex: 2;">
+                                    <label class="form-label-custom" for="city">City <span class="text-danger">*</span></label>
+                                    <input type="text" id="city" name="city" class="form-input-custom" value="{{ old('city') }}" required>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="district_state">District/state</label>
+                                    <input type="text" id="district_state" name="district_state" class="form-input-custom"
+                                        value="{{ old('district_state') }}">
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="zip_code">Zip code</label>
+                                    <input type="text" id="zip_code" name="zip_code" class="form-input-custom" value="{{ old('zip_code') }}">
+                                </div>
+                            </div>
+
+                            <x-forms.country-select
+                                name="country"
+                                label="Country"
+                                :countries="$countries"
+                                valueKey="name"
+                                :value="old('country')"
+                                class="form-select-custom select2-flag"
+                                :required="true"
+                                :allowClear="false"
+                            />
+
+                            <x-forms.port-select
+                                name="port_code"
+                                label="Port code"
+                                :value="old('port_code')"
+                                :required="true"
+                            />
+
+                            <div class="hub-soft-panel">
+                                <div class="hub-soft-panel-title">Office address <span>optional</span></div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="office_address">Office address</label>
+                                    <textarea id="office_address" name="office_address" class="form-textarea-custom" rows="3">{{ old('office_address') }}</textarea>
+                                </div>
+
+                                <div class="input-row">
+                                    <div class="form-group-custom" style="flex: 2;">
+                                        <label class="form-label-custom" for="office_city">City</label>
+                                        <input type="text" id="office_city" name="office_city" class="form-input-custom" value="{{ old('office_city') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="office_district_state">District/state</label>
+                                        <input type="text" id="office_district_state" name="office_district_state" class="form-input-custom"
+                                            value="{{ old('office_district_state') }}">
+                                    </div>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="office_zip_code">Zip code</label>
+                                        <input type="text" id="office_zip_code" name="office_zip_code" class="form-input-custom"
+                                            value="{{ old('office_zip_code') }}">
+                                    </div>
                                 </div>
 
                                 <x-forms.country-select
                                     name="office_country"
-                                    label="Office country"
+                                    label="Country"
                                     :countries="$countries"
                                     valueKey="name"
                                     :value="old('office_country')"
-                                    wrapperClass="form-group-custom"
+                                    class="form-select-custom select2-flag"
                                     :allowClear="true"
                                 />
-
-                                <div class="checkbox-group">
-                                    <input type="checkbox" class="checkbox-custom" name="hide_in_portal" id="hide_in_portal" value="1"
-                                        {{ old('hide_in_portal') ? 'checked' : '' }}>
-                                    <label class="checkbox-label" for="hide_in_portal">Do not show this hub in Customer portal</label>
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="portal_remarks">Remarks for the customer portal</label>
-                                    <textarea id="portal_remarks" name="portal_remarks" class="form-textarea-custom" rows="3">{{ old('portal_remarks') }}</textarea>
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="portal_email">Email for Customer Portal</label>
-                                    <input type="text" id="portal_email" name="portal_email" class="form-control-custom"
-                                        value="{{ old('portal_email') }}" placeholder="email@example.com; email2@example.com">
-                                </div>
                             </div>
                         </div>
                     </div>
-
                 </form>
             </div>
         </div>
@@ -561,6 +625,31 @@
     <script>
         $(document).ready(function () {
             $('body').addClass('create-hub-page');
+
+            function autoResizeHubTextarea(textarea) {
+                if (!textarea) {
+                    return;
+                }
+
+                var computedStyle = window.getComputedStyle(textarea);
+                var minHeight = parseFloat(computedStyle.minHeight) || 0;
+
+                textarea.style.setProperty('height', 'auto', 'important');
+                textarea.style.setProperty('overflow-y', 'hidden', 'important');
+                textarea.style.setProperty('height', Math.max(textarea.scrollHeight, minHeight) + 'px', 'important');
+            }
+
+            function refreshAutoResizeHubTextareas() {
+                $('#hubForm textarea.form-textarea-custom').each(function () {
+                    autoResizeHubTextarea(this);
+                });
+            }
+
+            $(document).on('input.autoResizeHubTextarea change.autoResizeHubTextarea', '#hubForm textarea.form-textarea-custom', function () {
+                autoResizeHubTextarea(this);
+            });
+
+            refreshAutoResizeHubTextareas();
 
             $.validator.addMethod('multiEmail', function (value, element) {
                 if (this.optional(element)) {
@@ -586,14 +675,30 @@
                         required: true,
                         minlength: 3
                     },
-                    contact_person: {
+                    code: {
+                        required: true
+                    },
+                    code_description: {
                         required: true
                     },
                     email: {
+                        required: true,
                         multiEmail: true
                     },
-                    portal_email: {
-                        multiEmail: true
+                    contact_person: {
+                        required: true
+                    },
+                    hub_address: {
+                        required: true
+                    },
+                    city: {
+                        required: true
+                    },
+                    country: {
+                        required: true
+                    },
+                    port_code: {
+                        required: true
                     }
                 },
                 messages: {
@@ -601,14 +706,30 @@
                         required: 'Please enter the hub name',
                         minlength: 'Hub name must be at least 3 characters'
                     },
+                    code: {
+                        required: 'Please enter the code'
+                    },
+                    code_description: {
+                        required: 'Please enter the code description'
+                    },
+                    email: {
+                        required: 'Please enter the email',
+                        multiEmail: 'Please enter valid email address(es), separated by comma or semicolon'
+                    },
                     contact_person: {
                         required: 'Please enter the contact person'
                     },
-                    email: {
-                        multiEmail: 'Please enter valid email address(es), separated by comma or semicolon'
+                    hub_address: {
+                        required: 'Please enter the hub address'
                     },
-                    portal_email: {
-                        multiEmail: 'Please enter valid email address(es), separated by comma or semicolon'
+                    city: {
+                        required: 'Please enter the city'
+                    },
+                    country: {
+                        required: 'Please select the country'
+                    },
+                    port_code: {
+                        required: 'Please select the port code'
                     }
                 },
                 errorElement: 'div',
@@ -634,13 +755,13 @@
                 }
             });
 
-            $(document).on('select2:open', '.hub-pillar select', function () {
-                $('.hub-pillar').css('z-index', '');
-                $(this).closest('.hub-pillar').css('z-index', 40);
+            $(document).on('select2:open', '.hub-pillar-card select', function () {
+                $('.hub-pillar-card').css('z-index', '');
+                $(this).closest('.hub-pillar-card').css('z-index', 40);
             });
 
-            $(document).on('select2:close', '.hub-pillar select', function () {
-                $(this).closest('.hub-pillar').css('z-index', '');
+            $(document).on('select2:close', '.hub-pillar-card select', function () {
+                $(this).closest('.hub-pillar-card').css('z-index', '');
             });
         });
     </script>

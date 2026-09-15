@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\LogsFieldChanges;
 use App\Traits\TracksUserAudit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -100,6 +101,17 @@ class Hub extends Model
         'scangun_photo_taking' => 'boolean',
         'scangun_detailed_shipment_out' => 'boolean',
     ];
+
+    /**
+     * Active hubs shown in portal Select2/lists (not hide_in_portal). Soft-deleted rows are already excluded.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where(function (Builder $statusQuery) {
+            $statusQuery->where('hide_in_portal', false)
+                ->orWhereNull('hide_in_portal');
+        });
+    }
 
     public function documents()
     {

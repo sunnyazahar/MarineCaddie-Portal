@@ -128,52 +128,120 @@
         .sup-form-container {
             width: 100%;
             box-sizing: border-box;
-            padding: 20px 16px 24px !important;
+            padding: 0;
             background: transparent;
         }
 
-        .sup-pillars {
+        .sup-pillars.sup-details-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            padding: 22px 18px 28px;
             align-items: stretch;
         }
 
-        .sup-pillar-col {
-            display: flex;
-            min-width: 0;
-        }
-
-        .sup-pillar {
-            width: 100%;
+        .sup-pillar-card {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
             background: linear-gradient(180deg, #fbfdff 0%, #ffffff 48%);
-            border: 1px solid #d6e3ee;
+            border: 1px solid #cfe0ec;
             border-radius: 14px;
-            padding: 14px 14px 12px;
-            box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 8px 22px rgba(14, 29, 74, 0.04);
+            padding: 18px 18px 16px;
+            box-shadow:
+                0 1px 2px rgba(14, 29, 74, 0.04),
+                0 12px 28px rgba(14, 29, 74, 0.06);
             overflow: visible;
             position: relative;
             z-index: 1;
+            min-width: 0;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
-        .sup-pillar__title {
-            margin: 0 0 4px;
-            padding: 0 0 10px 10px;
+        .sup-pillar-card:hover {
+            border-color: #94c9e3;
+            box-shadow:
+                0 2px 4px rgba(14, 29, 74, 0.05),
+                0 16px 32px rgba(0, 136, 199, 0.08);
+        }
+
+        .sup-pillar-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 4px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #e8eef4;
-            border-left: 3px solid #00aeef;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
+        }
+
+        .sup-pillar-head-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+            color: #fff;
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 6px 14px rgba(0, 128, 128, 0.22);
+        }
+
+        .sup-pillar-head-icon.is-location {
+            background: linear-gradient(135deg, #0e1d4a 0%, #0088c7 100%);
+            box-shadow: 0 6px 14px rgba(14, 29, 74, 0.2);
+        }
+
+        .sup-pillar-head-title {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
             color: #0e1d4a;
             line-height: 1.2;
         }
 
+        .sup-pillar-head-sub {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.35;
+        }
+
+        .sup-soft-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 4px;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #f8fbfd 0%, #f1f7fb 100%);
+            border: 1px solid #dce8f1;
+        }
+
+        .sup-soft-panel-title {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #0e1d4a;
+        }
+
+        .sup-soft-panel-title span {
+            margin-left: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0;
+            text-transform: none;
+            color: #94a3b8;
+        }
+
         .form-group-custom {
             margin-bottom: 0;
+            position: relative;
+            overflow: visible;
         }
 
         .form-label-custom {
@@ -184,66 +252,62 @@
             margin-bottom: 4px;
         }
 
-        .address-sub-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+        .input-row {
+            display: flex;
             gap: 10px;
+            align-items: flex-start;
         }
 
-        #supplierForm .sup-pillar .form-control-custom,
-        #supplierForm .sup-pillar .form-textarea-custom,
-        #supplierForm .sup-pillar .select-custom {
+        .input-row > .form-group-custom {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #supplierForm .form-control-custom,
+        #supplierForm .form-input-custom,
+        #supplierForm .form-select-custom,
+        #supplierForm .form-textarea-custom {
             width: 100%;
             border: 1px solid #d6e3ee;
             border-radius: 8px;
             background: #fff;
             color: #0e1d4a;
+            font-size: 13px;
         }
 
-        #supplierForm .sup-pillar .form-control-custom,
-        #supplierForm .sup-pillar .select-custom {
+        #supplierForm .form-control-custom,
+        #supplierForm .form-input-custom,
+        #supplierForm .form-select-custom {
             height: var(--mc-control-height, 34px);
             padding: 0 10px;
         }
 
-        #supplierForm .sup-pillar .form-control-custom:focus,
-        #supplierForm .sup-pillar .form-textarea-custom:focus,
-        #supplierForm .sup-pillar .select-custom:focus {
+        #supplierForm .form-textarea-custom {
+            padding: 8px 10px;
+            min-height: 72px;
+            height: auto;
+            overflow-y: hidden;
+            resize: none;
+            line-height: 1.4;
+            box-sizing: border-box;
+        }
+
+        #supplierForm .form-control-custom:focus,
+        #supplierForm .form-input-custom:focus,
+        #supplierForm .form-select-custom:focus,
+        #supplierForm .form-textarea-custom:focus {
             outline: none;
             border-color: #0088c7;
             box-shadow: 0 0 0 3px rgba(0, 136, 199, 0.12);
         }
 
-        #supplierForm .sup-pillar .form-textarea-custom {
-            padding: 8px 10px;
-            min-height: 72px;
-            resize: vertical;
-            line-height: 1.4;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin-top: 4px;
-        }
-
-        .checkbox-custom {
-            width: 16px;
-            height: 16px;
-            margin-top: 2px;
-            flex-shrink: 0;
-            accent-color: #008080;
-        }
-
-        .checkbox-label {
-            font-size: 13px;
-            color: #475569;
-            line-height: 1.35;
+        #supplierForm .form-control-custom.error,
+        #supplierForm .form-textarea-custom.error {
+            border-color: #dc2626 !important;
         }
 
         .sup-form-alert {
-            margin-bottom: 16px;
+            margin: 16px 18px 0;
             padding: 10px 14px;
             font-size: 13px;
             border-radius: 10px;
@@ -254,11 +318,6 @@
             font-size: 11px;
             margin-top: 4px;
             font-weight: 500;
-        }
-
-        #supplierForm .form-control-custom.error,
-        #supplierForm .form-textarea-custom.error {
-            border-color: #dc2626 !important;
         }
 
         .select2-container--default.error .select2-selection--single {
@@ -328,26 +387,26 @@
             text-decoration: none !important;
         }
 
-        body.create-supplier-page .sup-pillar-col,
         body.create-supplier-page .sup-form-container,
         body.create-supplier-page .create-supplier-card,
         body.create-supplier-page .sup-pillars {
             overflow: visible !important;
         }
 
-        @media (max-width: 1199.98px) {
-            .sup-pillars {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
         @media (max-width: 991.98px) {
-            .sup-pillars {
-                grid-template-columns: 1fr;
+            .sup-pillars.sup-details-grid {
+                grid-template-columns: 1fr !important;
+                padding: 16px 12px 20px !important;
             }
 
-            .address-sub-grid {
-                grid-template-columns: 1fr !important;
+            .input-row {
+                flex-direction: column;
+            }
+
+            .sup-pillar-card:hover {
+                box-shadow:
+                    0 1px 2px rgba(14, 29, 74, 0.04),
+                    0 12px 28px rgba(14, 29, 74, 0.06);
             }
 
             body.create-supplier-page .create-supplier-footer {
@@ -363,10 +422,6 @@
 
             .create-supplier-hero {
                 padding: 4px 12px 0;
-            }
-
-            .sup-form-container {
-                padding: 16px 12px 20px !important;
             }
         }
     </style>

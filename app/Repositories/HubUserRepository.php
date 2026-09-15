@@ -18,4 +18,9 @@ class HubUserRepository extends BaseRepository implements HubUserRepositoryInter
     {
         return parent::updateModel($hubUser, $data);
     }
+
+    public function deleteById(int $id): bool
+    {
+        return parent::deleteById($id);
+    }
 }

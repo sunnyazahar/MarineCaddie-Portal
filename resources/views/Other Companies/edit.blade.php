@@ -18,7 +18,7 @@
                 <div>
                     <p class="edit-other-company-kicker">Administration</p>
                     <h1 class="edit-other-company-title">{{ $otherCompany->company_name }}</h1>
-                    <p class="edit-other-company-sub">Edit company details, billing fields, and contact persons.</p>
+                    <p class="edit-other-company-sub">Edit company profile, location, and contact persons.</p>
                 </div>
             </div>
             <a href="{{ route('other-companies.index') }}" class="edit-other-company-back">
@@ -70,24 +70,25 @@
                     <input type="hidden" name="active_tab" id="active_tab" value="{{ old('active_tab', 'company-details') }}">
 
                     <div id="company-details" class="tab-content-custom active">
-                        <div class="form-pillar-container">
-                            <div class="form-pillar">
-                                <div class="form-section-header">Company information</div>
+                        <div class="form-pillar-container oc-details-grid">
+                            <div class="form-pillar oc-pillar-card">
+                                <div class="oc-pillar-head">
+                                    <span class="oc-pillar-head-icon" aria-hidden="true"><i class="ti-briefcase"></i></span>
+                                    <div>
+                                        <div class="oc-pillar-head-title">Identity &amp; contact</div>
+                                        <p class="oc-pillar-head-sub">Core company profile and how to reach the desk.</p>
+                                    </div>
+                                </div>
 
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="edit_company_name">Company name <span class="text-danger">*</span></label>
                                     <input type="text" id="edit_company_name" name="company_name" class="form-control-custom"
-                                        value="{{ old('company_name', $otherCompany->company_name) }}" required>
-                                </div>
-
-                                <div class="form-group-custom d-none">
-                                    <label class="form-label-custom">Company id</label>
-                                    <input type="text" class="form-control-custom form-input-readonly" value="{{ $otherCompany->id }}" readonly>
+                                        value="{{ old('company_name', $otherCompany->company_name) }}" required autocomplete="organization">
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_company_type">Company type</label>
-                                    <select id="edit_company_type" name="company_type" class="form-control-custom select2-company-type">
+                                    <label class="form-label-custom" for="edit_company_type">Company type <span class="text-danger">*</span></label>
+                                    <select id="edit_company_type" name="company_type" class="form-control-custom select2-company-type" required>
                                         <option value=""></option>
                                         @php
                                             $selectedCompanyType = old('company_type', $otherCompany->company_type);
@@ -101,35 +102,35 @@
                                     </select>
                                 </div>
 
-                                <div class="input-row">
+                                <div class="input-row oc-details-input-row">
                                     <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_code">Code</label>
+                                        <label class="form-label-custom" for="edit_code">Code <span class="text-danger">*</span></label>
                                         <input type="text" id="edit_code" name="code" class="form-control-custom"
-                                            value="{{ old('code', $otherCompany->code) }}">
+                                            value="{{ old('code', $otherCompany->code) }}" required>
                                     </div>
                                     <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_code_description">Code description</label>
+                                        <label class="form-label-custom" for="edit_code_description">Code description <span class="text-danger">*</span></label>
                                         <input type="text" id="edit_code_description" name="code_description" class="form-control-custom"
-                                            value="{{ old('code_description', $otherCompany->code_description) }}">
+                                            value="{{ old('code_description', $otherCompany->code_description) }}" required>
                                     </div>
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_phone_number">Phone number (with country code)</label>
+                                    <label class="form-label-custom" for="edit_phone_number">Phone number (with country code) <span class="text-danger">*</span></label>
                                     <input type="text" id="edit_phone_number" name="phone_number" class="form-control-custom"
-                                        value="{{ old('phone_number', $otherCompany->phone_number) }}">
+                                        value="{{ old('phone_number', $otherCompany->phone_number) }}" required autocomplete="tel">
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_email">Email</label>
+                                    <label class="form-label-custom" for="edit_email">Email <span class="text-danger">*</span></label>
                                     <input type="email" id="edit_email" name="email" class="form-control-custom"
-                                        value="{{ old('email', $otherCompany->email) }}">
+                                        value="{{ old('email', $otherCompany->email) }}" required>
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_contact_person">Contact person <span class="text-danger">*</span></label>
+                                    <label class="form-label-custom" for="edit_contact_person">Contact Person <span class="text-danger">*</span></label>
                                     <input type="text" id="edit_contact_person" name="contact_person" class="form-control-custom"
-                                        value="{{ old('contact_person', $otherCompany->contact_person) }}" required>
+                                        value="{{ old('contact_person', $otherCompany->contact_person) }}" required autocomplete="name">
                                 </div>
 
                                 <div class="form-group-custom">
@@ -143,19 +144,25 @@
                                 </div>
                             </div>
 
-                            <div class="form-pillar">
-                                <div class="form-section-header">Company address</div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_street_address">Street address</label>
-                                    <textarea id="edit_street_address" name="street_address" class="form-textarea-custom" rows="4">{{ old('street_address', $otherCompany->street_address) }}</textarea>
+                            <div class="form-pillar oc-pillar-card">
+                                <div class="oc-pillar-head">
+                                    <span class="oc-pillar-head-icon is-location" aria-hidden="true"><i class="ti-map-alt"></i></span>
+                                    <div>
+                                        <div class="oc-pillar-head-title">Location</div>
+                                        <p class="oc-pillar-head-sub">Physical company address and port identifiers.</p>
+                                    </div>
                                 </div>
 
-                                <div class="input-row">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_city">City</label>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="edit_street_address">Street address <span class="text-danger">*</span></label>
+                                    <textarea id="edit_street_address" name="street_address" class="form-textarea-custom" rows="3" required>{{ old('street_address', $otherCompany->street_address) }}</textarea>
+                                </div>
+
+                                <div class="input-row oc-details-input-row">
+                                    <div class="form-group-custom" style="flex: 2;">
+                                        <label class="form-label-custom" for="edit_city">City <span class="text-danger">*</span></label>
                                         <input type="text" id="edit_city" name="city" class="form-control-custom"
-                                            value="{{ old('city', $otherCompany->city) }}">
+                                            value="{{ old('city', $otherCompany->city) }}" required>
                                     </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="edit_district_state">District/state</label>
@@ -173,79 +180,52 @@
                                     name="country_id"
                                     label="Country"
                                     :countries="$countries"
-                                    :value="$otherCompany->country_id"
-                                    class="form-control-custom"
+                                    :value="old('country_id', $otherCompany->country_id)"
+                                    class="form-control-custom select2-flag"
+                                    :required="true"
+                                    :allowClear="false"
                                 />
 
                                 <x-forms.port-select
                                     name="port_code"
                                     label="Port code"
-                                    :value="$otherCompany->port_code"
+                                    :value="old('port_code', $otherCompany->port_code)"
+                                    :required="true"
                                 />
 
-                                <div class="form-section-header" style="margin-top: 12px;">Office address (optional)</div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_office_street_address">Street address / post box</label>
-                                    <textarea id="edit_office_street_address" name="office_street_address" class="form-textarea-custom" rows="3">{{ old('office_street_address', $otherCompany->office_street_address) }}</textarea>
-                                </div>
-
-                                <div class="input-row">
+                                <div class="oc-soft-panel">
+                                    <div class="oc-soft-panel-title">Office address <span>optional</span></div>
                                     <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_office_city">City</label>
-                                        <input type="text" id="edit_office_city" name="office_city" class="form-control-custom"
-                                            value="{{ old('office_city', $otherCompany->office_city) }}">
+                                        <label class="form-label-custom" for="edit_office_street_address">Street address / post box</label>
+                                        <textarea id="edit_office_street_address" name="office_street_address" class="form-textarea-custom" rows="3">{{ old('office_street_address', $otherCompany->office_street_address) }}</textarea>
                                     </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_office_district_state">District/state</label>
-                                        <input type="text" id="edit_office_district_state" name="office_district_state" class="form-control-custom"
-                                            value="{{ old('office_district_state', $otherCompany->office_district_state) }}">
+
+                                    <div class="input-row oc-details-input-row">
+                                        <div class="form-group-custom" style="flex: 2;">
+                                            <label class="form-label-custom" for="edit_office_city">City</label>
+                                            <input type="text" id="edit_office_city" name="office_city" class="form-control-custom"
+                                                value="{{ old('office_city', $otherCompany->office_city) }}">
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom" for="edit_office_district_state">District/state</label>
+                                            <input type="text" id="edit_office_district_state" name="office_district_state" class="form-control-custom"
+                                                value="{{ old('office_district_state', $otherCompany->office_district_state) }}">
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom" for="edit_office_zip_code">Zip code</label>
+                                            <input type="text" id="edit_office_zip_code" name="office_zip_code" class="form-control-custom"
+                                                value="{{ old('office_zip_code', $otherCompany->office_zip_code) }}">
+                                        </div>
                                     </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_office_zip_code">Zip code</label>
-                                        <input type="text" id="edit_office_zip_code" name="office_zip_code" class="form-control-custom"
-                                            value="{{ old('office_zip_code', $otherCompany->office_zip_code) }}">
-                                    </div>
-                                </div>
 
-                                <x-forms.country-select
-                                    name="office_country_id"
-                                    label="Country"
-                                    :countries="$countries"
-                                    :value="$otherCompany->office_country_id"
-                                    class="form-control-custom"
-                                />
-                            </div>
-
-                            <div class="form-pillar">
-                                <div class="form-section-header">Company details</div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_vat_number">VAT number</label>
-                                    <input type="text" id="edit_vat_number" name="vat_number" class="form-control-custom"
-                                        value="{{ old('vat_number', $otherCompany->vat_number) }}">
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_eori_number">EORI number</label>
-                                    <input type="text" id="edit_eori_number" name="eori_number" class="form-control-custom"
-                                        value="{{ old('eori_number', $otherCompany->eori_number) }}">
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_currency">Currency</label>
-                                    <select id="edit_currency" name="currency" class="form-control-custom select2-currency">
-                                        <option value=""></option>
-                                        @foreach ($currencies as $curr)
-                                            <option value="{{ $curr }}" {{ old('currency', $otherCompany->currency) == $curr ? 'selected' : '' }}>{{ $curr }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_un_locode">UN/LOCODE</label>
-                                    <input type="text" id="edit_un_locode" name="un_locode" class="form-control-custom"
-                                        value="{{ old('un_locode', $otherCompany->un_locode) }}">
+                                    <x-forms.country-select
+                                        name="office_country_id"
+                                        label="Country"
+                                        :countries="$countries"
+                                        :value="old('office_country_id', $otherCompany->office_country_id)"
+                                        class="form-control-custom select2-flag"
+                                        :allowClear="true"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -326,40 +306,83 @@
         $(document).ready(function () {
             $('body').addClass('edit-other-company-page');
 
+            function autoResizeOcTextarea(textarea) {
+                if (!textarea) {
+                    return;
+                }
+
+                var computedStyle = window.getComputedStyle(textarea);
+                var minHeight = parseFloat(computedStyle.minHeight) || 0;
+
+                textarea.style.setProperty('height', 'auto', 'important');
+                textarea.style.setProperty('overflow-y', 'hidden', 'important');
+                textarea.style.setProperty('height', Math.max(textarea.scrollHeight, minHeight) + 'px', 'important');
+            }
+
+            function refreshAutoResizeOcTextareas() {
+                $('#edit-company-form textarea.form-textarea-custom').each(function () {
+                    autoResizeOcTextarea(this);
+                });
+            }
+
+            $(document).on('input.autoResizeOcTextarea change.autoResizeOcTextarea', '#edit-company-form textarea.form-textarea-custom', function () {
+                autoResizeOcTextarea(this);
+            });
+
+            refreshAutoResizeOcTextareas();
+
             $('#edit-company-form').validate({
                 rules: {
                     company_name: { required: true },
-                    contact_person: { required: true }
+                    company_type: { required: true },
+                    code: { required: true },
+                    code_description: { required: true },
+                    phone_number: { required: true },
+                    email: { required: true, email: true },
+                    contact_person: { required: true },
+                    street_address: { required: true },
+                    city: { required: true },
+                    country_id: { required: true },
+                    port_code: { required: true }
                 },
                 messages: {
                     company_name: { required: 'Please enter the company name' },
-                    contact_person: { required: 'Please enter the contact person' }
+                    company_type: { required: 'Please select the company type' },
+                    code: { required: 'Please enter the code' },
+                    code_description: { required: 'Please enter the code description' },
+                    phone_number: { required: 'Please enter the phone number' },
+                    email: { required: 'Please enter the email', email: 'Please enter a valid email' },
+                    contact_person: { required: 'Please enter the contact person' },
+                    street_address: { required: 'Please enter the street address' },
+                    city: { required: 'Please enter the city' },
+                    country_id: { required: 'Please select the country' },
+                    port_code: { required: 'Please select the port code' }
                 },
                 errorElement: 'div',
                 errorClass: 'error-message',
                 errorPlacement: function (error, element) {
-                    if (element.hasClass('select2-hidden-accessible')) {
-                        error.insertAfter(element.next('.select2'));
+                    if (element.hasClass('select2-hidden-accessible') || element.is('[data-country-select]') || element.is('[data-port-select]')) {
+                        error.insertAfter(element.next('.select2-container'));
                     } else {
                         error.insertAfter(element);
                     }
                 },
                 highlight: function (element) {
                     $(element).addClass('error');
+                    if ($(element).hasClass('select2-hidden-accessible') || $(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
+                        $(element).next('.select2-container').addClass('error');
+                    }
                 },
                 unhighlight: function (element) {
                     $(element).removeClass('error');
+                    if ($(element).hasClass('select2-hidden-accessible') || $(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
+                        $(element).next('.select2-container').removeClass('error');
+                    }
                 }
             });
 
             $('.select2-company-type').select2({
                 placeholder: 'Select company type',
-                allowClear: true,
-                width: '100%'
-            });
-
-            $('.select2-currency').select2({
-                placeholder: 'Select currency',
                 allowClear: true,
                 width: '100%'
             });
@@ -374,6 +397,9 @@
                 $('#' + tabId).addClass('active');
                 $('#active_tab').val(tabId);
                 $('#other-company-edit-footer').toggle(tabId === 'company-details');
+                if (tabId === 'company-details') {
+                    refreshAutoResizeOcTextareas();
+                }
                 return true;
             }
 
@@ -392,6 +418,15 @@
             if (hashTab) {
                 activateOtherCompanyTab(hashTab);
             }
+
+            $(document).on('select2:open', '.oc-pillar-card select', function () {
+                $('.oc-pillar-card').css('z-index', '');
+                $(this).closest('.oc-pillar-card').css('z-index', 40);
+            });
+
+            $(document).on('select2:close', '.oc-pillar-card select', function () {
+                $(this).closest('.oc-pillar-card').css('z-index', '');
+            });
 
             $(document).on('click', '.delete-other-company-contact', function () {
                 var url = $(this).data('url');

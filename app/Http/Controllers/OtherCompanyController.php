@@ -47,11 +47,16 @@ class OtherCompanyController extends Controller
     {
         $request->validate([
             'company_name'      => 'required|string|max:255',
-            'company_type'      => 'nullable|string|max:255',
-            'email'             => 'nullable|email|max:255',
-            'phone_number'      => 'nullable|string|max:255',
+            'company_type'      => 'required|string|max:255',
+            'code'              => 'required|string|max:255',
+            'code_description'  => 'required|string|max:255',
+            'email'             => 'required|email|max:255',
+            'phone_number'      => 'required|string|max:255',
             'contact_person'    => 'required|string|max:255',
-            'country_id'        => 'nullable|exists:countries,id',
+            'street_address'    => 'required|string',
+            'city'              => 'required|string|max:255',
+            'country_id'        => 'required|exists:countries,id',
+            'port_code'         => 'required|string|max:255',
             'office_country_id' => 'nullable|exists:countries,id',
         ]);
 
@@ -59,7 +64,7 @@ class OtherCompanyController extends Controller
             'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'contact_person', 'email',
             'remarks', 'special_considerations', 'street_address', 'city', 'district_state', 'zip_code',
             'country_id', 'port_code', 'office_street_address', 'office_city', 'office_district_state',
-            'office_zip_code', 'office_country_id', 'vat_number', 'eori_number', 'currency', 'un_locode',
+            'office_zip_code', 'office_country_id',
         ]));
 
         return redirect()->route('other-companies.index')->with('success', 'Company created successfully.');
@@ -81,11 +86,16 @@ class OtherCompanyController extends Controller
         try {
             $request->validate([
                 'company_name'      => 'required|string|max:255',
-                'company_type'      => 'nullable|string|max:255',
-                'email'             => 'nullable|email|max:255',
-                'phone_number'      => 'nullable|string|max:255',
+                'company_type'      => 'required|string|max:255',
+                'code'              => 'required|string|max:255',
+                'code_description'  => 'required|string|max:255',
+                'email'             => 'required|email|max:255',
+                'phone_number'      => 'required|string|max:255',
                 'contact_person'    => 'required|string|max:255',
-                'country_id'        => 'nullable|exists:countries,id',
+                'street_address'    => 'required|string',
+                'city'              => 'required|string|max:255',
+                'country_id'        => 'required|exists:countries,id',
+                'port_code'         => 'required|string|max:255',
                 'office_country_id' => 'nullable|exists:countries,id',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -97,7 +107,7 @@ class OtherCompanyController extends Controller
             'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'contact_person', 'email',
             'remarks', 'special_considerations', 'street_address', 'city', 'district_state', 'zip_code',
             'country_id', 'port_code', 'office_street_address', 'office_city', 'office_district_state',
-            'office_zip_code', 'office_country_id', 'vat_number', 'eori_number', 'currency', 'un_locode',
+            'office_zip_code', 'office_country_id',
         ]));
 
         if (blank($otherCompany->created_by)) {

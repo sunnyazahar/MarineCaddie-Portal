@@ -236,6 +236,12 @@
         align-items: stretch;
     }
 
+    .form-pillar-container.hub-details-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        padding: 22px 18px 28px;
+    }
+
     .form-pillar {
         display: flex;
         flex-direction: column;
@@ -249,6 +255,96 @@
         position: relative;
         z-index: 1;
         min-width: 0;
+    }
+
+    .form-pillar.hub-pillar-card {
+        padding: 18px 18px 16px;
+        gap: 14px;
+        border-color: #cfe0ec;
+        box-shadow:
+            0 1px 2px rgba(14, 29, 74, 0.04),
+            0 12px 28px rgba(14, 29, 74, 0.06);
+        transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .form-pillar.hub-pillar-card:hover {
+        border-color: #94c9e3;
+        box-shadow:
+            0 2px 4px rgba(14, 29, 74, 0.05),
+            0 16px 32px rgba(0, 136, 199, 0.08);
+    }
+
+    .hub-pillar-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 4px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e8eef4;
+    }
+
+    .hub-pillar-head-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+        color: #fff;
+        font-size: 16px;
+        flex-shrink: 0;
+        box-shadow: 0 6px 14px rgba(0, 128, 128, 0.22);
+    }
+
+    .hub-pillar-head-icon.is-location {
+        background: linear-gradient(135deg, #0e1d4a 0%, #0088c7 100%);
+        box-shadow: 0 6px 14px rgba(14, 29, 74, 0.2);
+    }
+
+    .hub-pillar-head-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        color: #0e1d4a;
+        line-height: 1.2;
+    }
+
+    .hub-pillar-head-sub {
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.35;
+    }
+
+    .hub-soft-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 4px;
+        padding: 14px;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #f8fbfd 0%, #f1f7fb 100%);
+        border: 1px solid #dce8f1;
+    }
+
+    .hub-soft-panel-title {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #0e1d4a;
+    }
+
+    .hub-soft-panel-title span {
+        margin-left: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
+        color: #94a3b8;
     }
 
     .form-section-header {
@@ -374,8 +470,11 @@
     #hubEditForm .form-textarea-custom {
         padding: 8px 10px;
         min-height: 72px;
-        resize: vertical;
+        height: auto;
+        overflow-y: hidden;
+        resize: none;
         line-height: 1.4;
+        box-sizing: border-box;
     }
 
     #hubEditForm .form-input-custom:focus,
@@ -536,6 +635,31 @@
         color: #008080;
     }
 
+    .hub-row-actions {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .btn-action-delete {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 0;
+        font-size: 14px;
+        line-height: 1;
+        transition: color 0.15s ease;
+    }
+
+    .btn-action-delete:hover {
+        color: #dc2626;
+    }
+
     .upload-area {
         border: 1px dashed #c5dde8;
         border-radius: 10px;
@@ -662,9 +786,14 @@
 
     @media (max-width: 991.98px) {
         .form-pillar-container,
+        .form-pillar-container.hub-details-grid,
         .form-pillar-container[style*="grid-template-columns"] {
             grid-template-columns: 1fr !important;
             padding: 16px 12px 20px !important;
+        }
+
+        .form-pillar.hub-pillar-card:hover {
+            transform: none;
         }
 
         .input-row,

@@ -5,13 +5,15 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -87,6 +89,14 @@ class User extends Authenticatable
     public function canWriteAdministration(): bool
     {
         return ! $this->isOperations() && ! $this->isAccounts();
+    }
+
+    /**
+     * Login-capable portal users only. Soft-deleted rows are already excluded.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', 1);
     }
 
     public function offices(): BelongsToMany

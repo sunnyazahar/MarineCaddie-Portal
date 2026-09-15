@@ -54,21 +54,21 @@ class HubController extends Controller
             'hub_name'               => 'required|string|max:255',
             'company_id'             => 'nullable|string|max:255',
             'customer_number_fm'     => 'nullable|string|max:255',
-            'code'                   => 'nullable|string|max:255',
-            'code_description'       => 'nullable|string|max:255',
+            'code'                   => 'required|string|max:255',
+            'code_description'       => 'required|string|max:255',
             'phone_number'           => 'nullable|string|max:255',
             'contact_person'         => 'required|string|max:255',
-            'email'                  => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+            'email'                  => ['required', 'string', 'max:255', $this->multipleEmailsValidator()],
             'is_gts_company'         => 'nullable|boolean',
             'remarks'                => 'nullable|string',
             'special_considerations' => 'nullable|string',
             'show_pre_alert'         => 'nullable|boolean',
-            'hub_address'            => 'nullable|string',
-            'city'                   => 'nullable|string|max:255',
+            'hub_address'            => 'required|string',
+            'city'                   => 'required|string|max:255',
             'district_state'         => 'nullable|string|max:255',
             'zip_code'               => 'nullable|string|max:255',
-            'country'                => 'nullable|string|max:255',
-            'port_code'              => 'nullable|string|max:255',
+            'country'                => 'required|string|max:255',
+            'port_code'              => 'required|string|max:255',
             'office_address'         => 'nullable|string',
             'office_city'            => 'nullable|string|max:255',
             'office_district_state'  => 'nullable|string|max:255',
@@ -114,21 +114,21 @@ class HubController extends Controller
                 'hub_name'               => 'required|string|max:255',
                 'company_id'             => 'nullable|string|max:255',
                 'customer_number_fm'     => 'nullable|string|max:255',
-                'code'                   => 'nullable|string|max:255',
-                'code_description'       => 'nullable|string|max:255',
+                'code'                   => 'required|string|max:255',
+                'code_description'       => 'required|string|max:255',
                 'phone_number'           => 'nullable|string|max:255',
                 'contact_person'         => 'required|string|max:255',
-                'email'                  => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+                'email'                  => ['required', 'string', 'max:255', $this->multipleEmailsValidator()],
                 'is_gts_company'         => 'nullable|boolean',
                 'remarks'                => 'nullable|string',
                 'special_considerations' => 'nullable|string',
                 'show_pre_alert'         => 'nullable|boolean',
-                'hub_address'            => 'nullable|string',
-                'city'                   => 'nullable|string|max:255',
+                'hub_address'            => 'required|string',
+                'city'                   => 'required|string|max:255',
                 'district_state'         => 'nullable|string|max:255',
                 'zip_code'               => 'nullable|string|max:255',
-                'country'                => 'nullable|string|max:255',
-                'port_code'              => 'nullable|string|max:255',
+                'country'                => 'required|string|max:255',
+                'port_code'              => 'required|string|max:255',
                 'office_address'         => 'nullable|string',
                 'office_city'            => 'nullable|string|max:255',
                 'office_district_state'  => 'nullable|string|max:255',
@@ -183,13 +183,19 @@ class HubController extends Controller
         }
 
         $validated['is_gts_company']                   = $request->has('is_gts_company');
-        $validated['show_pre_alert']                   = $request->has('show_pre_alert');
-        $validated['hide_in_portal']                   = $request->has('hide_in_portal');
         $validated['coc_signed']                       = $request->has('coc_signed');
         $validated['sop_implemented']                  = $request->has('sop_implemented');
         $validated['agreement_implemented']            = $request->has('agreement_implemented');
         $validated['scangun_photo_taking']             = $request->has('scangun_photo_taking');
         $validated['scangun_detailed_shipment_out']    = $request->has('scangun_detailed_shipment_out');
+
+        // Portal / pre-alert fields are no longer on the hub edit form — keep existing DB values.
+        unset(
+            $validated['hide_in_portal'],
+            $validated['portal_remarks'],
+            $validated['portal_email'],
+            $validated['show_pre_alert']
+        );
 
         if (! $request->has('set_new_password')) {
             unset($validated['scan_gun_password']);
@@ -348,6 +354,27 @@ class HubController extends Controller
         return redirect()->route('hub.show', $hubId)->with('success', 'Contact updated successfully.')->withFragment('contacts');
     }
 
+    public function destroyContact($hubId, $contactId)
+    {
+        try {
+            $hub = $this->hubs->findOrFail((int) $hubId);
+            $contact = $this->contacts->findOrFail((int) $contactId);
+
+            if ((int) $contact->hub_id !== (int) $hub->id) {
+                return response()->json(['success' => false, 'message' => 'Contact not found for this hub.'], 404);
+            }
+
+            $this->contacts->deleteById($contact->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contact deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error deleting contact.'], 500);
+        }
+    }
+
     public function createUser($hubId)
     {
         $hub = $this->hubs->findOrFail((int) $hubId);
@@ -401,9 +428,30 @@ class HubController extends Controller
         return redirect()->route('hub.show', $hubId)->with('success', 'Hub User updated successfully.')->withFragment('hub-users');
     }
 
+    public function destroyUser($hubId, $userId)
+    {
+        try {
+            $hub = $this->hubs->findOrFail((int) $hubId);
+            $hubUser = $this->hubUsers->findOrFail((int) $userId);
+
+            if ((int) $hubUser->hub_id !== (int) $hub->id) {
+                return response()->json(['success' => false, 'message' => 'User not found for this hub.'], 404);
+            }
+
+            $this->hubUsers->deleteById($hubUser->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Hub user deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error deleting hub user.'], 500);
+        }
+    }
+
     private function resolveActiveTab(Request $request): string
     {
-        $allowed = ['hub-details', 'billing-details', 'sop', 'pricing', 'hub-users', 'contacts', 'email-settings', 'scan-gun'];
+        $allowed = ['hub-details', 'hub-users', 'contacts'];
         $tab     = (string) $request->input('active_tab', 'hub-details');
         return in_array($tab, $allowed, true) ? $tab : 'hub-details';
     }

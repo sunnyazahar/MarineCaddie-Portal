@@ -34,4 +34,21 @@ class OfficeRepository extends BaseRepository implements OfficeRepositoryInterfa
     {
         return parent::findModelOrFail($id);
     }
+
+    public function deleteWithAssignedUsers(Office $office): void
+    {
+        $this->transaction(function () use ($office) {
+            $office->users()->get()->each(function ($user) {
+                $user->forceFill(['is_active' => false])->save();
+                $user->delete();
+            });
+
+            $office->contacts()->get()->each(function ($contact) {
+                $contact->forceFill(['status' => false])->save();
+                $contact->delete();
+            });
+
+            $office->delete();
+        });
+    }
 }

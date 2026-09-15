@@ -267,9 +267,9 @@ class CrrRepository extends BaseRepository implements CrrRepositoryInterface
             ->select('vessel', 'customer_id')
             ->groupBy('vessel', 'customer_id')
             ->get();
-        $hubs = Hub::orderBy('hub_name')->get();
-        $agents = Agent::with('country')->orderBy('agent_name')->get();
-        $suppliers = Supplier::with('country')->orderBy('supplier_name')->get();
+        $hubs = Hub::query()->active()->orderBy('hub_name')->get();
+        $agents = Agent::query()->active()->with('country')->orderBy('agent_name')->get();
+        $suppliers = Supplier::query()->active()->with('country')->orderBy('supplier_name')->get();
 
         return compact('vessels', 'hubs', 'agents', 'suppliers');
     }
@@ -311,6 +311,7 @@ class CrrRepository extends BaseRepository implements CrrRepositoryInterface
     private function customerAccountManagerNames(): Collection
     {
         return Contact::query()
+            ->active()
             ->whereIn(
                 'id',
                 CustomerResponsible::query()

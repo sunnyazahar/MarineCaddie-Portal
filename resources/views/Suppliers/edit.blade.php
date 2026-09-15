@@ -18,7 +18,7 @@
                 <div>
                     <p class="edit-supplier-kicker">Administration</p>
                     <h1 class="edit-supplier-title">{{ $supplier->supplier_name }}</h1>
-                    <p class="edit-supplier-sub">Edit supplier details, billing fields, and contact persons.</p>
+                    <p class="edit-supplier-sub">Edit supplier profile, location, and contact persons.</p>
                 </div>
             </div>
             <a href="{{ route('suppliers.index') }}" class="edit-supplier-back">
@@ -67,32 +67,38 @@
                     <input type="hidden" name="active_tab" id="active_tab" value="{{ old('active_tab', 'supplier-details') }}">
 
                     <div id="supplier-details" class="tab-content-custom active">
-                        <div class="form-pillar-container">
-                            <div class="form-pillar">
-                                <div class="form-section-header">Supplier information</div>
+                        <div class="form-pillar-container sup-details-grid">
+                            <div class="form-pillar sup-pillar-card">
+                                <div class="sup-pillar-head">
+                                    <span class="sup-pillar-head-icon" aria-hidden="true"><i class="ti-briefcase"></i></span>
+                                    <div>
+                                        <div class="sup-pillar-head-title">Identity &amp; contact</div>
+                                        <p class="sup-pillar-head-sub">Core supplier profile and how to reach the desk.</p>
+                                    </div>
+                                </div>
 
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="edit_supplier_name">Supplier name <span class="text-danger">*</span></label>
                                     <input type="text" id="edit_supplier_name" name="supplier_name" class="form-control-custom"
-                                        value="{{ old('supplier_name', $supplier->supplier_name) }}" required>
+                                        value="{{ old('supplier_name', $supplier->supplier_name) }}" required autocomplete="organization">
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_phone_number">Phone number (with country code)</label>
+                                    <label class="form-label-custom" for="edit_phone_number">Phone number (with country code) <span class="text-danger">*</span></label>
                                     <input type="text" id="edit_phone_number" name="phone_number" class="form-control-custom"
-                                        value="{{ old('phone_number', $supplier->phone_number) }}">
+                                        value="{{ old('phone_number', $supplier->phone_number) }}" required autocomplete="tel">
                                 </div>
 
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_email">Email</label>
+                                    <label class="form-label-custom" for="edit_email">Email <span class="text-danger">*</span></label>
                                     <input type="email" id="edit_email" name="email" class="form-control-custom"
-                                        value="{{ old('email', $supplier->email) }}">
+                                        value="{{ old('email', $supplier->email) }}" required>
                                 </div>
 
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="edit_contact_person">Contact person <span class="text-danger">*</span></label>
                                     <input type="text" id="edit_contact_person" name="contact_person" class="form-control-custom"
-                                        value="{{ old('contact_person', $supplier->contact_person) }}" required>
+                                        value="{{ old('contact_person', $supplier->contact_person) }}" required autocomplete="name">
                                 </div>
 
                                 <div class="form-group-custom">
@@ -106,19 +112,25 @@
                                 </div>
                             </div>
 
-                            <div class="form-pillar">
-                                <div class="form-section-header">Supplier address</div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_supplier_address">Street address</label>
-                                    <textarea id="edit_supplier_address" name="supplier_address" class="form-textarea-custom" rows="4">{{ old('supplier_address', $supplier->supplier_address) }}</textarea>
+                            <div class="form-pillar sup-pillar-card">
+                                <div class="sup-pillar-head">
+                                    <span class="sup-pillar-head-icon is-location" aria-hidden="true"><i class="ti-map-alt"></i></span>
+                                    <div>
+                                        <div class="sup-pillar-head-title">Location</div>
+                                        <p class="sup-pillar-head-sub">Physical supplier address and port identifiers.</p>
+                                    </div>
                                 </div>
 
-                                <div class="input-row">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_city">City</label>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="edit_supplier_address">Street address <span class="text-danger">*</span></label>
+                                    <textarea id="edit_supplier_address" name="supplier_address" class="form-textarea-custom" rows="3" required>{{ old('supplier_address', $supplier->supplier_address) }}</textarea>
+                                </div>
+
+                                <div class="input-row sup-details-input-row">
+                                    <div class="form-group-custom" style="flex: 2;">
+                                        <label class="form-label-custom" for="edit_city">City <span class="text-danger">*</span></label>
                                         <input type="text" id="edit_city" name="city" class="form-control-custom"
-                                            value="{{ old('city', $supplier->city) }}">
+                                            value="{{ old('city', $supplier->city) }}" required>
                                     </div>
                                     <div class="form-group-custom">
                                         <label class="form-label-custom" for="edit_district_state">District/state</label>
@@ -136,79 +148,52 @@
                                     name="country_id"
                                     label="Country"
                                     :countries="$countries"
-                                    :value="$supplier->country_id"
-                                    class="form-control-custom"
+                                    :value="old('country_id', $supplier->country_id)"
+                                    class="form-control-custom select2-flag"
+                                    :required="true"
+                                    :allowClear="false"
                                 />
 
                                 <x-forms.port-select
                                     name="port_code"
                                     label="Port code"
-                                    :value="$supplier->port_code"
+                                    :value="old('port_code', $supplier->port_code)"
+                                    :required="true"
                                 />
 
-                                <div class="form-section-header" style="margin-top: 12px;">Office address (optional)</div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_office_address">Street address / post box</label>
-                                    <textarea id="edit_office_address" name="office_address" class="form-textarea-custom" rows="3">{{ old('office_address', $supplier->office_address) }}</textarea>
-                                </div>
-
-                                <div class="input-row">
+                                <div class="sup-soft-panel">
+                                    <div class="sup-soft-panel-title">Office address <span>optional</span></div>
                                     <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_office_city">City</label>
-                                        <input type="text" id="edit_office_city" name="office_city" class="form-control-custom"
-                                            value="{{ old('office_city', $supplier->office_city) }}">
+                                        <label class="form-label-custom" for="edit_office_address">Street address / post box</label>
+                                        <textarea id="edit_office_address" name="office_address" class="form-textarea-custom" rows="3">{{ old('office_address', $supplier->office_address) }}</textarea>
                                     </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_office_district_state">District/state</label>
-                                        <input type="text" id="edit_office_district_state" name="office_district_state" class="form-control-custom"
-                                            value="{{ old('office_district_state', $supplier->office_district_state) }}">
+
+                                    <div class="input-row sup-details-input-row">
+                                        <div class="form-group-custom" style="flex: 2;">
+                                            <label class="form-label-custom" for="edit_office_city">City</label>
+                                            <input type="text" id="edit_office_city" name="office_city" class="form-control-custom"
+                                                value="{{ old('office_city', $supplier->office_city) }}">
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom" for="edit_office_district_state">District/state</label>
+                                            <input type="text" id="edit_office_district_state" name="office_district_state" class="form-control-custom"
+                                                value="{{ old('office_district_state', $supplier->office_district_state) }}">
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom" for="edit_office_zip_code">Zip code</label>
+                                            <input type="text" id="edit_office_zip_code" name="office_zip_code" class="form-control-custom"
+                                                value="{{ old('office_zip_code', $supplier->office_zip_code) }}">
+                                        </div>
                                     </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="edit_office_zip_code">Zip code</label>
-                                        <input type="text" id="edit_office_zip_code" name="office_zip_code" class="form-control-custom"
-                                            value="{{ old('office_zip_code', $supplier->office_zip_code) }}">
-                                    </div>
-                                </div>
 
-                                <x-forms.country-select
-                                    name="office_country_id"
-                                    label="Country"
-                                    :countries="$countries"
-                                    :value="$supplier->office_country_id"
-                                    class="form-control-custom"
-                                />
-                            </div>
-
-                            <div class="form-pillar">
-                                <div class="form-section-header">Supplier details</div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_vat_number">VAT number</label>
-                                    <input type="text" id="edit_vat_number" name="vat_number" class="form-control-custom"
-                                        value="{{ old('vat_number', $supplier->vat_number) }}">
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_eori_number">EORI number</label>
-                                    <input type="text" id="edit_eori_number" name="eori_number" class="form-control-custom"
-                                        value="{{ old('eori_number', $supplier->eori_number) }}">
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_currency">Currency</label>
-                                    <select id="edit_currency" name="currency" class="form-control-custom select2-currency">
-                                        <option value=""></option>
-                                        @foreach ($currencies as $curr)
-                                            <option value="{{ $curr }}" {{ old('currency', $supplier->currency) == $curr ? 'selected' : '' }}>{{ $curr }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="edit_un_locode">UN/LOCODE</label>
-                                    <input type="text" id="edit_un_locode" name="un_locode" class="form-control-custom"
-                                        value="{{ old('un_locode', $supplier->un_locode) }}">
+                                    <x-forms.country-select
+                                        name="office_country_id"
+                                        label="Country"
+                                        :countries="$countries"
+                                        :value="old('office_country_id', $supplier->office_country_id)"
+                                        class="form-control-custom select2-flag"
+                                        :allowClear="true"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -282,36 +267,73 @@
         $(document).ready(function () {
             $('body').addClass('edit-supplier-page');
 
+            function autoResizeSupTextarea(textarea) {
+                if (!textarea) {
+                    return;
+                }
+
+                var computedStyle = window.getComputedStyle(textarea);
+                var minHeight = parseFloat(computedStyle.minHeight) || 0;
+
+                textarea.style.setProperty('height', 'auto', 'important');
+                textarea.style.setProperty('overflow-y', 'hidden', 'important');
+                textarea.style.setProperty('height', Math.max(textarea.scrollHeight, minHeight) + 'px', 'important');
+            }
+
+            function refreshAutoResizeSupTextareas() {
+                $('#edit-supplier-form textarea.form-textarea-custom').each(function () {
+                    autoResizeSupTextarea(this);
+                });
+            }
+
+            $(document).on('input.autoResizeSupTextarea change.autoResizeSupTextarea', '#edit-supplier-form textarea.form-textarea-custom', function () {
+                autoResizeSupTextarea(this);
+            });
+
+            refreshAutoResizeSupTextareas();
+
             $('#edit-supplier-form').validate({
                 rules: {
                     supplier_name: { required: true },
-                    contact_person: { required: true }
+                    phone_number: { required: true },
+                    email: { required: true, email: true },
+                    contact_person: { required: true },
+                    supplier_address: { required: true },
+                    city: { required: true },
+                    country_id: { required: true },
+                    port_code: { required: true }
                 },
                 messages: {
                     supplier_name: { required: 'Please enter the supplier name' },
-                    contact_person: { required: 'Please enter the contact person' }
+                    phone_number: { required: 'Please enter the phone number' },
+                    email: { required: 'Please enter the email', email: 'Please enter a valid email' },
+                    contact_person: { required: 'Please enter the contact person' },
+                    supplier_address: { required: 'Please enter the street address' },
+                    city: { required: 'Please enter the city' },
+                    country_id: { required: 'Please select the country' },
+                    port_code: { required: 'Please select the port code' }
                 },
                 errorElement: 'div',
                 errorClass: 'error-message',
                 errorPlacement: function (error, element) {
-                    if (element.hasClass('select2-hidden-accessible')) {
-                        error.insertAfter(element.next('.select2'));
+                    if (element.hasClass('select2-hidden-accessible') || element.is('[data-country-select]') || element.is('[data-port-select]')) {
+                        error.insertAfter(element.next('.select2-container'));
                     } else {
                         error.insertAfter(element);
                     }
                 },
                 highlight: function (element) {
                     $(element).addClass('error');
+                    if ($(element).hasClass('select2-hidden-accessible') || $(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
+                        $(element).next('.select2-container').addClass('error');
+                    }
                 },
                 unhighlight: function (element) {
                     $(element).removeClass('error');
+                    if ($(element).hasClass('select2-hidden-accessible') || $(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
+                        $(element).next('.select2-container').removeClass('error');
+                    }
                 }
-            });
-
-            $('.select2-currency').select2({
-                placeholder: 'Select currency',
-                allowClear: true,
-                width: '100%'
             });
 
             function activateSupplierTab(tabId) {
@@ -324,6 +346,9 @@
                 $('#' + tabId).addClass('active');
                 $('#active_tab').val(tabId);
                 $('#supplier-edit-footer').toggle(tabId === 'supplier-details');
+                if (tabId === 'supplier-details') {
+                    refreshAutoResizeSupTextareas();
+                }
                 return true;
             }
 
@@ -342,6 +367,15 @@
             if (hashTab) {
                 activateSupplierTab(hashTab);
             }
+
+            $(document).on('select2:open', '.sup-pillar-card select', function () {
+                $('.sup-pillar-card').css('z-index', '');
+                $(this).closest('.sup-pillar-card').css('z-index', 40);
+            });
+
+            $(document).on('select2:close', '.sup-pillar-card select', function () {
+                $(this).closest('.sup-pillar-card').css('z-index', '');
+            });
         });
     </script>
 

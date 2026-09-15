@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\LogsFieldChanges;
 use App\Traits\TracksUserAudit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
@@ -16,6 +17,14 @@ class Customer extends Model
         'show_transport_details', 'esea_store_stock_only', 'logo',
         'created_by', 'updated_by',
     ];
+
+    /**
+     * Active customers for Select2/lists (no inactive flag today).
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query;
+    }
 
     public function documents()
     {

@@ -261,8 +261,6 @@ class CustomerController extends Controller
             'sales_manager' => 'required',
             'main_account_manager' => 'required',
             'logo' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
-            'sop_documents' => 'nullable|array',
-            'sop_documents.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
         ]);
 
         DB::beginTransaction();
@@ -372,67 +370,10 @@ class CustomerController extends Controller
                 ]
             );
 
-            // 5. Update SOP
-            $this->customerSopRepo->updateOrCreate(
-                ['customer_id' => $customer->id],
-                [
-                    'send_stocklist' => $request->send_stocklist,
-                    'onboard_delivery' => $request->onboard_delivery,
-                    'quotes_prior_to_instructions' => $request->quotes_prior_to_instructions,
-                    'agreed_rate' => $request->agreed_rate,
-                    'invoicing_procedure' => $request->invoicing_procedure,
-                    'pending_entry' => $request->pending_entry,
-                    'special_pending_routines' => $request->special_pending_routines,
-                    'other_procedures_comments' => $request->other_procedures_comments,
-                ]
-            );
+            // 5. SOP + Notification settings removed from edit UI — keep existing DB values.
+            // (Do not updateOrCreate with empty request fields.)
 
-            // 6. Update Notification Settings
-            $this->customerNotificationSettingRepo->updateOrCreate(
-                ['customer_id' => $customer->id],
-                [
-                    'notify_stock_items' => $request->notify_stock_items,
-                    'send_automatic_first_mile_email' => $request->has('send_automatic_first_mile_email') ? 1 : 0,
-                    'notify_first_mile_email_sent' => $request->notify_first_mile_email_sent,
-                    'shipping_free_storage_days' => $request->shipping_free_storage_days,
-                    'shipping_free_storage_weight' => $request->shipping_free_storage_weight,
-                    'shipping_free_storage_volume' => $request->shipping_free_storage_volume,
-                    'notify_free_storage_exceeded' => $request->notify_free_storage_exceeded,
-                ]
-            );
-
-            // 7. Handle SOP Document Removals
-            if ($request->filled('removed_documents')) {
-                $idsToRemove = array_filter(explode(',', $request->removed_documents));
-                foreach ($idsToRemove as $docId) {
-                    $doc = $this->customerDocumentRepo->find((int) trim($docId));
-                    if ($doc && $doc->customer_id == $customer->id) {
-                        $fileName = $doc->file_name;
-                        \App\Support\PrivateDisk::delete($doc->file_path);
-                        $this->customerDocumentRepo->delete($doc);
-                        $changeLogService->log($customer, 'SOP document removed', $fileName, 'sop_document');
-                    }
-                }
-            }
-
-            // 8. Handle SOP Document Uploads
-            if ($request->hasFile('sop_documents')) {
-                foreach ($request->file('sop_documents') as $file) {
-                    $path = $file->store('sop_documents', 'private');
-                    $this->customerDocumentRepo->create([
-                        'customer_id' => $customer->id,
-                        'file_name'   => $file->getClientOriginalName(),
-                        'file_path'   => $path,
-                        'file_type'   => 'sop',
-                    ]);
-                    $changeLogService->log(
-                        $customer,
-                        'SOP document added',
-                        $file->getClientOriginalName(),
-                        'sop_document'
-                    );
-                }
-            }
+            // 6. Logo already handled above; SOP document uploads removed from edit UI.
 
             $customer->unsetRelations();
             $afterRelated = $this->customerRelatedChangeSnapshot($customer);
@@ -808,20 +749,17 @@ class CustomerController extends Controller
 
         $request->validate([
             'vessel' => 'required|string|max:255',
+            'vessel_name_alias' => 'required|string|max:255',
+            'vessel_imo' => 'required|string|max:255',
+            'vessel_type_alias' => 'required|string|max:255',
             'account_manager' => 'required|string|max:255',
         ]);
 
-        // Extract contact data (expecting only one contact in the array based on form logic)
-        $contactData = $request->input('contacts.1', []); // We use key 1 as per the JS implementation
-
         $vessel = $this->customerVesselRepo->create([
             'customer_id' => $customer->id,
-            // Vessel information
             'vessel' => $request->vessel,
             'vessel_name_alias' => $request->vessel_name_alias,
             'vessel_imo' => $request->vessel_imo,
-            'shipyard' => $request->shipyard,
-            'shipyard_location' => $request->shipyard_location,
             'not_in_transit' => $request->has('not_in_transit') ? 1 : 0,
             'inactive_vessel' => $request->has('inactive_vessel') ? 1 : 0,
             'sanction_blocked' => $request->has('sanction_blocked') ? 1 : 0,
@@ -833,24 +771,8 @@ class CustomerController extends Controller
             'internal_shipment' => $request->internal_shipment,
             'except_from_hubs' => $request->except_from_hubs,
             'remarks' => $request->remarks,
-            // Responsible managers
             'manager' => $request->manager,
             'account_manager' => $request->account_manager,
-            'receivers_stocklists' => $request->receivers_stocklists,
-            // Invoice details
-            'invoice_vessel_separately' => $request->has('invoice_vessel_separately') ? 1 : 0,
-            'title_invoice_recipient' => $request->title_invoice_recipient,
-            'yearly_customer_reference' => $request->yearly_customer_reference,
-            // Home ports
-            'home_consolidation_port' => $request->home_consolidation_port,
-            'home_delivery_port' => $request->home_delivery_port,
-            // Contact details
-            'contact_id' => $contactData['contact_id'] ?? null,
-            'contact_stocklists' => isset($contactData['stocklists']) ? 1 : 0,
-            'contact_pre_alerts' => isset($contactData['pre_alerts']) ? 1 : 0,
-            'contact_stock_notifications' => isset($contactData['stock_notifications']) ? 1 : 0,
-            'contact_free_storage_notifications' => isset($contactData['free_storage_notifications']) ? 1 : 0,
-            'contact_offers' => isset($contactData['offers']) ? 1 : 0,
         ]);
 
         app(AdministrationChangeLogService::class)->log(
@@ -889,18 +811,11 @@ class CustomerController extends Controller
             'account_manager' => 'required|string|max:255',
         ]);
 
-        // Extract contact data
-        $contactData = $request->input('contacts.1', []);
-        $changeLogService = app(AdministrationChangeLogService::class);
-        $beforeContactName = $vessel->contact?->name;
-
         $this->customerVesselRepo->update($vessel, [
             // Vessel information
             'vessel' => $request->vessel,
             'vessel_name_alias' => $request->vessel_name_alias,
             'vessel_imo' => $request->vessel_imo,
-            'shipyard' => $request->shipyard,
-            'shipyard_location' => $request->shipyard_location,
             'not_in_transit' => $request->has('not_in_transit') ? 1 : 0,
             'inactive_vessel' => $request->has('inactive_vessel') ? 1 : 0,
             'sanction_blocked' => $request->has('sanction_blocked') ? 1 : 0,
@@ -915,35 +830,39 @@ class CustomerController extends Controller
             // Responsible managers
             'manager' => $request->manager,
             'account_manager' => $request->account_manager,
-            'receivers_stocklists' => $request->receivers_stocklists,
-            // Invoice details
-            'invoice_vessel_separately' => $request->has('invoice_vessel_separately') ? 1 : 0,
-            'title_invoice_recipient' => $request->title_invoice_recipient,
-            'yearly_customer_reference' => $request->yearly_customer_reference,
-            // Home ports
-            'home_consolidation_port' => $request->home_consolidation_port,
-            'home_delivery_port' => $request->home_delivery_port,
-            // Contact details
-            'contact_id' => $contactData['contact_id'] ?? null,
-            'contact_stocklists' => isset($contactData['stocklists']) ? 1 : 0,
-            'contact_pre_alerts' => isset($contactData['pre_alerts']) ? 1 : 0,
-            'contact_stock_notifications' => isset($contactData['stock_notifications']) ? 1 : 0,
-            'contact_free_storage_notifications' => isset($contactData['free_storage_notifications']) ? 1 : 0,
-            'contact_offers' => isset($contactData['offers']) ? 1 : 0,
+            // Shipyard / receivers / invoice / home ports removed from edit UI — keep existing DB values.
         ]);
-
-        $vessel->load('contact');
-        $changeLogService->logMappedChanges(
-            $vessel,
-            ['contact' => $beforeContactName],
-            ['contact' => $vessel->contact?->name],
-            ['contact' => 'Notification contact']
-        );
 
         return redirect()
             ->route('customers.edit', $vessel->customer_id)
             ->with('success', 'Vessel updated successfully.')
             ->withFragment('vessels');
+    }
+
+    /**
+     * Soft-delete a customer vessel.
+     */
+    public function destroyVessel($id)
+    {
+        $vessel = $this->customerVesselRepo->findOrFail((int) $id);
+        $customer = $vessel->customer_id ? $this->customerRepo->find((int) $vessel->customer_id) : null;
+        $vesselName = $vessel->vessel;
+
+        $this->customerVesselRepo->deleteById($vessel->id);
+
+        if ($customer) {
+            app(AdministrationChangeLogService::class)->log(
+                $customer,
+                'Vessel removed',
+                $vesselName,
+                'vessel'
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Vessel deleted successfully.',
+        ]);
     }
 
     private function multipleEmailsValidator(): \Closure

@@ -170,11 +170,13 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
         $accountManagers = $this->customerAccountManagers();
 
         $creators = User::query()
+            ->active()
             ->whereIn('id', $this->query()->whereNotNull('created_by')->distinct()->pluck('created_by'))
             ->orderBy('name')
             ->get(['id', 'name']);
 
         $offices = Office::query()
+            ->active()
             ->whereIn('id', $accountManagers->pluck('office_id')->filter()->unique())
             ->orderBy('office_name')
             ->get(['id', 'office_name']);
@@ -301,6 +303,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
         $accountManagers = $this->customerAccountManagers();
 
         $creators = User::query()
+            ->active()
             ->whereIn('id', (clone $baseQuery)->whereNotNull('created_by')->distinct()->pluck('created_by'))
             ->orderBy('name')
             ->get();
@@ -396,8 +399,8 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
 
     public function shipmentEditReferenceData(): array
     {
-        $hubs = Hub::orderBy('hub_name')->get();
-        $agents = Agent::with('country')->orderBy('agent_name')->get();
+        $hubs = Hub::query()->active()->orderBy('hub_name')->get();
+        $agents = Agent::query()->active()->with('country')->orderBy('agent_name')->get();
         $crrs = $this->selectableCrrsForShipment();
         $consigneePartyCodes = [];
 
@@ -795,6 +798,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
     private function customerAccountManagers(): EloquentCollection
     {
         return Contact::query()
+            ->active()
             ->whereIn(
                 'id',
                 CustomerResponsible::query()
@@ -817,22 +821,22 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
 
         $keys = [];
 
-        foreach (Hub::query()->where('hub_name', 'like', $like)->pluck('id') as $id) {
+        foreach (Hub::query()->active()->where('hub_name', 'like', $like)->pluck('id') as $id) {
             $keys[] = 'hub:' . $id;
         }
-        foreach (Agent::query()->where('agent_name', 'like', $like)->pluck('id') as $id) {
+        foreach (Agent::query()->active()->where('agent_name', 'like', $like)->pluck('id') as $id) {
             $keys[] = 'agent:' . $id;
         }
-        foreach (Customer::query()->where('customer_name', 'like', $like)->pluck('id') as $id) {
+        foreach (Customer::query()->active()->where('customer_name', 'like', $like)->pluck('id') as $id) {
             $keys[] = 'customer:' . $id;
         }
-        foreach (Office::query()->where('office_name', 'like', $like)->pluck('id') as $id) {
+        foreach (Office::query()->active()->where('office_name', 'like', $like)->pluck('id') as $id) {
             $keys[] = 'office:' . $id;
         }
-        foreach (Supplier::query()->where('supplier_name', 'like', $like)->pluck('id') as $id) {
+        foreach (Supplier::query()->active()->where('supplier_name', 'like', $like)->pluck('id') as $id) {
             $keys[] = 'supplier:' . $id;
         }
-        foreach (OtherCompany::query()->where('company_name', 'like', $like)->pluck('id') as $id) {
+        foreach (OtherCompany::query()->active()->where('company_name', 'like', $like)->pluck('id') as $id) {
             $keys[] = 'other_company:' . $id;
         }
 

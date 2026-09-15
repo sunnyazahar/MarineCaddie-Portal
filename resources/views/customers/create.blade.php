@@ -18,7 +18,7 @@
                 <div>
                     <p class="create-customer-kicker">Administration</p>
                     <h1 class="create-customer-title">Create customer</h1>
-                    <p class="create-customer-sub">Add a customer with addresses, invoice details, and responsible office contacts.</p>
+                    <p class="create-customer-sub">Add a customer with identity, location, invoicing, and responsible contacts.</p>
                 </div>
             </div>
             <a href="{{ route('customers.index') }}" class="create-customer-back">
@@ -42,138 +42,150 @@
                 <form id="customerForm" action="{{ route('customers.store') }}" method="POST">
                     @csrf
 
-                    <div class="cust-pillars">
-                        <div class="cust-pillar-col">
-                            <div class="cust-pillar">
-                                <div class="cust-pillar__title">Customer information</div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="customer_name">Customer name <span class="text-danger">*</span></label>
-                                    <input type="text" id="customer_name" name="customer_name" class="form-control-custom"
-                                        value="{{ old('customer_name') }}" required autocomplete="organization">
+                    <div class="cust-pillars cust-details-grid">
+                        <div class="cust-pillar-card">
+                            <div class="cust-pillar-head">
+                                <span class="cust-pillar-head-icon" aria-hidden="true"><i class="ti-briefcase"></i></span>
+                                <div>
+                                    <div class="cust-pillar-head-title">Identity &amp; contact</div>
+                                    <p class="cust-pillar-head-sub">Core customer profile and how to reach the desk.</p>
                                 </div>
+                            </div>
 
-                                <div class="form-group-custom d-none">
-                                    <label class="form-label-custom" for="customer_number_fm">Customer number from FM</label>
-                                    <input type="text" id="customer_number_fm" name="customer_number_fm" class="form-control-custom"
-                                        value="{{ old('customer_number_fm') }}">
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="customer_name">Customer name <span class="text-danger">*</span></label>
+                                <input type="text" id="customer_name" name="customer_name" class="form-control-custom"
+                                    value="{{ old('customer_name') }}" required autocomplete="organization">
+                            </div>
 
-                                <div class="form-group-custom d-none">
-                                    <label class="form-label-custom" for="customer_group">Customer group</label>
-                                    <select id="customer_group" name="customer_group" class="form-control-custom select2-field">
-                                        <option></option>
-                                        <option value="N/A" {{ old('customer_group') === 'N/A' ? 'selected' : '' }}>N/A</option>
-                                        @foreach ($groups as $group)
-                                            <option value="{{ $group->id }}" {{ (string) old('customer_group') === (string) $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                            <div class="form-group-custom d-none">
+                                <label class="form-label-custom" for="customer_number_fm">Customer number from FM</label>
+                                <input type="text" id="customer_number_fm" name="customer_number_fm" class="form-control-custom"
+                                    value="{{ old('customer_number_fm') }}">
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="phone_number">Phone number (with country code)</label>
-                                    <input type="text" id="phone_number" name="phone_number" class="form-control-custom"
-                                        value="{{ old('phone_number') }}" autocomplete="tel">
-                                </div>
+                            <div class="form-group-custom d-none">
+                                <label class="form-label-custom" for="customer_group">Customer group</label>
+                                <select id="customer_group" name="customer_group" class="form-control-custom select2-field">
+                                    <option></option>
+                                    <option value="N/A" {{ old('customer_group') === 'N/A' ? 'selected' : '' }}>N/A</option>
+                                    @foreach ($groups as $group)
+                                        <option value="{{ $group->id }}" {{ (string) old('customer_group') === (string) $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="email">E-mail <span class="text-danger">*</span></label>
-                                    <input type="text" id="email" name="email" class="form-control-custom"
-                                        value="{{ old('email') }}" placeholder="email@example.com; email2@example.com" required>
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="phone_number">Phone number (with country code)</label>
+                                <input type="text" id="phone_number" name="phone_number" class="form-control-custom"
+                                    value="{{ old('phone_number') }}" autocomplete="tel">
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="internal_shipment">Internal shipment</label>
-                                    <select id="internal_shipment" name="internal_shipment" class="form-control-custom select2-field">
-                                        <option></option>
-                                        <option value="1" {{ old('internal_shipment') === '1' ? 'selected' : '' }}>Yes</option>
-                                        <option value="0" {{ old('internal_shipment') === '0' ? 'selected' : '' }}>No</option>
-                                    </select>
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="email">E-mail <span class="text-danger">*</span></label>
+                                <input type="text" id="email" name="email" class="form-control-custom"
+                                    value="{{ old('email') }}" placeholder="email@example.com; email2@example.com" required>
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="remarks">Remarks</label>
-                                    <textarea id="remarks" name="remarks" class="form-textarea-custom" rows="3">{{ old('remarks') }}</textarea>
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="contact_person">Contact person <span class="text-danger">*</span></label>
+                                <input type="text" id="contact_person" name="contact_person" class="form-control-custom"
+                                    value="{{ old('contact_person') }}" required autocomplete="name">
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
-                                    <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="internal_shipment">Internal shipment</label>
+                                <select id="internal_shipment" name="internal_shipment" class="form-control-custom select2-field">
+                                    <option></option>
+                                    <option value="1" {{ old('internal_shipment') === '1' ? 'selected' : '' }}>Yes</option>
+                                    <option value="0" {{ old('internal_shipment') === '0' ? 'selected' : '' }}>No</option>
+                                </select>
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="contact_person">Contact person <span class="text-danger">*</span></label>
-                                    <input type="text" id="contact_person" name="contact_person" class="form-control-custom"
-                                        value="{{ old('contact_person') }}" required autocomplete="name">
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="un_locode">UN / LOCODE</label>
+                                <input type="text" id="un_locode" name="un_locode" class="form-control-custom"
+                                    value="{{ old('un_locode') }}" autocomplete="off">
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="un_locode">UN / LOCODE</label>
-                                    <input type="text" id="un_locode" name="un_locode" class="form-control-custom"
-                                        value="{{ old('un_locode') }}" autocomplete="off">
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="remarks">Remarks</label>
+                                <textarea id="remarks" name="remarks" class="form-textarea-custom" rows="3">{{ old('remarks') }}</textarea>
+                            </div>
 
-                                <div class="checkbox-group d-none">
-                                    <input type="checkbox" id="show_transport_details" name="show_transport_details" class="checkbox-custom"
-                                        {{ old('show_transport_details') ? 'checked' : '' }}>
-                                    <label class="checkbox-label" for="show_transport_details">Show transport details on customer portal</label>
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
+                                <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
+                            </div>
 
-                                <div class="checkbox-group d-none">
-                                    <input type="checkbox" id="esea_store_stock_only" name="esea_store_stock_only" class="checkbox-custom"
-                                        {{ old('esea_store_stock_only') ? 'checked' : '' }}>
-                                    <label class="checkbox-label" for="esea_store_stock_only">eSea store stock only</label>
-                                </div>
+                            <div class="checkbox-group d-none">
+                                <input type="checkbox" id="show_transport_details" name="show_transport_details" class="checkbox-custom"
+                                    {{ old('show_transport_details') ? 'checked' : '' }}>
+                                <label class="checkbox-label" for="show_transport_details">Show transport details on customer portal</label>
+                            </div>
+
+                            <div class="checkbox-group d-none">
+                                <input type="checkbox" id="esea_store_stock_only" name="esea_store_stock_only" class="checkbox-custom"
+                                    {{ old('esea_store_stock_only') ? 'checked' : '' }}>
+                                <label class="checkbox-label" for="esea_store_stock_only">eSea store stock only</label>
                             </div>
                         </div>
 
-                        <div class="cust-pillar-col">
-                            <div class="cust-pillar">
-                                <div class="cust-pillar__title">Customer address</div>
+                        <div class="cust-pillar-card">
+                            <div class="cust-pillar-head">
+                                <span class="cust-pillar-head-icon is-location" aria-hidden="true"><i class="ti-map-alt"></i></span>
+                                <div>
+                                    <div class="cust-pillar-head-title">Location</div>
+                                    <p class="cust-pillar-head-sub">Physical customer address and port identifiers.</p>
+                                </div>
+                            </div>
 
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="street_address">Street address <span class="text-danger">*</span></label>
+                                <textarea id="street_address" name="street_address" class="form-textarea-custom" rows="3" required>{{ old('street_address') }}</textarea>
+                            </div>
+
+                            <div class="input-row cust-details-input-row">
+                                <div class="form-group-custom" style="flex: 2;">
+                                    <label class="form-label-custom" for="city">City <span class="text-danger">*</span></label>
+                                    <input type="text" id="city" name="city" class="form-control-custom" value="{{ old('city') }}" required>
+                                </div>
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="street_address">Street address <span class="text-danger">*</span></label>
-                                    <textarea id="street_address" name="street_address" class="form-textarea-custom" rows="3" required>{{ old('street_address') }}</textarea>
+                                    <label class="form-label-custom" for="district_state">District/state</label>
+                                    <input type="text" id="district_state" name="district_state" class="form-control-custom"
+                                        value="{{ old('district_state') }}">
                                 </div>
-
-                                <div class="address-sub-grid">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="city">City <span class="text-danger">*</span></label>
-                                        <input type="text" id="city" name="city" class="form-control-custom" value="{{ old('city') }}" required>
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="district_state">District/state</label>
-                                        <input type="text" id="district_state" name="district_state" class="form-control-custom"
-                                            value="{{ old('district_state') }}">
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="zip_code">Zip code</label>
-                                        <input type="text" id="zip_code" name="zip_code" class="form-control-custom" value="{{ old('zip_code') }}">
-                                    </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="zip_code">Zip code</label>
+                                    <input type="text" id="zip_code" name="zip_code" class="form-control-custom" value="{{ old('zip_code') }}">
                                 </div>
+                            </div>
 
-                                <x-forms.country-select
-                                    name="country"
-                                    label="Country"
-                                    :countries="$countries"
-                                    class="form-control-custom"
-                                    :allowClear="false"
-                                />
+                            <x-forms.country-select
+                                name="country"
+                                label="Country"
+                                :countries="$countries"
+                                :value="old('country')"
+                                class="form-control-custom select2-flag"
+                                :required="true"
+                                :allowClear="false"
+                            />
 
-                                <x-forms.port-select
-                                    name="port_code"
-                                    label="Port code"
-                                />
+                            <x-forms.port-select
+                                name="port_code"
+                                label="Port code"
+                                :value="old('port_code')"
+                            />
 
-                                <div class="cust-pillar__title" style="margin-top: 8px;">Postal address (optional)</div>
-
+                            <div class="cust-soft-panel">
+                                <div class="cust-soft-panel-title">Postal address <span>optional</span></div>
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="postal_street_address">Street address / post box</label>
                                     <textarea id="postal_street_address" name="postal_street_address" class="form-textarea-custom" rows="3">{{ old('postal_street_address') }}</textarea>
                                 </div>
 
-                                <div class="address-sub-grid">
-                                    <div class="form-group-custom">
+                                <div class="input-row cust-details-input-row">
+                                    <div class="form-group-custom" style="flex: 2;">
                                         <label class="form-label-custom" for="postal_city">City</label>
                                         <input type="text" id="postal_city" name="postal_city" class="form-control-custom"
                                             value="{{ old('postal_city') }}">
@@ -194,165 +206,175 @@
                                     name="postal_country"
                                     label="Country"
                                     :countries="$countries"
-                                    class="form-control-custom"
-                                    :allowClear="false"
+                                    :value="old('postal_country')"
+                                    class="form-control-custom select2-flag"
+                                    :allowClear="true"
                                 />
                             </div>
                         </div>
 
-                        <div class="cust-pillar-col">
-                            <div class="cust-pillar">
-                                <div class="cust-pillar__title">Invoice details</div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="invoice_recipient_name">Invoice recipient name <span class="text-danger">*</span></label>
-                                    <input type="text" id="invoice_recipient_name" name="invoice_recipient_name" class="form-control-custom"
-                                        value="{{ old('invoice_recipient_name') }}" required>
+                        <div class="cust-pillar-card">
+                            <div class="cust-pillar-head">
+                                <span class="cust-pillar-head-icon is-invoice" aria-hidden="true"><i class="ti-receipt"></i></span>
+                                <div>
+                                    <div class="cust-pillar-head-title">Invoice details</div>
+                                    <p class="cust-pillar-head-sub">Billing recipient, currency, and payment terms.</p>
                                 </div>
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="invoice_recipient_address">Invoice recipient address <span class="text-danger">*</span></label>
-                                    <textarea id="invoice_recipient_address" name="invoice_recipient_address" class="form-textarea-custom" rows="3" required>{{ old('invoice_recipient_address') }}</textarea>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="invoice_recipient_name">Invoice recipient name <span class="text-danger">*</span></label>
+                                <input type="text" id="invoice_recipient_name" name="invoice_recipient_name" class="form-control-custom"
+                                    value="{{ old('invoice_recipient_name') }}" required>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="invoice_recipient_address">Invoice recipient address <span class="text-danger">*</span></label>
+                                <textarea id="invoice_recipient_address" name="invoice_recipient_address" class="form-textarea-custom" rows="3" required>{{ old('invoice_recipient_address') }}</textarea>
+                            </div>
+
+                            <div class="input-row cust-details-input-row">
+                                <div class="form-group-custom" style="flex: 2;">
+                                    <label class="form-label-custom" for="invoice_city">City <span class="text-danger">*</span></label>
+                                    <input type="text" id="invoice_city" name="invoice_city" class="form-control-custom"
+                                        value="{{ old('invoice_city') }}" required>
                                 </div>
-
-                                <div class="address-sub-grid">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="invoice_city">City <span class="text-danger">*</span></label>
-                                        <input type="text" id="invoice_city" name="invoice_city" class="form-control-custom"
-                                            value="{{ old('invoice_city') }}" required>
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="invoice_district_state">District/state</label>
-                                        <input type="text" id="invoice_district_state" name="invoice_district_state" class="form-control-custom"
-                                            value="{{ old('invoice_district_state') }}">
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="invoice_zip_code">Zip code</label>
-                                        <input type="text" id="invoice_zip_code" name="invoice_zip_code" class="form-control-custom"
-                                            value="{{ old('invoice_zip_code') }}">
-                                    </div>
-                                </div>
-
-                                <x-forms.country-select
-                                    name="invoice_country"
-                                    label="Country"
-                                    :countries="$countries"
-                                    class="form-control-custom"
-                                    :allowClear="false"
-                                />
-
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="currency">Currency <span class="text-danger">*</span></label>
-                                    <select id="currency" name="currency" class="form-control-custom select2-field" required>
+                                    <label class="form-label-custom" for="invoice_district_state">District/state</label>
+                                    <input type="text" id="invoice_district_state" name="invoice_district_state" class="form-control-custom"
+                                        value="{{ old('invoice_district_state') }}">
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="invoice_zip_code">Zip code</label>
+                                    <input type="text" id="invoice_zip_code" name="invoice_zip_code" class="form-control-custom"
+                                        value="{{ old('invoice_zip_code') }}">
+                                </div>
+                            </div>
+
+                            <x-forms.country-select
+                                name="invoice_country"
+                                label="Country"
+                                :countries="$countries"
+                                :value="old('invoice_country')"
+                                class="form-control-custom select2-flag"
+                                :required="true"
+                                :allowClear="false"
+                            />
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="currency">Currency <span class="text-danger">*</span></label>
+                                <select id="currency" name="currency" class="form-control-custom select2-field" required>
+                                    <option></option>
+                                    <option value="USD" {{ old('currency') === 'USD' ? 'selected' : '' }}>USD - US Dollar</option>
+                                    <option value="EUR" {{ old('currency') === 'EUR' ? 'selected' : '' }}>EUR - Euro</option>
+                                    <option value="GBP" {{ old('currency') === 'GBP' ? 'selected' : '' }}>GBP - British Pound</option>
+                                    <option value="INR" {{ old('currency') === 'INR' ? 'selected' : '' }}>INR - Indian Rupee</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="invoicing_email">E-mails for invoicing <span class="text-danger">*</span></label>
+                                <input type="text" id="invoicing_email" name="invoicing_email" class="form-control-custom"
+                                    value="{{ old('invoicing_email') }}" required>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="invoicing_email_cc">E-mails for invoicing (CC)</label>
+                                <input type="text" id="invoicing_email_cc" name="invoicing_email_cc" class="form-control-custom"
+                                    value="{{ old('invoicing_email_cc') }}">
+                            </div>
+
+                            <div class="input-row cust-details-input-row">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="payment_terms">Payment terms (days)</label>
+                                    <input type="text" id="payment_terms" name="payment_terms" class="form-control-custom"
+                                        value="{{ old('payment_terms', 30) }}">
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="invoice_frequency">Invoice frequency</label>
+                                    <select id="invoice_frequency" name="invoice_frequency" class="form-control-custom select2-field">
                                         <option></option>
-                                        <option value="USD" {{ old('currency') === 'USD' ? 'selected' : '' }}>USD - US Dollar</option>
-                                        <option value="EUR" {{ old('currency') === 'EUR' ? 'selected' : '' }}>EUR - Euro</option>
-                                        <option value="GBP" {{ old('currency') === 'GBP' ? 'selected' : '' }}>GBP - British Pound</option>
-                                        <option value="INR" {{ old('currency') === 'INR' ? 'selected' : '' }}>INR - Indian Rupee</option>
+                                        <option value="Daily" {{ old('invoice_frequency') === 'Daily' ? 'selected' : '' }}>Daily</option>
+                                        <option value="Weekly" {{ old('invoice_frequency') === 'Weekly' ? 'selected' : '' }}>Weekly</option>
+                                        <option value="Monthly" {{ old('invoice_frequency') === 'Monthly' ? 'selected' : '' }}>Monthly</option>
                                     </select>
                                 </div>
+                            </div>
 
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="invoicing_remarks">Remarks regarding invoicing</label>
+                                <textarea id="invoicing_remarks" name="invoicing_remarks" class="form-textarea-custom" rows="3">{{ old('invoicing_remarks') }}</textarea>
+                            </div>
+
+                            <div class="input-row cust-details-input-row">
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="invoicing_email">E-mails for invoicing <span class="text-danger">*</span></label>
-                                    <input type="text" id="invoicing_email" name="invoicing_email" class="form-control-custom"
-                                        value="{{ old('invoicing_email') }}" required>
+                                    <label class="form-label-custom" for="vat_number">VAT number</label>
+                                    <input type="text" id="vat_number" name="vat_number" class="form-control-custom" value="{{ old('vat_number') }}">
                                 </div>
-
                                 <div class="form-group-custom">
-                                    <label class="form-label-custom" for="invoicing_email_cc">E-mails for invoicing (CC)</label>
-                                    <input type="text" id="invoicing_email_cc" name="invoicing_email_cc" class="form-control-custom"
-                                        value="{{ old('invoicing_email_cc') }}">
-                                </div>
-
-                                <div class="address-sub-grid" style="grid-template-columns: 1fr 1fr;">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="payment_terms">Payment terms (days)</label>
-                                        <input type="text" id="payment_terms" name="payment_terms" class="form-control-custom"
-                                            value="{{ old('payment_terms', 30) }}">
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="invoice_frequency">Invoice frequency</label>
-                                        <select id="invoice_frequency" name="invoice_frequency" class="form-control-custom">
-                                            <option></option>
-                                            <option value="Daily" {{ old('invoice_frequency') === 'Daily' ? 'selected' : '' }}>Daily</option>
-                                            <option value="Weekly" {{ old('invoice_frequency') === 'Weekly' ? 'selected' : '' }}>Weekly</option>
-                                            <option value="Monthly" {{ old('invoice_frequency') === 'Monthly' ? 'selected' : '' }}>Monthly</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="invoicing_remarks">Remarks regarding invoicing</label>
-                                    <textarea id="invoicing_remarks" name="invoicing_remarks" class="form-textarea-custom" rows="2">{{ old('invoicing_remarks') }}</textarea>
-                                </div>
-
-                                <div class="address-sub-grid" style="grid-template-columns: 1fr 1fr;">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="vat_number">VAT number</label>
-                                        <input type="text" id="vat_number" name="vat_number" class="form-control-custom" value="{{ old('vat_number') }}">
-                                    </div>
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="eori_number">EORI number</label>
-                                        <input type="text" id="eori_number" name="eori_number" class="form-control-custom" value="{{ old('eori_number') }}">
-                                    </div>
+                                    <label class="form-label-custom" for="eori_number">EORI number</label>
+                                    <input type="text" id="eori_number" name="eori_number" class="form-control-custom" value="{{ old('eori_number') }}">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="cust-pillar-col">
-                            <div class="cust-pillar">
-                                <div class="cust-pillar__title">Responsible office / person</div>
+                        <div class="cust-pillar-card">
+                            @php
+                                $selectedMainAccountManager = old('main_account_manager')
+                                    ? \App\Models\Contact::find(old('main_account_manager'))
+                                    : null;
+                                $selectedAccountingUser = old('responsible_accounting_users')
+                                    ? \App\Models\Contact::with('office')->find(old('responsible_accounting_users'))
+                                    : null;
+                                $responsibleOfficeShortName = old(
+                                    'responsible_office',
+                                    $selectedAccountingUser?->office?->office_short_name ?? ''
+                                );
+                            @endphp
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="sales_manager">Sales manager</label>
-                                    <select id="sales_manager" name="sales_manager" class="form-control-custom select2-field">
-                                        <option></option>
-                                        @foreach ($salesManagers as $manager)
-                                            <option value="{{ $manager->id }}" {{ (string) old('sales_manager') === (string) $manager->id ? 'selected' : '' }}>{{ $manager->name }}</option>
-                                        @endforeach
-                                    </select>
+                            <div class="cust-pillar-head">
+                                <span class="cust-pillar-head-icon is-team" aria-hidden="true"><i class="ti-user"></i></span>
+                                <div>
+                                    <div class="cust-pillar-head-title">Responsible &amp; branding</div>
+                                    <p class="cust-pillar-head-sub">Account ownership for this customer.</p>
                                 </div>
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="main-account-manager-select">Main account manager <span class="text-danger">*</span></label>
-                                    <select id="main-account-manager-select" name="main_account_manager" class="form-control-custom select2-office-user" required>
-                                        <option value=""></option>
-                                        @php
-                                            $selectedMainAccountManager = old('main_account_manager')
-                                                ? \App\Models\Contact::find(old('main_account_manager'))
-                                                : null;
-                                        @endphp
-                                        @if ($selectedMainAccountManager)
-                                            <option value="{{ $selectedMainAccountManager->id }}" selected>{{ $selectedMainAccountManager->name }}</option>
-                                        @endif
-                                    </select>
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="sales_manager">Sales manager <span class="text-danger">*</span></label>
+                                <select id="sales_manager" name="sales_manager" class="form-control-custom select2-field" required>
+                                    <option></option>
+                                    @foreach ($salesManagers as $manager)
+                                        <option value="{{ $manager->id }}" {{ (string) old('sales_manager') === (string) $manager->id ? 'selected' : '' }}>{{ $manager->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="responsible-accounting-users-select">Responsible accounting users</label>
-                                    <select id="responsible-accounting-users-select" name="responsible_accounting_users" class="form-control-custom select2-office-user">
-                                        <option value=""></option>
-                                        @php
-                                            $selectedAccountingUser = old('responsible_accounting_users')
-                                                ? \App\Models\Contact::with('office')->find(old('responsible_accounting_users'))
-                                                : null;
-                                            $responsibleOfficeShortName = old(
-                                                'responsible_office',
-                                                $selectedAccountingUser?->office?->office_short_name ?? ''
-                                            );
-                                        @endphp
-                                        @if ($selectedAccountingUser)
-                                            <option value="{{ $selectedAccountingUser->id }}" selected
-                                                data-office-short-name="{{ $selectedAccountingUser->office?->office_short_name ?? '' }}">{{ $selectedAccountingUser->name }}</option>
-                                        @endif
-                                    </select>
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="main-account-manager-select">Main account manager <span class="text-danger">*</span></label>
+                                <select id="main-account-manager-select" name="main_account_manager" class="form-control-custom select2-office-user" required>
+                                    <option value=""></option>
+                                    @if ($selectedMainAccountManager)
+                                        <option value="{{ $selectedMainAccountManager->id }}" selected>{{ $selectedMainAccountManager->name }}</option>
+                                    @endif
+                                </select>
+                            </div>
 
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="responsible-office-input">Responsible office</label>
-                                    <input type="text" id="responsible-office-input" name="responsible_office" class="form-control-custom"
-                                        value="{{ $responsibleOfficeShortName }}" readonly>
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="responsible-accounting-users-select">Responsible accounting users</label>
+                                <select id="responsible-accounting-users-select" name="responsible_accounting_users" class="form-control-custom select2-office-user">
+                                    <option value=""></option>
+                                    @if ($selectedAccountingUser)
+                                        <option value="{{ $selectedAccountingUser->id }}" selected
+                                            data-office-short-name="{{ $selectedAccountingUser->office?->office_short_name ?? '' }}">{{ $selectedAccountingUser->name }}</option>
+                                    @endif
+                                </select>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="responsible-office-input">Responsible office</label>
+                                <input type="text" id="responsible-office-input" name="responsible_office" class="form-control-custom"
+                                    value="{{ $responsibleOfficeShortName }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -371,6 +393,33 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script>
         $(document).ready(function () {
+            $('body').addClass('create-customer-page');
+
+            function autoResizeCustTextarea(textarea) {
+                if (!textarea) {
+                    return;
+                }
+
+                var computedStyle = window.getComputedStyle(textarea);
+                var minHeight = parseFloat(computedStyle.minHeight) || 0;
+
+                textarea.style.setProperty('height', 'auto', 'important');
+                textarea.style.setProperty('overflow-y', 'hidden', 'important');
+                textarea.style.setProperty('height', Math.max(textarea.scrollHeight, minHeight) + 'px', 'important');
+            }
+
+            function refreshAutoResizeCustTextareas() {
+                $('#customerForm textarea.form-textarea-custom').each(function () {
+                    autoResizeCustTextarea(this);
+                });
+            }
+
+            $(document).on('input.autoResizeCustTextarea change.autoResizeCustTextarea', '#customerForm textarea.form-textarea-custom', function () {
+                autoResizeCustTextarea(this);
+            });
+
+            refreshAutoResizeCustTextareas();
+
             function formatOfficeUser(item) {
                 if (!item.id) {
                     return item.text;
@@ -443,7 +492,7 @@
                 );
             }
 
-            $('.select2-field').not('[data-country-select]').select2({
+            $('.select2-field').not('[data-country-select]').not('[data-port-select]').select2({
                 placeholder: 'Select an option',
                 allowClear: false,
                 width: '100%'
@@ -456,6 +505,15 @@
                 } else {
                     $(this).next('.select2-container').removeClass('error');
                 }
+            });
+
+            $(document).on('select2:open', '.cust-pillar-card select', function () {
+                $('.cust-pillar-card').css('z-index', '');
+                $(this).closest('.cust-pillar-card').css('z-index', 40);
+            });
+
+            $(document).on('select2:close', '.cust-pillar-card select', function () {
+                $(this).closest('.cust-pillar-card').css('z-index', '');
             });
 
             $.validator.addMethod('multiEmail', function (value, element) {
@@ -491,6 +549,7 @@
                     currency: 'required',
                     invoicing_email: { required: true, email: true },
                     invoicing_email_cc: { email: true },
+                    sales_manager: 'required',
                     main_account_manager: 'required'
                 },
                 messages: {
@@ -506,12 +565,13 @@
                     invoice_country: 'Please select country',
                     currency: 'Please select currency',
                     invoicing_email: 'Please enter a valid invoicing email',
+                    sales_manager: 'Please select sales manager',
                     main_account_manager: 'Please select account manager'
                 },
                 errorElement: 'div',
                 errorClass: 'error-message',
                 errorPlacement: function (error, element) {
-                    if (element.hasClass('select2-field') || element.hasClass('select2-office-user')) {
+                    if (element.hasClass('select2-field') || element.hasClass('select2-office-user') || element.is('[data-country-select]') || element.is('[data-port-select]')) {
                         error.insertAfter(element.next('.select2-container'));
                     } else {
                         error.insertAfter(element);
@@ -519,13 +579,13 @@
                 },
                 highlight: function (element) {
                     $(element).addClass('error');
-                    if ($(element).hasClass('select2-field') || $(element).hasClass('select2-office-user')) {
+                    if ($(element).hasClass('select2-field') || $(element).hasClass('select2-office-user') || $(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
                         $(element).next('.select2-container').addClass('error');
                     }
                 },
                 unhighlight: function (element) {
                     $(element).removeClass('error');
-                    if ($(element).hasClass('select2-field') || $(element).hasClass('select2-office-user')) {
+                    if ($(element).hasClass('select2-field') || $(element).hasClass('select2-office-user') || $(element).is('[data-country-select]') || $(element).is('[data-port-select]')) {
                         $(element).next('.select2-container').removeClass('error');
                     }
                 }

@@ -9,4 +9,6 @@ interface CustomerVesselRepositoryInterface
     public function findOrFail(int $id, array $with = []): \App\Models\CustomerVessel;
 
     public function update(\App\Models\CustomerVessel $vessel, array $data): bool;
+
+    public function deleteById(int $id): bool;
 }

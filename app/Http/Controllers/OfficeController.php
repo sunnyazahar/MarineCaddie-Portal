@@ -191,6 +191,11 @@ class OfficeController extends Controller
             ->withFragment('operations-users');
     }
 
+    public function destroyOperationUser($officeId, $contactId)
+    {
+        return $this->destroyOfficeContactUser((int) $officeId, (int) $contactId, 'operations');
+    }
+
     public function createAccountUser($officeId)
     {
         $office = $this->officeRepo->findOrFail((int) $officeId);
@@ -256,6 +261,11 @@ class OfficeController extends Controller
             ->route('offices.edit', $office->id)
             ->with('success', 'Account user updated successfully.')
             ->withFragment('accounting-users');
+    }
+
+    public function destroyAccountUser($officeId, $contactId)
+    {
+        return $this->destroyOfficeContactUser((int) $officeId, (int) $contactId, 'account');
     }
 
     public function createSalesUser($officeId)
@@ -392,6 +402,11 @@ class OfficeController extends Controller
             ->withFragment('manager-users');
     }
 
+    public function destroyManagerUser($officeId, $contactId)
+    {
+        return $this->destroyOfficeContactUser((int) $officeId, (int) $contactId, 'manager');
+    }
+
     public function update(Request $request, $id)
     {
         $office = $this->officeRepo->findOrFail((int) $id);
@@ -475,6 +490,42 @@ class OfficeController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Error updating office: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $office = $this->officeRepo->findOrFail((int) $id);
+            $this->officeRepo->deleteWithAssignedUsers($office);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Office deleted successfully. Assigned users were also removed.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error deleting office.'], 500);
+        }
+    }
+
+    private function destroyOfficeContactUser(int $officeId, int $contactId, string $category)
+    {
+        try {
+            $office = $this->officeRepo->findOrFail($officeId);
+            $contact = $this->contacts->findByCategoryOrFail($contactId, $category);
+
+            if ((int) $contact->office_id !== (int) $office->id) {
+                return response()->json(['success' => false, 'message' => 'User not found for this office.'], 404);
+            }
+
+            $this->contacts->deleteById($contact->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error deleting user.'], 500);
         }
     }
 }

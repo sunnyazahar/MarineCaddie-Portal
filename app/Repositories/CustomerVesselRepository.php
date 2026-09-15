@@ -23,4 +23,9 @@ class CustomerVesselRepository extends BaseRepository implements CustomerVesselR
     {
         return parent::updateModel($vessel, $data);
     }
+
+    public function deleteById(int $id): bool
+    {
+        return parent::deleteById($id);
+    }
 }

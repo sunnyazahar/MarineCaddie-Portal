@@ -15,4 +15,6 @@ interface OfficeRepositoryInterface
     public function update(\App\Models\Office $office, array $data): bool;
 
     public function findOrFail(int $id): \App\Models\Office;
+
+    public function deleteWithAssignedUsers(\App\Models\Office $office): void;
 }

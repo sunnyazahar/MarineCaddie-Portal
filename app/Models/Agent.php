@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\LogsFieldChanges;
 use App\Traits\TracksUserAudit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -64,6 +65,14 @@ class Agent extends Model
         'scangun_enable_detailed_shipment' => 'boolean',
         'coc_signed_date' => 'date',
     ];
+
+    /**
+     * Active agents only. Soft-deleted rows are already excluded.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', 1);
+    }
 
     public function country()
     {

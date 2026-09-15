@@ -40,10 +40,10 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     public function assignmentOptions(): array
     {
         return [
-            'assignmentOffices' => Office::query()->orderBy('office_name')->get(['id', 'office_name']),
-            'assignmentHubs' => Hub::query()->orderBy('hub_name')->get(['id', 'hub_name', 'code']),
-            'assignmentAgents' => Agent::query()->orderBy('agent_name')->get(['id', 'agent_name', 'code']),
-            'assignmentSuppliers' => Supplier::query()->orderBy('supplier_name')->get(['id', 'supplier_name']),
+            'assignmentOffices' => Office::query()->active()->orderBy('office_name')->get(['id', 'office_name']),
+            'assignmentHubs' => Hub::query()->active()->orderBy('hub_name')->get(['id', 'hub_name', 'code']),
+            'assignmentAgents' => Agent::query()->active()->orderBy('agent_name')->get(['id', 'agent_name', 'code']),
+            'assignmentSuppliers' => Supplier::query()->active()->orderBy('supplier_name')->get(['id', 'supplier_name']),
         ];
     }
 
@@ -54,12 +54,13 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
 
     public function usersForChangeLog(): Collection
     {
-        return $this->query()->orderBy('name')->get(['id', 'name']);
+        return $this->query()->active()->orderBy('name')->get(['id', 'name']);
     }
 
     public function notificationRecipientsForAgent(int $agentId, ?int $excludeUserId = null): Collection
     {
         return $this->query()
+            ->active()
             ->where(function ($q) use ($agentId) {
                 $q->where('role', 'Admin')
                     ->orWhereHas('agents', fn ($aq) => $aq->where('agents.id', $agentId));

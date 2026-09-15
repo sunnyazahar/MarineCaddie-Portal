@@ -125,11 +125,11 @@ scripts/                  — Local QA helpers (not for production runtime)
 | Module | List URL | Notes |
 |---|---|---|
 | Agents | `/Agents` | CRUD + tabs (billing, SOP, contacts, etc.) |
-| Customers | `/customers` | CRUD + vessels, documents |
+| Customers | `/customers` | CRUD + vessels (soft-delete from customer edit → Vessels), documents |
 | Hubs | `/hubs` | CRUD via `hub.show` edit page |
 | Suppliers | `/Suppliers` | CRUD |
 | Other Companies | `/other-companies` | CRUD |
-| Offices | `/offices` | Create/edit (no list delete) |
+| Offices | `/offices` | CRUD; list delete soft-deletes office + assigned portal users |
 | Vessels | `/Vessels` | List/create only |
 | Users | `/users` | Admin-only, modal CRUD |
 
@@ -317,7 +317,7 @@ Shared UI lives under `resources/views/components/lists/`. **Full prop reference
 |------|-----------------|
 | `Agents/index` | Full stack: `base-styles`, `multiselect-assets`, `filter-toolbar`, `filter-bar`, `ajax-table` |
 | `Suppliers/index` | `base-styles`, `inline-toolbar`, `ajax-table`, `multiselect-assets` |
-| `Vessels/index`, `Other Companies/index` | Full filter-bar stack |
+| `Vessels/index`, `Other Companies/index` | Full filter-bar stack + `page-header` |
 | `Stock/stock-follow-up`, `Stock/pickup-work-list` | Full filter-bar stack + `page-header` |
 | `Shipment/pre-alert-reminders`, `Shipment/shipment-follow-up`, `Shipment/cost-follow-up` | `multiselect-assets` + `page-header` + shared pagination footer (+ filter-toolbar where used) |
 | `Shipment/shipments`, `Stock/stocks` | **`multiselect-assets` + `page-header` + shared pagination footer** — custom multi-row filter grid (no `base-styles`) |

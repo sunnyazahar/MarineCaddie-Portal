@@ -4,11 +4,13 @@ namespace App\Models;
 
 use App\Traits\LogsFieldChanges;
 use App\Traits\TracksUserAudit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contact extends Model
 {
-    use TracksUserAudit, LogsFieldChanges;
+    use SoftDeletes, TracksUserAudit, LogsFieldChanges;
 
     protected $fillable = [
         'name',
@@ -29,6 +31,18 @@ class Contact extends Model
         'created_by',
         'updated_by',
     ];
+
+    /**
+     * Activated office/portal contacts only (status truthy). Soft-deleted rows are already excluded.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where(function (Builder $statusQuery) {
+            $statusQuery->where('status', 1)
+                ->orWhere('status', true)
+                ->orWhere('status', '1');
+        });
+    }
 
     public function office()
     {

@@ -172,22 +172,25 @@ class SupplierController extends Controller
     private function supplierRules(): array
     {
         return [
-            'supplier_name'      => 'required|string|max:255',
-            'email'              => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
-            'phone_number'       => 'nullable|string|max:255',
-            'contact_person'     => 'required|string|max:255',
-            'country_id'         => 'nullable|exists:countries,id',
-            'office_country_id'  => 'nullable|exists:countries,id',
+            'supplier_name'     => 'required|string|max:255',
+            'email'             => ['required', 'string', 'max:255', $this->multipleEmailsValidator()],
+            'phone_number'      => 'required|string|max:255',
+            'contact_person'    => 'required|string|max:255',
+            'supplier_address'  => 'required|string',
+            'city'              => 'required|string|max:255',
+            'country_id'        => 'required|exists:countries,id',
+            'port_code'         => 'required|string|max:255',
+            'office_country_id' => 'nullable|exists:countries,id',
         ];
     }
 
     private function supplierPayload(Request $request): array
     {
+        // VAT / EORI / currency / UN/LOCODE removed from create/edit UI — omit so existing DB values stay on update.
         return $request->only([
             'supplier_name', 'phone_number', 'contact_person', 'email', 'remarks', 'special_considerations',
             'supplier_address', 'city', 'district_state', 'zip_code', 'country_id', 'port_code',
             'office_address', 'office_city', 'office_district_state', 'office_zip_code', 'office_country_id',
-            'vat_number', 'eori_number', 'currency', 'un_locode',
         ]);
     }
 

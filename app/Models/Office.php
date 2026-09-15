@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Traits\LogsFieldChanges;
 use App\Traits\TracksUserAudit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Office extends Model
 {
-    use HasFactory, TracksUserAudit, LogsFieldChanges;
+    use HasFactory, SoftDeletes, TracksUserAudit, LogsFieldChanges;
 
     protected $fillable = [
         'office_name', 'office_short_name', 'phone_number', 'email', 'eori_number',
@@ -21,6 +24,14 @@ class Office extends Model
         'created_by', 'updated_by',
     ];
 
+    /**
+     * Active offices only (status = 1). Soft-deleted rows are already excluded.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', 1);
+    }
+
     public function bankAccounts()
     {
         return $this->hasMany(OfficeBankAccount::class);
@@ -29,6 +40,11 @@ class Office extends Model
     public function contacts()
     {
         return $this->hasMany(Contact::class);
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_office_assignments');
     }
 
     public function country()

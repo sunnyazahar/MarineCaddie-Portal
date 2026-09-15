@@ -63,20 +63,20 @@ class AgentController extends Controller
         $validated = $request->validate([
             'agent_name'          => 'required|string|max:255',
             'company_id'          => 'nullable|string|max:255',
-            'code'                => 'nullable|string|max:255',
-            'code_description'    => 'nullable|string|max:255',
-            'phone'               => 'nullable|string|max:255',
+            'code'                => 'required|string|max:255',
+            'code_description'    => 'required|string|max:255',
+            'phone'               => 'required|string|max:255',
             'contact_person'      => 'required|string|max:255',
-            'email'               => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+            'email'               => ['required', 'string', 'max:255', $this->multipleEmailsValidator()],
             'remarks'             => 'nullable|string',
             'special_considerations' => 'nullable|string',
             'show_pre_alert'      => 'nullable|boolean',
-            'agent_address'       => 'nullable|string',
-            'city'                => 'nullable|string|max:255',
+            'agent_address'       => 'required|string',
+            'city'                => 'required|string|max:255',
             'district_state'      => 'nullable|string|max:255',
             'zip_code'            => 'nullable|string|max:255',
-            'country_id'          => 'nullable|exists:countries,id',
-            'port_code'           => 'nullable|string|max:255',
+            'country_id'          => 'required|exists:countries,id',
+            'port_code'           => 'required|string|max:255',
             'office_address'      => 'nullable|string',
             'office_city'         => 'nullable|string|max:255',
             'office_district_state' => 'nullable|string|max:255',
@@ -87,7 +87,7 @@ class AgentController extends Controller
             'agent_type'          => 'nullable|string|max:255',
         ]);
 
-        $validated['show_pre_alert'] = $request->has('show_pre_alert');
+        $validated['show_pre_alert'] = false;
 
         $this->agents->create($validated);
 
@@ -117,20 +117,20 @@ class AgentController extends Controller
             $validated = $request->validate([
                 'agent_name'          => 'required|string|max:255',
                 'company_id'          => 'nullable|string|max:255',
-                'code'                => 'nullable|string|max:255',
-                'code_description'    => 'nullable|string|max:255',
-                'phone'               => 'nullable|string|max:255',
+                'code'                => 'required|string|max:255',
+                'code_description'    => 'required|string|max:255',
+                'phone'               => 'required|string|max:255',
                 'contact_person'      => 'required|string|max:255',
-                'email'               => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+                'email'               => ['required', 'string', 'max:255', $this->multipleEmailsValidator()],
                 'remarks'             => 'nullable|string',
                 'special_considerations' => 'nullable|string',
                 'show_pre_alert'      => 'nullable|boolean',
-                'agent_address'       => 'nullable|string',
-                'city'                => 'nullable|string|max:255',
+                'agent_address'       => 'required|string',
+                'city'                => 'required|string|max:255',
                 'district_state'      => 'nullable|string|max:255',
                 'zip_code'            => 'nullable|string|max:255',
-                'country_id'          => 'nullable|exists:countries,id',
-                'port_code'           => 'nullable|string|max:255',
+                'country_id'          => 'required|exists:countries,id',
+                'port_code'           => 'required|string|max:255',
                 'office_address'      => 'nullable|string',
                 'office_city'         => 'nullable|string|max:255',
                 'office_district_state' => 'nullable|string|max:255',
@@ -189,7 +189,6 @@ class AgentController extends Controller
             throw $e;
         }
 
-        $validated['show_pre_alert']                      = $request->has('show_pre_alert');
         $validated['applies_to_rebate']                   = $request->has('applies_to_rebate');
         $validated['coc_signed']                          = $request->has('coc_signed');
         $validated['sop_implemented']                     = $request->has('sop_implemented');
@@ -197,47 +196,51 @@ class AgentController extends Controller
         $validated['scangun_enable_picture']              = $request->has('scangun_enable_picture');
         $validated['scangun_enable_detailed_shipment']    = $request->has('scangun_enable_detailed_shipment');
 
+        // Fields from removed Agent edit tabs — keep existing DB values.
+        unset(
+            $validated['show_pre_alert'],
+            $validated['eori_number'],
+            $validated['un_locode'],
+            $validated['agent_type'],
+            $validated['applies_to_rebate'],
+            $validated['coc_signed'],
+            $validated['sop_implemented'],
+            $validated['calculate_sell_rates'],
+            $validated['scangun_enable_picture'],
+            $validated['scangun_enable_detailed_shipment'],
+            $validated['invoicing_name'],
+            $validated['billing_address'],
+            $validated['billing_city'],
+            $validated['billing_district_state'],
+            $validated['billing_zip_code'],
+            $validated['billing_country_id'],
+            $validated['invoicing_emails'],
+            $validated['invoicing_emails_cc'],
+            $validated['vat_number'],
+            $validated['invoicing_frequency'],
+            $validated['rebate_percentage'],
+            $validated['outgoing_currency'],
+            $validated['outgoing_payment_terms'],
+            $validated['incoming_currency'],
+            $validated['incoming_payment_terms'],
+            $validated['coc_signed_date'],
+            $validated['responsible_manager'],
+            $validated['purchase_rate'],
+            $validated['sell_rate'],
+            $validated['profit'],
+            $validated['export_email_services'],
+            $validated['import_email_services'],
+            $validated['status_changed_emails'],
+            $validated['stock_item_changed_emails'],
+            $validated['quote_requests_emails'],
+            $validated['scangun_login'],
+            $validated['scangun_password'],
+            $validated['billing_exceptions'],
+            $validated['sop_documents'],
+            $validated['pricing_documents']
+        );
+
         $this->agents->update($agent, $validated);
-
-        // Billing exceptions — clear old, insert new
-        $agent->billingExceptions()->delete();
-        if ($request->has('billing_exceptions') && is_array($request->billing_exceptions)) {
-            $exceptions = $request->billing_exceptions;
-            if (isset($exceptions['office']) && is_array($exceptions['office'])) {
-                foreach ($exceptions['office'] as $i => $office) {
-                    if ($office || ($exceptions['invoice_to_agent'][$i] ?? null) || ($exceptions['currency'][$i] ?? null) || ($exceptions['payment_terms'][$i] ?? null)) {
-                        $agent->billingExceptions()->create([
-                            'office'           => $office,
-                            'invoice_to_agent' => $exceptions['invoice_to_agent'][$i] ?? null,
-                            'currency'         => $exceptions['currency'][$i] ?? null,
-                            'payment_terms'    => $exceptions['payment_terms'][$i] ?? null,
-                        ]);
-                    }
-                }
-            }
-        }
-
-        // SOP file uploads
-        if ($request->hasFile('sop_documents')) {
-            foreach ($request->file('sop_documents') as $file) {
-                $agent->documents()->create([
-                    'section'   => 'sop',
-                    'filename'  => $file->getClientOriginalName(),
-                    'file_path' => $file->store('agent_documents', 'private'),
-                ]);
-            }
-        }
-
-        // Pricing file uploads
-        if ($request->hasFile('pricing_documents')) {
-            foreach ($request->file('pricing_documents') as $file) {
-                $agent->documents()->create([
-                    'section'   => 'pricing',
-                    'filename'  => $file->getClientOriginalName(),
-                    'file_path' => $file->store('agent_documents', 'private'),
-                ]);
-            }
-        }
 
         return redirect()
             ->route('agents.edit', $id)
@@ -466,8 +469,9 @@ class AgentController extends Controller
     private function resolveActiveTab(Request $request): string
     {
         $allowed = [
-            'agent-details', 'billing-details', 'sop', 'pricing',
-            'agent-users', 'contacts', 'email-settings', 'scan-gun',
+            'agent-details',
+            'agent-users',
+            'contacts',
         ];
 
         $tab = (string) $request->input('active_tab', 'agent-details');

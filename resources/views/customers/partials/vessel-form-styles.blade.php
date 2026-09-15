@@ -184,10 +184,10 @@
 
     .edit-vessel-card {
         position: relative;
-        margin: 0;
+        margin: 0 16px;
         background: #fff;
-        border-top: 1px solid #d6e3ee;
-        border-bottom: 1px solid #d6e3ee;
+        border: 1px solid #d6e3ee;
+        border-radius: 14px;
         box-shadow: 0 8px 24px rgba(14, 29, 74, 0.04);
         overflow: visible;
     }
@@ -199,15 +199,19 @@
         right: 0;
         top: 0;
         height: 3px;
+        border-radius: 14px 14px 0 0;
         background: linear-gradient(90deg, #ff5a5f 0%, #e87722 35%, #00aeef 100%);
         pointer-events: none;
     }
 
-    .tab-content-custom {
-        display: none;
+    .edit-vessel-alert {
+        margin: 16px 18px 0;
+        padding: 10px 14px;
+        font-size: 13px;
+        border-radius: 10px;
     }
 
-    .tab-content-custom.active {
+    .vessel-form-body {
         display: block;
     }
 
@@ -223,6 +227,12 @@
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
+    .form-pillar-container.vessel-details-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        padding: 22px 18px 28px;
+    }
+
     .form-pillar {
         display: flex;
         flex-direction: column;
@@ -232,6 +242,107 @@
         border-radius: 14px;
         padding: 14px 14px 12px;
         box-shadow: 0 1px 2px rgba(14, 29, 74, 0.04), 0 8px 22px rgba(14, 29, 74, 0.04);
+        min-width: 0;
+        overflow: visible;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-pillar.vessel-pillar-card {
+        padding: 18px 18px 16px;
+        gap: 14px;
+        border-color: #cfe0ec;
+        box-shadow:
+            0 1px 2px rgba(14, 29, 74, 0.04),
+            0 12px 28px rgba(14, 29, 74, 0.06);
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .form-pillar.vessel-pillar-card:hover {
+        border-color: #94c9e3;
+        box-shadow:
+            0 2px 4px rgba(14, 29, 74, 0.05),
+            0 16px 32px rgba(0, 136, 199, 0.08);
+    }
+
+    .vessel-pillar-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 4px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e8eef4;
+    }
+
+    .vessel-pillar-head-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #00aeef 0%, #008080 100%);
+        color: #fff;
+        font-size: 16px;
+        flex-shrink: 0;
+        box-shadow: 0 6px 14px rgba(0, 128, 128, 0.22);
+    }
+
+    .vessel-pillar-head-icon.is-team {
+        background: linear-gradient(135deg, #008080 0%, #0e1d4a 100%);
+        box-shadow: 0 6px 14px rgba(0, 128, 128, 0.22);
+    }
+
+    .vessel-pillar-head-icon.is-ops {
+        background: linear-gradient(135deg, #e87722 0%, #0088c7 100%);
+        box-shadow: 0 6px 14px rgba(232, 119, 34, 0.22);
+    }
+
+    .vessel-pillar-head-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        color: #0e1d4a;
+        line-height: 1.2;
+    }
+
+    .vessel-pillar-head-sub {
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.35;
+    }
+
+    .vessel-soft-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 4px;
+        padding: 14px;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #f8fbfd 0%, #f1f7fb 100%);
+        border: 1px solid #dce8f1;
+    }
+
+    .vessel-soft-panel-title {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #0e1d4a;
+    }
+
+    #vessel-details .input-row.vessel-details-input-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        grid-template-columns: none;
+    }
+
+    #vessel-details .input-row.vessel-details-input-row > .form-group-custom {
+        flex: 1;
         min-width: 0;
     }
 
@@ -277,8 +388,11 @@
     #vesselForm .form-textarea-custom {
         padding: 8px 10px;
         min-height: 72px;
-        resize: vertical;
+        height: auto;
+        overflow-y: hidden;
+        resize: none;
         line-height: 1.4;
+        box-sizing: border-box;
     }
 
     #vesselForm .form-control-custom:focus,
@@ -309,6 +423,43 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px 12px;
+    }
+
+    .vessel-flag-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .vessel-flag-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid #d6e3ee;
+        background: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        cursor: pointer;
+        transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+        user-select: none;
+    }
+
+    .vessel-flag-chip input {
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        accent-color: #008080;
+        flex-shrink: 0;
+    }
+
+    .vessel-flag-chip:has(input:checked) {
+        border-color: #94c9e3;
+        background: #e8f6fc;
+        color: #0e1d4a;
     }
 
     .vessel-checkbox-item {
@@ -475,9 +626,22 @@
 
     @media (max-width: 991.98px) {
         .form-pillar-container,
-        .form-pillar-container--4 {
+        .form-pillar-container--4,
+        .form-pillar-container.vessel-details-grid {
+            grid-template-columns: 1fr !important;
+            padding: 16px 12px 20px !important;
+        }
+
+        .edit-vessel-card {
+            margin: 0 12px;
+        }
+
+        #vessel-details .input-row.vessel-details-input-row {
+            flex-direction: column;
+        }
+
+        .vessel-checkbox-stack {
             grid-template-columns: 1fr;
-            padding: 12px;
         }
 
         body.edit-vessel-page .vessel-edit-footer {

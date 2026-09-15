@@ -231,11 +231,22 @@
             border: 1px solid transparent;
             transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
         }
+        .office-action-icons {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
         .office-action-btn:hover {
             color: #008080;
             background: #e6f5f5;
             border-color: #b7e0e0;
             text-decoration: none;
+        }
+        .office-action-btn.delete-office:hover {
+            color: #b91c1c;
+            background: #fef2f2;
+            border-color: #fecaca;
         }
 
         #offices-list-footer.pagination-sticky-footer {
@@ -307,7 +318,7 @@
                             <th>Phone number</th>
                             <th>Email</th>
                             <th>Status</th>
-                            <th style="width: 52px;"></th>
+                            <th style="width: 84px;"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -348,9 +359,20 @@
                                     @endif
                                 </td>
                                 <td style="text-align: right;">
-                                    <a href="{{ route('offices.edit', $office->id) }}" class="office-action-btn" title="Edit office">
-                                        <i class="ti-pencil"></i>
-                                    </a>
+                                    <div class="office-action-icons">
+                                        <a href="{{ route('offices.edit', $office->id) }}" class="office-action-btn" title="Edit office">
+                                            <i class="ti-pencil"></i>
+                                        </a>
+                                        @if ($canWriteAdministration)
+                                            <a href="javascript:void(0)"
+                                               class="office-action-btn delete-office"
+                                               data-id="{{ $office->id }}"
+                                               data-name="{{ $office->office_name }}"
+                                               title="Delete office">
+                                                <i class="ti-trash"></i>
+                                            </a>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -425,6 +447,58 @@
             });
 
             updateOfficesMeta(table);
+
+            $(document).on('click', '.delete-office', function () {
+                var id = $(this).data('id');
+                var name = $(this).data('name') || 'this office';
+                var $row = $(this).closest('tr');
+
+                swal({
+                    title: 'Delete office?',
+                    text: 'Are you sure you want to delete "' + name + '"? Deleting this office will also delete all users assigned to it.',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete',
+                    cancelButtonText: 'Cancel',
+                    closeOnConfirm: false,
+                    closeOnCancel: true,
+                    showLoaderOnConfirm: true
+                }, function (isConfirm) {
+                    if (!isConfirm) {
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '{{ url('/offices') }}/' + id,
+                        type: 'DELETE',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                swal({
+                                    title: 'Deleted',
+                                    text: response.message || 'Office deleted successfully.',
+                                    type: 'success',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                table.row($row).remove().draw(false);
+                                totalOffices = Math.max(0, totalOffices - 1);
+                                updateOfficesMeta(table);
+                            } else {
+                                swal('Error', response.message || 'Error deleting office.', 'error');
+                            }
+                        },
+                        error: function (xhr) {
+                            var message = (xhr.responseJSON && xhr.responseJSON.message)
+                                ? xhr.responseJSON.message
+                                : 'Error deleting office.';
+                            swal('Error', message, 'error');
+                        }
+                    });
+                });
+            });
         });
     </script>
 @endsection

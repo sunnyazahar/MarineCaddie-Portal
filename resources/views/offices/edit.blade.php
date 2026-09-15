@@ -301,11 +301,11 @@
                                                 <th style="width: 30%;">Email</th>
                                                 <th style="width: 15%;">Phone number</th>
                                                 <th style="width: 10%;">Activated</th>
-                                                <th style="width: 5%;"></th>
+                                                <th style="width: 8%;"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($office->contacts->where('category', 'operations') as $contact)
+                                            @foreach($office->contacts->where('category', 'operations')->filter(fn ($contact) => (bool) $contact->status) as $contact)
                                                 <tr>
                                                     <td><a href="{{ route('offices.operations_users.edit', ['office' => $office->id, 'contact' => $contact->id]) }}"
                                                             class="ops-name-link">{{ $contact->name }}</a></td>
@@ -317,9 +317,22 @@
                                                             <i class="fa fa-check activated-icon"></i>
                                                         @endif
                                                     </td>
-                                                    <td style="text-align: right;"><a
-                                                            href="{{ route('offices.operations_users.edit', ['office' => $office->id, 'contact' => $contact->id]) }}"><i
-                                                                class="ti-pencil ops-action-icon"></i></a></td>
+                                                    <td style="text-align: right;">
+                                                        <div class="ops-action-icons">
+                                                            <a href="{{ route('offices.operations_users.edit', ['office' => $office->id, 'contact' => $contact->id]) }}" title="Edit user">
+                                                                <i class="ti-pencil ops-action-icon"></i>
+                                                            </a>
+                                                            @if ($canWriteAdministration)
+                                                                <button type="button"
+                                                                    class="ops-action-delete delete-office-user"
+                                                                    data-url="{{ route('offices.operations_users.destroy', ['office' => $office->id, 'contact' => $contact->id]) }}"
+                                                                    data-name="{{ $contact->name }}"
+                                                                    title="Delete user">
+                                                                    <i class="ti-trash ops-action-icon"></i>
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -340,11 +353,11 @@
                                                 <th style="width: 30%;">Email</th>
                                                 <th style="width: 15%;">Phone number</th>
                                                 <th style="width: 10%;">Activated</th>
-                                                <th style="width: 5%;"></th>
+                                                <th style="width: 8%;"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($office->contacts->where('category', 'manager') as $contact)
+                                            @foreach($office->contacts->where('category', 'manager')->filter(fn ($contact) => (bool) $contact->status) as $contact)
                                                 <tr>
                                                     <td><a href="{{ route('offices.manager_users.edit', ['office' => $office->id, 'contact' => $contact->id]) }}"
                                                             class="ops-name-link">{{ $contact->name }}</a></td>
@@ -356,15 +369,28 @@
                                                             <i class="fa fa-check activated-icon"></i>
                                                         @endif
                                                     </td>
-                                                    <td style="text-align: right;"><a
-                                                            href="{{ route('offices.manager_users.edit', ['office' => $office->id, 'contact' => $contact->id]) }}"><i
-                                                                class="ti-pencil ops-action-icon"></i></a></td>
+                                                    <td style="text-align: right;">
+                                                        <div class="ops-action-icons">
+                                                            <a href="{{ route('offices.manager_users.edit', ['office' => $office->id, 'contact' => $contact->id]) }}" title="Edit user">
+                                                                <i class="ti-pencil ops-action-icon"></i>
+                                                            </a>
+                                                            @if ($canWriteAdministration)
+                                                                <button type="button"
+                                                                    class="ops-action-delete delete-office-user"
+                                                                    data-url="{{ route('offices.manager_users.destroy', ['office' => $office->id, 'contact' => $contact->id]) }}"
+                                                                    data-name="{{ $contact->name }}"
+                                                                    title="Delete user">
+                                                                    <i class="ti-trash ops-action-icon"></i>
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
                                     </table>
                                     </div>
-                                    @if($office->contacts->where('category', 'manager')->isEmpty())
+                                    @if($office->contacts->where('category', 'manager')->filter(fn ($contact) => (bool) $contact->status)->isEmpty())
                                         <div class="no-data-wrapper">
                                             <i class="fa fa-info-circle no-data-icon"></i>
                                             <div class="no-data-text">No data to show</div>
@@ -385,11 +411,11 @@
                                                 <th style="width: 30%;">Email</th>
                                                 <th style="width: 15%;">Phone number</th>
                                                 <th style="width: 10%;">Activated</th>
-                                                <th style="width: 5%;"></th>
+                                                <th style="width: 8%;"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($office->contacts->where('category', 'account') as $contact)
+                                            @foreach($office->contacts->where('category', 'account')->filter(fn ($contact) => (bool) $contact->status) as $contact)
                                                 <tr>
                                                     <td><a href="{{ route('offices.account_users.edit', ['office' => $office->id, 'contact' => $contact->id]) }}"
                                                             class="ops-name-link">{{ $contact->name }}</a></td>
@@ -401,15 +427,28 @@
                                                             <i class="fa fa-check activated-icon"></i>
                                                         @endif
                                                     </td>
-                                                    <td style="text-align: right;"><a
-                                                            href="{{ route('offices.account_users.edit', ['office' => $office->id, 'contact' => $contact->id]) }}"><i
-                                                                class="ti-pencil ops-action-icon"></i></a></td>
+                                                    <td style="text-align: right;">
+                                                        <div class="ops-action-icons">
+                                                            <a href="{{ route('offices.account_users.edit', ['office' => $office->id, 'contact' => $contact->id]) }}" title="Edit user">
+                                                                <i class="ti-pencil ops-action-icon"></i>
+                                                            </a>
+                                                            @if ($canWriteAdministration)
+                                                                <button type="button"
+                                                                    class="ops-action-delete delete-office-user"
+                                                                    data-url="{{ route('offices.account_users.destroy', ['office' => $office->id, 'contact' => $contact->id]) }}"
+                                                                    data-name="{{ $contact->name }}"
+                                                                    title="Delete user">
+                                                                    <i class="ti-trash ops-action-icon"></i>
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
                                     </table>
                                     </div>
-                                    @if($office->contacts->where('category', 'account')->isEmpty())
+                                    @if($office->contacts->where('category', 'account')->filter(fn ($contact) => (bool) $contact->status)->isEmpty())
                                         <div class="no-data-wrapper">
                                             <i class="fa fa-info-circle no-data-icon"></i>
                                             <div class="no-data-text">No data to show</div>
@@ -550,6 +589,56 @@
 
             $(document).on('select2:close', '.office-pillar select', function () {
                 $(this).closest('.office-pillar').css('z-index', '');
+            });
+
+            $(document).on('click', '.delete-office-user', function () {
+                var url = $(this).data('url');
+                var name = $(this).data('name') || 'this user';
+                var $row = $(this).closest('tr');
+
+                swal({
+                    title: 'Delete user?',
+                    text: 'Are you sure you want to delete "' + name + '"?',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete',
+                    cancelButtonText: 'Cancel',
+                    closeOnConfirm: false,
+                    closeOnCancel: true,
+                    showLoaderOnConfirm: true
+                }, function (isConfirm) {
+                    if (!isConfirm) {
+                        return;
+                    }
+
+                    $.ajax({
+                        url: url,
+                        type: 'DELETE',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                swal({
+                                    title: 'Deleted',
+                                    text: response.message || 'User deleted successfully.',
+                                    type: 'success',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                $row.remove();
+                            } else {
+                                swal('Error', response.message || 'Error deleting user.', 'error');
+                            }
+                        },
+                        error: function (xhr) {
+                            var message = (xhr.responseJSON && xhr.responseJSON.message)
+                                ? xhr.responseJSON.message
+                                : 'Error deleting user.';
+                            swal('Error', message, 'error');
+                        }
+                    });
+                });
             });
 
         });

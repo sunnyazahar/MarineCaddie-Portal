@@ -53,16 +53,19 @@ Route::get('/offices', [App\Http\Controllers\OfficeController::class, 'index'])-
 
 Route::get('/offices/edit/{id}', [App\Http\Controllers\OfficeController::class, 'edit'])->name('offices.edit');
 Route::put('/offices/update/{id}', [App\Http\Controllers\OfficeController::class, 'update'])->name('offices.update');
+Route::delete('/offices/{id}', [App\Http\Controllers\OfficeController::class, 'destroy'])->name('offices.destroy');
 
 Route::get('/offices/{office}/operations_users/create', [App\Http\Controllers\OfficeController::class, 'createOperationUser'])->name('offices.operations_users.create');
 Route::post('/offices/{office}/operations_users', [App\Http\Controllers\OfficeController::class, 'storeOperationUser'])->name('offices.operations_users.store');
 Route::get('/offices/{office}/operations_users/{contact}/edit', [App\Http\Controllers\OfficeController::class, 'editOperationUser'])->name('offices.operations_users.edit');
 Route::put('/offices/{office}/operations_users/{contact}', [App\Http\Controllers\OfficeController::class, 'updateOperationUser'])->name('offices.operations_users.update');
+Route::delete('/offices/{office}/operations_users/{contact}', [App\Http\Controllers\OfficeController::class, 'destroyOperationUser'])->name('offices.operations_users.destroy');
 
 Route::get('/offices/{office}/account_users/create', [App\Http\Controllers\OfficeController::class, 'createAccountUser'])->name('offices.account_users.create');
 Route::post('/offices/{office}/account_users', [App\Http\Controllers\OfficeController::class, 'storeAccountUser'])->name('offices.account_users.store');
 Route::get('/offices/{office}/account_users/{contact}/edit', [App\Http\Controllers\OfficeController::class, 'editAccountUser'])->name('offices.account_users.edit');
 Route::put('/offices/{office}/account_users/{contact}', [App\Http\Controllers\OfficeController::class, 'updateAccountUser'])->name('offices.account_users.update');
+Route::delete('/offices/{office}/account_users/{contact}', [App\Http\Controllers\OfficeController::class, 'destroyAccountUser'])->name('offices.account_users.destroy');
 
 Route::get('/offices/{office}/sales_users/create', [App\Http\Controllers\OfficeController::class, 'createSalesUser'])->name('offices.sales_users.create');
 Route::post('/offices/{office}/sales_users', [App\Http\Controllers\OfficeController::class, 'storeSalesUser'])->name('offices.sales_users.store');
@@ -73,6 +76,7 @@ Route::get('/offices/{office}/manager_users/create', [App\Http\Controllers\Offic
 Route::post('/offices/{office}/manager_users', [App\Http\Controllers\OfficeController::class, 'storeManagerUser'])->name('offices.manager_users.store');
 Route::get('/offices/{office}/manager_users/{contact}/edit', [App\Http\Controllers\OfficeController::class, 'editManagerUser'])->name('offices.manager_users.edit');
 Route::put('/offices/{office}/manager_users/{contact}', [App\Http\Controllers\OfficeController::class, 'updateManagerUser'])->name('offices.manager_users.update');
+Route::delete('/offices/{office}/manager_users/{contact}', [App\Http\Controllers\OfficeController::class, 'destroyManagerUser'])->name('offices.manager_users.destroy');
 
 Route::get('/customers', [App\Http\Controllers\CustomerController::class, 'index'])->name('customers.index');
 
@@ -87,6 +91,7 @@ Route::get('/customers/{customer}/vessels/create', [App\Http\Controllers\Custome
 Route::post('/customers/{id}/vessels', [App\Http\Controllers\CustomerController::class, 'storeVessel'])->name('customers.vessels.store');
 Route::get('/customers/vessels/{vessel}/edit', [App\Http\Controllers\CustomerController::class, 'editVessel'])->name('customers.vessels.edit');
 Route::put('/customers/vessels/{vessel}', [App\Http\Controllers\CustomerController::class, 'updateVessel'])->name('customers.vessels.update');
+Route::delete('/customers/vessels/{vessel}', [App\Http\Controllers\CustomerController::class, 'destroyVessel'])->name('customers.vessels.destroy');
 
 Route::post('/customers/{id}/documents', [App\Http\Controllers\CustomerController::class, 'uploadDocument'])->name('customers.documents.upload');
 Route::get('/customers/{customerId}/documents/{docId}', [App\Http\Controllers\CustomerController::class, 'showDocument'])->name('customers.documents.show');
@@ -176,8 +181,8 @@ Route::get('/create-shipment', function (\Illuminate\Http\Request $request) {
         ->selectableForShipment()
         ->latest()
         ->get();
-    $hubs = \App\Models\Hub::orderBy('hub_name')->get();
-    $agents = \App\Models\Agent::with('country')->orderBy('agent_name')->get();
+    $hubs = \App\Models\Hub::query()->active()->orderBy('hub_name')->get();
+    $agents = \App\Models\Agent::query()->active()->with('country')->orderBy('agent_name')->get();
 
     $preselectedCrrIds = collect(explode(',', (string) $request->query('crr_ids', '')))
         ->map(fn ($id) => (int) trim((string) $id))
@@ -264,6 +269,7 @@ Route::get('/api/mail-contacts', function (\Illuminate\Http\Request $request) {
     $q = trim((string) $request->query('q', ''));
 
     $contacts = \App\Models\Contact::query()
+        ->active()
         ->whereNotNull('email')
         ->where('email', '!=', '')
         ->when($q !== '', function ($query) use ($q) {
@@ -400,9 +406,11 @@ Route::get('/api/shipments', [App\Http\Controllers\ShipmentController::class, 's
 Route::get('/api/parties', function (\Illuminate\Http\Request $request) {
     $q = $request->query('q');
 
-    $hubs = \App\Models\Hub::orderBy('hub_name')
+    $hubs = \App\Models\Hub::query()->active()->orderBy('hub_name')
         ->when($q, function ($qbuilder) use ($q) {
-            $qbuilder->where('hub_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            $qbuilder->where(function ($sub) use ($q) {
+                $sub->where('hub_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            });
         })->get()->map(function ($h) {
             return [
                 'id' => 'hub:'.$h->id,
@@ -414,9 +422,11 @@ Route::get('/api/parties', function (\Illuminate\Http\Request $request) {
             ];
         });
 
-    $agents = \App\Models\Agent::orderBy('agent_name')
+    $agents = \App\Models\Agent::query()->active()->orderBy('agent_name')
         ->when($q, function ($qbuilder) use ($q) {
-            $qbuilder->where('agent_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            $qbuilder->where(function ($sub) use ($q) {
+                $sub->where('agent_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            });
         })->get()->map(function ($a) {
             return [
                 'id' => 'agent:'.$a->id,
@@ -427,7 +437,7 @@ Route::get('/api/parties', function (\Illuminate\Http\Request $request) {
             ];
         });
 
-    $customers = \App\Models\Customer::with(['primaryAddress.country'])->orderBy('customer_name')
+    $customers = \App\Models\Customer::query()->active()->with(['primaryAddress.country'])->orderBy('customer_name')
         ->when($q, function ($qbuilder) use ($q) {
             $qbuilder->where('customer_name', 'like', "%{$q}%");
         })->get()->map(function ($c) {
@@ -624,32 +634,40 @@ Route::get('/api/consignees', function (\Illuminate\Http\Request $request) {
         return response()->json($selectedConsignee);
     }
 
-    $hubs = \App\Models\Hub::orderBy('hub_name')
+    $hubs = \App\Models\Hub::query()->active()->orderBy('hub_name')
         ->when($q, function ($qbuilder) use ($q) {
-            $qbuilder->where('hub_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            $qbuilder->where(function ($sub) use ($q) {
+                $sub->where('hub_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            });
         })->get()->map($mapHub);
 
-    $agents = \App\Models\Agent::orderBy('agent_name')
+    $agents = \App\Models\Agent::query()->active()->orderBy('agent_name')
         ->when($q, function ($qbuilder) use ($q) {
-            $qbuilder->where('agent_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            $qbuilder->where(function ($sub) use ($q) {
+                $sub->where('agent_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            });
         })->get()->map($mapAgent);
 
-    $offices = \App\Models\Office::with('country')->orderBy('office_name')
+    $offices = \App\Models\Office::query()->active()->with('country')->orderBy('office_name')
         ->when($q, function ($qbuilder) use ($q) {
-            $qbuilder->where('office_name', 'like', "%{$q}%")->orWhere('office_short_name', 'like', "%{$q}%");
+            $qbuilder->where(function ($sub) use ($q) {
+                $sub->where('office_name', 'like', "%{$q}%")->orWhere('office_short_name', 'like', "%{$q}%");
+            });
         })->get()->map($mapOffice);
 
-    $otherCompanies = \App\Models\OtherCompany::with('country')->orderBy('company_name')
+    $otherCompanies = \App\Models\OtherCompany::query()->active()->with('country')->orderBy('company_name')
         ->when($q, function ($qbuilder) use ($q) {
-            $qbuilder->where('company_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            $qbuilder->where(function ($sub) use ($q) {
+                $sub->where('company_name', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%");
+            });
         })->get()->map($mapOtherCompany);
 
-    $suppliers = \App\Models\Supplier::with('country')->orderBy('supplier_name')
+    $suppliers = \App\Models\Supplier::query()->active()->with('country')->orderBy('supplier_name')
         ->when($q, function ($qbuilder) use ($q) {
             $qbuilder->where('supplier_name', 'like', "%{$q}%");
         })->get()->map($mapSupplier);
 
-    $customers = \App\Models\Customer::with(['primaryAddress.country'])->orderBy('customer_name')
+    $customers = \App\Models\Customer::query()->active()->with(['primaryAddress.country'])->orderBy('customer_name')
         ->when($q, function ($qbuilder) use ($q) {
             $qbuilder->where('customer_name', 'like', "%{$q}%");
         })->get()->map($mapCustomer);
@@ -719,7 +737,9 @@ Route::get('/api/account-managers', function (\Illuminate\Http\Request $request)
     }
 
     $contacts = \App\Models\Contact::with('office')
+        ->active()
         ->whereNotNull('office_id')
+        ->whereHas('office', fn ($query) => $query->active())
         ->when($allowedCategories !== [], function ($query) use ($allowedCategories) {
             $query->whereIn('category', $allowedCategories);
         })
@@ -787,10 +807,10 @@ Route::get('/stocks/create-crr', function () {
         ->get();
     $countries = \App\Support\CountryCache::active();
     $currencies = \App\Support\CountryCache::currencies();
-    // Same hub/agent universe as stock edit — do not filter by hide_in_portal / is_active.
-    $hubs = \App\Models\Hub::orderBy('hub_name')->get();
-    $agents = \App\Models\Agent::with('country')->orderBy('agent_name')->get();
-    $suppliers = \App\Models\Supplier::with('country')->orderBy('supplier_name')->get();
+    // Active hubs/agents/suppliers only for Select2 option lists.
+    $hubs = \App\Models\Hub::query()->active()->orderBy('hub_name')->get();
+    $agents = \App\Models\Agent::query()->active()->with('country')->orderBy('agent_name')->get();
+    $suppliers = \App\Models\Supplier::query()->active()->with('country')->orderBy('supplier_name')->get();
     return view('Stock.Create-CRR', compact('vessels', 'countries', 'currencies', 'hubs', 'agents', 'suppliers'));
 })->name('create-crr');
 
@@ -839,12 +859,14 @@ Route::get('/hubs/{hub}/contacts/create', [App\Http\Controllers\HubController::c
 Route::post('/hubs/{hub}/contacts', [App\Http\Controllers\HubController::class, 'storeContact'])->name('hub.contacts.store');
 Route::get('/hubs/{hub}/contacts/{contact}/edit', [App\Http\Controllers\HubController::class, 'editContact'])->name('hub.contacts.edit');
 Route::put('/hubs/{hub}/contacts/{contact}', [App\Http\Controllers\HubController::class, 'updateContact'])->name('hub.contacts.update');
+Route::delete('/hubs/{hub}/contacts/{contact}', [App\Http\Controllers\HubController::class, 'destroyContact'])->name('hub.contacts.destroy');
 
 // Hub User Routes
 Route::get('/hubs/{hub}/users/create', [App\Http\Controllers\HubController::class, 'createUser'])->name('hub.users.create');
 Route::post('/hubs/{hub}/users', [App\Http\Controllers\HubController::class, 'storeUser'])->name('hub.users.store');
 Route::get('/hubs/{hub}/users/{user}/edit', [App\Http\Controllers\HubController::class, 'editUser'])->name('hub.users.edit');
 Route::put('/hubs/{hub}/users/{user}', [App\Http\Controllers\HubController::class, 'updateUser'])->name('hub.users.update');
+Route::delete('/hubs/{hub}/users/{user}', [App\Http\Controllers\HubController::class, 'destroyUser'])->name('hub.users.destroy');
 
 // Supplier Contact Routes
 Route::get('/suppliers/{supplier}/contacts/create', [App\Http\Controllers\SupplierController::class, 'createContact'])->name('suppliers.contacts.create');

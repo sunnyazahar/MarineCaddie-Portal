@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Traits\LogsFieldChanges;
 use App\Traits\TracksUserAudit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerVessel extends Model
 {
-    use TracksUserAudit, LogsFieldChanges;
+    use SoftDeletes, TracksUserAudit, LogsFieldChanges;
 
     protected $fillable = [
         'customer_id',

@@ -83,9 +83,9 @@
                 <div class="col-md-6 pr-1">
                     <div class="form-group mb-2">
                         <label class="mb-0" style="font-size: 11px;">Shipment date</label>
-                        <div class="input-group mb-0" style="height: 30px;">
+                        <div class="input-group mb-0">
                             <input type="text" name="preferred_shipment_date" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('preferred_shipment_date', $shipment->preferred_shipment_date?->format('d.m.Y')) }}">
-                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                            <span class="input-group-addon">
                                 <i class="ti-calendar" style="font-size: 12px;"></i>
                             </span>
                         </div>
@@ -94,9 +94,9 @@
                 <div class="col-md-6 pl-1">
                     <div class="form-group mb-2">
                         <label class="mb-0" style="font-size: 11px;">Deadline arrival</label>
-                        <div class="input-group mb-0" style="height: 30px;">
+                        <div class="input-group mb-0">
                             <input type="text" name="deadline_arrival" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('deadline_arrival', $shipment->deadline_arrival?->format('d.m.Y')) }}">
-                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                            <span class="input-group-addon">
                                 <i class="ti-calendar" style="font-size: 12px;"></i>
                             </span>
                         </div>
@@ -107,9 +107,9 @@
                 <div class="col-md-6 pr-1">
                     <div class="form-group mb-2">
                         <label class="mb-0" style="font-size: 11px;">Vessel ETA</label>
-                        <div class="input-group mb-0" style="height: 30px;">
+                        <div class="input-group mb-0">
                             <input type="text" name="vessel_eta" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('vessel_eta', $shipment->vessel_eta?->format('d.m.Y')) }}">
-                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                            <span class="input-group-addon">
                                 <i class="ti-calendar" style="font-size: 12px;"></i>
                             </span>
                         </div>
@@ -118,9 +118,9 @@
                 <div class="col-md-6 pl-1">
                     <div class="form-group mb-2">
                         <label class="mb-0" style="font-size: 11px;">Vessel ETD</label>
-                        <div class="input-group mb-0" style="height: 30px;">
+                        <div class="input-group mb-0">
                             <input type="text" name="vessel_etd" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('vessel_etd', $shipment->vessel_etd?->format('d.m.Y')) }}">
-                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                            <span class="input-group-addon">
                                 <i class="ti-calendar" style="font-size: 12px;"></i>
                             </span>
                         </div>
@@ -131,9 +131,9 @@
                 <div class="col-md-6 pr-1">
                     <div class="form-group mb-2">
                         <label class="mb-0" style="font-size: 11px;">Pre-alert date</label>
-                        <div class="input-group mb-0" style="height: 30px;">
+                        <div class="input-group mb-0">
                             <input type="text" name="pre_alert_reminder" class="form-control filter-input datepicker" placeholder="DD.MM.YYYY" value="{{ old('pre_alert_reminder', $shipment->pre_alert_reminder?->format('d.m.Y')) }}">
-                            <span class="input-group-addon" style="background: transparent; border: 1px solid #ced4da; border-left: none; color: #008080; height: 30px; display: flex; align-items: center; padding: 0 8px;">
+                            <span class="input-group-addon">
                                 <i class="ti-calendar" style="font-size: 12px;"></i>
                             </span>
                         </div>

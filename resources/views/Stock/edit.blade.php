@@ -2972,9 +2972,9 @@
                                                                 @empty
                                                                     <span class="text-muted" style="font-size: 11px; font-weight: 500;">—</span>
                                                                 @endforelse
-                                                    </div>
+                                            </div>
                                                             <i class="ti-pencil-alt" style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
-                                                </div>
+                                            </div>
                                                         <div class="header-inline-select flags-select-wrapper" style="display: none; min-width: 180px;">
                                                             <select class="select2-flags-inline" name="header_flags[]">
                                                                 @foreach (\App\Models\Crr::availableFlags() as $flagOption)
@@ -2990,7 +2990,7 @@
                                                         <div class="header-inline-display status-display">
                                                             <span class="status-badge stock-status-badge {{ \App\Models\Crr::statusBadgeClass($crr->status) }}">{{ \App\Models\Crr::getStatusLabels()[$crr->status] ?? 'Unknown' }}</span>
                                                             <i class="ti-pencil-alt" style="color: #64748b; font-size: 15px; cursor: pointer;"></i>
-                                                        </div>
+                                            </div>
                                                         <div class="header-inline-select status-select-wrapper" style="display: none; min-width: 150px;">
                                                         <select class="select2-status-inline" data-status-editor="header">
                                                             @foreach(\App\Models\Crr::getStatusLabels() as $value => $label)
@@ -3174,19 +3174,19 @@
                                                                 <div id="actual-delivery-validation-error" style="display:none; margin-top: 6px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; font-size: 12px; position: relative; padding-right: 32px;">
                                                                     <span id="actual-delivery-validation-error-text"></span>
                                                                     <button type="button" id="actual-delivery-validation-error-close" title="Close" aria-label="Close" style="position: absolute; top: 6px; right: 8px; border: none; background: transparent; color: #b91c1c; font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 4px;">&times;</button>
-                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    </div>
 
-                                                    <div class="field-group">
-                                                        <label class="field-label">Deadline warehouse</label>
-                                                        <div class="icon-input-wrapper">
-                                                            <input type="text" class="field-input datepicker"
-                                                                name="deadline_warehouse"
-                                                                value="{{ $crr->deadline_warehouse }}"
-                                                                placeholder="YYYY-MM-DD">
-                                                            <i class="fa fa-calendar"></i>
+                                                            <div class="field-group">
+                                                                <label class="field-label">Deadline warehouse</label>
+                                                                <div class="icon-input-wrapper">
+                                                                    <input type="text" class="field-input datepicker"
+                                                                        name="deadline_warehouse"
+                                                                        value="{{ $crr->deadline_warehouse }}"
+                                                                        placeholder="YYYY-MM-DD">
+                                                                    <i class="fa fa-calendar"></i>
                                                         </div>
                                                     </div>
 
@@ -3277,13 +3277,13 @@
                                                     <div class="crr-pillar">
                                                     <div class="crr-pillar__title">Customs Details</div>
                                                     <div class="field-group">
-                                                        <div style="display: flex; gap: 8px; align-items: center;">
-                                                            <input type="checkbox" id="bonded-goods-check"
-                                                                name="is_bonded_goods" {{ $crr->is_bonded_goods ? 'checked' : '' }}>
-                                                            <label for="bonded-goods-check" class="field-label mb-0"
+                                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                                    <input type="checkbox" id="bonded-goods-check"
+                                                                        name="is_bonded_goods" {{ $crr->is_bonded_goods ? 'checked' : '' }}>
+                                                                    <label for="bonded-goods-check" class="field-label mb-0"
                                                                 style="color: #475569;">Bonded cargo</label>
-                                                        </div>
-                                                    </div>
+                                                                </div>
+                                                            </div>
 
                                                     <div class="row">
                                                         <div class="col-sm-6">
@@ -3354,16 +3354,16 @@
                                                         </div>
                                                     </div>
 
-                                                    <div class="field-group">
-                                                        <label class="field-label">Customs value USD</label>
-                                                        <div id="edit_customs_value_usd_display"
-                                                            style="font-size: 12px; font-weight: 600; color: #1e293b; padding: 4px 0;">
+                                                            <div class="field-group">
+                                                                <label class="field-label">Customs value USD</label>
+                                                                <div id="edit_customs_value_usd_display"
+                                                                    style="font-size: 12px; font-weight: 600; color: #1e293b; padding: 4px 0;">
                                                             {{ number_format((float) ($crr->customs_value_usd ?? 0), 2) }}
-                                                        </div>
-                                                        <input type="hidden" name="customs_value_usd"
-                                                            id="edit_customs_value_usd_hidden"
-                                                            value="{{ $crr->customs_value_usd }}">
-                                                    </div>
+                                                                </div>
+                                                                <input type="hidden" name="customs_value_usd"
+                                                                    id="edit_customs_value_usd_hidden"
+                                                                    value="{{ $crr->customs_value_usd }}">
+                                                            </div>
                                                     </div>{{-- .crr-pillar --}}
                                                 </div>
                                             </div>
@@ -3645,7 +3645,7 @@
                                     <div class="edit-footer">
                                         <button type="submit" class="btn-save-custom" form="crrEditForm">Save changes</button>
                                         <a href="{{ route('stocks') }}" class="btn-cancel-custom">Cancel</a>
-                                    </div>
+                                        </div>
                                 </form>
                             </div> <!-- stock-main-content -->
 
@@ -3654,7 +3654,7 @@
                                 <div class="panel-card stock-summary-sidebar-card" id="crr-overview-panel">
                                     <div class="panel-title">
                                         <span class="panel-title__label">Stock overview</span>
-                                    </div>
+                                        </div>
                                     <div class="summary-info-group">
                                         <div class="summary-item">
                                             <span class="summary-label">Registration date</span>
@@ -3662,7 +3662,7 @@
                                                 <i class="ti-calendar meta-cal-icon" aria-hidden="true"></i>
                                                 <span>{{ $crr->created_at->format('d.m.Y') }}</span>
                                             </span>
-                                        </div>
+                                            </div>
                                         <div class="summary-item">
                                             <span class="summary-label">Registered by</span>
                                             <span class="summary-value text-primary">{{ $crr->registeredBy?->name ?? '—' }}</span>
@@ -3672,9 +3672,9 @@
                                             <span class="summary-value text-primary" id="summary-account-manager">
                                                 {{ $crr->customerVessel?->customer?->responsible?->accountManager?->name ?? '—' }}
                                             </span>
-                                        </div>
                                     </div>
-                                </div>
+                                    </div>
+                                        </div>
 
                                 <!-- Documents Panel -->
                                 <div class="panel-card is-collapsed" id="crr-documents-panel">
@@ -3693,7 +3693,7 @@
                                             <div class="crr-docs-header">
                                                 <span>Filename</span>
                                                 <span class="crr-docs-internal-label">Internal</span>
-                                            </div>
+                                                    </div>
                                             <div id="crr-doc-list">
                                                 @forelse($crr->documents as $doc)
                                                     @php
@@ -3714,8 +3714,8 @@
                                                                 @if (! in_array($selectedDocType, $crrDocTypeOptions, true))
                                                                     <option value="{{ $selectedDocType }}" selected>{{ $selectedDocType }}</option>
                                                                 @endif
-                                                            </select>
-                                                            </div>
+                                                    </select>
+                                                </div>
                                                         <div class="doc-side">
                                                             <div class="doc-side-row">
                                                                 <div class="doc-internal checkbox-fade fade-in-primary">
@@ -3723,25 +3723,25 @@
                                                                         <input type="checkbox" class="doc-internal-check" data-id="{{ $doc->id }}" {{ $doc->is_internal ? 'checked' : '' }}>
                                                                         <span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>
                                                                     </label>
-                                                                </div>
+                                                </div>
                                                                 <i class="ti-trash doc-trash delete-doc" data-id="{{ $doc->id }}" title="Delete"></i>
-                                                            </div>
+                                                </div>
                                                             <span class="doc-date">{{ $doc->created_at->format('d.m.Y') }}</span>
-                                                        </div>
-                                                    </div>
+                                                </div>
+                                                </div>
                                                 @empty
                                                     <div class="no-docs-msg">No documents uploaded yet.</div>
                                                 @endforelse
-                                            </div>
+                                                </div>
 
                                             <div class="dropzone-placeholder" id="crr-dropzone">
                                                 <i class="ti-upload dropzone-icon"></i>
                                                 <div class="dropzone-text">Drag files here or click to browse</div>
-                                            </div>
+                                                </div>
                                             <input type="file" id="crr-file-input" style="display: none;" multiple>
-                                        </div>
-                                    </div>
-                                </div>
+                                            </div>
+                                                </div>
+                                                </div>
 
                                 <!-- Activity Panel -->
                                 <div class="panel-card is-collapsed" id="crr-activity-panel">
@@ -3762,28 +3762,28 @@
                                                                 @if ($changeLog->description)
                                                                     <div class="change-log-desc">
                                                                         {{ $changeLog->description }}
-                                                                    </div>
+                                                </div>
                                                                 @endif
-                                                            </div>
+                                            </div>
                                                             <div class="change-log-meta">
                                                                 <div class="change-log-user">
                                                                     {{ $changeLog->user?->name ?? 'System' }}
-                                                                </div>
+                                        </div>
                                                                 <div class="change-log-time">
                                                                     {{ $changeLog->created_at->format('d.m.Y H:i') }}
-                                                                </div>
-                                                            </div>
-                                                        </div>
                                                     </div>
+                                                </div>
+                                                </div>
+                                                </div>
                                                 @empty
                                                     <div class="panel-empty-msg">
                                                         No changes recorded yet.
-                                                    </div>
+                                                </div>
                                                 @endforelse
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                                </div>
+                                                </div>
+                                                </div>
+                                                </div>
                          </div>{{-- .stock-edit-wrapper --}}
     @include('layouts.partials.pcoded-shell-end')
 
@@ -3796,7 +3796,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                        </div>
+                                            </div>
                 <form id="add-supplier-form">
                     <div class="modal-body" style="padding: 16px 20px; max-height: 70vh; overflow-y: auto;">
                         <div class="add-supplier-grid">
@@ -3807,29 +3807,29 @@
                                 <div class="field-group mb-2">
                                     <label class="field-label">Supplier name <span class="text-danger">*</span></label>
                                     <input type="text" class="field-input" name="supplier_name" id="modal-supplier-name" required>
-                    </div>
+                                                </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Phone number (with country code)</label>
                                     <input type="text" class="field-input" name="phone_number" id="modal-supplier-phone">
-                </div>
+                                                </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Email</label>
                                     <input type="text" class="field-input" name="email" id="modal-supplier-email"
                                         placeholder="email@example.com; email2@example.com">
-            </div>
+                                                </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Contact person <span class="text-danger">*</span></label>
                                     <input type="text" class="field-input" name="contact_person" id="modal-supplier-contact-person" required autocomplete="name">
-                                </div>
+                                            </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Remarks</label>
                                     <textarea class="field-input" name="remarks" id="modal-supplier-remarks" rows="3" style="height: auto; min-height: 70px;"></textarea>
-                                </div>
+                                        </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Special considerations for destination</label>
                                     <textarea class="field-input" name="special_considerations" id="modal-supplier-special" rows="3" style="height: auto; min-height: 70px;"></textarea>
-        </div>
-    </div>
+                                    </div>
+                                    </div>
 
                             {{-- Column 2: Address --}}
                             <div class="add-supplier-col">
@@ -3838,27 +3838,27 @@
                                 <div class="field-group mb-2">
                                     <label class="field-label">Supplier address</label>
                                     <textarea class="field-input" name="supplier_address" id="modal-supplier-address" rows="2" style="height: auto; min-height: 50px;"></textarea>
-                                </div>
+                                                    </div>
                                 <div class="row">
                                     <div class="col-4">
                                         <div class="field-group mb-2">
                                             <label class="field-label">City</label>
                                             <input type="text" class="field-input" name="city" id="modal-supplier-city">
-                                        </div>
-                                    </div>
+                                                        </div>
+                                                    </div>
                                     <div class="col-4">
                                         <div class="field-group mb-2">
                                             <label class="field-label">District/state</label>
                                             <input type="text" class="field-input" name="district_state" id="modal-supplier-district">
-                                        </div>
-                                    </div>
+                                                </div>
+                                            </div>
                                     <div class="col-4">
                                         <div class="field-group mb-2">
                                             <label class="field-label">Zip code</label>
                                             <input type="text" class="field-input" name="zip_code" id="modal-supplier-zip">
+                                    </div>
                                         </div>
                                     </div>
-                                </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Country</label>
                                     <x-forms.country-select
@@ -3882,27 +3882,27 @@
                                 <div class="field-group mb-2">
                                     <label class="field-label">Office address</label>
                                     <textarea class="field-input" name="office_address" id="modal-office-address" rows="2" style="height: auto; min-height: 50px;"></textarea>
-                                </div>
+                                    </div>
                                 <div class="row">
                                     <div class="col-4">
                                         <div class="field-group mb-2">
                                             <label class="field-label">City</label>
                                             <input type="text" class="field-input" name="office_city" id="modal-office-city">
-                                        </div>
-                                    </div>
+                                                                </div>
+                                                        </div>
                                     <div class="col-4">
                                         <div class="field-group mb-2">
                                             <label class="field-label">District/state</label>
                                             <input type="text" class="field-input" name="office_district_state" id="modal-office-district">
-                                        </div>
-                                    </div>
+                                                            </div>
+                                                            </div>
                                     <div class="col-4">
                                         <div class="field-group mb-2">
                                             <label class="field-label">Zip code</label>
                                             <input type="text" class="field-input" name="office_zip_code" id="modal-office-zip">
-                                        </div>
-                                    </div>
-                                </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">Country</label>
                                     <x-forms.country-select
@@ -3936,25 +3936,25 @@
                                         <option value="">Select an option</option>
                                         @foreach($currencies as $curr)
                                             <option value="{{ $curr }}">{{ $curr }}</option>
-                                        @endforeach
+                                            @endforeach
                                     </select>
-                                </div>
+                                        </div>
                                 <div class="field-group mb-2">
                                     <label class="field-label">UN/LOCODE</label>
                                     <input type="text" class="field-input" name="un_locode" id="modal-supplier-unlocode">
-                                </div>
-                            </div>
-                        </div>
+                                            </div>
+                                        </div>
+                                        </div>
                         <div id="add-supplier-error" class="text-danger mt-2" style="font-size: 11px; display: none;"></div>
-                    </div>
+                                    </div>
                     <div class="modal-footer py-2">
                         <button type="button" class="btn btn-sm btn-light" data-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-sm btn-teal" id="add-supplier-save-btn" style="background:#008080;border-color:#008080;color:#fff;">Save supplier</button>
-                    </div>
+                                </div>
                 </form>
-            </div>
-        </div>
-    </div>
+                            </div>
+                        </div>
+                    </div>
 
     <div class="modal fade" id="pdf-preview-modal" tabindex="-1" role="dialog" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document" style="max-width: 95%;">

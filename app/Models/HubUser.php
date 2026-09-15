@@ -6,10 +6,11 @@ use App\Traits\LogsFieldChanges;
 use App\Traits\TracksUserAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class HubUser extends Model
 {
-    use HasFactory, TracksUserAudit, LogsFieldChanges;
+    use HasFactory, SoftDeletes, TracksUserAudit, LogsFieldChanges;
 
     protected $fillable = [
         'hub_id',

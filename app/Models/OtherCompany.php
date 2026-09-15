@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\LogsFieldChanges;
 use App\Traits\TracksUserAudit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,6 +20,14 @@ class OtherCompany extends Model
         'vat_number', 'eori_number', 'currency', 'un_locode',
         'created_by', 'updated_by',
     ];
+
+    /**
+     * Active other companies for Select2/lists. Soft-deleted rows are already excluded.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query;
+    }
 
     public function country()
     {
