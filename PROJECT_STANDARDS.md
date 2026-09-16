@@ -962,6 +962,8 @@ A **new PDF revision** is created only when the relevant fingerprint changes aft
 
 Fingerprint: `manifestFingerprint()` → `manifestRevisionPayload()`.
 
+**First-page header** (`resources/views/Shipment/pdf/manifest.blade.php`): centered `[SHIPPING INSTRUCTION]` with the logo on its right, details box left (same width as the field grid; rows Service / Ref No. / Shipment handled by). Then Attn / Departure Port / Arrival Port / Shipment Mode / Pcs / Wt. / Dims / Deadline Date grid. Invoice / packing pages keep the existing party header. Manifest footer (every page): divider, then centered `Shipped By: MarineCaddie Shipping LLC | E-mail | Phone`, page number centered below it.
+
 ### Pre-alert PDF — new revision when
 
 1. **Stock add/remove** — linked stock IDs on the shipment change.

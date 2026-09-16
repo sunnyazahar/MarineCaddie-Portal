@@ -323,9 +323,8 @@ class ShipmentManifestController extends BaseShipmentController
         }
 
         $data = $builder->build($shipment);
-        $pdfContent = $companyFooter->output(
-            Pdf::loadView('Shipment.pdf.manifest', $data)->setPaper('a4', 'portrait'),
-            (string) ($data['createdAt'] ?? '')
+        $pdfContent = $companyFooter->outputManifest(
+            Pdf::loadView('Shipment.pdf.manifest', $data)->setPaper('a4', 'portrait')
         );
 
         return response($pdfContent, 200, [

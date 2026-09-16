@@ -88,7 +88,7 @@ class ShipmentManifestService
         $pdf = Pdf::loadView('Shipment.pdf.manifest', $data)
             ->setPaper('a4', 'portrait');
 
-        return $this->companyFooter->output($pdf, (string) ($data['createdAt'] ?? ''));
+        return $this->companyFooter->outputManifest($pdf);
     }
 
     private function storePdf(string $relativePath, string $pdfContent): void

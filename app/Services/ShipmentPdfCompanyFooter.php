@@ -68,6 +68,53 @@ class ShipmentPdfCompanyFooter
     }
 
     /**
+     * Manifest footer: divider, centered shipped-by line, page number below it.
+     */
+    public function outputManifest(PDF $pdf): string
+    {
+        $pdf->render();
+
+        $dompdf = $pdf->getDomPDF();
+        $canvas = $dompdf->getCanvas();
+        $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans');
+        $size = 10.0;
+        $marginX = 28.35;
+        $shippedBy = 'Shipped By: ' . CompanyAddress::NAME
+            . ' | E-mail: ' . CompanyAddress::EMAIL
+            . ' | Phone: ' . CompanyAddress::PHONE;
+
+        $canvas->page_script(function (int $pageNumber, int $pageCount, Canvas $canvas, FontMetrics $fontMetrics) use (
+            $font,
+            $size,
+            $marginX,
+            $shippedBy
+        ) {
+            $width = $canvas->get_width();
+            $height = $canvas->get_height();
+            $ruleY = $height - 64.0;
+            $shippedByY = $ruleY + 11.0;
+            $pageY = $shippedByY + 14.0;
+
+            $canvas->line($marginX, $ruleY, $width - $marginX, $ruleY, [0.13, 0.13, 0.13], 0.6);
+
+            $shippedByWidth = $fontMetrics->getTextWidth($shippedBy, $font, $size);
+            $canvas->text(($width - $shippedByWidth) / 2, $shippedByY, $shippedBy, $font, $size);
+
+            $pageLabel = $pageNumber . '/' . $pageCount;
+            $pageLabelWidth = $fontMetrics->getTextWidth($pageLabel, $font, $size);
+            $canvas->text(($width - $pageLabelWidth) / 2, $pageY, $pageLabel, $font, $size);
+        });
+
+        $output = $dompdf->output();
+
+        if (! is_string($output) || strlen($output) < 100) {
+            throw new \RuntimeException('PDF could not be generated with company footer.');
+        }
+
+        return $output;
+    }
+
+    /**
      * Render the PDF and stamp only the page number (e.g. 1/1) on every page.
      *
      * @param  float  $marginBottomMm  When set, places the page number just below the reserved footer band (proforma invoices).

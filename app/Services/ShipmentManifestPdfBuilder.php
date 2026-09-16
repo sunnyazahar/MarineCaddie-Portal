@@ -111,9 +111,11 @@ class ShipmentManifestPdfBuilder
                     'position' => $crr->location ?: ($crr->hub_code ?? '—'),
                     'supplier' => $crr->supplier ?? '—',
                     'po_number' => $poNumbers ?: '—',
-                    'item_label' => $packageIndex . ' of ' . max($totalPackages, 1),
-                    'weight_label' => '0 of ' . round($totalWeight, 0) . ' kg',
-                    'dimensions' => '—',
+                    'item_label' => $packageIndex . '/' . max($totalPackages, 1),
+                    'weight_label' => '0 / ' . round($totalWeight, 0),
+                    'length' => '—',
+                    'width' => '—',
+                    'height' => '—',
                     'transit_id' => $crr->transit_id ?? '',
                     'pending_eta' => $crr->expected_delivery_date
                         ? Carbon::parse($crr->expected_delivery_date)->format('d.m.Y')
@@ -130,9 +132,11 @@ class ShipmentManifestPdfBuilder
                     'position' => $package->warehouse_location ?: ($crr->location ?: ($crr->hub_code ?? '—')),
                     'supplier' => $crr->supplier ?? '—',
                     'po_number' => $poNumbers ?: '—',
-                    'item_label' => $packageIndex . ' of ' . max($totalPackages, 1),
-                    'weight_label' => round((float) $package->weight, 0) . ' of ' . round($totalWeight, 0) . ' kg',
-                    'dimensions' => $this->formatDimensions($package->length, $package->width, $package->height),
+                    'item_label' => $packageIndex . '/' . max($totalPackages, 1),
+                    'weight_label' => round((float) $package->weight, 0) . ' / ' . round($totalWeight, 0),
+                    'length' => $this->formatNumber($package->length),
+                    'width' => $this->formatNumber($package->width),
+                    'height' => $this->formatNumber($package->height),
                     'transit_id' => $crr->transit_id ?? '',
                     'pending_eta' => $crr->expected_delivery_date
                         ? Carbon::parse($crr->expected_delivery_date)->format('d.m.Y')
@@ -143,7 +147,7 @@ class ShipmentManifestPdfBuilder
         }
 
         $createdAt = Carbon::now('Asia/Kolkata')->format('d.m.Y H:i') . ' IST';
-        $handledBy = trim(($shipment->creator?->name ?? 'System') . ' on ' . Carbon::now()->format('d.m.Y H:i'));
+        $handledBy = trim((string) ($shipment->creator?->name ?? 'System'));
 
         $companyName = $departureParty['name'] ?: 'Marinetrans';
         $companyAddress = $departureParty['address_line'] ?: '—';
@@ -552,19 +556,6 @@ class ShipmentManifestPdfBuilder
         }
 
         return ['code' => $code, 'city' => $city, 'country' => $country];
-    }
-
-    private function formatDimensions($length, $width, $height): string
-    {
-        if (!$length && !$width && !$height) {
-            return '—';
-        }
-
-        return implode(' / ', [
-            $this->formatNumber($length),
-            $this->formatNumber($width),
-            $this->formatNumber($height),
-        ]);
     }
 
     private function formatNumber($value): string

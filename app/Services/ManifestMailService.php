@@ -323,9 +323,8 @@ class ManifestMailService
                         'version' => $latestManifest->version,
                     ]);
 
-                    $manifestPdf = $this->companyFooter->output(
-                        Pdf::loadView('Shipment.pdf.manifest', $manifestData)->setPaper('a4', 'portrait'),
-                        (string) ($manifestData['createdAt'] ?? '')
+                    $manifestPdf = $this->companyFooter->outputManifest(
+                        Pdf::loadView('Shipment.pdf.manifest', $manifestData)->setPaper('a4', 'portrait')
                     );
 
                     $attachments[] = [
@@ -336,9 +335,8 @@ class ManifestMailService
                     ];
                 }
             } else {
-                $manifestPdf = $this->companyFooter->output(
-                    Pdf::loadView('Shipment.pdf.manifest', $manifestData)->setPaper('a4', 'portrait'),
-                    (string) ($manifestData['createdAt'] ?? '')
+                $manifestPdf = $this->companyFooter->outputManifest(
+                    Pdf::loadView('Shipment.pdf.manifest', $manifestData)->setPaper('a4', 'portrait')
                 );
 
                 $attachments[] = [
