@@ -350,7 +350,7 @@ trait ManagesShipmentPersistence
             $sources[] = [
                 'key' => 'manifest',
                 'url' => route('shipments.combined-manifest-documents', $shipment->id),
-                'filename' => 'manifest-' . $shipment->shipment_number . '.pdf',
+                'filename' => 'Shipping-Instruction-' . $shipment->shipment_number . '.pdf',
             ];
         }
 

@@ -4496,7 +4496,6 @@
                                                                                data-title="{{ $manifest->displayLabel() }}">
                                                                                 {{ ucfirst($manifest->displayLabel()) }}
                                                                             </a>
-                                                                            <span class="doc-type-label">Manifest</span>
                                                                         </div>
                                                                         <div class="doc-side">
                                                                             <div class="doc-side-row">
@@ -5497,7 +5496,7 @@
             } elseif ($shipment->crrs->isNotEmpty()) {
                 $manifestCoreAttachmentSources[] = [
                     'url' => route('shipments.combined-manifest-documents', $shipmentRouteId),
-                    'filename' => 'manifest-' . $shipment->shipment_number . '.pdf',
+                    'filename' => 'Shipping-Instruction-' . $shipment->shipment_number . '.pdf',
                 ];
             }
         @endphp

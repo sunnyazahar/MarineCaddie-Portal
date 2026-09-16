@@ -52,9 +52,9 @@ class ShipmentManifest extends Model
     public static function labelForVersion(int $version): string
     {
         if ($version <= 1) {
-            return 'manifest';
+            return 'Shipping Instruction';
         }
 
-        return 'manifest ' . ($version - 1);
+        return 'Shipping Instruction ' . ($version - 1);
     }
 }

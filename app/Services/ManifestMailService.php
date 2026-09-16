@@ -340,7 +340,7 @@ class ManifestMailService
                 );
 
                 $attachments[] = [
-                    'filename' => 'manifest-' . $shipment->shipment_number . '.pdf',
+                    'filename' => 'Shipping-Instruction-' . $shipment->shipment_number . '.pdf',
                     'content' => $manifestPdf,
                     'mime' => 'application/pdf',
                 ];

@@ -621,7 +621,7 @@ class ShipmentManifestPdfBuilder
 
     private function formatOnBoardSignatory(?string $vesselName): string
     {
-        return 'Master / Chief Engineer of ' . $this->formatMotorVesselName($vesselName);
+        return "Receiver's Signature / Vessel's Stamp ";
     }
 
     private function joinParts(array $parts, string $separator = ', '): string

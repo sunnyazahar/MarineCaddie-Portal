@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SHIPPING INSTRUCTION {{ $shipment->shipment_number }}</title>
+    <title>Shipping Instruction {{ $shipment->shipment_number }}</title>
     <style>
         @page { size: A4; margin: 12mm 10mm 28mm 10mm; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #222; line-height: 1.4; margin: 0; }
@@ -59,7 +59,7 @@
             width: 34%;
             font-weight: bold;
         }
-        .doc-title { display: block; font-size: 17px; font-weight: bold; margin: 0 0 10px; }
+        .doc-title { display: block; font-size: 17px; font-weight: bold; margin: 0; text-align: center; }
         .doc-subtitle { display: block; font-size: 13px; font-weight: bold; margin: 8px 0 8px; }
         .revision-highlight { color: #FD6C0A; font-weight: bold; font-size: 18px; margin: 0 0 4px; }
         .company { font-size: 12px; font-weight: bold; }
@@ -91,7 +91,7 @@
             line-height: 1.15;
         }
         .party-block br { line-height: 1.15; margin: 0; padding: 0; }
-        .party-cell { padding-top: 10px; text-align: left; }
+        .party-cell { padding-top: 10px; text-align: left; font-size: 12px; }
         .party-inner { width: 250px; border-collapse: collapse; }
         .comments { white-space: pre-wrap; font-size: 10px; margin-top: 8px; }
         .vessel-heading { font-size: 13px; font-weight: bold; margin: 10px 0 6px; }
@@ -174,10 +174,11 @@
         return '
         <table class="header-table" style="table-layout:fixed;">
             <tr>
-                <td style="width:62%;">
+                <td style="width:30%;"></td>
+                <td style="width:40%; vertical-align:middle;">
                     <div class="doc-title">' . e($docTitle) . '</div>
                 </td>
-                <td class="header-right" style="width:38%;">
+                <td class="header-right" style="width:30%; vertical-align:middle;">
                     <table align="right" style="width:180px; border-collapse:collapse;">
                         <tr>
                             <td style="text-align:left; vertical-align:top;">
@@ -189,6 +190,8 @@
                     </table>
                 </td>
             </tr>
+        </table>
+        <table class="header-table">
             <tr>
                 <td colspan="2">
                     <br>
@@ -364,8 +367,7 @@
             <div class="onboard-receipt">
                 <table class="onboard-receipt-labels">
                     <tr>
-                        <td style="text-align:left;">Date received</td>
-                        <td style="text-align:center;">Stamp</td>
+                        <td style="text-align:left;">Receiving Date</td>
                         <td></td>
                     </tr>
                 </table>

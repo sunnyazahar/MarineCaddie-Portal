@@ -208,7 +208,7 @@ class ShipmentManifestController extends BaseShipmentController
 
         return response()->file($path, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $manifest->file_name . '-' . $manifest->shipment->shipment_number . '.pdf"',
+            'Content-Disposition' => 'inline; filename="' . str_replace(' ', '-', $manifest->displayLabel()) . '-' . $manifest->shipment->shipment_number . '.pdf"',
         ]);
     }
 
@@ -317,7 +317,7 @@ class ShipmentManifestController extends BaseShipmentController
             if (is_file($path)) {
                 return response()->file($path, [
                     'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="' . $latestManifest->file_name . '-' . $shipment->shipment_number . '.pdf"',
+                    'Content-Disposition' => 'inline; filename="' . str_replace(' ', '-', $latestManifest->displayLabel()) . '-' . $shipment->shipment_number . '.pdf"',
                 ]);
             }
         }
@@ -329,7 +329,7 @@ class ShipmentManifestController extends BaseShipmentController
 
         return response($pdfContent, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="manifest-' . $shipment->shipment_number . '.pdf"',
+            'Content-Disposition' => 'inline; filename="Shipping-Instruction-' . $shipment->shipment_number . '.pdf"',
         ]);
     }
 
