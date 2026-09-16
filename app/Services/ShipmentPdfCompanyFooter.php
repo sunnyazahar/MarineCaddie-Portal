@@ -92,17 +92,18 @@ class ShipmentPdfCompanyFooter
             $width = $canvas->get_width();
             $height = $canvas->get_height();
             $ruleY = $height - 64.0;
-            $shippedByY = $ruleY + 11.0;
-            $pageY = $shippedByY + 14.0;
+            $shippedByY = $ruleY + 8.0;
 
             $canvas->line($marginX, $ruleY, $width - $marginX, $ruleY, [0.13, 0.13, 0.13], 0.6);
 
             $shippedByWidth = $fontMetrics->getTextWidth($shippedBy, $font, $size);
             $canvas->text(($width - $shippedByWidth) / 2, $shippedByY, $shippedBy, $font, $size);
 
+            $pageSize = 8.0;
+            $pageY = $shippedByY + 18.0;
             $pageLabel = $pageNumber . '/' . $pageCount;
-            $pageLabelWidth = $fontMetrics->getTextWidth($pageLabel, $font, $size);
-            $canvas->text(($width - $pageLabelWidth) / 2, $pageY, $pageLabel, $font, $size);
+            $pageLabelWidth = $fontMetrics->getTextWidth($pageLabel, $font, $pageSize);
+            $canvas->text(($width - $pageLabelWidth) / 2, $pageY, $pageLabel, $font, $pageSize);
         });
 
         $output = $dompdf->output();

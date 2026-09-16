@@ -44,7 +44,7 @@ class ShipmentPreAlertService
             $label = ShipmentPreAlert::labelForVersion($version);
             $fileName = str_replace(' ', '-', $label) . '-' . $shipment->shipment_number . '-' . $version . '.pdf';
             $relativePath = 'shipment_pre_alerts/' . $shipment->id . '/' . $fileName;
-            $pdfContent = $this->buildPdfContent($shipment);
+            $pdfContent = $this->buildPdfContent($shipment, $version);
 
             $this->storePdf($relativePath, $pdfContent);
 
@@ -80,7 +80,7 @@ class ShipmentPreAlertService
             return $path;
         }
 
-        $pdfContent = $this->buildPdfContent($preAlert->shipment);
+        $pdfContent = $this->buildPdfContent($preAlert->shipment, (int) $preAlert->version);
         $this->storePdf($preAlert->file_path, $pdfContent);
 
         if (!is_file($path) || filesize($path) < 100) {
@@ -90,13 +90,23 @@ class ShipmentPreAlertService
         return $path;
     }
 
-    private function buildPdfContent(Shipment $shipment): string
+    private function buildPdfContent(Shipment $shipment, ?int $preAlertVersion = null): string
     {
         $data = $this->pdfBuilder->build($shipment);
+        $data['preAlertRevisionLabel'] = $this->formatPreAlertRevisionLabel($preAlertVersion);
         $pdf = Pdf::loadView('Shipment.pdf.pre-alert', $data)
             ->setPaper('a4', 'portrait');
 
-        return $this->companyFooter->output($pdf, (string) ($data['createdAt'] ?? ''));
+        return $this->companyFooter->outputManifest($pdf);
+    }
+
+    private function formatPreAlertRevisionLabel(?int $version): ?string
+    {
+        if ($version === null || $version <= 1) {
+            return null;
+        }
+
+        return 'Revision ' . ($version - 1);
     }
 
     private function storePdf(string $relativePath, string $pdfContent): void

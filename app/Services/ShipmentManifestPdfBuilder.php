@@ -429,17 +429,28 @@ class ShipmentManifestPdfBuilder
 
     private function formatShipmentAddress(Shipment $shipment, bool $includePhone = false): string
     {
-        $parts = array_filter([
-            $shipment->consignee_address,
+        $address = trim((string) $shipment->consignee_address);
+        $locality = $this->joinParts([
             $shipment->consignee_city,
             $shipment->consignee_district,
             $shipment->consignee_zip,
             $shipment->consignee_country,
         ]);
 
-        $line = $this->joinParts($parts);
+        if ($address === '') {
+            return $locality !== '' ? $locality : '—';
+        }
 
-        return $line ?: '—';
+        if ($locality === '') {
+            return $address;
+        }
+
+        $address = rtrim($address);
+        if (! str_ends_with($address, ',')) {
+            $address .= ',';
+        }
+
+        return $address . "\n" . $locality;
     }
 
     private function formatContactLine(array $party): string

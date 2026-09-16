@@ -47,8 +47,7 @@ class ShipmentPreAlertPdfBuilder
         $serviceDetailRows = $this->buildServiceDetailRows($shipment);
 
         $primaryVessel = $this->formatMotorVesselName($shipment->crrs->pluck('vessel_name')->filter()->first());
-        // Pre-alert PDF/email: vessel name + transit suffix only (no IMO).
-        $vesselLine = $this->formatMailVesselLine($shipment);
+        $vesselLine = $this->formatPdfVesselHeading($shipment);
         $awb = $serviceDetails['awb'] ?? '—';
         $flightNumber = $serviceDetails['flight_number'] ?? '—';
         $arrivalDate = $serviceDetails['arrival_date'] ?? ($shipment->deadline_arrival?->format('d.m.Y') ?? '—');
@@ -113,7 +112,7 @@ class ShipmentPreAlertPdfBuilder
                 'items' => $crr->packages->count(),
                 'weight' => round((float) $crr->packages->sum('weight'), 2),
                 'cbm' => round((float) $crr->packages->sum('cbm'), 2),
-                'customs_value' => number_format($customsUsd, 2) . ' USD',
+                'customs_value' => number_format($customsUsd, 2),
                 'description' => $description,
                 'stock_number' => $crr->stock_number ?? '—',
             ];
@@ -942,6 +941,28 @@ class ShipmentPreAlertPdfBuilder
         }
 
         return $primaryVessel . ($vesselInfo?->not_in_transit ? '' : ' in transit');
+    }
+
+    /**
+     * Pre-alert PDF heading, e.g. "Master of Vessel ANGEL IN TRANSIT".
+     */
+    public function formatPdfVesselHeading(Shipment $shipment): string
+    {
+        $line = $this->formatMailVesselLine($shipment);
+        if ($line === '' || $line === '—') {
+            return '—';
+        }
+
+        $inTransit = str_ends_with($line, ' in transit');
+        $name = $inTransit ? substr($line, 0, -strlen(' in transit')) : $line;
+        $name = trim((string) preg_replace('/^(M\/V|M\.V\.|MV)\s+/i', '', $name));
+        $name = mb_strtoupper($name);
+
+        if ($name === '') {
+            return '—';
+        }
+
+        return 'Master of Vessel ' . $name . ($inTransit ? ' IN TRANSIT' : '');
     }
 
     private function displayValue(mixed $value): string
