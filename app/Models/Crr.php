@@ -191,20 +191,23 @@ class Crr extends Model
     }
 
     /**
-     * Stock list UI: per hub code, In Progress stock shipment info (display only).
+     * Stock list UI: In Progress shipment info keyed by hub + vessel + location + customer (display only).
      *
      * @return Collection<string, array{number: string, shipment_id: int|null}>
      */
     public static function hubInProgressShipmentInfoByHub(): Collection
     {
         $inProgress = static::query()
-            ->with(['shipments' => fn ($query) => $query->select('shipments.id', 'shipments.shipment_number')])
+            ->with([
+                'shipments' => fn ($query) => $query->select('shipments.id', 'shipments.shipment_number'),
+                'customerVessel.customer',
+            ])
             ->where('status', self::STATUS_IN_PROGRESS)
             ->whereNotNull('internal_shipment')
             ->where('internal_shipment', '!=', '')
             ->orderByDesc('id')
             ->get()
-            ->groupBy(fn (self $crr) => (string) $crr->hub_code);
+            ->groupBy(fn (self $crr) => $crr->inheritedShipmentGroupKey());
 
         $infoByHub = $inProgress->map(function (Collection $group) {
             $crr = $group->first();
@@ -241,7 +244,21 @@ class Crr extends Model
     }
 
     /**
-     * Stock list shipment column — inherits hub In Progress shipment for New / Stock rows (not saved).
+     * Hub + vessel + location + customer key for inherited shipment display.
+     */
+    public function inheritedShipmentGroupKey(): string
+    {
+        return implode("\x1f", [
+            $this->normalizeInheritedPart($this->hub_code),
+            $this->normalizeInheritedPart($this->vessel_name),
+            $this->normalizeInheritedPart($this->location),
+            $this->inheritedShipmentCustomerKey(),
+        ]);
+    }
+
+    /**
+     * Stock list shipment column — inherits In Progress shipment only when hub, vessel,
+     * location, and customer match (not saved).
      *
      * @return array{number: string, inherited: bool, shipment_id: int|null}
      */
@@ -258,12 +275,11 @@ class Crr extends Model
             return $empty;
         }
 
-        $hubKey = (string) $this->hub_code;
-        if ($hubKey === '') {
+        if (trim((string) $this->hub_code) === '') {
             return $empty;
         }
 
-        $info = $hubInProgressShipmentInfo->get($hubKey);
+        $info = $hubInProgressShipmentInfo->get($this->inheritedShipmentGroupKey());
         if (! is_array($info)) {
             $info = ['number' => trim((string) $info), 'shipment_id' => null];
         }
@@ -278,6 +294,28 @@ class Crr extends Model
             'inherited' => true,
             'shipment_id' => $info['shipment_id'] ?? null,
         ];
+    }
+
+    private function inheritedShipmentCustomerKey(): string
+    {
+        $vessel = $this->relationLoaded('customerVessel') ? $this->customerVessel : null;
+        if (! $vessel) {
+            return '';
+        }
+
+        if ($vessel->customer_id) {
+            return 'id:'.(int) $vessel->customer_id;
+        }
+
+        $customer = $vessel->relationLoaded('customer') ? $vessel->customer : null;
+        $name = trim((string) ($customer?->customer_name ?? ''));
+
+        return $name === '' ? '' : 'name:'.mb_strtolower($name);
+    }
+
+    private function normalizeInheritedPart(mixed $value): string
+    {
+        return mb_strtolower(trim((string) $value));
     }
 
     public function registeredBy(): BelongsTo

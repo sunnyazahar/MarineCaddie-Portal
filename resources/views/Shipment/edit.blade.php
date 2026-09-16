@@ -4522,7 +4522,6 @@
                                                                                data-title="{{ $preAlert->displayLabel() }}">
                                                                                 {{ ucfirst($preAlert->displayLabel()) }}
                                                                             </a>
-                                                                            <span class="doc-type-label">Pre-alert</span>
                                                                         </div>
                                                                         <div class="doc-side">
                                                                             <div class="doc-side-row">
@@ -8642,23 +8641,66 @@
         });
 
         $(document).on('change', '.shipment-doc-internal-check', function() {
+            if ($(this).is('#shipment-combined-po-attach-checkbox')) {
+                return;
+            }
             var docId = $(this).data('doc-id');
             var isInternal = $(this).is(':checked') ? 1 : 0;
             if (!docId) {
                 return;
             }
+            var url = '{{ route('shipments.documents.update-internal', ':docId') }}'.replace(':docId', docId);
+            url += (url.indexOf('?') === -1 ? '?' : '&') + 'is_internal=' + isInternal;
             $.ajax({
-                url: '{{ route('shipments.documents.update-internal', ':docId') }}'.replace(':docId', docId),
-                type: 'PATCH',
+                url: url,
+                type: 'POST',
                 data: {
-                    _token: '{{ csrf_token() }}',
+                    _method: 'PATCH',
+                    _token: $('meta[name="csrf-token"]').attr('content') || '{{ csrf_token() }}',
                     is_internal: isInternal
                 },
-                error: function() {
-                    alert('Could not update internal flag');
+                error: function(xhr) {
+                    var message = (xhr.responseJSON && xhr.responseJSON.message) || 'Could not update internal flag';
+                    alert(message);
                 }
             });
         });
+
+        function combinedPoAttachStorageKey() {
+            return 'shipment-combined-po-attach-{{ (int) $shipmentRouteId }}';
+        }
+
+        function restoreCombinedPoAttachCheckbox() {
+            var $cb = $('#shipment-combined-po-attach-checkbox');
+            if (!$cb.length) {
+                return;
+            }
+            try {
+                var stored = localStorage.getItem(combinedPoAttachStorageKey());
+                if (stored === '0' || stored === '1') {
+                    $cb.prop('checked', stored === '1');
+                }
+            } catch (err) {}
+        }
+
+        $(document).on('click', '#shipment-combined-po-doc .doc-internal', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var $cb = $('#shipment-combined-po-attach-checkbox');
+            if (!$cb.length) {
+                return;
+            }
+            $cb.prop('checked', !$cb.prop('checked')).trigger('change');
+        });
+
+        $(document).on('change', '#shipment-combined-po-attach-checkbox', function(e) {
+            e.stopImmediatePropagation();
+            try {
+                localStorage.setItem(combinedPoAttachStorageKey(), $(this).is(':checked') ? '1' : '0');
+            } catch (err) {}
+        });
+
+        restoreCombinedPoAttachCheckbox();
 
         shipmentDocDropzone.on('click', function(e) {
             e.preventDefault();

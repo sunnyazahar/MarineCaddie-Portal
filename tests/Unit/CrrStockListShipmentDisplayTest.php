@@ -3,59 +3,39 @@
 namespace Tests\Unit;
 
 use App\Models\Crr;
+use App\Models\CustomerVessel;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class CrrStockListShipmentDisplayTest extends TestCase
 {
-    public function test_new_stock_inherits_in_progress_shipment_for_same_hub(): void
+    public function test_new_stock_inherits_in_progress_shipment_when_hub_vessel_location_and_customer_match(): void
     {
-        $hubInfo = collect([
-            'AMS' => ['number' => 'SHIP-AMS-1', 'shipment_id' => 42],
-        ]);
+        $newStock = $this->matchingStock(['status' => Crr::STATUS_NEW]);
+        $activeStock = $this->matchingStock(['status' => Crr::STATUS_ACTIVE, 'internal_shipment' => '']);
+        $hubInfo = $this->infoFor($newStock, 'SHIP-AMS-1', 42);
 
-        $newStock = new Crr([
-            'hub_agent' => 'AMS',
-            'status' => Crr::STATUS_NEW,
-            'internal_shipment' => null,
-        ]);
-
-        $activeStock = new Crr([
-            'hub_agent' => 'AMS',
-            'status' => Crr::STATUS_ACTIVE,
-            'internal_shipment' => '',
-        ]);
-
-        $this->assertSame([
+        $expected = [
             'number' => 'SHIP-AMS-1',
             'inherited' => true,
             'shipment_id' => 42,
-        ], $newStock->stockListShipmentColumn($hubInfo));
+        ];
 
-        $this->assertSame([
-            'number' => 'SHIP-AMS-1',
-            'inherited' => true,
-            'shipment_id' => 42,
-        ], $activeStock->stockListShipmentColumn($hubInfo));
+        $this->assertSame($expected, $newStock->stockListShipmentColumn($hubInfo));
+        $this->assertSame($expected, $activeStock->stockListShipmentColumn($hubInfo));
     }
 
     public function test_does_not_override_existing_shipment_or_other_statuses(): void
     {
-        $hubInfo = collect([
-            'AMS' => ['number' => 'SHIP-AMS-1', 'shipment_id' => 42],
-        ]);
-
-        $withOwn = new Crr([
-            'hub_agent' => 'AMS',
+        $withOwn = $this->matchingStock([
             'status' => Crr::STATUS_NEW,
             'internal_shipment' => 'OWN-123',
         ]);
-
-        $inProgress = new Crr([
-            'hub_agent' => 'AMS',
+        $inProgress = $this->matchingStock([
             'status' => Crr::STATUS_IN_PROGRESS,
             'internal_shipment' => null,
         ]);
+        $hubInfo = $this->infoFor($withOwn, 'SHIP-AMS-1', 42);
 
         $this->assertSame([
             'number' => 'OWN-123',
@@ -70,22 +50,49 @@ class CrrStockListShipmentDisplayTest extends TestCase
         ], $inProgress->stockListShipmentColumn($hubInfo));
     }
 
-    public function test_different_hub_does_not_inherit(): void
+    public function test_different_hub_vessel_location_or_customer_does_not_inherit(): void
     {
-        $hubInfo = collect([
-            'AMS' => ['number' => 'SHIP-AMS-1', 'shipment_id' => 42],
-        ]);
-
-        $dxbStock = new Crr([
-            'hub_agent' => 'DXB',
-            'status' => Crr::STATUS_ACTIVE,
-            'internal_shipment' => null,
-        ]);
-
-        $this->assertSame([
+        $source = $this->matchingStock();
+        $hubInfo = $this->infoFor($source, 'SHIP-AMS-1', 42);
+        $empty = [
             'number' => '',
             'inherited' => false,
             'shipment_id' => null,
-        ], $dxbStock->stockListShipmentColumn($hubInfo));
+        ];
+
+        $differentHub = $this->matchingStock(['hub_agent' => 'DXB']);
+        $differentVessel = $this->matchingStock(['vessel_name' => 'Other Vessel']);
+        $differentLocation = $this->matchingStock(['location' => 'Shed B']);
+        $differentCustomer = $this->matchingStock();
+        $differentCustomer->setRelation('customerVessel', new CustomerVessel(['customer_id' => 10]));
+
+        $this->assertSame($empty, $differentHub->stockListShipmentColumn($hubInfo));
+        $this->assertSame($empty, $differentVessel->stockListShipmentColumn($hubInfo));
+        $this->assertSame($empty, $differentLocation->stockListShipmentColumn($hubInfo));
+        $this->assertSame($empty, $differentCustomer->stockListShipmentColumn($hubInfo));
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    private function matchingStock(array $overrides = []): Crr
+    {
+        $stock = new Crr(array_merge([
+            'hub_agent' => 'AMS',
+            'vessel_name' => 'Angel',
+            'location' => 'Shed A',
+            'status' => Crr::STATUS_NEW,
+            'internal_shipment' => null,
+        ], $overrides));
+        $stock->setRelation('customerVessel', new CustomerVessel(['customer_id' => 9]));
+
+        return $stock;
+    }
+
+    private function infoFor(Crr $stock, string $number, int $shipmentId): Collection
+    {
+        return collect([
+            $stock->inheritedShipmentGroupKey() => ['number' => $number, 'shipment_id' => $shipmentId],
+        ]);
     }
 }

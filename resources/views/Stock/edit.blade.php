@@ -4859,10 +4859,11 @@ function updatePackageSummary() {
                 if (!docId) return;
 
                 $.ajax({
-                    url: '{{ route('stocks.documents.update-internal', ':docId') }}'.replace(':docId', docId),
-                    type: 'PATCH',
+                    url: '{{ route('stocks.documents.update-internal', ':docId') }}'.replace(':docId', docId) + '?is_internal=' + isInternal,
+                    type: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}',
+                        _method: 'PATCH',
+                        _token: $('meta[name="csrf-token"]').attr('content'),
                         is_internal: isInternal
                     },
                     error: function () {

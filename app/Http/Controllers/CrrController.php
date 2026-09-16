@@ -212,6 +212,7 @@ class CrrController extends Controller
             return back()->withInput()->with('error', 'Failed to save CRR: ' . $e->getMessage());
         }
     }
+
     public function edit($id)
     {
         $crr = $this->crrRepository->findWithRelationsOrFail((int) $id, [
@@ -822,6 +823,10 @@ class CrrController extends Controller
     public function updateDocumentInternal(Request $request, $docId, CrrChangeLogService $changeLogService)
     {
         $doc = $this->crrRepository->findDocumentOrFail((int) $docId);
+
+        $request->merge([
+            'is_internal' => $request->input('is_internal', $request->query('is_internal')),
+        ]);
 
         $validated = $request->validate([
             'is_internal' => ['required', 'boolean'],

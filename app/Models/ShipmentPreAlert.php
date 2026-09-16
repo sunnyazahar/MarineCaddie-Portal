@@ -52,9 +52,9 @@ class ShipmentPreAlert extends Model
     public static function labelForVersion(int $version): string
     {
         if ($version <= 1) {
-            return 'pre-alert';
+            return 'Pre Arrival Notification';
         }
 
-        return 'pre-alert ' . ($version - 1);
+        return 'Pre Arrival Notification ' . ($version - 1);
     }
 }

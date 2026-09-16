@@ -574,7 +574,7 @@ Modules like Agent, Hub, Customer, Shipment, Stock use tabbed edit UI:
 
 - SweetAlert confirm → `window.mcAjaxDelete({ url, success, error })` (`partials/common-assets-scripts`)
 - Helper uses real HTTP `DELETE` + `X-CSRF-TOKEN` from `meta[name="csrf-token"]` (do **not** POST+`_method` on nested admin routes that only register PUT/DELETE — spoof miss → “POST method is not supported”)
-- CSRF must be in the **header** because Hostinger/PHP often drop DELETE bodies (`_token` body alone caused production CSRF mismatch)
+- CSRF must be in the **header** because Hostinger/PHP often drop DELETE/PATCH bodies (`_token` body alone caused production CSRF mismatch; dropped PATCH body made `is_internal` look required). Document internal toggles use `POST` + `_method=PATCH` and also send `is_internal` on the query string.
 - Global `$.ajaxSetup({ headers: { 'X-CSRF-TOKEN': … } })` also lives there
 - SweetAlert callback mein **destroyed DataTables** par `.draw()` / `.invalidate()` mat karo
 - Success par list row remove ya `bindAjaxListFilters` reload
@@ -962,7 +962,7 @@ A **new PDF revision** is created only when the relevant fingerprint changes aft
 
 Fingerprint: `manifestFingerprint()` → `manifestRevisionPayload()`.
 
-**First-page header** (`resources/views/Shipment/pdf/manifest.blade.php`): centered `[SHIPPING INSTRUCTION]` with the logo on its right, details box left (same width as the field grid; rows Service / Ref No. / Shipment handled by). Then Attn / Departure Port / Arrival Port / Shipment Mode / Pcs / Wt. / Dims / Deadline Date grid. Invoice / packing pages keep the existing party header. Manifest footer (every page): divider, then centered `Shipped By: MarineCaddie Shipping LLC | E-mail | Phone`, page number centered below it. Pre-alert PDF uses the same heading, with `Pre Arrival Notification` instead of `[SHIPPING INSTRUCTION]`, its own `(Revision N)` from the pre-alert version (not the manifest revision), and the same footer: divider, centered `Shipped By` line, page number centered below it. Pre-alert first details table: `Service: {service} / {additional service}`, `MarineCaddie Ref. No.`, `Customer's PO No.` (`customer_reference`), `Shipment arranged by: MarineCaddie Shipping LLC`, `MarineCaddie account handler:` (shipment account manager name). Pre-alert page 2 repeats that details table and adds the service reference row (`AWB` / `B/L` / `CMR`) in the same table. Pre-alert PDF vessel heading on both pages is `Master of Vessel {NAME} IN TRANSIT` (mail still uses `M/V {name} in transit`). Pre-alert page 2 cargo table matches the Shipping Invoice table: Stock number, PO Number, Supplier name, Pieces, Wt (KG), Value (USD) (no USD on row or total values). **Repacked** on that summary comes from Carrier Details (`repacked_items` / `repacked_weight`), not stock repacked fields.
+**First-page header** (`resources/views/Shipment/pdf/manifest.blade.php`): centered `[SHIPPING INSTRUCTION]` with the logo on its right, details box left (same width as the field grid; rows Service / Ref No. / Shipment handled by). Then Attn / Departure Port / Arrival Port / Shipment Mode / Pcs / Wt. / Dims / Deadline Date grid. Invoice / packing pages keep the existing party header. Manifest footer (every page): divider, then centered `MarineCaddie Shipping LLC | E-mail | Phone` (no `Shipped By:`), page number centered below it. Pre-alert PDF uses the same heading, with `Pre Arrival Notification` instead of `[SHIPPING INSTRUCTION]`, its own `(Revision N)` from the pre-alert version (not the manifest revision), and the same footer: divider, centered company line, page number centered below it. Pre-alert first details table: `Service: {service} / {additional service}`, `MarineCaddie Ref. No.`, `Customer's PO No.` (`customer_reference`), `Shipment arranged by: MarineCaddie Shipping LLC`, `MarineCaddie account handler:` (shipment account manager name). Documents list and download name use `Pre Arrival Notification` (`Pre Arrival Notification {revision}` after the first). Pre-alert page 2 repeats that details table and adds the service reference row (`AWB` / `B/L` / `CMR`) in the same table. Pre-alert PDF vessel heading on both pages is `Master of Vessel {NAME} IN TRANSIT` (mail still uses `M/V {name} in transit`). Pre-alert page 2 cargo table matches the Shipping Invoice table: Stock number, PO Number, Supplier name, Pieces, Wt (KG), Value (USD) (no USD on row or total values). **Repacked** on that summary comes from Carrier Details (`repacked_items` / `repacked_weight`), not stock repacked fields.
 
 ### Pre-alert PDF — new revision when
 
@@ -997,7 +997,7 @@ Create-pre-alert save stays on create-pre-alert via hidden `return_to=create-pre
 
 ### Stocks list (`/stocks`) — inherited shipment column (display only)
 
-When the same **hub** has an **In Progress** stock with `internal_shipment` set, **New** / **Stock** rows in that hub with empty `internal_shipment` show that shipment number in the **Shipment** column — **UI only**, DB not updated.
+When an **In Progress** stock with `internal_shipment` set shares the same **hub**, **vessel**, **location**, and **customer**, **New** / **Stock** rows with empty `internal_shipment` show that shipment number in the **Shipment** column — **UI only**, DB not updated. A different vessel, location, or customer does not inherit.
 
 | Piece | Location |
 |---|---|
@@ -1408,4 +1408,4 @@ Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | ta
 
 ---
 
-*Last updated: 2026-08-29 — §12c stocks list inherited shipment + Accept rules; §12a Transit/create-pre-alert workflow pages + Complete Pre alert endpoint; Accept no longer changes status.*
+*Last updated: 2026-09-16 — §12c inherited shipment requires hub + vessel + location + customer.*

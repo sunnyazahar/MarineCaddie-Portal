@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pre-alert {{ $shipment->shipment_number }}</title>
+    <title>Pre Arrival Notification {{ $shipment->shipment_number }}</title>
     <style>
         @page { size: A4; margin: 12mm 10mm 28mm 10mm; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #222; line-height: 1.4; margin: 0; }

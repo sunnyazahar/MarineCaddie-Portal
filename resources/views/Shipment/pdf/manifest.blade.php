@@ -161,7 +161,7 @@
         .agent-box-table td { padding: 2px 0; vertical-align: top; font-size: 12px; }
         .agent-box-label { width: 18%; font-weight: normal; }
         .comments-title { font-size: 13px; font-weight: bold; color: #000000; margin: 10px 0 4px; }
-        .comments-body { white-space: pre-wrap; font-size: 12px; line-height: 1.45; color: #dc2626; }
+        .comments-body { white-space: pre-wrap; font-size: 12px; line-height: 1.45; color: #104382; }
     </style>
 </head>
 <body>
@@ -223,7 +223,11 @@
         </table>';
     };
 
-    $serviceDisplay = trim(e($serviceLabel ?? '—') . (!empty($additionalServiceLabel) && $additionalServiceLabel !== '—' ? '<br>' . e($additionalServiceLabel) : ''));
+    $serviceParts = array_filter([
+        ! empty($serviceLabel) && $serviceLabel !== '—' ? e($serviceLabel) : null,
+        ! empty($additionalServiceLabel) && $additionalServiceLabel !== '—' ? e($additionalServiceLabel) : null,
+    ]);
+    $serviceDisplay = $serviceParts !== [] ? implode(' / ', $serviceParts) : '—';
 @endphp
 
 {{-- Shipping Instruction — title centered, logo on its right, details box aligned with the field grid --}}

@@ -79,7 +79,7 @@ class ShipmentPdfCompanyFooter
         $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans');
         $size = 10.0;
         $marginX = 28.35;
-        $shippedBy = 'Shipped By: ' . CompanyAddress::NAME
+        $shippedBy = CompanyAddress::NAME
             . ' | E-mail: ' . CompanyAddress::EMAIL
             . ' | Phone: ' . CompanyAddress::PHONE;
 

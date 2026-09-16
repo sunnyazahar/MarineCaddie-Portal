@@ -254,7 +254,7 @@ class ShipmentManifestController extends BaseShipmentController
 
         return response()->file($path, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="pre-alert-' . $preAlert->shipment->shipment_number . '-' . $preAlert->version . '.pdf"',
+            'Content-Disposition' => 'inline; filename="' . str_replace(' ', '-', $preAlert->displayLabel()) . '-' . $preAlert->shipment->shipment_number . '.pdf"',
         ]);
     }
 

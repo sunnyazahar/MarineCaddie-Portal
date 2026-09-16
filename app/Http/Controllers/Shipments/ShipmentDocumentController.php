@@ -106,6 +106,10 @@ class ShipmentDocumentController extends BaseShipmentController
     {
         $document = $this->shipmentRepository->findDocumentOrFail((int) $docId);
 
+        $request->merge([
+            'is_internal' => $request->input('is_internal', $request->query('is_internal')),
+        ]);
+
         $validated = $request->validate([
             'is_internal' => ['required', 'boolean'],
         ]);
