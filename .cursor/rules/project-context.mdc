@@ -12,6 +12,7 @@ Full standards: `PROJECT_STANDARDS.md` (read it before any non-trivial change).
 - jQuery, Bootstrap, **DataTables 1.10.20**, SweetAlert v1
 - Production: `portal.marinecaddie.com` (Hostinger)
 - Local: `http://localhost/laravel` (XAMPP, `.env` points to production DB)
+- Hostinger often drops PATCH/DELETE bodies — use `POST` + `_method` and put required fields on the query string (document internal, agent/hub status)
 
 ## Pre-change checklist (always run mentally)
 1. Read `PROJECT_STANDARDS.md` for the affected module — **§6g pehle agar Blade/form/list ho**

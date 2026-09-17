@@ -250,6 +250,10 @@ class AgentController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        $request->merge([
+            'status' => $request->input('status', $request->query('status')),
+        ]);
+
         $validated = $request->validate([
             'status' => ['required', 'in:active,inactive'],
         ]);

@@ -223,6 +223,10 @@ class HubController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        $request->merge([
+            'status' => $request->input('status', $request->query('status')),
+        ]);
+
         $validated  = $request->validate(['status' => ['required', 'in:active,inactive']]);
         $hub        = $this->hubs->findOrFail((int) $id);
         $isInactive = $validated['status'] === 'inactive';

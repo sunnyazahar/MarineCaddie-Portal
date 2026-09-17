@@ -424,9 +424,10 @@
                     $button.prop('disabled', true);
 
                     $.ajax({
-                        url: $button.data('url'),
-                        type: 'PATCH',
+                        url: $button.data('url') + '?status=' + encodeURIComponent(nextStatus),
+                        type: 'POST',
                         data: {
+                            _method: 'PATCH',
                             _token: window.mcCsrfToken(),
                             status: nextStatus
                         },
