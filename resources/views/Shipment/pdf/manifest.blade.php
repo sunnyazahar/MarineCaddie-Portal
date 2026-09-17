@@ -271,11 +271,11 @@
         </tr>
         <tr>
             <td class="si-field-label">Departure Port</td>
-            <td>{{ $destinationPort }}</td>
+            <td>{{ $departurePort }}</td>
         </tr>
         <tr>
             <td class="si-field-label">Arrival Port</td>
-            <td>{{ $departurePort }}</td>
+            <td>{{ $destinationPort }}</td>
         </tr>
         <tr>
             <td class="si-field-label">Shipment Mode</td>
