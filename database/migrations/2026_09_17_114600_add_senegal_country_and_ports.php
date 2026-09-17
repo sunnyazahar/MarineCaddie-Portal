@@ -14,20 +14,27 @@ return new class extends Migration
         $countryColumns = Schema::getColumnListing('countries');
         $portColumns = Schema::getColumnListing('ports');
 
-        DB::table('countries')->updateOrInsert(
-            ['iso_code' => 'SN'],
-            array_filter([
-                'name' => 'Senegal',
-                'iso3_code' => 'SEN',
-                'currency' => 'XOF',
-                'phone_code' => in_array('phone_code', $countryColumns, true) ? '+221' : null,
-                'flag_url' => in_array('flag_url', $countryColumns, true) ? 'https://flagcdn.com/sn.svg' : null,
-                'flag_emoji' => in_array('flag_emoji', $countryColumns, true) ? '🇸🇳' : null,
-                'is_active' => 1,
-                'updated_at' => in_array('updated_at', $countryColumns, true) ? $now : null,
-                'created_at' => in_array('created_at', $countryColumns, true) ? DB::raw('COALESCE(created_at, NOW())') : null,
-            ], fn ($value) => $value !== null)
-        );
+        $countryValues = array_filter([
+            'name' => 'Senegal',
+            'iso3_code' => 'SEN',
+            'currency' => 'XOF',
+            'phone_code' => in_array('phone_code', $countryColumns, true) ? '+221' : null,
+            'flag_url' => in_array('flag_url', $countryColumns, true) ? 'https://flagcdn.com/sn.svg' : null,
+            'flag_emoji' => in_array('flag_emoji', $countryColumns, true) ? '🇸🇳' : null,
+            'is_active' => 1,
+            'updated_at' => in_array('updated_at', $countryColumns, true) ? $now : null,
+        ], fn ($value) => $value !== null);
+
+        // Production created_at defaults to 0000-00-00, which strict mode rejects.
+        // Set a real timestamp only on insert; leave an existing row's created_at alone.
+        if (
+            in_array('created_at', $countryColumns, true)
+            && ! DB::table('countries')->where('iso_code', 'SN')->exists()
+        ) {
+            $countryValues['created_at'] = $now;
+        }
+
+        DB::table('countries')->updateOrInsert(['iso_code' => 'SN'], $countryValues);
 
         $countryId = DB::table('countries')->where('iso_code', 'SN')->value('id');
 
@@ -67,6 +74,13 @@ return new class extends Migration
                 $lookup['iata_code'] = $row['iata_code'];
             } else {
                 $lookup['un_locode'] = $row['un_locode'];
+            }
+
+            if (
+                in_array('created_at', $portColumns, true)
+                && ! DB::table('ports')->where($lookup)->exists()
+            ) {
+                $row['created_at'] = $now;
             }
 
             DB::table('ports')->updateOrInsert($lookup, $row);
