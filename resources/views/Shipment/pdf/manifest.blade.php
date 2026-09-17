@@ -306,7 +306,7 @@
                         @endif
                     </strong>
                     @if (empty($isOnBoardDelivery))
-                        <br> {{ $consigneeAddress }}
+                        <br>{!! nl2br(e($consigneeAddress), false) !!}
                     @endif
                     <br> Email: {{ $consigneeEmail }}
                     <br> Phone: {{ $consigneePhone }}

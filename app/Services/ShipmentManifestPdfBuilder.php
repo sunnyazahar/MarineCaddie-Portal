@@ -429,7 +429,7 @@ class ShipmentManifestPdfBuilder
 
     private function formatShipmentAddress(Shipment $shipment, bool $includePhone = false): string
     {
-        $address = trim((string) $shipment->consignee_address);
+        $address = $this->normalizeAddressLines((string) $shipment->consignee_address);
         $locality = $this->joinParts([
             $shipment->consignee_city,
             $shipment->consignee_district,
@@ -441,16 +441,19 @@ class ShipmentManifestPdfBuilder
             return $locality !== '' ? $locality : '—';
         }
 
-        if ($locality === '') {
+        if ($locality === '' || str_contains($address, $locality)) {
             return $address;
         }
 
-        $address = rtrim($address);
-        if (! str_ends_with($address, ',')) {
-            $address .= ',';
-        }
+        return $address."\n".$locality;
+    }
 
-        return $address . "\n" . $locality;
+    private function normalizeAddressLines(string $address): string
+    {
+        $address = str_replace(["\r\n", "\r"], "\n", $address);
+        $lines = array_map(static fn (string $line) => rtrim($line), explode("\n", $address));
+
+        return trim(implode("\n", $lines));
     }
 
     private function formatContactLine(array $party): string
