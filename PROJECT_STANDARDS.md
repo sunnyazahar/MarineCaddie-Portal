@@ -879,7 +879,7 @@ Select2 for status/flags: `dropdownParent: $(document.body)` + high z-index so t
 - Linked CRRs → **Completed**
 - **No** `duplicateStocksForTransit()` — destination copies are **not** created on Complete
 
-**Delivery follow-up** (`/shipment-follow-up`): shows shipments that are not Draft/Cancelled/**In process** and have **`arrived_at` null** — including **In transit** / **Completed**. **Mark as arrived** sets `arrived_at` and Completes the shipment if needed; row then leaves the list.
+**Delivery follow-up** (`/shipment-follow-up`): shows shipments that are not Draft/Cancelled/**In process**, have **`arrived_at` null**, and already have a **pre-alert PDF** (`whereHas('preAlerts')`) — including **In transit** / **Completed**. **Mark as arrived** sets `arrived_at` and Completes the shipment if needed; row then leaves the list.
 
 **Pre-alert reminders** (`/pre-alert-reminders`): shows shipments that are not Completed/Cancelled and have **no pre-alert PDF yet** (`whereDoesntHave('preAlerts')`). Once a pre-alert is generated, the row leaves the list.
 
