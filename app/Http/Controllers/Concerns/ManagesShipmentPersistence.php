@@ -39,7 +39,7 @@ trait ManagesShipmentPersistence
             'consignee_port_code' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
             'consignee_att' => [$isCreate ? 'nullable' : 'required', 'string', 'max:255'],
-            'consignee_email' => 'nullable|email|max:255',
+            'consignee_email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
             'account_manager' => [$isCreate ? 'required' : 'nullable', 'integer', 'exists:contacts,id'],
             'status' => 'nullable|string|max:255',
             'repacked_items' => 'nullable|integer|min:0',
@@ -202,7 +202,7 @@ trait ManagesShipmentPersistence
             'consignee_port_code' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
             'consignee_att' => 'nullable|string|max:255',
-            'consignee_email' => 'nullable|string|max:255',
+            'consignee_email' => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
             'account_manager' => 'nullable|integer|exists:contacts,id',
             'status' => 'nullable|string|max:255',
             'repacked_items' => 'nullable|integer|min:0',
@@ -221,6 +221,24 @@ trait ManagesShipmentPersistence
             'crr_ids' => 'nullable|array',
             'crr_ids.*' => 'integer|exists:crrs,id',
         ];
+    }
+
+    protected function multipleEmailsValidator(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            $emails = preg_split('/\s*[,;]\s*/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($emails as $email) {
+                if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $fail('Each email address must be valid.');
+
+                    return;
+                }
+            }
+        };
     }
 
     protected function preAlertMailRules(): array

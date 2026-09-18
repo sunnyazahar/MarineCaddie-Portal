@@ -112,8 +112,8 @@
                                                                             </div>
 
                                                                             <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Phone number (with country code)</label>
-                                                                                <input type="text" name="phone_number" class="form-input-custom" value="{{ $hub->phone_number }}">
+                                                                                <label class="form-label-custom">Phone number (with country code) <span class="text-danger">*</span></label>
+                                                                                <input type="text" name="phone_number" class="form-input-custom" value="{{ $hub->phone_number }}" required>
                                                                             </div>
 
                                                                             <div class="form-group-custom">
@@ -132,15 +132,9 @@
                                                                                 <label class="form-label-custom" for="is_gts_company">This hub is part of GTS company</label>
                                                                             </div>
 
-                                                                            <div class="input-row">
-                                                                                <div class="form-group-custom">
-                                                                                    <label class="form-label-custom">EORI number</label>
-                                                                                    <input type="text" name="eori_number" class="form-input-custom" value="{{ $hub->eori_number }}">
-                                                                                </div>
-                                                                                <div class="form-group-custom">
-                                                                                    <label class="form-label-custom">UN/LOCODE</label>
-                                                                                    <input type="text" name="un_locode" class="form-input-custom" value="{{ $hub->un_locode }}">
-                                                                                </div>
+                                                                            <div class="form-group-custom">
+                                                                                <label class="form-label-custom">EORI number</label>
+                                                                                <input type="text" name="eori_number" class="form-input-custom" value="{{ $hub->eori_number }}">
                                                                             </div>
 
                                                                             <div class="form-group-custom">
@@ -149,7 +143,7 @@
                                                                             </div>
 
                                                                             <div class="form-group-custom">
-                                                                                <label class="form-label-custom">Special considerations for destination</label>
+                                                                                <label class="form-label-custom">Notes for consignee</label>
                                                                                 <textarea name="special_considerations" class="form-textarea-custom" rows="3">{{ $hub->special_considerations }}</textarea>
                                                                             </div>
                                                                         </div>
@@ -505,6 +499,9 @@
                     code_description: {
                         required: true
                     },
+                    phone_number: {
+                        required: true
+                    },
                     email: {
                         required: true,
                         multiEmail: true
@@ -535,6 +532,9 @@
                     },
                     code_description: {
                         required: "Please enter the code description"
+                    },
+                    phone_number: {
+                        required: "Please enter the phone number"
                     },
                     email: {
                         required: "Please enter the email",

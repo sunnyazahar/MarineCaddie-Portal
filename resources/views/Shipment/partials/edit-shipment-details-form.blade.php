@@ -188,26 +188,32 @@
                     </div>
                 </div>
             </div>
-            <x-forms.country-select
-                name="consignee_country"
-                id="consignee-country"
-                label="Country / region"
-                :countries="$countries"
-                valueKey="name"
-                :value="$shipment->consignee_country"
-                wrapperClass="form-group mb-2"
-                labelClass="mb-0"
-                class="form-control"
-                placeholder="Select country"
-                :allowClear="true"
-                dropdownParent="body"
-            />
-            <div class="form-group mb-2">
-                <label class="mb-0" style="font-size: 11px;">Consignee contact <span class="text-danger">*</span></label>
-                <input type="text" id="consignee-att" name="consignee_att" class="form-control filter-input" value="{{ old('consignee_att', $shipment->consignee_att) }}" required>
+            <div class="row">
+                <div class="col-md-6 pr-1">
+                    <x-forms.country-select
+                        name="consignee_country"
+                        id="consignee-country"
+                        label="Country / region"
+                        :countries="$countries"
+                        valueKey="name"
+                        :value="$shipment->consignee_country"
+                        wrapperClass="form-group mb-2"
+                        labelClass="mb-0"
+                        class="form-control"
+                        placeholder="Select country"
+                        :allowClear="true"
+                        dropdownParent="body"
+                    />
+                </div>
+                <div class="col-md-6 pl-1">
+                    <div class="form-group mb-2">
+                        <label class="mb-0" style="font-size: 11px;">Consignee contact <span class="text-danger">*</span></label>
+                        <input type="text" id="consignee-att" name="consignee_att" class="form-control filter-input" value="{{ old('consignee_att', $shipment->consignee_att) }}" required>
+                    </div>
+                </div>
             </div>
             <div class="row">
-                <div class="col-md-4 pr-1">
+                <div class="col-md-6 pr-1">
                     <x-forms.port-select
                         name="consignee_port_code"
                         id="consignee-port-code"
@@ -219,18 +225,18 @@
                         :required="true"
                     />
                 </div>
-                <div class="col-md-4 px-1">
+                <div class="col-md-6 pl-1">
                     <div class="form-group mb-2">
                         <label class="mb-0" style="font-size: 11px;">Delivery location</label>
                         <input type="text" id="location" name="location" class="form-control filter-input" value="{{ old('location', $shipment->location) }}">
                     </div>
                 </div>
-                <div class="col-md-4 pl-1">
-                    <div class="form-group mb-2">
-                        <label class="mb-0" style="font-size: 11px;">Contact email</label>
-                        <input type="email" id="consignee-email" name="consignee_email" class="form-control filter-input" value="{{ old('consignee_email', $shipment->consignee_email) }}">
-                    </div>
-                </div>
+            </div>
+            <div class="form-group mb-2">
+                <label class="mb-0" style="font-size: 11px;">Contact email</label>
+                <textarea id="consignee-email" name="consignee_email" class="form-control filter-input" rows="1"
+                    style="height: auto !important; min-height: 38px; resize: none;"
+                    placeholder="email@example.com; email2@example.com">{{ old('consignee_email', $shipment->consignee_email) }}</textarea>
             </div>
         </div>{{-- .cs-pillar --}}
     </div>

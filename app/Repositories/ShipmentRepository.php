@@ -204,7 +204,8 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
                 'irregularities',
             ])
             ->withCount('preAlertReminderSends as reminder_sent_count')
-            ->where('status', '!=', 'Completed');
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
+            ->whereDoesntHave('preAlerts');
 
         $this->applyShipmentFollowUpFilters($query, $filters);
 
@@ -234,7 +235,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
                 'onBoardLegs',
             ])
             ->withMax('preAlertReminderSends as last_reminder_sent_at', 'created_at')
-            ->whereNotIn('status', ['Draft', 'Cancelled'])
+            ->whereNotIn('status', ['Draft', 'Cancelled', 'In process'])
             ->whereNull('arrived_at');
 
         $this->applyShipmentFollowUpFilters($query, $filters);
@@ -276,9 +277,9 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
     {
         $baseQuery = $this->query();
         if ($scope === 'not_completed') {
-            $baseQuery->where('status', '!=', 'Completed');
+            $baseQuery->whereNotIn('status', ['Completed', 'Cancelled'])->whereDoesntHave('preAlerts');
         } elseif ($scope === 'follow_up') {
-            $baseQuery->whereNotIn('status', ['Draft', 'Cancelled'])->whereNull('arrived_at');
+            $baseQuery->whereNotIn('status', ['Draft', 'Cancelled', 'In process'])->whereNull('arrived_at');
         } else {
             $baseQuery->where('status', '!=', 'Cancelled');
         }

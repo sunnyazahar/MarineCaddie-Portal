@@ -88,6 +88,7 @@ class AgentController extends Controller
         ]);
 
         $validated['show_pre_alert'] = false;
+        $validated['is_active'] = true;
 
         $this->agents->create($validated);
 

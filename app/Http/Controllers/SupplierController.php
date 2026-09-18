@@ -173,13 +173,13 @@ class SupplierController extends Controller
     {
         return [
             'supplier_name'     => 'required|string|max:255',
-            'email'             => ['required', 'string', 'max:255', $this->multipleEmailsValidator()],
-            'phone_number'      => 'required|string|max:255',
-            'contact_person'    => 'required|string|max:255',
-            'supplier_address'  => 'required|string',
-            'city'              => 'required|string|max:255',
-            'country_id'        => 'required|exists:countries,id',
-            'port_code'         => 'required|string|max:255',
+            'email'             => ['nullable', 'string', 'max:255', $this->multipleEmailsValidator()],
+            'phone_number'      => 'nullable|string|max:255',
+            'contact_person'    => 'nullable|string|max:255',
+            'supplier_address'  => 'nullable|string',
+            'city'              => 'nullable|string|max:255',
+            'country_id'        => 'nullable|exists:countries,id',
+            'port_code'         => 'nullable|string|max:255',
             'office_country_id' => 'nullable|exists:countries,id',
         ];
     }

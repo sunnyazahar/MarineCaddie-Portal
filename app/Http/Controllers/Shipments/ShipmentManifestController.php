@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 class ShipmentManifestController extends BaseShipmentController
 {
-    public function generateManifest(Request $request, $id, ShipmentManifestService $manifestService, CombinedPoPdfService $combinedPoPdfService, ShipmentPdfFingerprintService $fingerprintService)
+    public function generateManifest(Request $request, $id, ShipmentManifestService $manifestService, CombinedPoPdfService $combinedPoPdfService, ShipmentPdfFingerprintService $fingerprintService, ShipmentChangeLogService $changeLogService)
     {
         $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['manifests', 'documents', 'crrs']);
         $this->normalizeManifestGenerationRequest($request);
@@ -32,9 +32,6 @@ class ShipmentManifestController extends BaseShipmentController
                 'errors' => $e->errors(),
             ], 422);
         }
-
-        $fingerprintService->prepareForFingerprint($shipment);
-        $manifestFingerprintBefore = $fingerprintService->manifestFingerprint($shipment);
 
         try {
             DB::transaction(function () use ($shipment, $request, $validated) {
@@ -69,36 +66,47 @@ class ShipmentManifestController extends BaseShipmentController
 
         $fingerprintService->prepareForFingerprint($shipment);
         $manifestCreated = false;
+        $createdManifest = null;
 
-        if (
-            $shipment->manifests->isEmpty()
-            || $fingerprintService->manifestFingerprint($shipment) !== $manifestFingerprintBefore
-        ) {
-            try {
-                $manifest = $manifestService->generate($shipment);
-                $manifestCreated = $manifest !== null;
-            } catch (\Throwable $e) {
-                Log::error('Manifest generation failed: ' . $e->getMessage());
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Could not generate manifest PDF. Please try again.',
-                ], 500);
+        try {
+            $createdManifest = $manifestService->generate($shipment);
+            $manifestCreated = $createdManifest !== null;
+            if ($createdManifest) {
+                $changeLogService->log(
+                    $shipment,
+                    $createdManifest->version > 1 ? 'Revision created' : 'Manifest generated',
+                    $createdManifest->version > 1
+                        ? 'Revision ' . $createdManifest->version
+                        : $createdManifest->file_name . '.pdf'
+                );
             }
+        } catch (\Throwable $e) {
+            Log::error('Manifest generation failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not revise manifest PDF. Please try again.',
+            ], 500);
         }
 
         $manifests = $shipment->manifests()->orderBy('version')->get();
+        $latestManifest = $manifests->last();
+        $manifestRevision = ($latestManifest && $latestManifest->version >= 2)
+            ? ($latestManifest->version - 1)
+            : null;
 
         return response()->json([
             'success' => true,
             'created' => $manifestCreated,
+            'message' => 'Shipping Instruction revised.',
             'manifests' => $manifests->map(fn (ShipmentManifest $manifest) => $this->manifestToArray($manifest)),
+            'manifest_revision' => $manifestRevision,
             'document_count' => $this->shipmentDocumentCount($shipment, $combinedPoPdfService),
             'manifest_mail_pending' => $shipment->fresh('manifests')->needsManifestMailSend(),
         ]);
     }
 
-    public function generatePreAlert(Request $request, $id, ShipmentPreAlertService $preAlertService, CombinedPoPdfService $combinedPoPdfService, ShipmentPdfFingerprintService $fingerprintService)
+    public function generatePreAlert(Request $request, $id, ShipmentPreAlertService $preAlertService, CombinedPoPdfService $combinedPoPdfService, ShipmentPdfFingerprintService $fingerprintService, ShipmentChangeLogService $changeLogService)
     {
         $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, ['preAlerts', 'documents', 'crrs', 'manifests']);
         $this->normalizeManifestGenerationRequest($request);
@@ -112,9 +120,6 @@ class ShipmentManifestController extends BaseShipmentController
                 'errors' => $e->errors(),
             ], 422);
         }
-
-        $fingerprintService->prepareForFingerprint($shipment);
-        $revisionFingerprintBefore = $fingerprintService->preAlertFingerprint($shipment);
 
         try {
             DB::transaction(function () use ($shipment, $request, $validated) {
@@ -166,22 +171,27 @@ class ShipmentManifestController extends BaseShipmentController
 
         $fingerprintService->prepareForFingerprint($shipment);
         $preAlertCreated = false;
+        $createdPreAlert = null;
 
-        if (
-            ! $shipment->preAlerts()->exists()
-            || $fingerprintService->preAlertFingerprint($shipment) !== $revisionFingerprintBefore
-        ) {
-            try {
-                $preAlert = $preAlertService->generate($shipment);
-                $preAlertCreated = $preAlert !== null;
-            } catch (\Throwable $e) {
-                Log::error('Pre-alert generation failed: ' . $e->getMessage());
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Could not generate pre-alert PDF. Please try again.',
-                ], 500);
+        try {
+            $createdPreAlert = $preAlertService->generate($shipment);
+            $preAlertCreated = $createdPreAlert !== null;
+            if ($createdPreAlert) {
+                $changeLogService->log(
+                    $shipment,
+                    $createdPreAlert->version > 1 ? 'Pre-alert revision created' : 'Pre-alert generated',
+                    $createdPreAlert->version > 1
+                        ? 'Revision ' . $createdPreAlert->version
+                        : $createdPreAlert->file_name . '.pdf'
+                );
             }
+        } catch (\Throwable $e) {
+            Log::error('Pre-alert generation failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not revise pre-alert PDF. Please try again.',
+            ], 500);
         }
 
         $preAlerts = $shipment->preAlerts()->orderBy('version')->get();
@@ -189,9 +199,11 @@ class ShipmentManifestController extends BaseShipmentController
         return response()->json([
             'success' => true,
             'created' => $preAlertCreated,
+            'message' => 'Pre Arrival Notification revised.',
             'pre_alerts' => $preAlerts->map(fn (ShipmentPreAlert $preAlert) => $this->preAlertToArray($preAlert)),
             'document_count' => $this->shipmentDocumentCount($shipment, $combinedPoPdfService),
             'pre_alert_mail_pending' => $shipment->fresh('preAlerts')->needsPreAlertMailSend(),
+            'has_pre_alert_pdf' => $preAlerts->isNotEmpty(),
         ]);
     }
 

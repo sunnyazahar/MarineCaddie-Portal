@@ -14,9 +14,6 @@ use App\Services\CombinedPoPdfService;
 use App\Services\ManifestMailService;
 use App\Services\PreAlertMailService;
 use App\Services\ShipmentChangeLogService;
-use App\Services\ShipmentManifestService;
-use App\Services\ShipmentPdfFingerprintService;
-use App\Services\ShipmentPreAlertService;
 use App\Services\ShipmentStockSnapshotService;
 use App\Services\ShipmentTransitStockDuplicationService;
 use Illuminate\Http\Request;
@@ -59,8 +56,6 @@ class ShipmentController extends BaseShipmentController
         ManifestMailService $manifestMailService,
         PreAlertMailService $preAlertMailService,
         CombinedPoPdfService $combinedPoPdfService,
-        ShipmentManifestService $manifestService,
-        ShipmentPreAlertService $preAlertService,
         ShipmentStockSnapshotService $stockSnapshotService,
         ShipmentTransitStockDuplicationService $transitStockDuplicationService
     ) {
@@ -73,8 +68,6 @@ class ShipmentController extends BaseShipmentController
                 $manifestMailService,
                 $preAlertMailService,
                 $combinedPoPdfService,
-                $manifestService,
-                $preAlertService,
                 $stockSnapshotService,
                 $transitStockDuplicationService
             );
@@ -125,8 +118,6 @@ class ShipmentController extends BaseShipmentController
         ManifestMailService $manifestMailService,
         PreAlertMailService $preAlertMailService,
         CombinedPoPdfService $combinedPoPdfService,
-        ShipmentManifestService $manifestService,
-        ShipmentPreAlertService $preAlertService,
         ShipmentStockSnapshotService $stockSnapshotService,
         ShipmentTransitStockDuplicationService $transitStockDuplicationService
     ) {
@@ -139,8 +130,6 @@ class ShipmentController extends BaseShipmentController
                 $manifestMailService,
                 $preAlertMailService,
                 $combinedPoPdfService,
-                $manifestService,
-                $preAlertService,
                 $stockSnapshotService,
                 $transitStockDuplicationService
             );
@@ -604,7 +593,7 @@ class ShipmentController extends BaseShipmentController
         }
     }
 
-    public function edit($id, ManifestMailService $manifestMailService, PreAlertMailService $preAlertMailService, CombinedPoPdfService $combinedPoPdfService, ShipmentManifestService $manifestService, ShipmentPreAlertService $preAlertService, ShipmentStockSnapshotService $stockSnapshotService, ShipmentTransitStockDuplicationService $transitStockDuplicationService)
+    public function edit($id, ManifestMailService $manifestMailService, PreAlertMailService $preAlertMailService, CombinedPoPdfService $combinedPoPdfService, ShipmentStockSnapshotService $stockSnapshotService, ShipmentTransitStockDuplicationService $transitStockDuplicationService)
     {
         $shipment = $this->shipmentRepository->findWithRelationsOrFail((int) $id, [
             'crrs.packages',
@@ -642,16 +631,6 @@ class ShipmentController extends BaseShipmentController
 
         $combinedPoDocuments = $combinedPoPdfService->documentsForShipment($shipment);
         $shipmentDocumentTypeOptions = ShipmentDocument::fileTypeOptionsWithCustom();
-
-        if ($shipment->manifests->isEmpty() && $shipment->crrs->isNotEmpty()) {
-            $manifestService->generate($shipment);
-            $shipment->load('manifests');
-        }
-
-        if ($shipment->preAlerts->isEmpty() && $shipment->crrs->isNotEmpty() && \App\Services\ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails($shipment)) {
-            $preAlertService->generate($shipment);
-            $shipment->load('preAlerts');
-        }
 
         $manifestMailPreview = null;
         try {
@@ -855,7 +834,7 @@ class ShipmentController extends BaseShipmentController
         }
     }
 
-    public function update(Request $request, $id, ShipmentPdfFingerprintService $fingerprintService, ShipmentChangeLogService $changeLogService)
+    public function update(Request $request, $id, ShipmentChangeLogService $changeLogService)
     {
         $shipment = $this->shipmentRepository->findOrFail((int) $id);
         $validated = $this->validateShipmentRequest($request, $shipment);
@@ -874,10 +853,6 @@ class ShipmentController extends BaseShipmentController
         ]);
         $partyNamesBefore = Shipment::batchResolvePartyNames(collect([$shipment]));
         $changeLogSnapshot = $changeLogService->captureSnapshot($shipment);
-
-        $fingerprintService->prepareForFingerprint($shipment);
-        $manifestFingerprintBefore = $fingerprintService->manifestFingerprint($shipment);
-        $preAlertFingerprintBefore = $fingerprintService->preAlertFingerprint($shipment);
         $previousCrrIds = $shipment->crrs->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
 
         DB::beginTransaction();
@@ -925,10 +900,7 @@ class ShipmentController extends BaseShipmentController
                 ->with('error', 'Failed to update shipment: ' . $e->getMessage());
         }
 
-        $freshShipment = $shipment->fresh($fingerprintService->relations());
-        $fingerprintService->prepareForFingerprint($freshShipment);
-
-        $freshShipment->load([
+        $freshShipment = $shipment->fresh([
             'crrs',
             'irregularities',
             'flights',
@@ -939,63 +911,20 @@ class ShipmentController extends BaseShipmentController
             'handCarryLegs',
             'onBoardLegs',
             'accountManager',
+            'manifests',
+            'preAlerts',
         ]);
         $changeLogService->logChangesFromSnapshot($freshShipment, $changeLogSnapshot, $partyNamesBefore);
-
-        $currentCrrIds = $freshShipment->crrs->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
-        $previousSorted = $previousCrrIds;
-        $currentSorted = $currentCrrIds;
-        sort($previousSorted);
-        sort($currentSorted);
-        $stocksChanged = $previousSorted !== $currentSorted;
-
-        if (
-            $stocksChanged
-            || $fingerprintService->manifestFingerprint($freshShipment) !== $manifestFingerprintBefore
-        ) {
-            try {
-                $manifest = app(ShipmentManifestService::class)->generate($freshShipment);
-                if ($manifest) {
-                    $changeLogService->log(
-                        $freshShipment,
-                        $manifest->version > 1 ? 'Revision created' : 'Manifest generated',
-                        $manifest->version > 1 ? 'Revision ' . $manifest->version : $manifest->file_name . '.pdf'
-                    );
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Manifest generation after shipment save failed: ' . $e->getMessage());
-            }
-        }
-
-        $shouldGeneratePreAlert = \App\Services\ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails($freshShipment)
-            && $fingerprintService->preAlertFingerprint($freshShipment) !== $preAlertFingerprintBefore;
-
-        if ($shouldGeneratePreAlert) {
-            try {
-                $preAlert = app(ShipmentPreAlertService::class)->generate($freshShipment);
-                if ($preAlert) {
-                    $changeLogService->log(
-                        $freshShipment,
-                        $preAlert->version > 1 ? 'Pre-alert revision created' : 'Pre-alert generated',
-                        $preAlert->version > 1 ? 'Revision ' . $preAlert->version : $preAlert->file_name . '.pdf'
-                    );
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Pre-alert generation after shipment save failed: ' . $e->getMessage());
-            }
-        }
 
         $message = 'Shipment ' . $shipment->shipment_number . ' updated successfully.';
 
         if ($request->expectsJson()) {
-            $freshShipment->loadMissing(['manifests', 'preAlerts']);
-
             return response()->json([
                 'success' => true,
                 'message' => $message,
                 'manifest_mail_pending' => $freshShipment->needsManifestMailSend(),
                 'pre_alert_mail_pending' => $freshShipment->needsPreAlertMailSend(),
-                'has_pre_alert_pdf' => $freshShipment->preAlerts()->exists(),
+                'has_pre_alert_pdf' => $freshShipment->preAlerts->isNotEmpty(),
             ]);
         }
 

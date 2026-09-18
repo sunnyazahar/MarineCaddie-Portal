@@ -95,7 +95,7 @@
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
+                                <label class="form-label-custom" for="special_considerations">Notes for consignee</label>
                                 <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
                             </div>
                         </div>

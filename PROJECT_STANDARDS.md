@@ -833,7 +833,7 @@ Use **Services** when logic involves:
 
 - PDF generation (manifest, pre-alert, combined PO) — revision fingerprints: **§12b**
 - Mail preview + send (ManifestMailService, PreAlertMailService)
-- Linked stock → shipment manifest regen (`LinkedStockShipmentManifestService`: after CRR update/status/flags/accept, create a new manifest on linked shipments except `Completed` / `Cancelled`)
+- Linked stock → shipment manifest regen disabled (`LinkedStockShipmentManifestService::regenerateForCrr` is a no-op; PDFs via Revise modal only — **§12b**)
 - Shipment Complete/Transit destination stock copies (`ShipmentTransitStockDuplicationService` — see **§12a**)
 - Stock change email to vessel account manager (`CrrAccountManagerNotifyService` → customer responsible AM Contact email; skip if no changes / no AM email; **never on first-time stock create**)
 - Multi-model transactions with side effects
@@ -879,7 +879,9 @@ Select2 for status/flags: `dropdownParent: $(document.body)` + high z-index so t
 - Linked CRRs → **Completed**
 - **No** `duplicateStocksForTransit()` — destination copies are **not** created on Complete
 
-**Delivery follow-up** (`/shipment-follow-up`): shows shipments that are not Draft/Cancelled and have **`arrived_at` null** — including **In transit** / **Completed**. **Mark as arrived** sets `arrived_at` and Completes the shipment if needed; row then leaves the list.
+**Delivery follow-up** (`/shipment-follow-up`): shows shipments that are not Draft/Cancelled/**In process** and have **`arrived_at` null** — including **In transit** / **Completed**. **Mark as arrived** sets `arrived_at` and Completes the shipment if needed; row then leaves the list.
+
+**Pre-alert reminders** (`/pre-alert-reminders`): shows shipments that are not Completed/Cancelled and have **no pre-alert PDF yet** (`whereDoesntHave('preAlerts')`). Once a pre-alert is generated, the row leaves the list.
 
 Destination duplicates are created only on:
 
@@ -949,28 +951,29 @@ Generation rules for **Transit** (and manual **In transit** status):
 
 ## 12b. Shipment Manifest & Pre-alert PDF Revision Rules
 
-> Service: `App\Services\ShipmentPdfFingerprintService`  
-> Applies to **`/shipments/edit/{id}`** and **`/create-pre-alert`** (same fingerprint logic on both pages).
+> Manual generate UI on **`/shipments/edit/{id}`** (also create-pre-alert / transit when a shipment is loaded).  
+> Fingerprint helper `App\Services\ShipmentPdfFingerprintService` remains for **mail prepare** only.
 
-A **new PDF revision** is created only when the relevant fingerprint changes after save, mail prepare, or explicit generate endpoints. Comments, dates, stock field edits (weight/supplier/content), departure party/port, and other administrative fields do **not** trigger a revision.
+A **new PDF** (first version or revision) is created only when the user clicks **Revise** → chooses **Shipping Instruction** or **Pre Arrival Notification**. Shipment save, edit page open, and stock updates do **not** auto-generate PDFs.
 
-### Manifest PDF — new revision when
+### Manual Revise (edit page)
 
-1. **Stock add/remove** — linked stock IDs on the shipment change.
-2. **Consignee** — name (`consignee`), address, country, port code.
-3. **Departure** — service type, additional service.
+1. **Revise** button sits left of **Status** in the tab row (`#generate-pdf-btn`).
+2. Modal options:
+   - **Shipping Instruction** → `POST …/manifests/generate` (always creates next version)
+   - **Pre Arrival Notification** → `POST …/pre-alerts/generate` (always creates next version; requires service details)
+3. Documents list, `MI Rev` badge, and Complete Pre alert state refresh from the JSON response.
 
-Fingerprint: `manifestFingerprint()` → `manifestRevisionPayload()`.
+### Mail prepare (unchanged)
+
+Send Manifest / Send Pre-alert mail prepare may still create/update a PDF when none exists or the mail fingerprint changed. Do not alter that flow when changing Generate UI.
+
+Fingerprint reference (mail prepare):
+
+- Manifest: stock IDs, consignee name/address/country/port, service / additional service (`manifestFingerprint()`).
+- Pre-alert: stock IDs, consignee fields, service details legs + repacked (`preAlertFingerprint()`).
 
 **First-page header** (`resources/views/Shipment/pdf/manifest.blade.php`): centered `[SHIPPING INSTRUCTION]` with the logo on its right, details box left (same width as the field grid; rows Service / Ref No. / Shipment handled by). Then Attn / Departure Port / Arrival Port / Shipment Mode / Pcs / Wt. / Dims / Deadline Date grid. Invoice / packing pages keep the existing party header. Manifest footer (every page): divider, then centered `MarineCaddie Shipping LLC | E-mail | Phone` (no `Shipped By:`), page number centered below it. Pre-alert PDF uses the same heading, with `Pre Arrival Notification` instead of `[SHIPPING INSTRUCTION]`, its own `(Revision N)` from the pre-alert version (not the manifest revision), and the same footer: divider, centered company line, page number centered below it. Pre-alert first details table: `Service: {service} / {additional service}`, `MarineCaddie Ref. No.`, `Customer's PO No.` (`customer_reference`), `Shipment arranged by: MarineCaddie Shipping LLC`, `MarineCaddie account handler:` (shipment account manager name). Documents list and download name use `Pre Arrival Notification` (`Pre Arrival Notification {revision}` after the first). Pre-alert page 2 repeats that details table and adds the service reference row (`AWB` / `B/L` / `CMR`) in the same table. Pre-alert PDF vessel heading on both pages is `Master of Vessel {NAME} IN TRANSIT` (mail still uses `M/V {name} in transit`). Pre-alert page 2 cargo table matches the Shipping Invoice table: Stock number, PO Number, Supplier name, Pieces, Wt (KG), Value (USD) (no USD on row or total values). **Repacked** on that summary comes from Carrier Details (`repacked_items` / `repacked_weight`), not stock repacked fields.
-
-### Pre-alert PDF — new revision when
-
-1. **Stock add/remove** — linked stock IDs on the shipment change.
-2. **Service details tab** — service-type legs (flights, sea legs, truck legs, etc.), repacked items/weight; service type included so leg shape is compared correctly.
-3. **Consignee** — name (`consignee`), address, country, port code.
-
-Fingerprint: `preAlertFingerprint()` → `preAlertRevisionPayload()`.
 
 Pre-alert generation still requires service details to be present (`ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails()`).
 
@@ -978,18 +981,21 @@ Pre-alert generation still requires service details to be present (`ShipmentPreA
 
 | Trigger | Manifest | Pre-alert |
 |---|---|---|
-| Shipment save (`ShipmentController::update`) | fingerprint compare | fingerprint compare |
-| `POST …/manifests/generate` | fingerprint compare | — |
-| `POST …/pre-alerts/generate` | — | fingerprint compare |
+| Shipment save (`ShipmentController::update`) | no auto PDF | no auto PDF |
+| Edit page open | no auto PDF | no auto PDF |
+| Stock update (`LinkedStockShipmentManifestService`) | no auto PDF | — |
+| `POST …/manifests/generate` (Revise modal) | always new version | — |
+| `POST …/pre-alerts/generate` (Revise modal) | — | always new version |
 | `POST …/manifest-mail/prepare` | fingerprint compare (or first PDF if none) | — |
 | `POST …/pre-alert-mail/prepare` | — | fingerprint compare (or first PDF if none) |
-| Edit page open (no PDF yet) | auto-generate first manifest | auto-generate first pre-alert when service details exist |
 
 Create-pre-alert save stays on create-pre-alert via hidden `return_to=create-pre-alert`; AJAX prepare endpoints receive the same field via `serializeShipmentFormForAjax()`.
 
 ### Tests
 
-- `tests/Unit/ShipmentPdfFingerprintServiceTest.php` — manifest + pre-alert fingerprint cases
+- `tests/Unit/ShipmentPdfFingerprintServiceTest.php` — fingerprint payload cases (mail prepare)
+- `tests/Feature/Shipment/ShipmentPdfGenerateTest.php` — Generate endpoints always create next version
+- `tests/Unit/LinkedStockShipmentManifestServiceTest.php` — stock update does not generate
 
 ---
 
@@ -1026,7 +1032,7 @@ On first accept (side effects unchanged):
 
 - Change log: “Stock accepted”
 - Account manager email (`CrrAccountManagerNotifyService`) when AM email exists
-- Linked shipment manifest regen (`LinkedStockShipmentManifestService`)
+- Linked shipment manifest regen is a no-op (`LinkedStockShipmentManifestService`; Revise modal only — **§12b**)
 
 Same endpoint used from stock edit **Accept CRR** button.
 

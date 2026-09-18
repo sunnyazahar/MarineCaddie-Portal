@@ -749,23 +749,49 @@
             box-shadow: 0 -1px 0 #fff;
         }
 
-        .shipment-tab-status {
+        .shipment-tab-generate {
             margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 0 8px;
+            flex-shrink: 0;
+        }
+        .shipment-tab-generate .btn {
+            white-space: nowrap;
+        }
+        #generate-pdf-btn {
+            background: linear-gradient(135deg, #00aeef 0%, #0088cc 55%, #0077b3 100%);
+            border: 1px solid rgba(0, 136, 204, 0.85);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            padding: 9px 22px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 174, 239, 0.28);
+            min-height: 36px;
+        }
+        #generate-pdf-btn:hover:not(:disabled),
+        #generate-pdf-btn:focus:not(:disabled) {
+            background: linear-gradient(135deg, #33bef2 0%, #00aeef 50%, #0088cc 100%);
+            border-color: #00aeef;
+            color: #fff;
+            box-shadow: 0 3px 12px rgba(0, 174, 239, 0.38);
+        }
+        #generate-pdf-btn:disabled {
+            opacity: 0.55;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .shipment-tab-status {
+            margin-left: 0;
             display: inline-flex;
             align-items: center;
             justify-content: flex-end;
             gap: 10px;
             padding: 6px 10px 8px;
             min-width: 0;
-        }
-        .shipment-tab-status__label {
-            font-size: 10px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 0;
-            white-space: nowrap;
+            flex-shrink: 0;
         }
         .shipment-tab-status .header-inline-edit {
             min-width: 170px;
@@ -775,8 +801,11 @@
             min-height: 34px;
             padding: 0 10px;
             border: 1px solid #dce8f1;
-            border-radius: 999px;
+            border-radius: 8px;
             background: linear-gradient(180deg, #f8fcfd, #f3f8fb);
+        }
+        .shipment-tab-status .status-badge {
+            border-radius: 6px;
         }
         .shipment-tab-status .header-inline-select {
             min-width: 170px;
@@ -789,12 +818,21 @@
                 flex-wrap: wrap;
                 align-items: stretch;
             }
+            .shipment-tab-generate,
             .shipment-tab-status {
-                width: 100%;
+                margin-left: 0;
+            }
+            .shipment-tab-generate {
+                width: auto;
+                padding-top: 0;
+                margin-top: 4px;
+            }
+            .shipment-tab-status {
+                flex: 1 1 auto;
                 justify-content: space-between;
                 padding-top: 0;
                 margin-top: 4px;
-                border-top: 1px solid rgba(226, 232, 240, 0.85);
+                border-top: none;
             }
             .shipment-tab-status .header-inline-edit {
                 min-width: 0;
@@ -3110,6 +3148,12 @@
             width: 100% !important;
         }
 
+        /* Revise PDF modal */
+        #generate-pdf-choice-modal .modal-footer .btn {
+            font-size: 13px;
+            padding: 9px 14px;
+        }
+
         /* Compose New Message modal (Send manifest) */
         #compose-manifest-mail-modal .modal-dialog {
             max-width: 860px;
@@ -3874,8 +3918,14 @@
                                             <!-- Navigation Tabs -->
                                             <div class="custom-nav-tabs">
                                                 <div class="nav-tab-item active" data-target="shipment-details">Shipment details</div>
+                                                <div class="shipment-tab-generate">
+                                                    <button type="button"
+                                                        id="generate-pdf-btn"
+                                                        class="btn btn-premium btn-sm"
+                                                        @disabled($workflowAwaitingShipment || (int) $shipmentRouteId <= 0)
+                                                        title="{{ $workflowAwaitingShipment || (int) $shipmentRouteId <= 0 ? 'Load a shipment first' : 'Revise Shipping Instruction or Pre Arrival Notification' }}">Revise</button>
+                                                </div>
                                                 <div class="shipment-tab-status">
-                                                    <span class="shipment-tab-status__label">Status</span>
                                                     <div class="header-inline-edit{{ $workflowAwaitingShipment ? ' header-inline-edit--locked' : '' }}" id="status-edit-container">
                                                         <div class="header-inline-display status-display">
                                                             @if ($shipment->status)
@@ -4621,6 +4671,30 @@
 
 @include('Shipment.partials.stock-items-modal')
 
+<div class="modal fade" id="generate-pdf-choice-modal" tabindex="-1" role="dialog" aria-labelledby="generatePdfChoiceModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
+    <div class="modal-dialog" role="document" style="max-width: 420px;">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title" id="generatePdfChoiceModalLabel" style="font-size: 14px; font-weight: 600;">Revise PDF</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 20px 16px;">
+                <p class="mb-0" style="font-size: 14px; color: #4b5563;">Choose which document to revise. A new PDF version is created only when you click an option.</p>
+            </div>
+            <div class="modal-footer py-2 d-flex justify-content-between flex-wrap" style="gap: 8px;">
+                <button type="button"
+                    class="btn btn-premium btn-teal btn-sm"
+                    id="generate-shipping-instruction-btn">Shipping Instruction</button>
+                <button type="button"
+                    class="btn btn-premium btn-outline-custom btn-sm"
+                    id="generate-pre-arrival-notification-btn">Pre Arrival Notification</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="finalize-shipment-choice-modal" tabindex="-1" role="dialog" aria-labelledby="finalizeShipmentChoiceModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="true">
     <div class="modal-dialog" role="document" style="max-width: 360px;">
         <div class="modal-content">
@@ -5122,6 +5196,8 @@
         var preAlertPrepareUrl = @json(route('shipments.pre-alert-mail.prepare', $shipmentRouteId));
         var manifestDeleteUrlTemplate = @json(route('shipments.manifests.delete', [$shipmentRouteId, '__MANIFEST__']));
         var preAlertDeleteUrlTemplate = @json(route('shipments.pre-alerts.delete', [$shipmentRouteId, '__PREALERT__']));
+        var generateManifestUrl = @json($shipmentRouteId ? route('shipments.manifests.generate', $shipmentRouteId) : '');
+        var generatePreAlertUrl = @json($shipmentRouteId ? route('shipments.pre-alerts.generate', $shipmentRouteId) : '');
         var finalizeShipmentUrl = @json(route('shipments.finalize', $shipmentRouteId));
         var completePreAlertUrl = @json(route('shipments.complete-pre-alert', $shipmentRouteId));
         var shipmentsListUrl = @json(route('shipments'));
@@ -5410,6 +5486,162 @@
                 })
                 .join('&');
         }
+
+        function capitalizeDocLabel(label) {
+            var text = String(label || '').trim();
+            if (!text) {
+                return '';
+            }
+            return text.charAt(0).toUpperCase() + text.slice(1);
+        }
+
+        function buildGeneratedDocItemHtml(item, itemClass, deleteClass) {
+            return '' +
+                '<div class="doc-item ' + itemClass + '" data-id="' + item.id + '">' +
+                    '<div class="doc-main">' +
+                        '<a href="#" class="doc-name po-document-link" data-pdf-url="' + escapeHtml(item.file_url || '') + '" data-title="' + escapeHtml(item.display_label || '') + '">' +
+                            escapeHtml(capitalizeDocLabel(item.display_label || item.file_name || 'Document')) +
+                        '</a>' +
+                    '</div>' +
+                    '<div class="doc-side">' +
+                        '<div class="doc-side-row">' +
+                            '<div class="doc-internal checkbox-fade fade-in-primary">' +
+                                '<label>' +
+                                    '<input type="checkbox" class="doc-internal-check">' +
+                                    '<span class="cr"><i class="cr-icon ti-check txt-primary"></i></span>' +
+                                '</label>' +
+                            '</div>' +
+                            '<i class="ti-trash doc-trash ' + deleteClass + '" data-id="' + item.id + '" title="Delete"></i>' +
+                        '</div>' +
+                        '<span class="doc-date">' + escapeHtml(item.date || '') + '</span>' +
+                    '</div>' +
+                '</div>';
+        }
+
+        function refreshManifestDocumentsList(manifests) {
+            var $list = $('#shipment-manifests-list');
+            if (!$list.length) {
+                return;
+            }
+            var html = (manifests || []).map(function(item) {
+                return buildGeneratedDocItemHtml(item, 'shipment-manifest-doc', 'delete-shipment-manifest');
+            }).join('');
+            $list.html(html);
+        }
+
+        function refreshPreAlertDocumentsList(preAlerts) {
+            var $list = $('#shipment-pre-alerts-list');
+            if (!$list.length) {
+                return;
+            }
+            var html = (preAlerts || []).map(function(item) {
+                return buildGeneratedDocItemHtml(item, 'shipment-prealert-doc', 'delete-shipment-prealert');
+            }).join('');
+            $list.html(html);
+            preAlertDocumentCount = (preAlerts || []).length;
+            syncCompletePreAlertButtonState();
+        }
+
+        function updateManifestRevisionBadge(revision) {
+            var $action = $('.shipment-manifest-action');
+            if (!$action.length) {
+                return;
+            }
+            $action.find('.manifest-rev-badge').remove();
+            if (revision) {
+                $action.append('<span class="manifest-rev-badge">MI Rev - ' + escapeHtml(revision) + '</span>');
+            }
+        }
+
+        function showGeneratePdfFeedback(message, isError) {
+            if (typeof swal === 'function') {
+                swal({
+                    title: isError ? 'Could not revise' : 'Revised',
+                    text: message || (isError ? 'Please try again.' : 'PDF revised successfully.'),
+                    type: isError ? 'error' : 'success',
+                    timer: isError ? undefined : 1800,
+                    showConfirmButton: !!isError
+                });
+                return;
+            }
+            alert(message || (isError ? 'Could not revise PDF.' : 'PDF revised successfully.'));
+        }
+
+        function requestGeneratedPdf(url, options) {
+            options = options || {};
+            if (!url) {
+                showGeneratePdfFeedback('Load a shipment first.', true);
+                return;
+            }
+
+            var $modal = $('#generate-pdf-choice-modal');
+            var $buttons = $modal.find('button');
+            $buttons.prop('disabled', true);
+
+            $.ajax({
+                url: url,
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json'
+                },
+                data: serializeShipmentFormForAjax()
+            }).done(function(response) {
+                if (!response || !response.success) {
+                    showGeneratePdfFeedback((response && response.message) || 'Could not revise PDF.', true);
+                    return;
+                }
+
+                if (options.type === 'manifest') {
+                    refreshManifestDocumentsList(response.manifests || []);
+                    updateManifestRevisionBadge(response.manifest_revision);
+                    if (typeof response.manifest_mail_pending !== 'undefined') {
+                        setManifestMailPendingState(!!response.manifest_mail_pending);
+                    }
+                }
+
+                if (options.type === 'pre_alert') {
+                    refreshPreAlertDocumentsList(response.pre_alerts || []);
+                    if (typeof response.pre_alert_mail_pending !== 'undefined') {
+                        setPreAlertMailPendingState(!!response.pre_alert_mail_pending);
+                    }
+                    if (typeof response.has_pre_alert_pdf !== 'undefined') {
+                        hasPreAlertPdf = !!response.has_pre_alert_pdf;
+                        syncCompletePreAlertButtonState();
+                    }
+                }
+
+                if (typeof response.document_count !== 'undefined') {
+                    updateDocumentsTabCount(response.document_count);
+                } else {
+                    updateShipmentDocumentTabCount();
+                }
+
+                $modal.modal('hide');
+                showGeneratePdfFeedback(response.message || 'PDF revised successfully.', false);
+            }).fail(function(xhr) {
+                var message = (xhr.responseJSON && xhr.responseJSON.message)
+                    || 'Could not revise PDF. Please try again.';
+                showGeneratePdfFeedback(message, true);
+            }).always(function() {
+                $buttons.prop('disabled', false);
+            });
+        }
+
+        $('#generate-pdf-btn').on('click', function() {
+            if ($(this).prop('disabled')) {
+                return;
+            }
+            $('#generate-pdf-choice-modal').modal('show');
+        });
+
+        $('#generate-shipping-instruction-btn').on('click', function() {
+            requestGeneratedPdf(generateManifestUrl, { type: 'manifest' });
+        });
+
+        $('#generate-pre-arrival-notification-btn').on('click', function() {
+            requestGeneratedPdf(generatePreAlertUrl, { type: 'pre_alert' });
+        });
 
         function prependShipmentChangeLog(log) {
             if (!log) {
@@ -7091,7 +7323,7 @@
                 $specialConsiderations.val(data.special_considerations || '');
             }
 
-            refreshAutoResizeTextareas($('#consignee-address, textarea[name="special_considerations_destination"]'));
+            refreshAutoResizeTextareas($('#consignee-address, #consignee-email, textarea[name="special_considerations_destination"]'));
         }
 
         function clearConsigneeDetails() {
@@ -7105,7 +7337,7 @@
                 $specialConsiderationsClear.val('');
             }
 
-            refreshAutoResizeTextareas($('#consignee-address, textarea[name="special_considerations_destination"]'));
+            refreshAutoResizeTextareas($('#consignee-address, #consignee-email, textarea[name="special_considerations_destination"]'));
         }
 
         function refreshSelectedConsigneeDetails(consigneeId) {

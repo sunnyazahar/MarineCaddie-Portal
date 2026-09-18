@@ -37,22 +37,19 @@ class OtherCompanyController extends Controller
 
     public function create()
     {
-        $countries    = CountryCache::active();
-        $currencies   = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD'];
-        $companyTypes = $this->companyTypeOptions();
-        return view('Other Companies.create', compact('countries', 'currencies', 'companyTypes'));
+        $countries  = CountryCache::active();
+        $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD'];
+        return view('Other Companies.create', compact('countries', 'currencies'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'company_name'      => 'required|string|max:255',
-            'company_type'      => 'required|string|max:255',
-            'code'              => 'required|string|max:255',
-            'code_description'  => 'required|string|max:255',
+            'company_type'      => 'nullable|string|max:255',
             'email'             => 'required|email|max:255',
             'phone_number'      => 'required|string|max:255',
-            'contact_person'    => 'required|string|max:255',
+            'contact_person'    => 'nullable|string|max:255',
             'street_address'    => 'required|string',
             'city'              => 'required|string|max:255',
             'country_id'        => 'required|exists:countries,id',
@@ -61,7 +58,7 @@ class OtherCompanyController extends Controller
         ]);
 
         $this->companies->create($request->only([
-            'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'contact_person', 'email',
+            'company_name', 'company_type', 'phone_number', 'contact_person', 'email',
             'remarks', 'special_considerations', 'street_address', 'city', 'district_state', 'zip_code',
             'country_id', 'port_code', 'office_street_address', 'office_city', 'office_district_state',
             'office_zip_code', 'office_country_id',
@@ -73,10 +70,9 @@ class OtherCompanyController extends Controller
     public function edit(\App\Models\OtherCompany $otherCompany)
     {
         $otherCompany->load(['creator', 'updater', 'country', 'contacts']);
-        $countries    = CountryCache::active();
-        $currencies   = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD', 'INR', 'AUD', 'CAD'];
-        $companyTypes = $this->companyTypeOptions();
-        return view('Other Companies.edit', compact('otherCompany', 'countries', 'currencies', 'companyTypes'));
+        $countries  = CountryCache::active();
+        $currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'AED', 'SGD', 'INR', 'AUD', 'CAD'];
+        return view('Other Companies.edit', compact('otherCompany', 'countries', 'currencies'));
     }
 
     public function update(Request $request, \App\Models\OtherCompany $otherCompany)
@@ -86,12 +82,10 @@ class OtherCompanyController extends Controller
         try {
             $request->validate([
                 'company_name'      => 'required|string|max:255',
-                'company_type'      => 'required|string|max:255',
-                'code'              => 'required|string|max:255',
-                'code_description'  => 'required|string|max:255',
+                'company_type'      => 'nullable|string|max:255',
                 'email'             => 'required|email|max:255',
                 'phone_number'      => 'required|string|max:255',
-                'contact_person'    => 'required|string|max:255',
+                'contact_person'    => 'nullable|string|max:255',
                 'street_address'    => 'required|string',
                 'city'              => 'required|string|max:255',
                 'country_id'        => 'required|exists:countries,id',
@@ -104,7 +98,7 @@ class OtherCompanyController extends Controller
         }
 
         $otherCompany->fill($request->only([
-            'company_name', 'company_type', 'code', 'code_description', 'phone_number', 'contact_person', 'email',
+            'company_name', 'company_type', 'phone_number', 'contact_person', 'email',
             'remarks', 'special_considerations', 'street_address', 'city', 'district_state', 'zip_code',
             'country_id', 'port_code', 'office_street_address', 'office_city', 'office_district_state',
             'office_zip_code', 'office_country_id',
@@ -221,13 +215,5 @@ class OtherCompanyController extends Controller
         $allowed = ['company-details', 'contacts'];
         $tab     = (string) $request->input('active_tab', 'company-details');
         return in_array($tab, $allowed, true) ? $tab : 'company-details';
-    }
-
-    private function companyTypeOptions(): array
-    {
-        return [
-            'Ship agent', 'External agent', 'Vessel owner',
-            'Delivery address', 'Customer group', 'Customer procurement group',
-        ];
     }
 }

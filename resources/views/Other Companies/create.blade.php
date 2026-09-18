@@ -59,25 +59,9 @@
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="company_type">Company type <span class="text-danger">*</span></label>
-                                <select id="company_type" name="company_type" class="form-control-custom select2-company-type" required>
-                                    <option value=""></option>
-                                    @foreach ($companyTypes as $type)
-                                        <option value="{{ $type }}" {{ old('company_type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="input-row">
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="code">Code <span class="text-danger">*</span></label>
-                                    <input type="text" id="code" name="code" class="form-control-custom" value="{{ old('code') }}" required>
-                                </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="code_description">Code description <span class="text-danger">*</span></label>
-                                    <input type="text" id="code_description" name="code_description" class="form-control-custom"
-                                        value="{{ old('code_description') }}" required>
-                                </div>
+                                <label class="form-label-custom" for="company_type">Company type</label>
+                                <input type="text" id="company_type" name="company_type" class="form-control-custom"
+                                    value="{{ old('company_type') }}">
                             </div>
 
                             <div class="form-group-custom">
@@ -92,9 +76,9 @@
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="contact_person">Contact Person <span class="text-danger">*</span></label>
+                                <label class="form-label-custom" for="contact_person">Contact Person</label>
                                 <input type="text" id="contact_person" name="contact_person" class="form-control-custom"
-                                    value="{{ old('contact_person') }}" required autocomplete="name">
+                                    value="{{ old('contact_person') }}" autocomplete="name">
                             </div>
 
                             <div class="form-group-custom">
@@ -103,7 +87,7 @@
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
+                                <label class="form-label-custom" for="special_considerations">Notes for consignee</label>
                                 <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
                             </div>
                         </div>
@@ -138,22 +122,24 @@
                                 </div>
                             </div>
 
-                            <x-forms.country-select
-                                name="country_id"
-                                label="Country"
-                                :countries="$countries"
-                                :value="old('country_id')"
-                                class="form-control-custom select2-flag"
-                                :required="true"
-                                :allowClear="false"
-                            />
+                            <div class="input-row">
+                                <x-forms.country-select
+                                    name="country_id"
+                                    label="Country"
+                                    :countries="$countries"
+                                    :value="old('country_id')"
+                                    class="form-control-custom select2-flag"
+                                    :required="true"
+                                    :allowClear="false"
+                                />
 
-                            <x-forms.port-select
-                                name="port_code"
-                                label="Port code"
-                                :value="old('port_code')"
-                                :required="true"
-                            />
+                                <x-forms.port-select
+                                    name="port_code"
+                                    label="Port code"
+                                    :value="old('port_code')"
+                                    :required="true"
+                                />
+                            </div>
 
                             <div class="oc-soft-panel">
                                 <div class="oc-soft-panel-title">Office address <span>optional</span></div>
@@ -235,12 +221,8 @@
             $('#companyCreateForm').validate({
                 rules: {
                     company_name: { required: true },
-                    company_type: { required: true },
-                    code: { required: true },
-                    code_description: { required: true },
                     phone_number: { required: true },
                     email: { required: true, email: true },
-                    contact_person: { required: true },
                     street_address: { required: true },
                     city: { required: true },
                     country_id: { required: true },
@@ -248,12 +230,11 @@
                 },
                 messages: {
                     company_name: { required: 'Please enter the company name' },
-                    company_type: { required: 'Please select the company type' },
-                    code: { required: 'Please enter the code' },
-                    code_description: { required: 'Please enter the code description' },
                     phone_number: { required: 'Please enter the phone number' },
-                    email: { required: 'Please enter the email', email: 'Please enter a valid email' },
-                    contact_person: { required: 'Please enter the contact person' },
+                    email: {
+                        required: 'Please enter the email',
+                        email: 'Please enter a valid email'
+                    },
                     street_address: { required: 'Please enter the street address' },
                     city: { required: 'Please enter the city' },
                     country_id: { required: 'Please select the country' },
@@ -280,12 +261,6 @@
                         $(element).next('.select2-container').removeClass('error');
                     }
                 }
-            });
-
-            $('.select2-company-type').select2({
-                placeholder: 'Select company type',
-                allowClear: false,
-                width: '100%'
             });
 
             $(document).on('select2:open', '.oc-pillar-card select', function () {

@@ -59,20 +59,20 @@
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="phone_number">Phone number (with country code) <span class="text-danger">*</span></label>
+                                <label class="form-label-custom" for="phone_number">Phone number (with country code)</label>
                                 <input type="text" id="phone_number" name="phone_number" class="form-control-custom"
-                                    value="{{ old('phone_number') }}" required autocomplete="tel">
+                                    value="{{ old('phone_number') }}" autocomplete="tel">
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="email">Email <span class="text-danger">*</span></label>
-                                <input type="email" id="email" name="email" class="form-control-custom" value="{{ old('email') }}" required>
+                                <label class="form-label-custom" for="email">Email</label>
+                                <input type="email" id="email" name="email" class="form-control-custom" value="{{ old('email') }}">
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="contact_person">Contact person <span class="text-danger">*</span></label>
+                                <label class="form-label-custom" for="contact_person">Contact person</label>
                                 <input type="text" id="contact_person" name="contact_person" class="form-control-custom"
-                                    value="{{ old('contact_person') }}" required autocomplete="name">
+                                    value="{{ old('contact_person') }}" autocomplete="name">
                             </div>
 
                             <div class="form-group-custom">
@@ -81,7 +81,7 @@
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
+                                <label class="form-label-custom" for="special_considerations">Notes for consignee</label>
                                 <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
                             </div>
                         </div>
@@ -96,14 +96,14 @@
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="supplier_address">Street address <span class="text-danger">*</span></label>
-                                <textarea id="supplier_address" name="supplier_address" class="form-textarea-custom" rows="3" required>{{ old('supplier_address') }}</textarea>
+                                <label class="form-label-custom" for="supplier_address">Street address</label>
+                                <textarea id="supplier_address" name="supplier_address" class="form-textarea-custom" rows="3">{{ old('supplier_address') }}</textarea>
                             </div>
 
                             <div class="input-row">
                                 <div class="form-group-custom" style="flex: 2;">
-                                    <label class="form-label-custom" for="city">City <span class="text-danger">*</span></label>
-                                    <input type="text" id="city" name="city" class="form-control-custom" value="{{ old('city') }}" required>
+                                    <label class="form-label-custom" for="city">City</label>
+                                    <input type="text" id="city" name="city" class="form-control-custom" value="{{ old('city') }}">
                                 </div>
                                 <div class="form-group-custom">
                                     <label class="form-label-custom" for="district_state">District/state</label>
@@ -122,15 +122,15 @@
                                 :countries="$countries"
                                 :value="old('country_id')"
                                 class="form-control-custom select2-flag"
-                                :required="true"
-                                :allowClear="false"
+                                :required="false"
+                                :allowClear="true"
                             />
 
                             <x-forms.port-select
                                 name="port_code"
                                 label="Port code"
                                 :value="old('port_code')"
-                                :required="true"
+                                :required="false"
                             />
 
                             <div class="sup-soft-panel">
@@ -213,23 +213,11 @@
             $('#supplierForm').validate({
                 rules: {
                     supplier_name: { required: true },
-                    phone_number: { required: true },
-                    email: { required: true, email: true },
-                    contact_person: { required: true },
-                    supplier_address: { required: true },
-                    city: { required: true },
-                    country_id: { required: true },
-                    port_code: { required: true }
+                    email: { email: true }
                 },
                 messages: {
                     supplier_name: { required: 'Please enter the supplier name' },
-                    phone_number: { required: 'Please enter the phone number' },
-                    email: { required: 'Please enter the email', email: 'Please enter a valid email' },
-                    contact_person: { required: 'Please enter the contact person' },
-                    supplier_address: { required: 'Please enter the street address' },
-                    city: { required: 'Please enter the city' },
-                    country_id: { required: 'Please select the country' },
-                    port_code: { required: 'Please select the port code' }
+                    email: { email: 'Please enter a valid email' }
                 },
                 errorElement: 'div',
                 errorClass: 'error-message',

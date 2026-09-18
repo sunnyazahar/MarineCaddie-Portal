@@ -1382,26 +1382,32 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <x-forms.country-select
-                                                            name="consignee_country"
-                                                            id="consignee-country"
-                                                            label="Country / region"
-                                                            :countries="$countries"
-                                                            valueKey="name"
-                                                            wrapperClass="form-group mb-2"
-                                                            labelClass="mb-0"
-                                                            class="form-control"
-                                                            placeholder="Select country"
-                                                            :allowClear="true"
-                                                            :required="true"
-                                                        />
-                                                        <div class="form-group mb-2">
-                                                            <label class="mb-0" style="font-size: 11px;">Consignee contact</label>
-                                                            <input type="text" id="consignee-att" name="consignee_att" class="form-control filter-input"
-                                                                placeholder="" value="{{ old('consignee_att') }}">
+                                                        <div class="row">
+                                                            <div class="col-md-6 pr-1">
+                                                                <x-forms.country-select
+                                                                    name="consignee_country"
+                                                                    id="consignee-country"
+                                                                    label="Country / region"
+                                                                    :countries="$countries"
+                                                                    valueKey="name"
+                                                                    wrapperClass="form-group mb-2"
+                                                                    labelClass="mb-0"
+                                                                    class="form-control"
+                                                                    placeholder="Select country"
+                                                                    :allowClear="true"
+                                                                    :required="true"
+                                                                />
+                                                            </div>
+                                                            <div class="col-md-6 pl-1">
+                                                                <div class="form-group mb-2">
+                                                                    <label class="mb-0" style="font-size: 11px;">Consignee contact</label>
+                                                                    <input type="text" id="consignee-att" name="consignee_att" class="form-control filter-input"
+                                                                        placeholder="" value="{{ old('consignee_att') }}">
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         <div class="row">
-                                                            <div class="col-md-4 pr-1">
+                                                            <div class="col-md-6 pr-1">
                                                                 <x-forms.port-select
                                                                     name="consignee_port_code"
                                                                     id="consignee-port-code"
@@ -1412,21 +1418,19 @@
                                                                     :required="true"
                                                                 />
                                                             </div>
-                                                            <div class="col-md-4 px-1">
+                                                            <div class="col-md-6 pl-1">
                                                                 <div class="form-group mb-2">
                                                                     <label class="mb-0" style="font-size: 11px;">Delivery location</label>
                                                                     <input type="text" id="location" name="location" class="form-control filter-input"
                                                                         placeholder="" value="{{ old('location') }}">
                                                                 </div>
                                                             </div>
-                                                            <div class="col-md-4 pl-1">
-                                                                <div class="form-group mb-2">
-                                                                    <label class="mb-0" style="font-size: 11px;">Contact
-                                                                        email</label>
-                                                                    <input type="email" id="consignee-email" name="consignee_email" class="form-control filter-input"
-                                                                        placeholder="" value="{{ old('consignee_email') }}">
-                                                                </div>
-                                                            </div>
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-0" style="font-size: 11px;">Contact email</label>
+                                                            <textarea id="consignee-email" name="consignee_email" class="form-control filter-input" rows="1"
+                                                                style="height: auto !important; min-height: 38px; resize: none;"
+                                                                placeholder="email@example.com; email2@example.com">{{ old('consignee_email') }}</textarea>
                                                         </div>
                                                         </div>
                                                     </div>
@@ -2118,7 +2122,7 @@
                 $('#consignee-email').val(data.email || '');
                 $('#consignee-att').val(data.contact_person || '');
                 $('textarea[name="special_considerations_destination"]').val(data.special_considerations || '');
-                refreshAutoResizeTextareas($('#consignee-address, textarea[name="special_considerations_destination"]'));
+                refreshAutoResizeTextareas($('#consignee-address, #consignee-email, textarea[name="special_considerations_destination"]'));
             }
 
             function clearConsigneeDetails() {
@@ -2132,7 +2136,7 @@
                 $('#consignee-email').val('');
                 $('#consignee-att').val('');
                 $('textarea[name="special_considerations_destination"]').val('');
-                refreshAutoResizeTextareas($('#consignee-address, textarea[name="special_considerations_destination"]'));
+                refreshAutoResizeTextareas($('#consignee-address, #consignee-email, textarea[name="special_considerations_destination"]'));
             }
 
             function refreshSelectedConsigneeDetails(consigneeId) {

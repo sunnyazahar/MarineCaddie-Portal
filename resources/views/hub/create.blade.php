@@ -484,9 +484,9 @@
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="phone_number">Phone number (with country code)</label>
+                                <label class="form-label-custom" for="phone_number">Phone number (with country code) <span class="text-danger">*</span></label>
                                 <input type="text" id="phone_number" name="phone_number" class="form-input-custom"
-                                    value="{{ old('phone_number') }}" autocomplete="tel">
+                                    value="{{ old('phone_number') }}" autocomplete="tel" required>
                             </div>
 
                             <div class="form-group-custom">
@@ -501,17 +501,10 @@
                                     value="{{ old('contact_person') }}" required autocomplete="name">
                             </div>
 
-                            <div class="input-row">
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="eori_number">EORI number</label>
-                                    <input type="text" id="eori_number" name="eori_number" class="form-input-custom"
-                                        value="{{ old('eori_number') }}">
-                                </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="un_locode">UN/LOCODE</label>
-                                    <input type="text" id="un_locode" name="un_locode" class="form-input-custom"
-                                        value="{{ old('un_locode') }}">
-                                </div>
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="eori_number">EORI number</label>
+                                <input type="text" id="eori_number" name="eori_number" class="form-input-custom"
+                                    value="{{ old('eori_number') }}">
                             </div>
 
                             <div class="form-group-custom">
@@ -520,7 +513,7 @@
                             </div>
 
                             <div class="form-group-custom">
-                                <label class="form-label-custom" for="special_considerations">Special considerations for destination</label>
+                                <label class="form-label-custom" for="special_considerations">Notes for consignee</label>
                                 <textarea id="special_considerations" name="special_considerations" class="form-textarea-custom" rows="3">{{ old('special_considerations') }}</textarea>
                             </div>
                         </div>
@@ -681,6 +674,9 @@
                     code_description: {
                         required: true
                     },
+                    phone_number: {
+                        required: true
+                    },
                     email: {
                         required: true,
                         multiEmail: true
@@ -711,6 +707,9 @@
                     },
                     code_description: {
                         required: 'Please enter the code description'
+                    },
+                    phone_number: {
+                        required: 'Please enter the phone number'
                     },
                     email: {
                         required: 'Please enter the email',
