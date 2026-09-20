@@ -886,6 +886,10 @@ Route::get('/Vessels/live-tracker', [App\Http\Controllers\VesselLiveTrackerContr
 Route::post('/Vessels/live-tracker/search', [App\Http\Controllers\VesselLiveTrackerController::class, 'search'])->name('vessels.live-tracker.search');
 Route::post('/Vessels/live-tracker/suggestions', [App\Http\Controllers\VesselLiveTrackerController::class, 'suggestions'])->name('vessels.live-tracker.suggestions');
 
+Route::get('/administration/search', [App\Http\Controllers\AdministrationSearchController::class, 'index'])
+    ->name('administration.search');
+Route::get('/administration/search/lookup', [App\Http\Controllers\AdministrationSearchController::class, 'lookup'])
+    ->name('administration.search.lookup');
 Route::get('/administration/change-logs', [App\Http\Controllers\AdministrationChangeLogController::class, 'index'])
     ->name('administration.change-logs');
 Route::get('/administration/change-logs/search', [App\Http\Controllers\AdministrationChangeLogController::class, 'search'])

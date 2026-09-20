@@ -294,6 +294,83 @@ class OperationsDashboardService
         return $this->assistantLookupMiss($scope);
     }
 
+    public function administrationLookup(User $user, string $query): array
+    {
+        $query = trim($query);
+        $scope = $this->administrationLookupScope($this->assistantScope($user));
+
+        if ($query === '') {
+            return $this->administrationLookupPayload($this->assistantLookupMiss($scope));
+        }
+
+        if (($scope['allows']['administration'] ?? false) !== true) {
+            return $this->administrationLookupPayload([
+                'matched' => false,
+                'type' => 'administration',
+                'item' => null,
+                'scopeBlocked' => true,
+                'sensitiveBlocked' => false,
+                'blockedReason' => null,
+                'scope' => $scope,
+                'rows' => [],
+            ]);
+        }
+
+        if ($this->assistantHasAdministrationChangeLogIntent($query)) {
+            return $this->administrationLookupPayload([
+                'matched' => false,
+                'type' => 'change_log',
+                'item' => null,
+                'scopeBlocked' => false,
+                'sensitiveBlocked' => false,
+                'blockedReason' => null,
+                'scope' => $scope,
+                'rows' => [],
+            ], false, true);
+        }
+
+        $explicitTargets = $this->assistantExplicitLookupTargets($query);
+        $administrationTargets = $this->assistantAdministrationSearchTargets($this->assistantAllAdministrationTargets());
+        $explicitAdministrationTargets = array_values(array_intersect($explicitTargets, $scope['allowedLookupTargets']));
+        $explicitNonAdministrationTargets = array_values(array_diff($explicitTargets, $administrationTargets));
+
+        if ($explicitAdministrationTargets === [] && $explicitNonAdministrationTargets !== []) {
+            return $this->administrationLookupPayload([
+                'matched' => false,
+                'type' => $explicitNonAdministrationTargets[0],
+                'item' => null,
+                'scopeBlocked' => false,
+                'sensitiveBlocked' => false,
+                'blockedReason' => null,
+                'scope' => $scope,
+                'rows' => [],
+            ], true);
+        }
+
+        $searchTargets = $explicitAdministrationTargets !== []
+            ? $explicitAdministrationTargets
+            : $scope['allowedLookupTargets'];
+
+        $results = $this->administrationSearchResults($query, $searchTargets);
+
+        if ($results['rows'] === []) {
+            return $this->administrationLookupPayload($this->assistantLookupMiss($scope));
+        }
+
+        return $this->administrationLookupPayload([
+            'matched' => true,
+            'type' => 'administration',
+            'item' => null,
+            'rows' => $results['rows'],
+            'total' => $results['total'],
+            'returned' => $results['returned'],
+            'scopeBlocked' => false,
+            'sensitiveBlocked' => false,
+            'blockedReason' => null,
+            'scope' => $scope,
+        ]);
+    }
+
     private function assistantScope(User $user): array
     {
         $role = trim((string) ($user->role ?: 'User'));
@@ -304,7 +381,7 @@ class OperationsDashboardService
             'mode' => $stocksOnly ? 'stocks-only' : 'dashboard',
             'allowedLookupTargets' => $stocksOnly
                 ? ['stock']
-                : ['stock', 'shipment', 'office', 'hub', 'agent', 'supplier', 'customer', 'contact', 'vessel', 'user', 'change_log'],
+                : ['stock', 'shipment', 'office', 'hub', 'agent', 'other_company', 'supplier', 'customer', 'contact', 'vessel', 'user', 'change_log'],
             'allows' => [
                 'overview' => ! $stocksOnly,
                 'shipments' => ! $stocksOnly,
@@ -315,6 +392,42 @@ class OperationsDashboardService
                 'stockFollowUps' => true,
             ],
         ];
+    }
+
+    private function administrationLookupScope(array $scope): array
+    {
+        $allowedTargets = $this->assistantAdministrationSearchTargets(
+            $this->assistantAdministrationTargets($scope['allowedLookupTargets'] ?? [])
+        );
+
+        $scope['allowedLookupTargets'] = $allowedTargets;
+        $scope['allows'] = array_merge($scope['allows'] ?? [], [
+            'overview' => false,
+            'shipments' => false,
+            'stocks' => false,
+            'administration' => (($scope['allows']['administration'] ?? false) === true) && $allowedTargets !== [],
+            'services' => false,
+            'overdueShipments' => false,
+            'stockFollowUps' => false,
+        ]);
+
+        return $scope;
+    }
+
+    private function administrationLookupPayload(
+        array $payload,
+        bool $administrationOnly = false,
+        bool $changeLogsHidden = false
+    ): array
+    {
+        $payload['administrationOnly'] = $administrationOnly;
+        $payload['changeLogsHidden'] = $changeLogsHidden;
+        $payload['item'] ??= null;
+        $payload['rows'] = array_values($payload['rows'] ?? []);
+        $payload['total'] = (int) ($payload['total'] ?? count($payload['rows']));
+        $payload['returned'] = (int) ($payload['returned'] ?? count($payload['rows']));
+
+        return $payload;
     }
 
     private function assistantScopeKpis(array $kpis, array $scope): array
@@ -461,7 +574,26 @@ class OperationsDashboardService
      */
     private function assistantAdministrationTargets(array $targets): array
     {
-        return array_values(array_intersect($targets, ['office', 'hub', 'agent', 'supplier', 'customer', 'contact', 'vessel', 'user', 'change_log']));
+        return array_values(array_intersect($targets, $this->assistantAllAdministrationTargets()));
+    }
+
+    /**
+     * @return list<'office'|'hub'|'agent'|'other_company'|'supplier'|'customer'|'contact'|'vessel'|'user'|'change_log'>
+     */
+    private function assistantAllAdministrationTargets(): array
+    {
+        return ['office', 'hub', 'agent', 'other_company', 'supplier', 'customer', 'contact', 'vessel', 'user', 'change_log'];
+    }
+
+    /**
+     * @param  list<string>  $targets
+     * @return list<string>
+     */
+    private function assistantAdministrationSearchTargets(array $targets): array
+    {
+        $searchTargets = ['office', 'hub', 'agent', 'other_company', 'supplier', 'customer', 'vessel'];
+
+        return array_values(array_intersect($targets, $searchTargets));
     }
 
     /**
@@ -2308,6 +2440,20 @@ class OperationsDashboardService
 
     private function bestAdministrationRecordCandidate(Collection $records, string $query, callable $searchableValues): ?array
     {
+        $candidate = $this->rankAdministrationRecordCandidates($records, $query, $searchableValues)->first();
+
+        if ($candidate === null) {
+            return null;
+        }
+
+        return [
+            'record' => $candidate['record'],
+            'score' => $candidate['exactScore'] > 0 ? $candidate['exactScore'] : $candidate['score'],
+        ];
+    }
+
+    private function rankAdministrationRecordCandidates(Collection $records, string $query, callable $searchableValues): Collection
+    {
         $phrases = collect($this->assistantAdministrationLookupPhrases($query))
             ->map(fn ($phrase) => $this->normalizeSearchText($phrase))
             ->filter()
@@ -2315,12 +2461,9 @@ class OperationsDashboardService
             ->values()
             ->all();
         $tokens = $this->assistantAdministrationLookupTokens($query);
-        $bestMatch = null;
-        $bestScore = 0;
-        $exactMatch = null;
-        $exactScore = 0;
+        $requiresFullTokenCoverage = count($tokens) >= 2;
 
-        foreach ($records as $record) {
+        return $records->map(function ($record) use ($phrases, $tokens, $searchableValues, $requiresFullTokenCoverage): ?array {
             $values = collect($searchableValues($record))
                 ->flatten()
                 ->map(fn ($value) => $this->normalizeText($value))
@@ -2329,7 +2472,7 @@ class OperationsDashboardService
                 ->values();
 
             if ($values->isEmpty()) {
-                continue;
+                return null;
             }
 
             $recordTokens = $values
@@ -2338,6 +2481,9 @@ class OperationsDashboardService
                 ->values()
                 ->all();
             $score = 0;
+            $exactScore = 0;
+            $bestMatchedValue = null;
+            $exactMatchedValue = null;
 
             foreach ($phrases as $phrase) {
                 $phraseTokens = $this->searchWordTokens($phrase);
@@ -2357,14 +2503,16 @@ class OperationsDashboardService
 
                             if ($matchScore > $exactScore) {
                                 $exactScore = $matchScore;
-                                $exactMatch = $record;
+                                $exactMatchedValue = $value;
                             }
                         }
 
-                        $score = max(
-                            $score,
-                            ($structuredValueKey === $structuredPhraseKey ? 520 : 470) + mb_strlen($structuredPhraseKey)
-                        );
+                        $candidateScore = ($structuredValueKey === $structuredPhraseKey ? 520 : 470) + mb_strlen($structuredPhraseKey);
+
+                        if ($candidateScore > $score) {
+                            $score = $candidateScore;
+                            $bestMatchedValue = $value;
+                        }
 
                         continue;
                     }
@@ -2374,32 +2522,57 @@ class OperationsDashboardService
 
                         if ($matchScore > $exactScore) {
                             $exactScore = $matchScore;
-                            $exactMatch = $record;
+                            $exactMatchedValue = $value;
                         }
                     }
 
                     if ($normalizedValue === $phrase) {
-                        $score = max($score, 520 + mb_strlen($phrase));
+                        $candidateScore = 520 + mb_strlen($phrase);
+
+                        if ($candidateScore > $score) {
+                            $score = $candidateScore;
+                            $bestMatchedValue = $value;
+                        }
                         continue;
                     }
 
                     if (str_starts_with($normalizedValue, $phrase)) {
-                        $score = max($score, 460 + mb_strlen($phrase));
+                        $candidateScore = 460 + mb_strlen($phrase);
+
+                        if ($candidateScore > $score) {
+                            $score = $candidateScore;
+                            $bestMatchedValue = $value;
+                        }
                         continue;
                     }
 
                     if (count($phraseTokens) > 1 && str_contains($normalizedValue, $phrase)) {
-                        $score = max($score, 400 + mb_strlen($phrase));
+                        $candidateScore = 400 + mb_strlen($phrase);
+
+                        if ($candidateScore > $score) {
+                            $score = $candidateScore;
+                            $bestMatchedValue = $value;
+                        }
                         continue;
                     }
 
                     if (count($phraseTokens) === 1 && in_array($phraseTokens[0], $this->searchWordTokens($normalizedValue), true)) {
-                        $score = max($score, 390 + mb_strlen($phrase));
+                        $candidateScore = 390 + mb_strlen($phrase);
+
+                        if ($candidateScore > $score) {
+                            $score = $candidateScore;
+                            $bestMatchedValue = $value;
+                        }
                         continue;
                     }
 
                     if (count($phraseTokens) > 1 && array_diff($phraseTokens, $this->searchWordTokens($normalizedValue)) === []) {
-                        $score = max($score, 360 + mb_strlen($phrase));
+                        $candidateScore = 360 + mb_strlen($phrase);
+
+                        if ($candidateScore > $score) {
+                            $score = $candidateScore;
+                            $bestMatchedValue = $value;
+                        }
                     }
                 }
             }
@@ -2408,53 +2581,885 @@ class OperationsDashboardService
                 $valueTokens = $this->searchWordTokens($value);
                 $matchedValueTokens = array_values(array_intersect($tokens, $valueTokens));
 
-                if (count($valueTokens) >= 2 && count($matchedValueTokens) >= 2) {
+                $hasCoverageMatch = $requiresFullTokenCoverage
+                    ? count($matchedValueTokens) === count($tokens)
+                    : count($matchedValueTokens) >= 2;
+
+                if (count($valueTokens) >= 2 && $hasCoverageMatch) {
                     $coverageScore = 430 + (count($matchedValueTokens) * 28);
 
                     if (array_diff($valueTokens, $tokens) === []) {
                         $coverageScore += 140;
                     }
 
-                    $score = max($score, $coverageScore);
+                    if ($coverageScore > $score) {
+                        $score = $coverageScore;
+                        $bestMatchedValue = $value;
+                    }
                 }
             }
 
             if ($score === 0 && $tokens !== []) {
                 $matchedTokens = 0;
+                $fallbackScore = 0;
 
                 foreach ($tokens as $token) {
                     if (in_array($token, $recordTokens, true)) {
                         $matchedTokens += 1;
-                        $score += 32 + min(12, mb_strlen($token));
+                        $fallbackScore += 32 + min(12, mb_strlen($token));
                     }
                 }
 
+                if ($requiresFullTokenCoverage && $matchedTokens < count($tokens)) {
+                    $matchedTokens = 0;
+                    $fallbackScore = 0;
+                }
+
                 if ($matchedTokens >= 2) {
-                    $score += 90;
+                    $fallbackScore += 90;
+                }
+
+                if ($fallbackScore > 0) {
+                    $score = $fallbackScore;
+                }
+
+                if ($matchedTokens > 0 && $bestMatchedValue === null) {
+                    $bestMatchedValue = $values->first();
                 }
             }
 
-            if ($score > $bestScore) {
-                $bestScore = $score;
-                $bestMatch = $record;
+            if ($exactScore === 0 && $score === 0) {
+                return null;
             }
-        }
 
-        if ($exactMatch !== null) {
+            $rankedScore = $exactScore > 0 ? $exactScore : $score;
+
+            if ($rankedScore < 130) {
+                return null;
+            }
+
             return [
-                'record' => $exactMatch,
-                'score' => $exactScore,
+                'record' => $record,
+                'score' => $score,
+                'exactScore' => $exactScore,
+                'matchedValue' => $this->normalizeText($exactMatchedValue ?? $bestMatchedValue ?? $values->first()),
             ];
+        })->filter()->sort(function (array $left, array $right): int {
+            if ($left['exactScore'] !== $right['exactScore']) {
+                return $right['exactScore'] <=> $left['exactScore'];
+            }
+
+            if ($left['score'] !== $right['score']) {
+                return $right['score'] <=> $left['score'];
+            }
+
+            $leftTimestamp = $this->administrationSearchRecordTimestamp($left['record']);
+            $rightTimestamp = $this->administrationSearchRecordTimestamp($right['record']);
+
+            if ($leftTimestamp !== $rightTimestamp) {
+                return $rightTimestamp <=> $leftTimestamp;
+            }
+
+            return $this->administrationSearchRecordId($right['record']) <=> $this->administrationSearchRecordId($left['record']);
+        })->values();
+    }
+
+    private function administrationSearchResults(string $query, array $targets, int $limit = 50): array
+    {
+        $rows = collect();
+
+        foreach ($targets as $target) {
+            $rows = $rows->concat($this->administrationSearchRowsForTarget($target, $query));
         }
 
-        if ($bestScore < 130 || $bestMatch === null) {
+        $rows = $rows->sort(function (array $left, array $right): int {
+            if (($left['_exact_score'] ?? 0) !== ($right['_exact_score'] ?? 0)) {
+                return ($right['_exact_score'] ?? 0) <=> ($left['_exact_score'] ?? 0);
+            }
+
+            if (($left['_score'] ?? 0) !== ($right['_score'] ?? 0)) {
+                return ($right['_score'] ?? 0) <=> ($left['_score'] ?? 0);
+            }
+
+            if (($left['_timestamp'] ?? 0) !== ($right['_timestamp'] ?? 0)) {
+                return ($right['_timestamp'] ?? 0) <=> ($left['_timestamp'] ?? 0);
+            }
+
+            return ($right['_id'] ?? 0) <=> ($left['_id'] ?? 0);
+        })->values();
+
+        $total = $rows->count();
+        $rows = $rows->take($limit)->map(function (array $row): array {
+            unset($row['_score'], $row['_exact_score'], $row['_timestamp'], $row['_id']);
+
+            return $row;
+        })->all();
+
+        return [
+            'rows' => $rows,
+            'total' => $total,
+            'returned' => count($rows),
+        ];
+    }
+
+    private function administrationSearchRowsForTarget(string $target, string $query): Collection
+    {
+        return match ($target) {
+            'office' => $this->administrationSearchRecordRows(
+                'office',
+                'Office',
+                Office::query()->with('country')->orderByDesc('id')->get(),
+                $query,
+                fn (Office $office) => [
+                    $office->office_name,
+                    $office->office_short_name,
+                    $office->email,
+                    $office->phone_number,
+                    $office->address,
+                    $office->city,
+                    $office->postal_address,
+                    $office->postal_city,
+                    $office->invoicing_emails,
+                    $office->eori_number,
+                ],
+                fn (Office $office, ?string $matchedValue) => array_merge(
+                    $this->administrationSearchCountryColumns($office->country ?? $office->country_id),
+                    [
+                    'name' => $this->normalizeText($office->office_name) ?: 'Office #' . $office->id,
+                    'code' => $this->normalizeText($office->office_short_name),
+                    'city' => $this->normalizeText($office->city),
+                    'email' => $this->normalizeText($office->email),
+                    'phone' => $this->normalizeText($office->phone_number),
+                    'reference' => $this->administrationSearchDisplay(
+                        $this->implodeMeaningfulValues([$office->office_short_name, $office->email], ' · ')
+                    ),
+                    'details' => $this->administrationSearchDisplay($this->administrationSearchDetails($matchedValue, [
+                        $office->city,
+                        $office->address,
+                        $office->phone_number,
+                    ])),
+                    'status' => $this->administrationSearchDisplay($this->assistantActivationStatusText($office->status)),
+                    'updated_at' => $this->administrationSearchDisplay($this->formatDateTime($office->updated_at)),
+                    ]
+                ),
+            ),
+            'hub' => $this->administrationSearchRecordRows(
+                'hub',
+                'Hub',
+                Hub::query()->orderByDesc('id')->get(),
+                $query,
+                fn (Hub $hub) => [
+                    $hub->hub_name,
+                    $hub->code,
+                    $hub->email,
+                    $hub->phone_number,
+                    $hub->contact_person,
+                    $hub->hub_address,
+                    $hub->city,
+                    $hub->country,
+                    $hub->portal_email,
+                    $hub->responsible_manager,
+                ],
+                fn (Hub $hub, ?string $matchedValue) => array_merge(
+                    $this->administrationSearchCountryColumns($hub->country),
+                    [
+                    'name' => $this->normalizeText($hub->hub_name) ?: 'Hub #' . $hub->id,
+                    'code' => $this->normalizeText($hub->code),
+                    'city' => $this->normalizeText($hub->city),
+                    'email' => $this->normalizeText($hub->email),
+                    'phone' => $this->normalizeText($hub->phone_number),
+                    'reference' => $this->administrationSearchDisplay(
+                        $this->implodeMeaningfulValues([$hub->code, $hub->email], ' · ')
+                    ),
+                    'details' => $this->administrationSearchDisplay($this->administrationSearchDetails($matchedValue, [
+                        $hub->contact_person,
+                        $hub->city,
+                        $hub->country,
+                        $hub->port_code,
+                    ])),
+                    'status' => $this->administrationSearchDisplay($hub->hide_in_portal ? 'Inactive' : 'Active'),
+                    'updated_at' => $this->administrationSearchDisplay($this->formatDateTime($hub->updated_at)),
+                    ]
+                ),
+            ),
+            'agent' => $this->administrationSearchRecordRows(
+                'agent',
+                'Agent',
+                Agent::query()->with('country')->orderByDesc('id')->get(),
+                $query,
+                fn (Agent $agent) => [
+                    $agent->agent_name,
+                    $agent->code,
+                    $agent->email,
+                    $agent->phone,
+                    $agent->contact_person,
+                    $agent->agent_address,
+                    $agent->city,
+                    $agent->agent_type,
+                    $agent->responsible_manager,
+                ],
+                fn (Agent $agent, ?string $matchedValue) => array_merge(
+                    $this->administrationSearchCountryColumns($agent->country ?? $agent->country_id),
+                    [
+                    'name' => $this->normalizeText($agent->agent_name) ?: 'Agent #' . $agent->id,
+                    'code' => $this->normalizeText($agent->code),
+                    'city' => $this->normalizeText($agent->city),
+                    'email' => $this->normalizeText($agent->email),
+                    'phone' => $this->normalizeText($agent->phone),
+                    'reference' => $this->administrationSearchDisplay(
+                        $this->implodeMeaningfulValues([$agent->code, $agent->email], ' · ')
+                    ),
+                    'details' => $this->administrationSearchDisplay($this->administrationSearchDetails($matchedValue, [
+                        $agent->contact_person,
+                        $agent->city,
+                        $agent->agent_type,
+                        $agent->port_code,
+                    ])),
+                    'status' => $this->administrationSearchDisplay($agent->is_active ? 'Active' : 'Inactive'),
+                    'updated_at' => $this->administrationSearchDisplay($this->formatDateTime($agent->updated_at)),
+                    ]
+                ),
+            ),
+            'other_company' => $this->administrationSearchRecordRows(
+                'other_company',
+                'Other Company',
+                OtherCompany::query()->with('country')->orderByDesc('id')->get(),
+                $query,
+                fn (OtherCompany $company) => [
+                    $company->company_name,
+                    $company->company_type,
+                    $company->code,
+                    $company->email,
+                    $company->phone_number,
+                    $company->contact_person,
+                    $company->street_address,
+                    $company->city,
+                    $company->currency,
+                    $company->un_locode,
+                ],
+                fn (OtherCompany $company, ?string $matchedValue) => array_merge(
+                    $this->administrationSearchCountryColumns($company->country ?? $company->country_id),
+                    [
+                    'name' => $this->normalizeText($company->company_name) ?: 'Company #' . $company->id,
+                    'code' => $this->normalizeText($company->code),
+                    'city' => $this->normalizeText($company->city),
+                    'email' => $this->normalizeText($company->email),
+                    'phone' => $this->normalizeText($company->phone_number),
+                    'reference' => $this->administrationSearchDisplay(
+                        $this->implodeMeaningfulValues([$company->code, $company->email], ' · ')
+                    ),
+                    'details' => $this->administrationSearchDisplay($this->administrationSearchDetails($matchedValue, [
+                        $company->contact_person,
+                        $company->city,
+                        $company->company_type,
+                        $company->port_code,
+                    ])),
+                    'status' => $this->administrationSearchDisplay('Active'),
+                    'updated_at' => $this->administrationSearchDisplay($this->formatDateTime($company->updated_at)),
+                    ]
+                ),
+            ),
+            'supplier' => $this->administrationSearchRecordRows(
+                'supplier',
+                'Supplier',
+                Supplier::query()->with('country')->orderByDesc('id')->get(),
+                $query,
+                fn (Supplier $supplier) => [
+                    $supplier->supplier_name,
+                    $supplier->email,
+                    $supplier->phone_number,
+                    $supplier->contact_person,
+                    $supplier->supplier_address,
+                    $supplier->city,
+                    $supplier->currency,
+                ],
+                fn (Supplier $supplier, ?string $matchedValue) => array_merge(
+                    $this->administrationSearchCountryColumns($supplier->country ?? $supplier->country_id),
+                    [
+                    'name' => $this->normalizeText($supplier->supplier_name) ?: 'Supplier #' . $supplier->id,
+                    'code' => null,
+                    'city' => $this->normalizeText($supplier->city),
+                    'email' => $this->normalizeText($supplier->email),
+                    'phone' => $this->normalizeText($supplier->phone_number),
+                    'reference' => $this->administrationSearchDisplay(
+                        $this->implodeMeaningfulValues([$supplier->email, $supplier->phone_number], ' · ')
+                    ),
+                    'details' => $this->administrationSearchDisplay($this->administrationSearchDetails($matchedValue, [
+                        $supplier->contact_person,
+                        $supplier->city,
+                        $supplier->port_code,
+                        $supplier->currency,
+                    ])),
+                    'status' => $this->administrationSearchDisplay('Active'),
+                    'updated_at' => $this->administrationSearchDisplay($this->formatDateTime($supplier->updated_at)),
+                    ]
+                ),
+            ),
+            'customer' => $this->administrationSearchRecordRows(
+                'customer',
+                'Customer',
+                Customer::query()
+                    ->with(['primaryAddress.country', 'postalAddress.country', 'invoiceAddress.country'])
+                    ->orderByDesc('id')
+                    ->get(),
+                $query,
+                fn (Customer $customer) => [
+                    $customer->customer_name,
+                    $customer->customer_number,
+                    $customer->email,
+                    $customer->phone,
+                    $customer->contact_person,
+                    $customer->un_locode,
+                ],
+                fn (Customer $customer, ?string $matchedValue) => array_merge(
+                    $this->administrationSearchCountryColumns($this->administrationSearchCustomerAddress($customer)?->country ?? $this->administrationSearchCustomerAddress($customer)?->country_id),
+                    [
+                    'name' => $this->normalizeText($customer->customer_name) ?: 'Customer #' . $customer->id,
+                    'code' => $this->normalizeText($customer->customer_number),
+                    'city' => $this->normalizeText($this->administrationSearchCustomerAddress($customer)?->city),
+                    'email' => $this->normalizeText($customer->email),
+                    'phone' => $this->normalizeText($customer->phone),
+                    'reference' => $this->administrationSearchDisplay(
+                        $this->implodeMeaningfulValues([$customer->customer_number, $customer->email], ' · ')
+                    ),
+                    'details' => $this->administrationSearchDisplay($this->administrationSearchDetails($matchedValue, [
+                        $customer->contact_person,
+                        $customer->phone,
+                        $customer->un_locode,
+                    ])),
+                    'status' => $this->administrationSearchDisplay($this->assistantActivationStatusText($customer->status) ?: 'Active'),
+                    'updated_at' => $this->administrationSearchDisplay($this->formatDateTime($customer->updated_at)),
+                    ]
+                ),
+            ),
+            'contact' => $this->administrationSearchRecordRows(
+                'contact',
+                'Contact',
+                Contact::query()
+                    ->with(['office', 'customer', 'hub', 'supplier', 'otherCompany', 'agent'])
+                    ->orderByDesc('id')
+                    ->get(),
+                $query,
+                fn (Contact $contact) => [
+                    $contact->name,
+                    $contact->email,
+                    $contact->phone_number,
+                    $contact->description,
+                    $contact->reply_to_email,
+                    $contact->status,
+                    $contact->category,
+                    $this->contactParentName($contact),
+                    $this->contactParentLabel($contact),
+                ],
+                fn (Contact $contact, ?string $matchedValue) => [
+                    'name' => $this->normalizeText($contact->name) ?: 'Contact #' . $contact->id,
+                    'reference' => $this->administrationSearchDisplay(
+                        $this->implodeMeaningfulValues([$contact->email, $contact->phone_number], ' · ')
+                    ),
+                    'details' => $this->administrationSearchDisplay($this->administrationSearchDetails($matchedValue, [
+                        $this->contactParentLabel($contact),
+                        $this->contactParentName($contact),
+                        $contact->description,
+                    ])),
+                    'status' => $this->administrationSearchDisplay($this->assistantActivationStatusText($contact->status)),
+                    'updated_at' => $this->administrationSearchDisplay($this->formatDateTime($contact->updated_at)),
+                ],
+            ),
+            'vessel' => $this->administrationSearchRecordRows(
+                'vessel',
+                'Vessel',
+                CustomerVessel::query()->with('customer.primaryAddress.country')->orderByDesc('id')->get(),
+                $query,
+                fn (CustomerVessel $vessel) => [
+                    $vessel->vessel,
+                    $vessel->vessel_name_alias,
+                    $vessel->vessel_imo,
+                    $vessel->customer_vessel_code,
+                    $vessel->shipyard,
+                    $vessel->shipyard_location,
+                    $vessel->manager,
+                    $vessel->account_manager,
+                ],
+                fn (CustomerVessel $vessel, ?string $matchedValue) => array_merge(
+                    $this->administrationSearchCountryColumns($vessel->customer?->primaryAddress?->country ?? $vessel->customer?->primaryAddress?->country_id),
+                    [
+                    'name' => $this->normalizeText($vessel->vessel) ?: 'Vessel #' . $vessel->id,
+                    'code' => $this->normalizeText($vessel->customer_vessel_code ?: $vessel->vessel_imo),
+                    'city' => $this->normalizeText($vessel->customer?->primaryAddress?->city),
+                    'email' => $this->normalizeText($vessel->customer?->email),
+                    'phone' => $this->normalizeText($vessel->customer?->phone),
+                    'reference' => $this->administrationSearchDisplay(
+                        $this->implodeMeaningfulValues([$vessel->vessel_imo, $vessel->customer_vessel_code], ' · ')
+                    ),
+                    'details' => $this->administrationSearchDisplay($this->administrationSearchDetails($matchedValue, [
+                        $vessel->customer?->customer_name,
+                        $vessel->manager,
+                        $vessel->account_manager,
+                    ])),
+                    'status' => $this->administrationSearchDisplay($vessel->inactive_vessel ? 'Inactive' : 'Active'),
+                    'updated_at' => $this->administrationSearchDisplay($this->formatDateTime($vessel->updated_at)),
+                    ]
+                ),
+            ),
+            'user' => $this->administrationSearchRecordRows(
+                'user',
+                'User',
+                User::query()
+                    ->with(['offices', 'hubs', 'agents', 'suppliers'])
+                    ->orderByDesc('id')
+                    ->get(),
+                $query,
+                fn (User $user) => array_merge(
+                    [
+                        $user->name,
+                        $user->email,
+                        filled($user->email) ? Str::before((string) $user->email, '@') : null,
+                        $user->phone_number,
+                        $user->role,
+                        $user->is_active ? 'Active' : 'Inactive',
+                    ],
+                    $user->offices->pluck('office_name')->all(),
+                    $user->offices->pluck('office_short_name')->all(),
+                    $user->hubs->pluck('hub_name')->all(),
+                    $user->hubs->pluck('code')->all(),
+                    $user->agents->pluck('agent_name')->all(),
+                    $user->agents->pluck('code')->all(),
+                    $user->suppliers->pluck('supplier_name')->all(),
+                ),
+                fn (User $user, ?string $matchedValue) => [
+                    'name' => $this->normalizeText($user->name) ?: 'User #' . $user->id,
+                    'reference' => $this->administrationSearchDisplay($user->email),
+                    'details' => $this->administrationSearchDisplay($this->administrationSearchDetails($matchedValue, [
+                        $user->role,
+                        $user->phone_number,
+                        $this->implodeMeaningfulValues([
+                            $user->offices->pluck('office_short_name')->filter()->implode(', '),
+                            $user->hubs->pluck('code')->filter()->implode(', '),
+                        ], ' · '),
+                    ])),
+                    'status' => $this->administrationSearchDisplay($user->is_active ? 'Active' : 'Inactive'),
+                    'updated_at' => $this->administrationSearchDisplay($this->formatDateTime($user->updated_at)),
+                ],
+            ),
+            'change_log' => $this->administrationSearchChangeLogRows($query),
+            default => collect(),
+        };
+    }
+
+    private function administrationSearchRecordRows(
+        string $target,
+        string $typeLabel,
+        Collection $records,
+        string $query,
+        callable $searchableValues,
+        callable $rowBuilder
+    ): Collection {
+        return $this->rankAdministrationRecordCandidates($records, $query, $searchableValues)
+            ->map(function (array $candidate) use ($rowBuilder, $target, $typeLabel): array {
+                $row = $rowBuilder($candidate['record'], $candidate['matchedValue'] ?? null);
+
+                return array_merge([
+                    'target' => $target,
+                    'type' => $typeLabel,
+                    'url' => $this->administrationSearchRecordUrl($target, $candidate['record']),
+                    'copy_value' => $this->administrationSearchRecordCopyValue($target, $candidate['record']),
+                    '_score' => $candidate['score'],
+                    '_exact_score' => $candidate['exactScore'],
+                    '_timestamp' => $this->administrationSearchRecordTimestamp($candidate['record']),
+                    '_id' => $this->administrationSearchRecordId($candidate['record']),
+                ], $row);
+            });
+    }
+
+    private function administrationSearchRecordUrl(string $target, mixed $record): ?string
+    {
+        try {
+            return match ($target) {
+                'office' => $record instanceof Office ? route('offices.edit', $record->id) : null,
+                'hub' => $record instanceof Hub ? route('hub.show', $record->id) : null,
+                'agent' => $record instanceof Agent ? route('agents.edit', $record->id) : null,
+                'other_company' => $record instanceof OtherCompany ? route('other-companies.edit', $record->id) : null,
+                'supplier' => $record instanceof Supplier ? route('suppliers.edit', $record->id) : null,
+                'customer' => $record instanceof Customer ? route('customers.edit', $record->id) : null,
+                'contact' => $record instanceof Contact ? $this->administrationSearchContactUrl($record) : null,
+                'vessel' => $record instanceof CustomerVessel ? route('customers.vessels.edit', $record->id) : null,
+                default => null,
+            };
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function administrationSearchContactUrl(Contact $contact): ?string
+    {
+        return match (true) {
+            $contact->office_id && $contact->category === 'operations'
+                => route('offices.operations_users.edit', [$contact->office_id, $contact->id]),
+            $contact->office_id && $contact->category === 'account'
+                => route('offices.account_users.edit', [$contact->office_id, $contact->id]),
+            $contact->office_id && $contact->category === 'sales'
+                => route('offices.sales_users.edit', [$contact->office_id, $contact->id]),
+            $contact->office_id && $contact->category === 'manager'
+                => route('offices.manager_users.edit', [$contact->office_id, $contact->id]),
+            $contact->office_id => route('offices.edit', $contact->office_id),
+            $contact->customer_id => route('contacts.edit', $contact->id),
+            $contact->hub_id => route('hub.contacts.edit', [$contact->hub_id, $contact->id]),
+            $contact->agent_id => route('agents.contacts.edit', $contact->id),
+            $contact->supplier_id => route('suppliers.contacts.edit', [$contact->supplier_id, $contact->id]),
+            $contact->other_company_id => route('other-companies.contacts.edit', [$contact->other_company_id, $contact->id]),
+            default => null,
+        };
+    }
+
+    private function administrationSearchRecordCopyValue(string $target, mixed $record): ?string
+    {
+        return match ($target) {
+            'office' => $record instanceof Office
+                ? $this->administrationSearchCopyBlock(
+                    $record->office_name,
+                    $record->address,
+                    $record->city,
+                    $record->district_state,
+                    $record->zip_code,
+                    $this->resolveCountryName($record->country_id),
+                    $record->email,
+                    $record->phone_number,
+                    true
+                )
+                : null,
+            'hub' => $record instanceof Hub
+                ? $this->administrationSearchCopyBlock(
+                    $record->hub_name,
+                    $record->hub_address,
+                    $record->city,
+                    $record->district_state,
+                    $record->zip_code,
+                    $record->country,
+                    $record->email,
+                    $record->phone_number,
+                    true
+                )
+                : null,
+            'agent' => $record instanceof Agent
+                ? $this->administrationSearchCopyBlock(
+                    $record->agent_name,
+                    $record->agent_address,
+                    $record->city,
+                    $record->district_state,
+                    $record->zip_code,
+                    $this->resolveCountryName($record->country_id),
+                    $record->email,
+                    $record->phone,
+                    true
+                )
+                : null,
+            'other_company' => $record instanceof OtherCompany
+                ? $this->administrationSearchCopyBlock(
+                    $record->company_name,
+                    $record->street_address,
+                    $record->city,
+                    $record->district_state,
+                    $record->zip_code,
+                    $this->resolveCountryName($record->country_id),
+                    $record->email,
+                    $record->phone_number,
+                    true
+                )
+                : null,
+            'supplier' => $record instanceof Supplier
+                ? $this->administrationSearchCopyBlock(
+                    $record->supplier_name,
+                    $record->supplier_address,
+                    $record->city,
+                    $record->district_state,
+                    $record->zip_code,
+                    $this->resolveCountryName($record->country_id),
+                    $record->email,
+                    $record->phone_number,
+                    true
+                )
+                : null,
+            'customer' => $record instanceof Customer
+                ? $this->administrationSearchCustomerCopyValue($record)
+                : null,
+            'vessel' => $record instanceof CustomerVessel
+                ? $this->administrationSearchVesselCopyValue($record)
+                : null,
+            default => null,
+        };
+    }
+
+    private function administrationSearchCustomerCopyValue(Customer $customer): ?string
+    {
+        $address = $this->administrationSearchCustomerAddress($customer);
+
+        if (! $address instanceof CustomerAddress) {
             return null;
         }
 
+        return $this->administrationSearchCopyBlock(
+            $customer->customer_name,
+            $address->street,
+            $address->city,
+            $address->state,
+            $address->zip_code,
+            $address->country?->name ?: $this->resolveCountryName($address->country_id),
+            $customer->email,
+            $customer->phone
+        );
+    }
+
+    private function administrationSearchCustomerAddress(Customer $customer): ?CustomerAddress
+    {
+        $address = $customer->primaryAddress ?? $customer->postalAddress ?? $customer->invoiceAddress;
+
+        return $address instanceof CustomerAddress ? $address : null;
+    }
+
+    private function administrationSearchVesselCopyValue(CustomerVessel $vessel): ?string
+    {
+        return $vessel->customer instanceof Customer
+            ? $this->administrationSearchCustomerCopyValue($vessel->customer)
+            : null;
+    }
+
+    /**
+     * @return array{country:?string,country_flag_url:?string}
+     */
+    private function administrationSearchCountryColumns(mixed $value): array
+    {
+        $country = $this->administrationSearchCountryMeta($value);
+
         return [
-            'record' => $bestMatch,
-            'score' => $bestScore,
+            'country' => $country['name'],
+            'country_flag_url' => $country['flag_url'],
         ];
+    }
+
+    /**
+     * @return array{name:?string,flag_url:?string}
+     */
+    private function administrationSearchCountryMeta(mixed $value): array
+    {
+        if ($value instanceof Country) {
+            return [
+                'name' => $this->normalizeText($value->name),
+                'flag_url' => $this->normalizeText($value->flag_url),
+            ];
+        }
+
+        if ($value === null || $value === '') {
+            return ['name' => null, 'flag_url' => null];
+        }
+
+        static $countriesById = null;
+        static $countriesByName = null;
+
+        if ($countriesById === null || $countriesByName === null) {
+            $countries = Country::query()
+                ->get(['id', 'name', 'flag_url'])
+                ->map(function (Country $country): array {
+                    return [
+                        'id' => (int) $country->id,
+                        'name' => trim((string) $country->name),
+                        'flag_url' => trim((string) ($country->flag_url ?? '')) ?: null,
+                    ];
+                })
+                ->filter(fn (array $country) => $country['name'] !== '')
+                ->values();
+
+            $countriesById = $countries
+                ->keyBy('id')
+                ->map(fn (array $country) => [
+                    'name' => $country['name'],
+                    'flag_url' => $country['flag_url'],
+                ])
+                ->all();
+
+            $countriesByName = $countries
+                ->mapWithKeys(fn (array $country) => [
+                    mb_strtolower($country['name']) => [
+                        'name' => $country['name'],
+                        'flag_url' => $country['flag_url'],
+                    ],
+                ])->all();
+        }
+
+        if (is_numeric($value)) {
+            return $countriesById[(int) $value] ?? [
+                'name' => $this->resolveCountryName($value),
+                'flag_url' => null,
+            ];
+        }
+
+        $name = $this->normalizeText($value);
+
+        if ($name === null) {
+            return ['name' => null, 'flag_url' => null];
+        }
+
+        return $countriesByName[mb_strtolower($name)] ?? [
+            'name' => $name,
+            'flag_url' => null,
+        ];
+    }
+
+    private function administrationSearchCopyBlock(
+        mixed $name,
+        mixed $street,
+        mixed $city,
+        mixed $region,
+        mixed $zipCode,
+        mixed $country,
+        mixed $email,
+        mixed $phone,
+        bool $regionBeforeCity = false
+    ): ?string {
+        $lines = collect([
+            $this->normalizeText($name),
+            ...$this->administrationSearchStreetLines($street),
+            $this->administrationSearchLocationLine($city, $region, $regionBeforeCity),
+            $this->administrationSearchPostalLine($zipCode, $country),
+            filled($email) ? 'Email: ' . $this->normalizeText($email) : null,
+            filled($phone) ? 'Phone: ' . $this->normalizeText($phone) : null,
+        ])->filter()->values()->all();
+
+        return $lines !== [] ? implode("\n", $lines) : null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function administrationSearchStreetLines(mixed $street): array
+    {
+        $street = trim((string) ($street ?? ''));
+
+        if ($street === '') {
+            return [];
+        }
+
+        return collect(preg_split('/\r\n|\r|\n/u', $street) ?: [])
+            ->map(fn ($line) => $this->normalizeText($line))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function administrationSearchLocationLine(mixed $city, mixed $region, bool $regionBeforeCity = false): ?string
+    {
+        $parts = $regionBeforeCity
+            ? [$region, $city]
+            : [$city, $region];
+
+        $value = $this->implodeMeaningfulValues($parts);
+
+        return $value !== '' ? $value : null;
+    }
+
+    private function administrationSearchPostalLine(mixed $zipCode, mixed $country): ?string
+    {
+        $value = $this->implodeMeaningfulValues([$zipCode, $country]);
+
+        return $value !== '' ? $value : null;
+    }
+
+    private function administrationSearchChangeLogRows(string $query): Collection
+    {
+        $window = $this->assistantChangeLogWindow($query);
+        $logQuery = $this->assistantChangeLogQuery();
+
+        if ($window !== null) {
+            $logQuery
+                ->where('created_at', '>=', $window['from'])
+                ->where('created_at', '<=', $window['to']);
+        }
+
+        $phrases = collect($this->assistantAdministrationLookupPhrases($query))
+            ->map(fn ($phrase) => $this->normalizeSearchText($phrase))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        $tokens = $this->assistantAdministrationLookupTokens($query);
+        $normalizedQuery = $this->normalizeSearchText($query);
+
+        return $logQuery->get()->map(function (AdministrationChangeLog $log) use ($phrases, $tokens, $normalizedQuery): ?array {
+            $entry = $this->mapAssistantChangeLogEntry($log);
+            $score = $this->assistantChangeLogScore($entry, $phrases, $tokens, $normalizedQuery);
+
+            if ($score < 130) {
+                return null;
+            }
+
+            return [
+                'target' => 'change_log',
+                'type' => 'Change log',
+                'name' => $this->administrationSearchDisplay($entry['recordName'] ?? ('Change log #' . $log->id)),
+                'reference' => $this->administrationSearchDisplay($entry['field'] ?? $entry['entityLabel'] ?? null),
+                'details' => $this->administrationSearchDisplay($this->administrationSearchDetails(
+                    $entry['field'] ?? $entry['title'] ?? null,
+                    [
+                        $entry['entityLabel'] ?? null,
+                        $entry['title'] ?? null,
+                        $entry['description'] ?? null,
+                        filled($entry['userName'] ?? null) ? 'By ' . $entry['userName'] : null,
+                    ]
+                )),
+                'status' => $this->administrationSearchDisplay('—'),
+                'updated_at' => $this->administrationSearchDisplay($entry['date'] ?? null),
+                '_score' => $score,
+                '_exact_score' => 0,
+                '_timestamp' => optional($log->created_at)->timestamp ?? 0,
+                '_id' => (int) $log->id,
+            ];
+        })->filter()->values();
+    }
+
+    private function administrationSearchRecordTimestamp(mixed $record): int
+    {
+        return optional($record->updated_at ?? $record->created_at)->timestamp ?? 0;
+    }
+
+    private function administrationSearchRecordId(mixed $record): int
+    {
+        if (is_object($record) && method_exists($record, 'getKey')) {
+            return (int) $record->getKey();
+        }
+
+        return (int) ($record->id ?? 0);
+    }
+
+    private function administrationSearchDisplay(mixed $value): string
+    {
+        $normalized = $this->normalizeText($value);
+
+        return $normalized !== null && $normalized !== '' ? $normalized : '—';
+    }
+
+    private function administrationSearchDetails(?string $matchedValue, array $details): string
+    {
+        $matchedValue = $this->normalizeText($matchedValue);
+        $parts = [];
+
+        if ($matchedValue !== null) {
+            $parts[] = 'Matched: ' . $matchedValue;
+        }
+
+        foreach ($details as $detail) {
+            $normalized = $this->normalizeText($detail);
+
+            if ($normalized === null) {
+                continue;
+            }
+
+            if ($matchedValue !== null && mb_strtolower($normalized) === mb_strtolower($matchedValue)) {
+                continue;
+            }
+
+            $parts[] = $normalized;
+        }
+
+        return $this->implodeMeaningfulValues($parts, ' · ');
     }
 
     /**
@@ -2473,19 +3478,30 @@ class OperationsDashboardService
         }
 
         $meaningfulTokens = $this->assistantAdministrationLookupTokens($query);
+        $rawTokens = $this->assistantAdministrationPhraseTokens($query);
+        $trimmedRawTokens = $this->assistantTrimAdministrationPhraseTokens($rawTokens);
+        $joinedMeaningfulTokens = implode(' ', $meaningfulTokens);
+        $joinedTrimmedRawTokens = implode(' ', $trimmedRawTokens);
+        $isFocusedMultiWordPhrase = count($meaningfulTokens) >= 2
+            && $joinedMeaningfulTokens !== ''
+            && $joinedMeaningfulTokens === $joinedTrimmedRawTokens;
 
         if ($meaningfulTokens !== []) {
-            $joined = implode(' ', $meaningfulTokens);
-            $phrases[$joined] = $joined;
+            $phrases[$joinedMeaningfulTokens] = $joinedMeaningfulTokens;
 
-            foreach ($meaningfulTokens as $token) {
-                if (mb_strlen($token) >= 3) {
-                    $phrases[$token] = $token;
+            if (! $isFocusedMultiWordPhrase) {
+                foreach ($meaningfulTokens as $token) {
+                    if (mb_strlen($token) >= 3) {
+                        $phrases[$token] = $token;
+                    }
                 }
             }
         }
 
-        $rawTokens = $this->assistantAdministrationPhraseTokens($query);
+        if ($isFocusedMultiWordPhrase) {
+            return array_values($phrases);
+        }
+
         $tokenCount = count($rawTokens);
 
         for ($start = 0; $start < $tokenCount; $start++) {
@@ -2667,7 +3683,7 @@ class OperationsDashboardService
             'blocked', 'assigned', 'assignment', 'assignments', 'administration', 'change', 'changes', 'changed', 'log',
             'logs', 'history', 'audit', 'activity', 'edit', 'edited', 'modify', 'modified', 'modification', 'latest',
             'recent', 'recently', 'last', 'day', 'days', 'din',
-            'first', 'mile', 'transport', 'delivery', 'services', 'service', 'documents', 'document', 'contacts', 'bank',
+            'first', 'mile', 'transport', 'delivery', 'documents', 'document', 'contacts', 'bank',
             'accounts', 'account', 'pricing', 'list', 'lists', 'everything', 'every', 'available', 'updated', 'update',
             'add', 'added', 'create', 'created', 'creator', 'kiya', 'kiye', 'kye', 'gaya', 'banaya', 'kisne', 'tha', 'thi', 'thein', 'theen', 'ne',
         ];

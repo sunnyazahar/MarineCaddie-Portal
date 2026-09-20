@@ -251,6 +251,10 @@ class BreadcrumbBuilder
             ],
 
             // Administration - Offices
+            'administration.search' => [
+                ['label' => 'Administration', 'url' => null],
+                ['label' => 'Search', 'url' => null],
+            ],
             'administration.change-logs' => [
                 ['label' => 'Administration', 'url' => null],
                 ['label' => 'Change logs', 'url' => null],

@@ -122,12 +122,17 @@
 
                 </ul>
             </li>
-            <li class="pcoded-hasmenu {{ request()->routeIs('offices.*', 'hub.*', 'agents.*', 'other-companies.*', 'suppliers.*', 'customers.*', 'contacts.*', 'vessels.index', 'vessels.create', 'administration.change-logs') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="administration">
+            <li class="pcoded-hasmenu {{ request()->routeIs('offices.*', 'hub.*', 'agents.*', 'other-companies.*', 'suppliers.*', 'customers.*', 'contacts.*', 'vessels.index', 'vessels.create', 'administration.search*', 'administration.change-logs') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="administration">
                 <a href="javascript:void(0)">
                     <span class="pcoded-micon"><i class="feather icon-command"></i></span>
                     <span class="pcoded-mtext">Administration</span>
                 </a>
                 <ul class="pcoded-submenu">
+                    <li class="{{ request()->routeIs('administration.search*') ? 'active' : '' }}">
+                        <a href="{{ route('administration.search') }}">
+                            <span class="pcoded-mtext">Search</span>
+                        </a>
+                    </li>
                     <li class="{{ request()->routeIs('offices.*') ? 'active' : '' }}">
                         <a href="{{ route('offices.index') }}">
                             <span class="pcoded-mtext">Office</span>
