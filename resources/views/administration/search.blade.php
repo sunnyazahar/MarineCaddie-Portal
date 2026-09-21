@@ -44,6 +44,7 @@
         .administration-search-toolbar {
             flex-shrink: 0;
             margin-bottom: 8px;
+            width: 100%;
         }
         .administration-search-toolbar .filter-row {
             margin: 0;
@@ -326,13 +327,50 @@
             .administration-search-list-card > .card-block {
                 overflow: visible;
             }
+            .administration-search-toolbar.administration-search-filters-toolbar {
+                display: block;
+                padding: 0;
+                background: transparent;
+                border-bottom: none;
+            }
+            .administration-search-toolbar .filter-row {
+                display: flex !important;
+                max-height: none;
+                overflow: visible;
+                width: 100%;
+                gap: 12px;
+                padding: 12px;
+            }
+            .administration-search-toolbar .filter-item {
+                width: 100% !important;
+                flex: 1 1 100% !important;
+            }
+            .administration-search-toolbar .filter-group {
+                height: 40px;
+            }
+            .administration-search-toolbar .filter-input {
+                font-size: 14px;
+            }
             .administration-search-table-area {
                 overflow: auto;
             }
             .administration-search-actions {
                 width: 100%;
                 margin-left: 0;
-                justify-content: space-between;
+                justify-content: flex-start;
+                flex-wrap: nowrap;
+                gap: 10px;
+            }
+            .administration-search-btn {
+                flex: 1 1 auto;
+                min-height: 40px;
+            }
+            #administration-search-reset {
+                flex: 0 0 auto;
+                display: inline-flex;
+                align-items: center;
+                min-height: 40px;
+                white-space: nowrap;
             }
         }
     </style>
@@ -353,7 +391,7 @@
                 countLabel="results"
             />
 
-            <div class="administration-search-toolbar" data-mc-filter-persist-key="administration-search-filter-values-v1">
+            <div class="administration-search-toolbar administration-search-filters-toolbar" data-mc-filter-persist-key="administration-search-filter-values-v1">
                 <x-lists.filter-bar>
                     <x-lists.filter-field label="Search" width="100%">
                         <input
