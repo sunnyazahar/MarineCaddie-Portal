@@ -166,6 +166,30 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringNotContainsString('id="pcoded"', $contents);
     }
 
+    public function test_administration_search_blade_renders_search_shell(): void
+    {
+        $html = $this->renderMigratedView('administration.search');
+
+        $this->assertHtmlContainsAll($html, [
+            'administration-search-list-card',
+            'list-page-header',
+            'Administration search',
+            'btn-administration-search-filters-toggle',
+            'administration-search-query',
+            'administration-search-submit',
+            'administration-search-reset',
+            'administration-search-state',
+            'administration-search-table',
+        ]);
+
+        $contents = file_get_contents(resource_path('views/administration/search.blade.php'));
+        $this->assertStringContainsString('x-lists.filter-toolbar', $contents);
+        $this->assertStringContainsString('administration-search-filters-area', $contents);
+        $this->assertStringNotContainsString('administration-search-toolbar administration-search-filters-toolbar', $contents);
+        $this->assertStringNotContainsString('theme-loader', $contents);
+        $this->assertStringNotContainsString('id="pcoded"', $contents);
+    }
+
     public function test_other_companies_index_blade_renders_list_shell(): void
     {
         $html = $this->renderMigratedView('Other Companies.index', [

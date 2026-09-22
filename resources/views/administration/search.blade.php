@@ -41,26 +41,26 @@
             padding: 8px 12px 8px !important;
         }
 
-        .administration-search-toolbar {
+        .administration-search-filters-area {
             flex-shrink: 0;
             margin-bottom: 8px;
             width: 100%;
         }
-        .administration-search-toolbar .filter-row {
+        .administration-search-filters-area .filter-row {
             margin: 0;
             padding: 8px 10px;
             border: 1px solid #d6e3ee;
             border-radius: 8px;
             background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%);
         }
-        .administration-search-toolbar .filter-item {
+        .administration-search-filters-area .filter-item {
             flex: 1 1 560px;
             min-width: 0;
         }
-        .administration-search-toolbar .filter-group {
+        .administration-search-filters-area .filter-group {
             height: 34px;
         }
-        .administration-search-toolbar .filter-input {
+        .administration-search-filters-area .filter-input {
             font-size: 12px;
         }
         .administration-search-actions {
@@ -327,13 +327,7 @@
             .administration-search-list-card > .card-block {
                 overflow: visible;
             }
-            .administration-search-toolbar.administration-search-filters-toolbar {
-                display: block;
-                padding: 0;
-                background: transparent;
-                border-bottom: none;
-            }
-            .administration-search-toolbar .filter-row {
+            .administration-search-filters-area .filter-row {
                 display: flex !important;
                 max-height: none;
                 overflow: visible;
@@ -341,14 +335,14 @@
                 gap: 12px;
                 padding: 12px;
             }
-            .administration-search-toolbar .filter-item {
+            .administration-search-filters-area .filter-item {
                 width: 100% !important;
                 flex: 1 1 100% !important;
             }
-            .administration-search-toolbar .filter-group {
+            .administration-search-filters-area .filter-group {
                 height: 40px;
             }
-            .administration-search-toolbar .filter-input {
+            .administration-search-filters-area .filter-input {
                 font-size: 14px;
             }
             .administration-search-table-area {
@@ -391,7 +385,13 @@
                 countLabel="results"
             />
 
-            <div class="administration-search-toolbar administration-search-filters-toolbar" data-mc-filter-persist-key="administration-search-filter-values-v1">
+            <div class="administration-search-filters-area" data-mc-filter-persist-key="administration-search-filter-values-v1">
+                <x-lists.filter-toolbar
+                    toggle-id="btn-administration-search-filters-toggle"
+                    body-class="administration-search-filters-open"
+                    toolbar-class="administration-search-filters-toolbar"
+                />
+
                 <x-lists.filter-bar>
                     <x-lists.filter-field label="Search" width="100%">
                         <input
@@ -457,7 +457,7 @@
             var $tbody = $('#administration-search-tbody');
             var $count = $('.list-page-header-count strong').first();
             var filterStore = typeof window.mcEnsureFilterPersistence === 'function'
-                ? window.mcEnsureFilterPersistence({ root: '.administration-search-toolbar[data-mc-filter-persist-key]' })
+                ? window.mcEnsureFilterPersistence({ root: '.administration-search-filters-area[data-mc-filter-persist-key]' })
                 : null;
             var copyToastTimer = null;
 
