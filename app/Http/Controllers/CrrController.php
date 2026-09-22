@@ -389,24 +389,35 @@ class CrrController extends Controller
 
         // Group by vessel
         $grouped = $crrs->groupBy('vessel_name');
-        $selectedCustomerNames = $crrs
-            ->map(fn (Crr $crr) => $crr->customerVessel?->customer?->customer_name);
-        $uniqueCustomerNames = $selectedCustomerNames->filter()->unique()->values();
-        $reportCustomerName = $selectedCustomerNames->contains(fn ($name) => blank($name))
-            || $uniqueCustomerNames->count() !== 1
-                ? 'all customers'
-                : $uniqueCustomerNames->first();
 
-        $pdf = Pdf::loadView('Stock.print', compact('grouped', 'reportCustomerName'))
-                  ->setPaper('a4', 'portrait');
+        $uniqueVesselNames = $crrs
+            ->map(fn (Crr $crr) => trim((string) ($crr->vessel_name ?? '')))
+            ->filter()
+            ->unique()
+            ->values();
+        $reportVesselName = $uniqueVesselNames->count() === 1
+            ? $uniqueVesselNames->first()
+            : 'Multiple';
+
+        $uniqueCustomerNames = $crrs
+            ->map(fn (Crr $crr) => trim((string) ($crr->customerVessel?->customer?->customer_name ?? '')))
+            ->filter()
+            ->unique()
+            ->values();
+        $reportCustomerName = $uniqueCustomerNames->count() === 1
+            ? $uniqueCustomerNames->first()
+            : 'Multiple';
+
+        $pdf = Pdf::loadView('Stock.print', compact('grouped', 'reportVesselName', 'reportCustomerName'))
+                  ->setPaper('a4', 'landscape');
 
         $pdf->render();
         $dompdf = $pdf->getDomPDF();
         $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans');
-        // Keep page numbers inside the reserved footer band (A4 height ~842pt, bottom margin 28mm).
+        // Keep page numbers inside the reserved footer band (A4 landscape height ~595pt, bottom margin 18mm).
         $dompdf->getCanvas()->page_text(
-            285,
-            805,
+            400,
+            575,
             '{PAGE_NUM}/{PAGE_COUNT}',
             $font,
             8,
@@ -418,7 +429,7 @@ class CrrController extends Controller
 
     /**
      * Excel (.xlsx) export for selected CRRs with styled header.
-     * Columns match the MarineCaddie stock Excel template.
+     * Columns match the MarineCaddie stock Excel / PDF export template.
      */
     public function exportStockListExcel(Request $request)
     {
@@ -429,39 +440,39 @@ class CrrController extends Controller
 
         $crrs = $this->crrRepository->selectedWithRelations($ids, [
             'packages',
-            'costs',
         ]);
 
         if ($crrs->isEmpty()) {
             return response('No items selected.', 422);
         }
 
-        $headers = [
-            'Location/Hub',
-            'Date',
-            'Supplier',
-            'PO number',
-            'Content',
-            'Pcs',
-            'Weight',
-            'Value',
-            'Currency',
-            'Status',
-            'Landed goods',
-            'Shipment number',
-            'Stock no',
-            'Pick up cost',
-            'Pick up',
-            'Pick up date',
-            'Dangerous goods',
-            'Dimensions',
-            'Total CBM',
-            'Volume volume weight',
-        ];
-
-        $rows = $crrs->map(fn (Crr $crr) => $this->stockListExcelRow($crr))->all();
+        $headers = $this->stockListExportHeaders();
+        $rows = $crrs->map(fn (Crr $crr) => $this->stockListExportRow($crr))->all();
         $filename = 'Stock-List-' . now()->format('YmdHis') . '.xlsx';
-        $binary = SimpleXlsxWriter::build($headers, $rows, 'Stock List');
+        $binary = SimpleXlsxWriter::build($headers, $rows, 'Stock List', [
+            'columnTypes' => [
+                'string', // LOCATION
+                'string', // STOCK NO.
+                'string', // VESSEL NAME
+                'date',   // DOE
+                'string', // SUPPLIER NAME
+                'string', // SUPPLIER PO NUMBER
+                'string', // LANDED CARGO
+                'int',    // Pcs
+                'float',  // WT. (KGS)
+                'string', // DIMS (CM)
+                'float',  // CBM
+                'float',  // VOL. WT
+                'string', // VALUE
+                'string', // DG
+                'string', // REMARKS
+            ],
+            // Fixed width so long PO lists wrap instead of stretching the sheet.
+            'wrapColumns' => [5],
+            'fixedWidths' => [5 => 28],
+            'maxAutoWidth' => 36,
+            'minAutoWidth' => 11,
+        ]);
 
         return response($binary, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -474,9 +485,33 @@ class CrrController extends Controller
     }
 
     /**
-     * @return list<string|int|float>
+     * @return list<string>
      */
-    private function stockListExcelRow(Crr $crr): array
+    private function stockListExportHeaders(): array
+    {
+        return [
+            'LOCATION',
+            'STOCK NO.',
+            'VESSEL NAME',
+            'DOE',
+            'SUPPLIER NAME',
+            'SUPPLIER PO NUMBER',
+            'LANDED CARGO',
+            'Pcs',
+            'WT. (KGS)',
+            'DIMS (CM)',
+            'CBM',
+            'VOL. WT',
+            'VALUE',
+            'DG',
+            'REMARKS',
+        ];
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    private function stockListExportRow(Crr $crr): array
     {
         $packages = $crr->packages;
         $pcs = $packages->count();
@@ -504,54 +539,29 @@ class CrrController extends Controller
             ? implode(', ', $crr->po_numbers)
             : (string) ($crr->po_numbers ?? '');
 
-        $flags = is_array($crr->flags) ? $crr->flags : [];
-        $isPickup = in_array('Pick up', $flags, true);
-
-        $pickupCost = $crr->costs
-            ->first(fn ($cost) => stripos((string) $cost->type, 'pick') !== false);
-
-        $pickupCostValue = '';
-        if ($pickupCost !== null) {
-            $pickupCostValue = $pickupCost->net_value !== null
-                ? number_format((float) $pickupCost->net_value, 2, '.', ',')
-                : 'Yes';
-        }
+        $value = $crr->customs_value !== null
+            ? number_format((float) $crr->customs_value, 2, '.', ',')
+            : '';
+        $currency = trim((string) ($crr->currency ?? ''));
+        $valueCurrency = trim($value . ($currency !== '' ? ' ' . $currency : ''));
 
         return [
             (string) ($crr->hub_agent ?: $crr->location ?: ''),
-            $this->formatExcelDate($crr->created_at),
+            (string) ($crr->stock_number ?? ''),
+            (string) ($crr->vessel_name ?? ''),
+            $crr->created_at,
             (string) ($crr->supplier ?? ''),
             $poNumbers,
-            (string) ($crr->content ?? ''),
-            $pcs,
-            $totalWeight > 0 ? $this->formatExcelNumber($totalWeight) : '',
-            $crr->customs_value !== null ? number_format((float) $crr->customs_value, 2, '.', ',') : '',
-            (string) ($crr->currency ?? ''),
-            Crr::getStatusLabels()[$crr->status] ?? 'Unknown',
             $crr->is_landed_goods ? 'Yes' : '',
-            (string) ($crr->internal_shipment ?? ''),
-            (string) ($crr->stock_number ?? ''),
-            $pickupCostValue,
-            $isPickup ? 'Yes' : '',
-            $this->formatExcelDate($crr->actual_delivery_date),
-            $packages->contains(fn ($pkg) => (bool) $pkg->is_dgr) ? 'Yes' : '',
+            $pcs > 0 ? $pcs : null,
+            $totalWeight > 0 ? round($totalWeight, 2) : null,
             $dimensions,
-            $totalCbm > 0 ? \App\Support\PackageVolumeMetrics::formatCbm($totalCbm) : '',
-            $volumeWeight > 0 ? number_format($volumeWeight, 2, '.', '') : '',
+            $totalCbm > 0 ? round((float) $totalCbm, 2) : null,
+            $volumeWeight > 0 ? round($volumeWeight, 2) : null,
+            $valueCurrency,
+            $packages->contains(fn ($pkg) => (bool) $pkg->is_dgr) ? 'Yes' : '',
+            Crr::getStatusLabels()[$crr->status] ?? 'Unknown',
         ];
-    }
-
-    private function formatExcelDate(mixed $value): string
-    {
-        if (blank($value)) {
-            return '';
-        }
-
-        try {
-            return \Illuminate\Support\Carbon::parse($value)->format('d/m/y');
-        } catch (\Throwable) {
-            return '';
-        }
     }
 
     private function formatExcelDimension(mixed $value): string
@@ -565,13 +575,6 @@ class CrrController extends Controller
         return fmod($number, 1.0) === 0.0
             ? (string) (int) $number
             : rtrim(rtrim(number_format($number, 2, '.', ''), '0'), '.');
-    }
-
-    private function formatExcelNumber(float $value): string
-    {
-        return fmod($value, 1.0) === 0.0
-            ? (string) (int) $value
-            : rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
     }
     /**
      * Print a single CRR detailed report.
@@ -797,6 +800,11 @@ class CrrController extends Controller
     public function updateDocumentType(Request $request, $docId, CrrChangeLogService $changeLogService)
     {
         $doc = $this->crrRepository->findDocumentOrFail((int) $docId);
+
+        // Hostinger often drops PATCH bodies — accept file_type from query string too.
+        $request->merge([
+            'file_type' => $request->input('file_type', $request->query('file_type')),
+        ]);
 
         $validated = $request->validate([
             'file_type' => ['required', 'string', 'max:100', Rule::in(CrrDocument::fileTypeOptionsWithCustom())],

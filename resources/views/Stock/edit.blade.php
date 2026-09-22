@@ -4835,13 +4835,17 @@ function updatePackageSummary() {
                 const $select = $(this);
                 const docId = $select.data('id');
                 const fileType = $.trim($select.val());
-                if (!docId) return;
+                if (!docId || !fileType) return;
+
+                const url = '{{ route('stocks.documents.update-type', ':docId') }}'.replace(':docId', docId)
+                    + '?file_type=' + encodeURIComponent(fileType);
 
                 $.ajax({
-                    url: '{{ route('stocks.documents.update-type', ':docId') }}'.replace(':docId', docId),
-                    type: 'PATCH',
+                    url: url,
+                    type: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}',
+                        _method: 'PATCH',
+                        _token: $('meta[name="csrf-token"]').attr('content') || '{{ csrf_token() }}',
                         file_type: fileType
                     },
                     success: function () {

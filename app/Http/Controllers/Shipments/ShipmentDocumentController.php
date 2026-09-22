@@ -73,6 +73,11 @@ class ShipmentDocumentController extends BaseShipmentController
     {
         $document = $this->shipmentRepository->findDocumentOrFail((int) $docId);
 
+        // Hostinger often drops PATCH bodies — accept file_type from query string too.
+        $request->merge([
+            'file_type' => $request->input('file_type', $request->query('file_type')),
+        ]);
+
         $validated = $request->validate([
             'file_type' => ['required', 'string', 'max:100'],
         ]);

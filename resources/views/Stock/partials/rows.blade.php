@@ -21,25 +21,59 @@
                                                                         || (float) ($pkg->width ?? 0) >= 120
                                                                         || (float) ($pkg->height ?? 0) >= 120;
                                                                 });
+                                                                $volumeWeight = \App\Support\PackageVolumeMetrics::totalAirVolumeWeightKg($crr->packages);
+                                                                $formatDim = static function ($value): string {
+                                                                    if ($value === null || $value === '') {
+                                                                        return '0';
+                                                                    }
+                                                                    $number = (float) $value;
+
+                                                                    return fmod($number, 1.0) === 0.0
+                                                                        ? (string) (int) $number
+                                                                        : rtrim(rtrim(number_format($number, 2, '.', ''), '0'), '.');
+                                                                };
+                                                                $dimensions = $crr->packages
+                                                                    ->map(function ($pkg) use ($formatDim) {
+                                                                        if ($pkg->length === null && $pkg->width === null && $pkg->height === null) {
+                                                                            return null;
+                                                                        }
+
+                                                                        return implode('x', [
+                                                                            $formatDim($pkg->length),
+                                                                            $formatDim($pkg->width),
+                                                                            $formatDim($pkg->height),
+                                                                        ]);
+                                                                    })
+                                                                    ->filter()
+                                                                    ->values()
+                                                                    ->implode(', ');
+                                                                $doe = $crr->created_at
+                                                                    ? \Illuminate\Support\Carbon::parse($crr->created_at)->format('d/m/y')
+                                                                    : '';
                                                             @endphp
                                                             <tr
                                                                 data-customer="{{ $customerName }}"
                                                                 data-vessel="{{ $crr->vessel_name ?? '' }}"
                                                                 data-hub-agent="{{ $crr->hub_code ?? '' }}"
                                                                 data-hub-agent-raw="{{ $crr->hub_agent ?? '' }}"
+                                                                data-location="{{ $crr->hub_agent ?: ($crr->location ?? '') }}"
                                                                 data-status="{{ $statusLabel }}"
                                                                 data-account-manager="{{ $accountManager }}"
                                                                 data-office="{{ $officeName }}"
                                                                 data-stock-number="{{ $crr->stock_number ?? '' }}"
+                                                                data-doe="{{ $doe }}"
                                                                 data-po-numbers="{{ $poNumbers }}"
                                                                 data-supplier="{{ $crr->supplier ?? '' }}"
                                                                 data-service-reference="{{ $crr->supplier_reference ?? '' }}"
                                                                 data-shipment="{{ $crr->internal_shipment ?? '' }}"
                                                                 data-transit-id="{{ $crr->transit_id ?? '' }}"
                                                                 data-items="{{ $totalItems }}"
-                                                                data-weight="{{ $totalWeight > 0 ? number_format($totalWeight, 2, '.', '') : '0' }}"
-                                                                data-cbm="{{ $totalCbm > 0 ? \App\Support\PackageVolumeMetrics::formatCbm($totalCbm) : '0' }}"
-                                                                data-value="{{ $crr->customs_value !== null ? number_format((float) $crr->customs_value, 2, '.', '') : '' }}"
+                                                                data-weight="{{ $totalWeight > 0 ? number_format($totalWeight, 2, '.', '') : '' }}"
+                                                                data-cbm="{{ $totalCbm > 0 ? \App\Support\PackageVolumeMetrics::formatCbm($totalCbm) : '' }}"
+                                                                data-vol-wt="{{ $volumeWeight > 0 ? number_format($volumeWeight, 2, '.', '') : '' }}"
+                                                                data-dims="{{ $dimensions }}"
+                                                                data-landed="{{ $crr->is_landed_goods ? 'Yes' : '' }}"
+                                                                data-value="{{ $crr->customs_value !== null ? number_format((float) $crr->customs_value, 2, '.', ',') : '' }}"
                                                                 data-currency="{{ $crr->currency ?? '' }}"
                                                                 data-dgr="{{ $hasDgr ? 'Yes' : '' }}"
                                                                 data-oversized="{{ $isOversized ? 'Yes' : '' }}"

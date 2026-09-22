@@ -8856,14 +8856,20 @@
             if (!docId) {
                 return;
             }
+            if (!fileType) {
+                return;
+            }
             if (fileType && shipmentDocumentTypeOptions.indexOf(fileType) === -1) {
                 shipmentDocumentTypeOptions.push(fileType);
             }
+            var url = '{{ route('shipments.documents.update-type', ':docId') }}'.replace(':docId', docId);
+            url += (url.indexOf('?') === -1 ? '?' : '&') + 'file_type=' + encodeURIComponent(fileType);
             $.ajax({
-                url: '{{ route('shipments.documents.update-type', ':docId') }}'.replace(':docId', docId),
-                type: 'PATCH',
+                url: url,
+                type: 'POST',
                 data: {
-                    _token: '{{ csrf_token() }}',
+                    _method: 'PATCH',
+                    _token: $('meta[name="csrf-token"]').attr('content') || '{{ csrf_token() }}',
                     file_type: fileType
                 },
                 error: function() {

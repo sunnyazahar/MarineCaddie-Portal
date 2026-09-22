@@ -1514,58 +1514,82 @@
                 return formatCopyNumber(Math.round((volume * 1000000 / 6000) * 100) / 100, 2);
             }
 
+            function rowData($row, key) {
+                var value = $row.attr('data-' + key);
+                return value == null ? '' : String(value);
+            }
+
             function getCopyRowData($row) {
-                var weight = parseFloat(rowData($row, 'weight')) || 0;
-                var volume = parseFloat(rowData($row, 'cbm')) || 0;
+                var weightRaw = rowData($row, 'weight');
+                var cbmRaw = rowData($row, 'cbm');
+                var volWtRaw = rowData($row, 'vol-wt');
+                var pcsRaw = rowData($row, 'items');
                 var valueRaw = rowData($row, 'value');
-                var valueNum = valueRaw === '' ? NaN : parseFloat(valueRaw);
+                var currency = rowData($row, 'currency');
+                var valueText = $.trim(valueRaw + (currency ? ' ' + currency : ''));
 
                 return {
-                    hub: rowData($row, 'hub-agent') || rowData($row, 'hub-agent-raw') || '',
+                    location: rowData($row, 'location') || rowData($row, 'hub-agent-raw') || rowData($row, 'hub-agent') || '',
+                    stockNo: rowData($row, 'stock-number') || '',
                     vessel: rowData($row, 'vessel') || '',
+                    doe: rowData($row, 'doe') || '',
                     supplier: rowData($row, 'supplier') || '',
                     poNumbers: rowData($row, 'po-numbers') || '',
-                    items: rowData($row, 'items') || '0',
-                    weight: weight,
-                    weightText: formatCopyNumber(weight, 2),
-                    valueText: isNaN(valueNum) ? '' : formatCopyNumber(valueNum, 2),
-                    currency: rowData($row, 'currency') || '',
-                    volume: volume,
-                    volumeText: formatCopyNumber(volume, 2),
-                    vw: parseFloat(formatCopyVolumeWeight(volume)) || 0,
-                    vwText: formatCopyVolumeWeight(volume),
-                    dgr: rowData($row, 'dgr') || '',
-                    oversized: rowData($row, 'oversized') || ''
+                    landed: rowData($row, 'landed') || '',
+                    pcs: pcsRaw === '' ? '' : pcsRaw,
+                    weight: weightRaw,
+                    dims: rowData($row, 'dims') || '',
+                    cbm: cbmRaw,
+                    volWt: volWtRaw || formatCopyVolumeWeight(cbmRaw),
+                    value: valueText,
+                    dg: rowData($row, 'dgr') || '',
+                    remarks: rowData($row, 'status') || '',
+                    weightNum: parseFloat(weightRaw) || 0,
+                    cbmNum: parseFloat(cbmRaw) || 0,
+                    volWtNum: parseFloat(volWtRaw || formatCopyVolumeWeight(cbmRaw)) || 0,
+                    pcsNum: parseInt(pcsRaw, 10) || 0
                 };
             }
 
             function buildSelectedRowsCopyPayload(rows) {
-                var headers = ['Hub', 'Vessel', 'Supplier', 'PO numbers', 'Items', 'Weight', 'Value', 'Cur.', 'Volume', 'VW', 'DG', 'Oversized'];
+                var headers = [
+                    'LOCATION',
+                    'STOCK NO.',
+                    'VESSEL NAME',
+                    'DOE',
+                    'SUPPLIER NAME',
+                    'SUPPLIER PO NUMBER',
+                    'LANDED CARGO',
+                    'Pcs',
+                    'WT. (KGS)',
+                    'DIMS (CM)',
+                    'CBM',
+                    'VOL. WT',
+                    'VALUE',
+                    'DG',
+                    'REMARKS'
+                ];
                 var plainLines = [headers.join('\t')];
-                var totalWeight = 0;
-                var totalVolume = 0;
-                var totalVw = 0;
                 var bodyHtml = '';
 
                 rows.forEach(function($row) {
                     var row = getCopyRowData($row);
-                    totalWeight += row.weight;
-                    totalVolume += row.volume;
-                    totalVw += row.vw;
-
                     var cells = [
-                        row.hub,
+                        row.location,
+                        row.stockNo,
                         row.vessel,
+                        row.doe,
                         row.supplier,
                         row.poNumbers,
-                        row.items,
-                        row.weightText,
-                        row.valueText,
-                        row.currency,
-                        row.volumeText,
-                        row.vwText,
-                        row.dgr,
-                        row.oversized
+                        row.landed,
+                        row.pcs,
+                        row.weight,
+                        row.dims,
+                        row.cbm,
+                        row.volWt,
+                        row.value,
+                        row.dg,
+                        row.remarks
                     ];
 
                     plainLines.push(cells.join('\t'));
@@ -1574,29 +1598,15 @@
                     }).join('') + '</tr>';
                 });
 
-                var weightTotalText = formatCopyNumber(totalWeight, 2);
-                var volumeTotalText = formatCopyNumber(totalVolume, 2);
-                var vwTotalText = formatCopyNumber(totalVw, 2);
-
-                plainLines.push('');
-                plainLines.push('Weight: ' + weightTotalText);
-                plainLines.push('Volume: ' + volumeTotalText);
-                plainLines.push('VW: ' + vwTotalText);
-
                 var html = ''
                     + '<table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1e3a5f;">'
                     + '<thead><tr>'
                     + headers.map(function(header) {
-                        return '<th style="border:1px solid #9ca3af;padding:4px 6px;text-align:left;font-weight:700;color:#1e3a8a;background:#ffffff;">' + escapeHtml(header) + '</th>';
+                        return '<th style="border:1px solid #9ca3af;padding:4px 6px;text-align:left;font-weight:700;color:#000000;background:#cccccc;">' + escapeHtml(header) + '</th>';
                     }).join('')
                     + '</tr></thead>'
                     + '<tbody>' + bodyHtml + '</tbody>'
-                    + '</table>'
-                    + '<div style="margin-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1e3a5f;font-weight:700;line-height:1.5;">'
-                    + '<div>Weight: ' + escapeHtml(weightTotalText) + '</div>'
-                    + '<div>Volume: ' + escapeHtml(volumeTotalText) + '</div>'
-                    + '<div>VW: ' + escapeHtml(vwTotalText) + '</div>'
-                    + '</div>';
+                    + '</table>';
 
                 return {
                     plain: plainLines.join('\n'),
