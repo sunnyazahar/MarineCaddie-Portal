@@ -140,6 +140,7 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
                 'handCarryLegs',
                 'onBoardLegs',
                 'proformaInvoice.lineItems',
+                'documents',
             ])
             ->whereIn('shipment_number', $shipmentNumbers)
             ->where('status', '!=', 'Cancelled')

@@ -1,0 +1,40 @@
+---
+description: Every task — deep dive first, then optimized, reusable, fully secure code using the best logic
+alwaysApply: true
+---
+
+# Har task: deep dive → best logic → optimized, reusable, 100% secure
+
+**User ka hard instruction:** Koi bhi task mile, seedha code likhna shuru mat karo.
+
+## 1. Pehle deep dive
+- Affected route → controller → repository/service → model → Blade/JS → tests poora padho
+- Same feature ka existing pattern / helper / component dhoondo (`PROJECT_STANDARDS.md` §6g, repositories, services, `app/Support`)
+- Side effects check karo: doosre pages, mails, PDFs, exports, AJAX, production (Hostinger) behaviour
+- Requirement mein ambiguity ho to assume mat karo — poochho
+
+## 2. Best logic
+- Sabse simple + correct solution; edge cases (null, empty, duplicates, permissions, large data) handle karo
+- Root cause fix karo, symptom patch nahi
+
+## 3. Optimized
+- N+1 avoid: eager load (`with()`), sirf zaroori columns, indexed columns par filter
+- Loops mein query mat chalao; bulk operations / `whereIn` use karo
+- Heavy kaam dobara na ho (cache / reuse already loaded data)
+
+## 4. Reusable
+- Duplicate code mat likho — shared service / repository method / Blade component / JS helper banao ya reuse karo
+- Repository pattern follow karo; controller patla rakho
+
+## 5. 100% secure
+- Har input validate (`$request->validate`, `mimes`, `max`); mass assignment sirf `validated()` / `only()`
+- Authorization: route middleware (`billing`, `accounts.readonly`, roles) + record ownership check
+- SQL: query builder / bindings — raw string concat kabhi nahi
+- XSS: Blade `{{ }}`, PDF/HTML mein `e()`; JS mein user data escape
+- Files: `PrivateDisk`, path traversal se bachao, mime/size validate
+- Secrets (`.env`, passwords, tokens) kabhi log/commit/output mat karo
+- CSRF, rate limiting jahan applicable
+
+## 6. Done tabhi
+- Tests (`composer test`) + localhost smoke (desktop + mobile) + regression test for the change
+- Summary mein batao: kya kiya, kyun yeh logic best hai, security/performance considerations

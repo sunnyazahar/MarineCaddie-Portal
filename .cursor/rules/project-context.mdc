@@ -57,8 +57,17 @@ AJAX response must return: `{ html, pagination, total }`.
 - Controllers: validate → repository/service → response (direct `Model::query()` avoid karo)
 - Shared CRUD helpers: `findModelOrFail`, `create`, `updateModel`, `paginateQuery`, `transaction`
 
+## Task Quality (HARD — user instruction)
+- Har task mein **pehle deep dive** (poora flow + existing patterns padho), phir **best logic** se code likho — **optimized, reusable, 100% secure**.
+- Full detail: `.cursor/rules/task-quality-standards.mdc`
+
+## Delete Rules (HARD — user instruction)
+- **Code, files, DB, storage, git — kuch bhi apne aap delete mat karo.** Pehle user ko batao kya delete hoga + uska impact (pages/features/data/reversible?), confirmation lo, tab delete karo.
+- Full detail: `.cursor/rules/no-delete-without-confirmation.mdc`
+
 ## Git Rules
 - **Bina user ke kehne push mat karo** — changes dikhao, push tab karo jab user bole
+- `git reset --hard`, `git clean`, `git checkout -- <file>`, `git stash drop`, branch delete — sirf user confirm karne ke baad
 
 ## Shipment Finalize (Complete / Transit) — short rules
 Full detail: `PROJECT_STANDARDS.md` **§12a**.

@@ -1,0 +1,27 @@
+---
+description: Never delete anything (code, files, DB data/schema, git history) without explicit user confirmation and an impact explanation
+alwaysApply: true
+---
+
+# Delete = pehle poochho, impact batao, confirm ke baad hi karo
+
+**Hard rule (user ka instruction):** Is project mein **kuch bhi apne aap delete nahi karna** — na code se, na DB se. Pehle user se poochho, impact batao, user confirm kare tabhi delete karo.
+
+## Kis cheez par lagu hota hai
+- **Code / files:** file delete, folder delete, function/class/method/route/view/migration/test remove, bade code blocks hatana, config keys hatana
+- **DB:** `DELETE`, `TRUNCATE`, `DROP TABLE/COLUMN/INDEX`, `migrate:fresh`, `migrate:rollback`, `migrate:reset`, `db:wipe`, destructive seeders, model `->delete()` / `forceDelete()` scripts, tinker/SQL se rows hatana
+- **Storage:** uploaded files / `storage/` / `PrivateDisk` files delete
+- **Git:** `git reset --hard`, `git clean`, `git checkout -- <file>`, `git stash drop`, branch delete, force push, commits discard
+- **Deps / env:** packages uninstall, `.env` keys hatana, cache/log folders wipe
+
+## Delete se pehle user ko ye batana zaroori hai
+1. **Kya delete hoga** — exact file/table/column/rows (count ke saath) / command
+2. **Impact** — kaun se pages, routes, features, reports, tests, relations (FK, pivot), production data par kya asar padega
+3. **Reversible hai ya nahi** — backup / git se wapas aa sakta hai ya permanent
+4. **Safer alternative** — jaise soft delete, rename, comment out, backup lekar delete
+5. Phir **confirmation maango** (AskQuestion) — bina "haan" ke aage mat badho
+
+## Dhyan rahe
+- `.env` production DB ki taraf point karta hai — DB delete ka impact **live data** par hoga, ye clearly batao
+- Chhote refactor mein bhi agar koi existing symbol/file hat raha hai to pehle poochho
+- Sirf apne banaye temporary files (jo isi session mein khud banaye, jaise probe scripts) cleanup ke liye allowed hain — lekin user ko report mein batao

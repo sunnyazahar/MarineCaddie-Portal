@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Shipment;
 use App\Repositories\Contracts\ShipmentRepositoryInterface;
+use App\Support\PrivateDisk;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -35,7 +36,11 @@ class ConsolidatedProformaInvoicePdfService
             $pdfContents[] = $this->renderProformaPdfWithoutPageNumbers($data);
         }
 
-        $merged = $this->pdfMerger->mergeContents($pdfContents, stampContinuousPageNumbers: true);
+        $merged = $this->pdfMerger->mergeContents(
+            $pdfContents,
+            stampContinuousPageNumbers: true,
+            appendAbsolutePaths: $this->checkedDocumentPaths($shipments),
+        );
 
         $row = $this->invoicingShipmentRowMapper->mapCollection($shipments)->first();
         $poSlug = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) ($row['client_ref_no'] ?? 'consolidated'));
@@ -75,6 +80,33 @@ class ConsolidatedProformaInvoicePdfService
         return $shipments->sortBy(function (Shipment $shipment) use ($jobNumbers) {
             return array_search($shipment->shipment_number, $jobNumbers, true);
         })->values();
+    }
+
+    /**
+     * Shipment documents ticked in the shipment edit Documents panel (same set
+     * attached to manifest / pre-alert mails), in selected-shipment order.
+     *
+     * @param  Collection<int, Shipment>  $shipments
+     * @return list<string>
+     */
+    private function checkedDocumentPaths(Collection $shipments): array
+    {
+        $paths = [];
+
+        foreach ($shipments as $shipment) {
+            foreach ($shipment->documents as $document) {
+                if (! $document->is_internal) {
+                    continue;
+                }
+
+                $path = PrivateDisk::path((string) $document->file_path);
+                if (is_file($path) && is_readable($path)) {
+                    $paths[] = $path;
+                }
+            }
+        }
+
+        return $paths;
     }
 
     /**

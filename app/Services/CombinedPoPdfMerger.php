@@ -54,9 +54,13 @@ class CombinedPoPdfMerger
 
     /**
      * @param  list<string>  $pdfContents
+     * @param  list<string>  $appendAbsolutePaths  Existing PDF files merged after the rendered contents.
      */
-    public function mergeContents(array $pdfContents, bool $stampContinuousPageNumbers = false): string
-    {
+    public function mergeContents(
+        array $pdfContents,
+        bool $stampContinuousPageNumbers = false,
+        array $appendAbsolutePaths = [],
+    ): string {
         $paths = [];
 
         try {
@@ -78,7 +82,7 @@ class CombinedPoPdfMerger
                 throw new RuntimeException('Unable to merge the selected PDF documents.');
             }
 
-            return $this->merge($paths, $stampContinuousPageNumbers);
+            return $this->merge(array_merge($paths, $appendAbsolutePaths), $stampContinuousPageNumbers);
         } finally {
             foreach ($paths as $path) {
                 @unlink($path);

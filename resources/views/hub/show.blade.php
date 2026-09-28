@@ -44,11 +44,11 @@
             @endif
         </div>
 
-        <div class="tabs-container">
-            <a class="tab-item active" data-tab="hub-details"><i class="ti-info-alt"></i> Hub Details</a>
-            <a class="tab-item" data-tab="hub-users"><i class="ti-user"></i> Hub Users</a>
-            <a class="tab-item" data-tab="contacts"><i class="ti-id-badge"></i> Contacts</a>
-        </div>
+                                <div class="tabs-container">
+                                    <a class="tab-item active" data-tab="hub-details"><i class="ti-info-alt"></i> Hub Details</a>
+                                    <a class="tab-item" data-tab="hub-users"><i class="ti-user"></i> Hub Users</a>
+                                    <a class="tab-item" data-tab="contacts"><i class="ti-id-badge"></i> Contacts</a>
+                                </div>
 
         <div class="edit-hub-card">
             @if (session('success'))
@@ -84,7 +84,7 @@
                                                                                     <p class="hub-pillar-head-sub">Core hub profile and how to reach the desk.</p>
                                                                                 </div>
                                                                             </div>
-
+                                                                            
                                                                             <div class="form-group-custom">
                                                                                 <label class="form-label-custom">Hub name <span class="text-danger">*</span></label>
                                                                                 <input type="text" name="hub_name" class="form-input-custom" value="{{ $hub->hub_name }}" required>
@@ -146,7 +146,7 @@
                                                                                 <label class="form-label-custom">Notes for consignee</label>
                                                                                 <textarea name="special_considerations" class="form-textarea-custom" rows="3">{{ $hub->special_considerations }}</textarea>
                                                                             </div>
-                                                                        </div>
+                                                                            </div>
 
                                                                         <div class="form-pillar hub-pillar-card">
                                                                             <div class="hub-pillar-head">
@@ -154,9 +154,9 @@
                                                                                 <div>
                                                                                     <div class="hub-pillar-head-title">Location</div>
                                                                                     <p class="hub-pillar-head-sub">Physical hub address and port identifiers.</p>
-                                                                                </div>
                                                                             </div>
-
+                                                                        </div>
+                                                                            
                                                                             <div class="form-group-custom">
                                                                                 <label class="form-label-custom">Hub address <span class="text-danger">*</span></label>
                                                                                 <textarea name="hub_address" class="form-textarea-custom" rows="3" required>{{ $hub->hub_address }}</textarea>
@@ -197,25 +197,25 @@
 
                                                                             <div class="hub-soft-panel">
                                                                                 <div class="hub-soft-panel-title">Office address <span>optional</span></div>
-                                                                                <div class="form-group-custom">
-                                                                                    <label class="form-label-custom">Office address</label>
-                                                                                    <textarea name="office_address" class="form-textarea-custom" rows="3">{{ $hub->office_address }}</textarea>
-                                                                                </div>
+                                                                            <div class="form-group-custom">
+                                                                                <label class="form-label-custom">Office address</label>
+                                                                                <textarea name="office_address" class="form-textarea-custom" rows="3">{{ $hub->office_address }}</textarea>
+                                                                            </div>
 
-                                                                                <div class="input-row">
-                                                                                    <div class="form-group-custom" style="flex: 2;">
-                                                                                        <label class="form-label-custom">City</label>
-                                                                                        <input type="text" name="office_city" class="form-input-custom" value="{{ $hub->office_city }}">
-                                                                                    </div>
-                                                                                    <div class="form-group-custom">
-                                                                                        <label class="form-label-custom">District/state</label>
-                                                                                        <input type="text" name="office_district_state" class="form-input-custom" value="{{ $hub->office_district_state }}">
-                                                                                    </div>
-                                                                                    <div class="form-group-custom">
-                                                                                        <label class="form-label-custom">Zip code</label>
-                                                                                        <input type="text" name="office_zip_code" class="form-input-custom" value="{{ $hub->office_zip_code }}">
-                                                                                    </div>
+                                                                            <div class="input-row">
+                                                                                <div class="form-group-custom" style="flex: 2;">
+                                                                                    <label class="form-label-custom">City</label>
+                                                                                    <input type="text" name="office_city" class="form-input-custom" value="{{ $hub->office_city }}">
                                                                                 </div>
+                                                                                <div class="form-group-custom">
+                                                                                    <label class="form-label-custom">District/state</label>
+                                                                                    <input type="text" name="office_district_state" class="form-input-custom" value="{{ $hub->office_district_state }}">
+                                                                                </div>
+                                                                                <div class="form-group-custom">
+                                                                                    <label class="form-label-custom">Zip code</label>
+                                                                                    <input type="text" name="office_zip_code" class="form-input-custom" value="{{ $hub->office_zip_code }}">
+                                                                                </div>
+                                                                            </div>
 
                                                                                 <x-forms.country-select
                                                                                     name="office_country"
@@ -228,39 +228,39 @@
                                                                                 />
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                 </div>
+                                                                            </div>
+                                                                            </div>
 
             </form>
 
             <!-- Hub Users / Contacts tabs live outside hubEditForm (separate create/edit pages). -->
-            <div id="hub-users" class="tab-content-custom">
+                                                                  <div id="hub-users" class="tab-content-custom">
                 <div class="hub-pane-toolbar">
                     <a href="{{ route('hub.users.create', $hub->id) }}" class="btn-hub-pane-action">Add hub user</a>
-                </div>
+                                                                              </div>
                 <div class="hub-table-wrap">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 35%;">Name</th>
-                                <th style="width: 25%;">Email</th>
-                                <th style="width: 20%;">Phone number</th>
-                                <th style="width: 15%; text-align: center;">Scan Gun</th>
+                                                                              <table class="custom-table">
+                                                                                  <thead>
+                                                                                      <tr>
+                                                                                          <th style="width: 35%;">Name</th>
+                                                                                          <th style="width: 25%;">Email</th>
+                                                                                          <th style="width: 20%;">Phone number</th>
+                                                                                          <th style="width: 15%; text-align: center;">Scan Gun</th>
                                 <th style="width: 10%; text-align: right;"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($hub->hubUsers as $user)
-                                <tr>
-                                    <td>{{ $user->name }}</td>
-                                    <td>{{ $user->email }}</td>
-                                    <td>{{ $user->phone_number }}</td>
-                                    <td style="text-align: center;">@if($user->show_in_scan_gun)<i class="ti-check" style="color: #01a9ac;"></i>@endif</td>
-                                    <td style="text-align: right;">
+                                                                                      </tr>
+                                                                                  </thead>
+                                                                                  <tbody>
+                                                                                      @forelse($hub->hubUsers as $user)
+                                                                                          <tr>
+                                                                                              <td>{{ $user->name }}</td>
+                                                                                              <td>{{ $user->email }}</td>
+                                                                                              <td>{{ $user->phone_number }}</td>
+                                                                                              <td style="text-align: center;">@if($user->show_in_scan_gun)<i class="ti-check" style="color: #01a9ac;"></i>@endif</td>
+                                                                                              <td style="text-align: right;">
                                         <div class="hub-row-actions">
                                             <a href="{{ route('hub.users.edit', [$hub->id, $user->id]) }}" title="Edit hub user">
-                                                <i class="ti-pencil btn-action-pencil"></i>
-                                            </a>
+                                                                                                      <i class="ti-pencil btn-action-pencil"></i>
+                                                                                                  </a>
                                             @if ($canWriteAdministration)
                                                 <button type="button"
                                                     class="btn-action-delete delete-hub-user"
@@ -271,49 +271,49 @@
                                                 </button>
                                             @endif
                                         </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" style="text-align: center; padding: 40px; color: #8da2b5;">No hub users found.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                                                                                              </td>
+                                                                                          </tr>
+                                                                                      @empty
+                                                                                          <tr>
+                                                                                              <td colspan="5" style="text-align: center; padding: 40px; color: #8da2b5;">No hub users found.</td>
+                                                                                          </tr>
+                                                                                      @endforelse
+                                                                                  </tbody>
+                                                                              </table>
+                                                                      </div>
+                                                                  </div>
 
-            <div id="contacts" class="tab-content-custom">
+                                                                 <div id="contacts" class="tab-content-custom">
                 <div class="hub-pane-toolbar">
                     <a href="{{ route('hub.contacts.create', $hub->id) }}" class="btn-hub-pane-action">Add contact</a>
-                </div>
+                                                                             </div>
                 <div class="hub-table-wrap">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 25%;">Name</th>
-                                <th style="width: 25%;">Email</th>
-                                <th style="width: 20%;">Phone number</th>
-                                <th style="width: 20%;">Description</th>
-                                <th style="width: 5%;">Main</th>
+                                                                             <table class="custom-table">
+                                                                                 <thead>
+                                                                                     <tr>
+                                                                                         <th style="width: 25%;">Name</th>
+                                                                                         <th style="width: 25%;">Email</th>
+                                                                                         <th style="width: 20%;">Phone number</th>
+                                                                                         <th style="width: 20%;">Description</th>
+                                                                                         <th style="width: 5%;">Main</th>
                                 <th style="width: 10%; text-align: right;"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($hub->contacts as $contact)
-                                <tr>
+                                                                                     </tr>
+                                                                                 </thead>
+                                                                                 <tbody>
+                                                                                     @forelse($hub->contacts as $contact)
+                                                                                         <tr>
                                     <td>
                                         <a href="{{ route('hub.contacts.edit', [$hub->id, $contact->id]) }}" class="table-link">{{ $contact->name }}</a>
                                     </td>
-                                    <td>{{ $contact->email }}</td>
-                                    <td>{{ $contact->phone_number }}</td>
-                                    <td>{{ $contact->description }}</td>
-                                    <td style="text-align: center;">@if($contact->is_main_contact)<i class="ti-check" style="color: #01a9ac;"></i>@endif</td>
-                                    <td style="text-align: right;">
+                                                                                             <td>{{ $contact->email }}</td>
+                                                                                             <td>{{ $contact->phone_number }}</td>
+                                                                                             <td>{{ $contact->description }}</td>
+                                                                                             <td style="text-align: center;">@if($contact->is_main_contact)<i class="ti-check" style="color: #01a9ac;"></i>@endif</td>
+                                                                                             <td style="text-align: right;">
                                         <div class="hub-row-actions">
                                             <a href="{{ route('hub.contacts.edit', [$hub->id, $contact->id]) }}" title="Edit contact">
-                                                <i class="ti-pencil btn-action-pencil"></i>
-                                            </a>
+                                                                                                     <i class="ti-pencil btn-action-pencil"></i>
+                                                                                                 </a>
                                             @if ($canWriteAdministration)
                                                 <button type="button"
                                                     class="btn-action-delete delete-hub-contact"
@@ -324,29 +324,29 @@
                                                 </button>
                                             @endif
                                         </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" style="text-align: center; padding: 40px; color: #9ca3af;">No contacts found for this hub.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-                                                            </div>
-        </div>
+                                                                                             </td>
+                                                                                         </tr>
+                                                                                     @empty
+                                                                                         <tr>
+                                                                                             <td colspan="6" style="text-align: center; padding: 40px; color: #9ca3af;">No contacts found for this hub.</td>
+                                                                                         </tr>
+                                                                                     @endforelse
+                                                                                 </tbody>
+                                                                             </table>
+                                                                         </div>
+                                                                     </div>
+                                                                 </div>
+                                                                              </div>
 
         <div class="hub-edit-footer">
             <button type="submit" class="btn-save-custom" form="hubEditForm">Save hub</button>
-            <a href="{{ route('hub.index') }}" class="btn-cancel-custom">Cancel</a>
+                                                                <a href="{{ route('hub.index') }}" class="btn-cancel-custom">Cancel</a>
             <div class="audit-info">
                 @include('partials.audit-info', ['record' => $hub, 'bold' => true])
             </div>
         </div>
     </div>
-
+    
     @include('layouts.partials.pcoded-shell-end')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 
@@ -438,7 +438,7 @@
                     window.mcAjaxDelete({
                         url: url,
                         success: function (response) {
-                            if (response.success) {
+                        if (response.success) {
                                 swal({
                                     title: 'Deleted',
                                     text: response.message || successFallback,

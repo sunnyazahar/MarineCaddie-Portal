@@ -3,6 +3,10 @@
 > **IMPORTANT:** Is file ko har non-trivial change se **PEHLE** padho.  
 > Yahan likha pattern follow karo — doosri functionality tootne ka risk khatam hoga.
 
+> **TASK QUALITY RULE (HARD):** Har task mein pehle **deep dive** (route → controller → repository/service → model → view/JS → tests + existing patterns), phir **best logic** se code — **optimized** (no N+1, eager load, bulk queries), **reusable** (shared service/repository/component, no duplication) aur **100% secure** (validation, authorization, bindings, escaping, `PrivateDisk`, no secrets). Detail: `.cursor/rules/task-quality-standards.mdc`.
+
+> **DELETE RULE (HARD):** Code, files, DB (rows / tables / columns / migrations), storage files ya git history — **kuch bhi apne aap delete mat karo.** Pehle user ko batao *kya* delete hoga, uska *impact* (pages, features, live data, reversible ya nahi) aur safer alternative; user confirm kare **tabhi** delete karo. Detail: `.cursor/rules/no-delete-without-confirmation.mdc`.
+
 ---
 
 ## Table of Contents
@@ -1062,6 +1066,18 @@ Routes: `/billing/invoicing`, `/billing/invoicing/{proformaNo}/edit`, PDF print.
 | Code | `InvoicingShipmentRowMapper` resolves via first linked CRR’s customer — no comma-joined multi-customer UI |
 
 Do not build invoicing edit/PDF fields assuming multiple customers per shipment unless product rules change.
+
+### Generate Consolidate Invoice
+
+Route `billing.invoicing.consolidated-print?job_no[]=…` → `ConsolidatedProformaInvoicePdfService`.
+
+| Rule | Detail |
+|---|---|
+| Selection | ≥ 2 job numbers, all with generated proforma, same PO No. + Party Name |
+| PDF order | Consolidated summary → each shipment's invoice → each shipment's **checked** documents (selected-shipment order) |
+| Checked documents | `shipment_documents.is_internal = 1` (shipment edit Documents panel checkbox — same set as manifest / pre-alert mail attachments). Combined PO docs are **not** included |
+| Page numbers | Continuous across the whole merged PDF (including attached documents) via `CombinedPoPdfMerger` |
+| Missing / unreadable files | Silently skipped |
 
 **Mapper:** `app/Services/InvoicingShipmentRowMapper.php`
 
