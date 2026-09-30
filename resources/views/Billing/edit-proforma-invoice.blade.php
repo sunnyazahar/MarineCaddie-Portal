@@ -152,7 +152,7 @@
             transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
         }
 
-        #proforma-edit-form .proforma-field-input .form-control:hover:not(:disabled):not([readonly]) {
+        #proforma-edit-form .proforma-field-input .form-control:hover:not(:disabled):not([]) {
             border-color: #b7d9e8;
         }
 
@@ -258,7 +258,7 @@
             pointer-events: none;
         }
 
-        .proforma-readonly {
+        .proforma- {
             background: #f8fafc !important;
             color: #475569 !important;
             border-color: #e2e8f0 !important;
@@ -512,7 +512,7 @@
             background: #fff;
         }
 
-        .proforma-net-payable-row .form-control[readonly] {
+        .proforma-net-payable-row .form-control[] {
             background: #f1f5f9;
             color: #0e1d4a;
         }
@@ -783,9 +783,9 @@
                         <div class="proforma-field-row">
                             <label for="invoice_type">Invoice Type</label>
                             <div class="proforma-field-input">
-                                <select id="invoice_type" name="invoice_type" class="form-control form-control-sm">
+                                <select id="invoice_type" name="invoice_type" class="form-control form-control-sm select2-invoice-custom" data-allow-custom="1">
                                     <option value="" disabled @selected(empty($invoice['invoice_type']))>Select Invoice Type</option>
-                                    @foreach ($invoiceTypeOptions as $value => $label)
+                                                                                                                @foreach ($invoiceTypeOptions as $value => $label)
                                         <option value="{{ $value }}" @selected((string) $invoice['invoice_type'] === (string) $value)>{{ $label }}</option>
                                     @endforeach
                                 </select>
@@ -806,7 +806,7 @@
                         <div class="proforma-field-row">
                             <label for="consignee-select">Select Consignee</label>
                             <div class="proforma-field-input">
-                                <select id="consignee-select" name="consignee" class="form-control form-control-sm select2-consignee">
+                                <select id="consignee-select" name="consignee" class="form-control form-control-sm select2-consignee" data-allow-custom="1">
                                     @if (!empty($invoice['consignee']))
                                         <option value="{{ $invoice['consignee'] }}" selected>{{ $invoice['consignee_display'] }}</option>
                                     @endif
@@ -821,9 +821,9 @@
                                     type="text"
                                     id="billing-party"
                                     name="billing_party"
-                                    class="form-control form-control-sm proforma-readonly"
+                                    class="form-control form-control-sm"
                                     value="{{ $invoice['billing_party_display'] }}"
-                                    readonly
+                                    
                                 >
                             </div>
                         </div>
@@ -912,7 +912,7 @@
                         <div class="proforma-field-row">
                             <label for="type_of_supply">Type of Supply</label>
                             <div class="proforma-field-input">
-                                <select id="type_of_supply" name="type_of_supply" class="form-control form-control-sm">
+                                <select id="type_of_supply" name="type_of_supply" class="form-control form-control-sm select2-supply-type" data-allow-custom="1">
                                     <option value="" disabled @selected(empty($invoice['type_of_supply']))>Select service</option>
                                     @foreach ($serviceOptions as $serviceOption)
                                         <option value="{{ $serviceOption }}" @selected($invoice['type_of_supply'] === $serviceOption)>{{ $serviceOption }}</option>
@@ -927,7 +927,7 @@
                         <div class="proforma-field-row">
                             <label for="proforma_no">Invoice No.</label>
                             <div class="proforma-field-input">
-                                <input type="text" id="proforma_no" name="proforma_no" class="form-control form-control-sm proforma-readonly" value="{{ $invoice['proforma_no'] }}" readonly>
+                                <input type="text" id="proforma_no" name="proforma_no" class="form-control form-control-sm" value="{{ $invoice['proforma_no'] }}" >
                             </div>
                         </div>
 
@@ -956,7 +956,7 @@
                             <label>Job No. &amp; Date</label>
                             <div class="proforma-field-input">
                                 <div class="proforma-split-field">
-                                    <input type="text" name="job_no" class="form-control form-control-sm proforma-readonly" value="{{ $invoice['job_no'] }}" readonly>
+                                    <input type="text" name="job_no" class="form-control form-control-sm" value="{{ $invoice['job_no'] }}" >
                                     <input type="text" name="job_date" class="form-control form-control-sm datepicker" value="{{ $invoice['job_date'] }}">
                                 </div>
                             </div>
@@ -1126,7 +1126,7 @@
                                                 @endif
                                             </select>
                                         </td>
-                                        <td><input type="text" name="line_items[{{ $index }}][amount]" class="form-control form-control-sm line-amount proforma-readonly text-right" value="{{ $item['amount'] }}" readonly></td>
+                                        <td><input type="text" name="line_items[{{ $index }}][amount]" class="form-control form-control-sm line-amount proforma- text-right" value="{{ $item['amount'] }}" readonly></td>
                                         <td><input type="text" name="line_items[{{ $index }}][exchange_rate]" class="form-control form-control-sm line-exchange text-right" value="{{ $item['exchange_rate'] }}"></td>
                                         <td>
                                             <select name="line_items[{{ $index }}][tax_type]" class="form-control form-control-sm">
@@ -1144,7 +1144,7 @@
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td><input type="text" name="line_items[{{ $index }}][igst_amt]" class="form-control form-control-sm line-igst-amt proforma-readonly text-right" value="{{ $item['igst_amt'] }}" readonly></td>
+                                        <td><input type="text" name="line_items[{{ $index }}][igst_amt]" class="form-control form-control-sm line-igst-amt proforma- text-right" value="{{ $item['igst_amt'] }}" readonly></td>
                                         <td class="proforma-line-action-cell">
                                             @if ($index === 0)
                                                 <button type="button" class="proforma-line-btn proforma-line-btn--add proforma-line-add" title="Add row" aria-label="Add row"><i class="feather icon-plus"></i></button>
@@ -1192,9 +1192,9 @@
                                 type="text"
                                 id="due_amount"
                                 name="due_amount"
-                                class="form-control form-control-sm proforma-readonly"
+                                class="form-control form-control-sm"
                                 value="{{ $invoice['due_amount'] ?? '' }}"
-                                readonly
+                                
                             >
                         </div>
                     </div>
@@ -1249,7 +1249,7 @@
                     return;
                 }
 
-                $scope.find('select').not('.select2-departure, .select2-consignee, .select2-port-code, .select2-currency-ajax, .line-qty-type, [data-country-select], [data-country-select-ajax]').each(function() {
+                $scope.find('select').not('.select2-departure, .select2-consignee, .select2-departure, .select2-port-code, .select2-currency-ajax, .line-qty-type, [data-country-select], [data-country-select-ajax]').each(function() {
                     var $select = $(this);
 
                     if ($select.hasClass('select2-hidden-accessible')) {
@@ -1388,6 +1388,75 @@
                 return item.text || item.id;
             }
 
+            
+                        
+            function initSupplyTypeCustomSelects() {
+                if (typeof $.fn.select2 !== "function") {
+                    return;
+                }
+
+                $(".select2-supply-type").each(function() {
+                    var $select = $(this);
+                    var allowCustom = $select.is('[data-allow-custom="1"]');
+                    if ($select.hasClass("select2-hidden-accessible")) {
+                        return;
+                    }
+
+                    var options = {
+                        placeholder: "Select service",
+                        allowClear: false,
+                        width: "100%",
+                        minimumResultsForSearch: 0,
+                        dropdownCssClass: "proforma-select2-dropdown"
+                    };
+
+                    if (allowCustom) {
+                        options.tags = true;
+                        options.createTag = function(params) {
+                            var term = $.trim(params.term);
+                            if (term === "") return null;
+                            return { id: term, text: term, newTag: true };
+                        };
+                    }
+
+                    $select.select2(options);
+                });
+            }
+
+            function initInvoiceTypeCustomSelects() {
+                if (typeof $.fn.select2 !== "function") {
+                    return;
+                }
+
+                $(".select2-invoice-custom").each(function() {
+                    var $select = $(this);
+                    var allowCustom = $select.is('[data-allow-custom="1"]');
+                    if ($select.hasClass("select2-hidden-accessible")) {
+                        return;
+                    }
+
+                    var options = {
+                        placeholder: "Select Invoice Type",
+                        allowClear: false,
+                        width: "100%",
+                        minimumResultsForSearch: 0,
+                        dropdownCssClass: "proforma-select2-dropdown"
+                    };
+
+                    if (allowCustom) {
+                        options.tags = true;
+                        options.createTag = function(params) {
+                            var term = $.trim(params.term);
+                            if (term === "") return null;
+                            return { id: term, text: term, newTag: true };
+                        };
+                    }
+
+                    $select.select2(options);
+                });
+            }
+
+
             function initDeparturePartySelects() {
                 if (typeof $.fn.select2 !== 'function') {
                     return;
@@ -1496,25 +1565,31 @@
                 }, 0);
             }
 
-            function initConsigneeSelect() {
-                if (typeof $.fn.select2 !== 'function') {
+                        function initConsigneeSelect() {
+                if (typeof $.fn.select2 !== "function") {
                     return;
                 }
 
-                var $select = $('#consignee-select');
-                if (!$select.length || $select.hasClass('select2-hidden-accessible')) {
+                var $select = $("#consignee-select");
+                if (!$select.length || $select.hasClass("select2-hidden-accessible")) {
                     return;
                 }
 
                 $select.select2({
-                    placeholder: 'Type consignee',
+                    tags: true,
+                    createTag: function(params) {
+                        var term = $.trim(params.term);
+                        if (term === "") return null;
+                        return { id: term, text: term, newTag: true };
+                    },
+                    placeholder: "Type consignee",
                     allowClear: false,
-                    width: '100%',
+                    width: "100%",
                     minimumResultsForSearch: 0,
-                    dropdownCssClass: 'proforma-select2-dropdown',
+                    dropdownCssClass: "proforma-select2-dropdown",
                     ajax: {
-                        url: '{{ url('/api/consignees') }}',
-                        dataType: 'json',
+                        url: "{{ url('/api/consignees') }}",
+                        dataType: "json",
                         delay: 250,
                         data: function(params) {
                             return { q: params.term };
@@ -1527,6 +1602,7 @@
                     templateSelection: formatPartySelection
                 });
             }
+
 
             function initProformaDatepickers($scope) {
                 if (typeof $.fn.datepicker !== 'function') {
@@ -1768,6 +1844,8 @@
             });
 
             initProformaDatepickers($('#proforma-edit-form'));
+            initSupplyTypeCustomSelects();
+            initInvoiceTypeCustomSelects();
             initDeparturePartySelects();
             if (window.MarineCaddieInitPortSelect) {
                 window.MarineCaddieInitPortSelect();
