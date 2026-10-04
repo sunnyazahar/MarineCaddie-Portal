@@ -26,3 +26,4 @@ Compress.zip
 /scripts/smoke-*.json
 /scripts/smoke-storage.json
 /scripts/smoke-session.json
+/DEPLOY.local.md

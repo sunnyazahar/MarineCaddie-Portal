@@ -1349,21 +1349,27 @@ type-hints referencing the class
 
 ## 21. Production Deploy
 
+Host, SSH user, paths and exact commands: **`DEPLOY.local.md`** (gitignored — never commit server details, the repo is public).
+
+### Layout
+
+- App = git checkout **outside** the web root; web root exposes only `laravel/public` (symlink) with an `.htaccess` that serves static files from it and routes everything else to `public/index.php`.
+- Asset URLs never contain `/public` (`AppServiceProvider`); the web server maps them onto `public/`.
+- Server has **no Node** → `public/build` (gitignored) is built locally (`npm run build`) and uploaded.
+
 ### Steps
 
 ```bash
-cd /home/u887677533/domains/portal.marinecaddie.com/public_html
-git pull origin main   # or merged feature branch
-composer install --no-dev --optimize-autoloader
-php artisan migrate --force
+git pull --ff-only origin feature/tailwind-v2
+composer install --no-dev -o --no-interaction --no-progress
 php artisan config:cache && php artisan route:cache && php artisan view:cache
 ```
 
+**Migrations:** the production DB was imported manually; its `migrations` table is out of sync with the schema (columns exist, rows missing). **Never run `php artisan migrate` there** without checking each pending migration against the real columns first.
+
 ### Cron (Hostinger hPanel)
 
-```
-* * * * * cd /home/u887677533/domains/portal.marinecaddie.com/public_html && /opt/alt/php84/usr/bin/php artisan schedule:run >> /dev/null 2>&1
-```
+`* * * * * php <app>/artisan schedule:run >> /dev/null 2>&1` (exact path in `DEPLOY.local.md`).
 
 Currency rates log: `grep "Currency rates updated" storage/logs/laravel.log | tail -10`
 
