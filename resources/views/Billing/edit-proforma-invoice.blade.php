@@ -1847,12 +1847,12 @@
             initSupplyTypeCustomSelects();
             initInvoiceTypeCustomSelects();
             initDeparturePartySelects();
-            if (window.MarineCaddieInitPortSelect) {
-                window.MarineCaddieInitPortSelect();
+            if (window.AppUiInitPortSelect) {
+                window.AppUiInitPortSelect();
             }
             initProformaPortSelectDropdowns();
-            if (window.MarineCaddieInitCountrySelect) {
-                window.MarineCaddieInitCountrySelect('#bill_to_pos');
+            if (window.AppUiInitCountrySelect) {
+                window.AppUiInitCountrySelect('#bill_to_pos');
             }
             initProformaCurrencyAjaxSelect($('#proforma-edit-form'));
             initLineQtyTypeSelects($('#proforma-edit-form'));

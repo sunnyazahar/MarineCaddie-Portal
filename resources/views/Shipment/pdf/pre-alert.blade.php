@@ -90,10 +90,10 @@
                     <table class="si-details">
                         <tr><td><strong>Service:</strong> ' . $serviceDisplay . '</td></tr>
                         ' . $referenceRow . '
-                        <tr><td><strong>MarineCaddie Ref. No.</strong> ' . e($shipment->shipment_number ?: '—') . '</td></tr>
+                        <tr><td><strong>' . e(\App\Support\Branding::name()) . ' Ref. No.</strong> ' . e($shipment->shipment_number ?: '—') . '</td></tr>
                         <tr><td><strong>Customer\'s PO No.</strong> ' . $customerPo . '</td></tr>
-                        <tr><td><strong>Shipment arranged by:</strong> ' . e(\App\Support\CompanyAddress::NAME) . '</td></tr>
-                        <tr><td><strong>MarineCaddie account handler:</strong> ' . e($shipment->accountManager?->name ?: '—') . '</td></tr>
+                        <tr><td><strong>Shipment arranged by:</strong> ' . e(\App\Support\CompanyAddress::name()) . '</td></tr>
+                        <tr><td><strong>' . e(\App\Support\Branding::name()) . ' account handler:</strong> ' . e($shipment->accountManager?->name ?: '—') . '</td></tr>
                     </table>';
     };
 
@@ -208,8 +208,10 @@
             <tr>
                 <td style="width:50%; padding-right:12px; vertical-align:top; font-size:11px;">
                     <div class="field-label">Shipped through:</div>
-                    <div>MarineCaddie Shipping LLC,</div>
-                    <div>Email ops@marinecaddie.com</div>
+                    <div>{{ \App\Support\CompanyAddress::name() }},</div>
+                    @if ($shippedThroughEmail = \App\Support\CompanyAddress::email())
+                        <div>Email {{ $shippedThroughEmail }}</div>
+                    @endif
                 </td>
                 <td style="width:50%; padding-left:12px; vertical-align:top; font-size:11px;">
                     <div class="field-label">Vessel Agent:</div>

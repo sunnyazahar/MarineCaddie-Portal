@@ -52,7 +52,7 @@
             </div>
 
             <div class="login-footer">
-                © {{ date('Y') }} MarineCaddie, Inc. All rights reserved.
+                © {{ date('Y') }} {{ \App\Support\Branding::legalName() }}. All rights reserved.
                 <span aria-hidden="true"> · </span>
                 <a href="#">Privacy policy</a>
             </div>
@@ -67,7 +67,7 @@
                     Account recovery
                 </div>
                 <h2 class="login-hero-title">
-                    Recover access to<br><span>MarineCaddie</span>
+                    Recover access to<br><span>{{ \App\Support\Branding::name() }}</span>
                 </h2>
                 <p class="login-hero-text">
                     Keep your logistics operations moving with secure account recovery designed for speed, clarity, and safe access control.

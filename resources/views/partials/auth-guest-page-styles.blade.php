@@ -66,7 +66,7 @@
         margin-bottom: 28px;
     }
 
-    .login-brand .marinecaddie-logo {
+    .login-brand .app-logo {
         max-height: 72px !important;
         width: auto !important;
         max-width: 220px !important;

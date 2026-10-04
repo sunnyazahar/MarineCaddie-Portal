@@ -9,11 +9,12 @@ use Tests\TestCase;
 
 class OtpLocalExposeGuardTest extends TestCase
 {
-    public function test_live_marinecaddie_host_never_exposes_local_otp(): void
+    public function test_configured_live_host_never_exposes_local_otp(): void
     {
         $this->app['env'] = 'local';
+        config(['app.live_hosts' => ['*.example-live.test']]);
 
-        $request = Request::create('https://portal.marinecaddie.com/otp', 'GET');
+        $request = Request::create('https://portal.example-live.test/otp', 'GET');
         $this->app->instance('request', $request);
 
         $controller = app(OtpController::class);

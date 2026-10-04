@@ -22,13 +22,13 @@
                                 if (! empty($logoPath) && is_file($logoPath) && isset($message)) {
                                     $logoSrc = $message->embed($logoPath);
                                 } elseif (! empty($logoPath) && is_file($logoPath)) {
-                                    $logoSrc = rtrim((string) config('app.url'), '/') . '/files/assets/images/marinecaddie-logo.png';
+                                    $logoSrc = route('branding.logo');
                                 }
                             @endphp
                             @if ($logoSrc !== '')
-                                <img src="{{ $logoSrc }}" alt="MarineCaddie" width="200" height="auto" style="display:block; margin:0 auto; width:200px; max-width:200px; height:auto; border:0;">
+                                <img src="{{ $logoSrc }}" alt="{{ \App\Support\Branding::name() }}" width="200" height="auto" style="display:block; margin:0 auto; width:200px; max-width:200px; height:auto; border:0;">
                             @else
-                                <div style="color:#0f2d55; font-size:22px; font-weight:700;">MarineCaddie</div>
+                                <div style="color:#0f2d55; font-size:22px; font-weight:700;">{{ \App\Support\Branding::name() }}</div>
                             @endif
                         </td>
                     </tr>
@@ -88,7 +88,7 @@
                                         </table>
 
                                         <p style="margin:28px 0 0; color:#94a3b8; font-size:12px; line-height:1.5;">
-                                            This is an automated MarineCaddie notification for the vessel account manager.
+                                            This is an automated {{ \App\Support\Branding::name() }} notification for the vessel account manager.
                                         </p>
                                     </td>
                                 </tr>

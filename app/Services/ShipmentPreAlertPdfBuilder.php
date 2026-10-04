@@ -90,7 +90,7 @@ class ShipmentPreAlertPdfBuilder
             : trim(($shipment->creator?->name ?? '—') . ($shipment->creator?->email ? ', ' . $shipment->creator->email : ''));
 
         $office = $accountManager?->office;
-        $issuedByName = $office?->office_name ?? $base['companyName'] ?? 'Marinetrans';
+        $issuedByName = $office?->office_name ?? $base['companyName'] ?? \App\Support\Branding::name();
         $issuedByAddress = $this->formatOfficeAddress($office) ?: ($base['companyAddress'] ?? '—');
 
         $currencyRates = $this->manifestPdfBuilder->currencyRatesByCode();

@@ -1,4 +1,4 @@
-/* MarineCaddie — global page motion (shared across app + guest) */
+/* Global page motion (shared across app + guest) */
 
 @keyframes mc-rise {
     from {

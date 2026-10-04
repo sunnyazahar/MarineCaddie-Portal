@@ -66,6 +66,57 @@ trait CreatesRegressionSchema
             $table->timestamp('login_otp_sent_at')->nullable();
             $table->unsignedTinyInteger('otp_failed_attempts')->default(0);
             $table->timestamp('otp_blocked_until')->nullable();
+            $table->softDeletes();
+            $table->timestamps();
+        });
+
+        Schema::create('user_login_activities', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('session_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->string('browser')->nullable();
+            $table->string('browser_version')->nullable();
+            $table->string('operating_system')->nullable();
+            $table->string('device_type')->nullable();
+            $table->string('screen_resolution')->nullable();
+            $table->string('language')->nullable();
+            $table->string('timezone')->nullable();
+            $table->decimal('browser_latitude', 10, 7)->nullable();
+            $table->decimal('browser_longitude', 10, 7)->nullable();
+            $table->decimal('browser_location_accuracy', 10, 2)->nullable();
+            $table->decimal('ip_latitude', 10, 7)->nullable();
+            $table->decimal('ip_longitude', 10, 7)->nullable();
+            $table->string('city')->nullable();
+            $table->string('region')->nullable();
+            $table->string('country')->nullable();
+            $table->string('country_code', 2)->nullable();
+            $table->timestamp('logged_in_at');
+            $table->timestamp('logged_out_at')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('company_settings', function (Blueprint $table) {
+            $table->id();
+            $table->string('company_name', 150);
+            $table->string('legal_name', 200)->nullable();
+            $table->string('logo_path')->nullable();
+            $table->string('website')->nullable();
+            $table->string('address_line_1')->nullable();
+            $table->string('address_line_2')->nullable();
+            $table->string('phone', 50)->nullable();
+            $table->string('email', 150)->nullable();
+            $table->string('bank_account_name', 200)->nullable();
+            $table->string('bank_account_number', 50)->nullable();
+            $table->string('bank_iban', 50)->nullable();
+            $table->string('bank_swift', 20)->nullable();
+            $table->string('bank_name', 150)->nullable();
+            $table->string('bank_city_country', 150)->nullable();
+            $table->json('invoice_notes')->nullable();
+            $table->string('proforma_prefix', 20)->nullable();
+            $table->boolean('otp_enabled')->default(false);
+            $table->foreignId('updated_by')->nullable();
             $table->timestamps();
         });
 
@@ -119,6 +170,7 @@ trait CreatesRegressionSchema
             $table->string('status')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
 
@@ -331,6 +383,7 @@ trait CreatesRegressionSchema
             $table->string('category')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
 
@@ -397,6 +450,7 @@ trait CreatesRegressionSchema
             $table->string('yearly_customer_reference')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
 
@@ -894,6 +948,8 @@ trait CreatesRegressionSchema
             'hubs',
             'countries',
             'offices',
+            'company_settings',
+            'user_login_activities',
             'users',
         ] as $table) {
             Schema::dropIfExists($table);

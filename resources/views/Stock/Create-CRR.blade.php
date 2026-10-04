@@ -640,7 +640,7 @@
             min-width: 120px;
         }
 
-        /* ========== MarineCaddie v2 — Create CRR polish ========== */
+        /* ========== v2 — Create CRR polish ========== */
         body.create-crr-page {
             padding-bottom: 84px;
         }
@@ -2463,8 +2463,8 @@
                     }
                 });
 
-                if (window.MarineCaddieInitCountrySelect) {
-                    window.MarineCaddieInitCountrySelect($modal);
+                if (window.AppUiInitCountrySelect) {
+                    window.AppUiInitCountrySelect($modal);
                 }
 
                 $('.modal-supplier-currency').each(function () {

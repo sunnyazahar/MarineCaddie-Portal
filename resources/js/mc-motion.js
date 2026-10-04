@@ -1,5 +1,5 @@
 /**
- * MarineCaddie shared motion — tabs, list AJAX refresh, filters/search feedback.
+ * Shared motion — tabs, list AJAX refresh, filters/search feedback.
  */
 function whenJqueryReady(callback) {
     if (typeof window.jQuery === 'function') {

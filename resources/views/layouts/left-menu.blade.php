@@ -214,6 +214,19 @@
                     </li>
                 </ul>
             </li>
+            <li class="pcoded-hasmenu {{ request()->routeIs('settings.*') ? 'active pcoded-trigger pcoded-item-open' : '' }}" data-menu-key="settings">
+                <a href="javascript:void(0)">
+                    <span class="pcoded-micon"><i class="feather icon-settings"></i></span>
+                    <span class="pcoded-mtext">Settings</span>
+                </a>
+                <ul class="pcoded-submenu">
+                    <li class="{{ request()->routeIs('settings.company.*') ? 'active' : '' }}">
+                        <a href="{{ route('settings.company.edit') }}">
+                            <span class="pcoded-mtext">Company settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
             @endif
         </ul>
 

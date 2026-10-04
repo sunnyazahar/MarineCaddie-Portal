@@ -65,7 +65,7 @@ class CrrStockChangedMail extends Mailable
                     : null,
                 'stockNumber' => $this->crr->stock_number ?: ('#' . $this->crr->id),
                 'vesselName' => $this->crr->vessel_name ?: '—',
-                'logoPath' => public_path('files/assets/images/marinecaddie-logo.png'),
+                'logoPath' => \App\Support\Branding::logoPath(),
                 'stockUrl' => url('/stocks/edit/' . $this->crr->id),
             ],
         );

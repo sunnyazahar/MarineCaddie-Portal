@@ -10,7 +10,7 @@ use Dompdf\FontMetrics;
 class ShipmentPdfCompanyFooter
 {
     /**
-     * Render the PDF and stamp the MarineCaddie company footer on every page.
+     * Render the PDF and stamp the company footer on every page.
      */
     public function output(PDF $pdf, string $createdAt): string
     {
@@ -25,11 +25,11 @@ class ShipmentPdfCompanyFooter
         $bottomOffset = 42.0;
 
         $leftLines = CompanyAddress::footerLeftLines();
-        $rightLines = [
-            'Phone ' . CompanyAddress::PHONE,
-            'Email ' . CompanyAddress::EMAIL,
+        $rightLines = array_values(array_filter([
+            CompanyAddress::phone() !== '' ? 'Phone ' . CompanyAddress::phone() : null,
+            CompanyAddress::email() !== '' ? 'Email ' . CompanyAddress::email() : null,
             'Created on ' . $createdAt,
-        ];
+        ]));
 
         $canvas->page_script(function (int $pageNumber, int $pageCount, Canvas $canvas, FontMetrics $fontMetrics) use (
             $font,
@@ -79,9 +79,11 @@ class ShipmentPdfCompanyFooter
         $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans');
         $size = 10.0;
         $marginX = 28.35;
-        $shippedBy = CompanyAddress::NAME
-            . ' | E-mail: ' . CompanyAddress::EMAIL
-            . ' | Phone: ' . CompanyAddress::PHONE;
+        $shippedBy = implode(' | ', array_filter([
+            CompanyAddress::name(),
+            CompanyAddress::email() !== '' ? 'E-mail: ' . CompanyAddress::email() : null,
+            CompanyAddress::phone() !== '' ? 'Phone: ' . CompanyAddress::phone() : null,
+        ]));
 
         $canvas->page_script(function (int $pageNumber, int $pageCount, Canvas $canvas, FontMetrics $fontMetrics) use (
             $font,

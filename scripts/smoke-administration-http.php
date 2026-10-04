@@ -114,17 +114,17 @@ $customerId = App\Models\Customer::query()->orderBy('id')->value('id');
 
 $pages = [
     ['Agents list', '/Agents', ['agents-table', 'bindAjaxListFilters', 'filter-agent-name']],
-    ['Agents create', '/Agents/create', ['data-country-select="1"', 'MarineCaddieInitCountrySelect']],
+    ['Agents create', '/Agents/create', ['data-country-select="1"', 'AppUiInitCountrySelect']],
     ['Customers list', '/customers', ['offices-table', 'filter-customer-search', 'customer-filter-multiselect']],
-    ['Customers create', '/customers/create', ['data-country-select="1"', 'MarineCaddieInitCountrySelect']],
+    ['Customers create', '/customers/create', ['data-country-select="1"', 'AppUiInitCountrySelect']],
     ['Hubs list', '/hubs', ['offices-table', 'filter-hub-name']],
-    ['Hubs create', '/hubs/create', ['data-country-select="1"', 'MarineCaddieInitCountrySelect']],
+    ['Hubs create', '/hubs/create', ['data-country-select="1"', 'AppUiInitCountrySelect']],
     ['Suppliers list', '/Suppliers', ['suppliers-table']],
-    ['Suppliers create', '/Suppliers/create', ['data-country-select="1"', 'MarineCaddieInitCountrySelect']],
+    ['Suppliers create', '/Suppliers/create', ['data-country-select="1"', 'AppUiInitCountrySelect']],
     ['Other companies list', '/other-companies', ['other-companies-table', 'bindAjaxListFilters', 'company-filter-multiselect']],
-    ['Other companies create', '/other-companies/create', ['data-country-select="1"', 'MarineCaddieInitCountrySelect']],
+    ['Other companies create', '/other-companies/create', ['data-country-select="1"', 'AppUiInitCountrySelect']],
     ['Offices list', '/offices', ['offices-table']],
-    ['Offices create', '/offices/create', ['data-country-select="1"', 'MarineCaddieInitCountrySelect']],
+    ['Offices create', '/offices/create', ['data-country-select="1"', 'AppUiInitCountrySelect']],
 ];
 
 if ($agentId) {

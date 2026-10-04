@@ -399,7 +399,7 @@
                             id="administration-search-query"
                             name="administration_search_query"
                             class="form-control filter-input"
-                            placeholder="Try marinecaddie, a supplier email, customer name, or vessel IMO"
+                            placeholder="Try a company name, supplier email, customer name, or vessel IMO"
                             autocomplete="off"
                         >
                     </x-lists.filter-field>
@@ -742,7 +742,7 @@
                             return;
                         }
 
-                        setState('No administration result found. Try a broader keyword like marinecaddie or a specific email, IMO, code, or record name.', 'empty');
+                        setState('No administration result found. Try a broader keyword like a company name or a specific email, IMO, code, or record name.', 'empty');
                     },
                     error: function (xhr) {
                         if (xhr.statusText === 'abort') {

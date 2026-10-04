@@ -1654,7 +1654,7 @@
                                                                         'Billing discrepancy',
                                                                     ];
                                                                     $partyResponsibleOptions = [
-                                                                        'Marinetrans',
+                                                                        \App\Support\Branding::name(),
                                                                         'Departing Hub',
                                                                         'Receiving Agent',
                                                                         'Customer',
@@ -2074,8 +2074,8 @@
             var hubDepartureCodes = @json($hubs->mapWithKeys(fn ($hub) => ['hub:' . $hub->id => $hub->code ?? '']));
 
             function setPortCodeSelect($select, code) {
-                if (typeof window.MarineCaddieSetPortCodeSelect === 'function') {
-                    window.MarineCaddieSetPortCodeSelect($select, code);
+                if (typeof window.AppUiSetPortCodeSelect === 'function') {
+                    window.AppUiSetPortCodeSelect($select, code);
                     return;
                 }
 
@@ -2307,7 +2307,7 @@
             }).join('');
             var partyResponsibleOptions = @json($partyResponsibleOptions);
             var partyResponsibleOptionsHtml = '<option></option>' + partyResponsibleOptions.map(function(option) {
-                return '<option>' + option + '</option>';
+                return $('<option>').text(option).prop('outerHTML');
             }).join('');
             var consequenceOptions = @json($consequenceOptions);
             var consequenceOptionsHtml = '<option></option>' + consequenceOptions.map(function(option) {

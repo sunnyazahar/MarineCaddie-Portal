@@ -480,7 +480,7 @@
                                                             <div class="filter-group">
                                                                 <span class="filter-label">Office</span>
                                                                 <select class="form-control filter-input select2">
-                                                                    <option selected>SIN - Marinetrans Singap...</option>
+                                                                    <option selected>SIN - Partner Logistics Singap...</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -694,10 +694,10 @@
                                                                 ['MISC Marine Services Pte. Ltd', 'Eagle Crato', 'Airfreight', '074-7457 9184', '', 'CAESAR SHIPPING BR...', 'OSA', 'GRU', '1', '2', '14.03.2026'],
                                                                 ['Thome Ship Management Pte ...', 'Margareta', 'Airfreight', '057-00438023', '', 'Mammen & Drescher', 'SIN', 'CPH', '2', '4', '14.03.2026'],
                                                                 ['Klaveness Ship Management As', 'Bastion', 'Airfreight', '125-22725522', '', 'Shanghai Three Star A...', 'LON', 'PVG', '1', '0.4', '14.03.2026'],
-                                                                ['PT. Meratus Swadaya Maritim', 'Meratus Jayakarta', 'Airfreight', '074-04610245', '', 'Marinetrans Singapore...', 'AMS', 'SIN', '1', '38', '14.03.2026'],
-                                                                ['Bernhard Schulte Shipmanage...', 'BW Mistral, BW Monsoon', 'Airfreight', '205-83868584', 'see notes', 'Marinetrans, c/o AIT ...', 'SIN', 'IAH', '8', '661', '13.03.2026'],
+                                                                ['PT. Meratus Swadaya Maritim', 'Meratus Jayakarta', 'Airfreight', '074-04610245', '', 'Partner Logistics Singapore...', 'AMS', 'SIN', '1', '38', '14.03.2026'],
+                                                                ['Bernhard Schulte Shipmanage...', 'BW Mistral, BW Monsoon', 'Airfreight', '205-83868584', 'see notes', 'Partner Logistics, c/o AIT ...', 'SIN', 'IAH', '8', '661', '13.03.2026'],
                                                                 ['Anglo-Eastern Ship Managem...', 'Federal Beaufort', 'Airfreight', '014-39635466', '', 'Seamont Marine Servi...', 'OSA', 'YUL', '8', '71', '13.03.2026'],
-                                                                ['Berge Bulk Maritime Pte. Ltd.', 'BERGE ANNAPURNA, BERGE ...', 'Airfreight', '180-56235933', '', 'Marinetrans Singapore...', 'PUS', 'SIN', '5', '126', '13.03.2026']
+                                                                ['Berge Bulk Maritime Pte. Ltd.', 'BERGE ANNAPURNA, BERGE ...', 'Airfreight', '180-56235933', '', 'Partner Logistics Singapore...', 'PUS', 'SIN', '5', '126', '13.03.2026']
                                                             ] as $i => $data)
                                                                 @for ($j = 0; $j < 30; $j++)
                                                                     <tr>

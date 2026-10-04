@@ -28,6 +28,7 @@
 12b. [Shipment Manifest & Pre-alert PDF Revision Rules](#12b-shipment-manifest--pre-alert-pdf-revision-rules)
 12c. [Stocks List & Stock Follow-up](#12c-stocks-list--stock-follow-up)
 12d. [Invoicing & Proforma Invoice](#12d-invoicing--proforma-invoice)
+12e. [White-label Installer & Branding](#12e-white-label-installer--branding)
 13. [Validation & Mass Assignment](#13-validation--mass-assignment)
 14. [Database & Query Rules](#14-database--query-rules)
 15. [File Storage](#15-file-storage)
@@ -405,7 +406,7 @@ All form/list components load assets via `@once` + `@push('styles'|'scripts')` �
 ```
 
 **Test marker:** `data-port-select="1"` on `<select>`.  
-**JS init:** `window.MarineCaddieInitPortSelect()` (auto on `document.ready`, re-applies after other Select2 inits).  
+**JS init:** `window.AppUiInitPortSelect()` (auto on `document.ready`, re-applies after other Select2 inits).  
 **Selected / dropdown label format:** `CODE, City` (e.g. `AAC, Al Arish`). Edit pages resolve city for the initial option via `Port::selectLabelForCode()`.  
 **Do NOT** copy `formatPortResult` / `$('.select2-port-code').select2(...)` into page scripts.  
 **Do NOT** generic `$('select.form-control').select2(...)` without `.not('[data-port-select]')` — that wipes AJAX and shows "No results found".
@@ -458,7 +459,7 @@ All form/list components load assets via `@once` + `@push('styles'|'scripts')` �
 ```
 
 **Test marker:** `data-country-select="1"`.  
-**JS init:** `window.MarineCaddieInitCountrySelect()`; re-init inside modal: `MarineCaddieInitCountrySelect($modal)` after destroy.  
+**JS init:** `window.AppUiInitCountrySelect()`; re-init inside modal: `AppUiInitCountrySelect($modal)` after destroy.  
 **Flags:** `data-flag-url` on options; fallback `iso_code` → flagcdn.com.  
 **Do NOT** apply flag `templateResult` to non-country Select2 (currency, etc.) — use `.not('[data-country-select]')`.
 
@@ -977,7 +978,7 @@ Fingerprint reference (mail prepare):
 - Manifest: stock IDs, consignee name/address/country/port, service / additional service (`manifestFingerprint()`).
 - Pre-alert: stock IDs, consignee fields, service details legs + repacked (`preAlertFingerprint()`).
 
-**First-page header** (`resources/views/Shipment/pdf/manifest.blade.php`): centered `[SHIPPING INSTRUCTION]` with the logo on its right, details box left (same width as the field grid; rows Service / Ref No. / Shipment handled by). Then Attn / Departure Port / Arrival Port / Shipment Mode / Pcs / Wt. / Dims / Deadline Date grid. Invoice / packing pages keep the existing party header. Manifest footer (every page): divider, then centered `MarineCaddie Shipping LLC | E-mail | Phone` (no `Shipped By:`), page number centered below it. Pre-alert PDF uses the same heading, with `Pre Arrival Notification` instead of `[SHIPPING INSTRUCTION]`, its own `(Revision N)` from the pre-alert version (not the manifest revision), and the same footer: divider, centered company line, page number centered below it. Pre-alert first details table: `Service: {service} / {additional service}`, `MarineCaddie Ref. No.`, `Customer's PO No.` (`customer_reference`), `Shipment arranged by: MarineCaddie Shipping LLC`, `MarineCaddie account handler:` (shipment account manager name). Documents list and download name use `Pre Arrival Notification` (`Pre Arrival Notification {revision}` after the first). Pre-alert page 2 repeats that details table and adds the service reference row (`AWB` / `B/L` / `CMR`) in the same table. Pre-alert PDF vessel heading on both pages is `Master of Vessel {NAME} IN TRANSIT` (mail still uses `M/V {name} in transit`). Pre-alert page 2 cargo table matches the Shipping Invoice table: Stock number, PO Number, Supplier name, Pieces, Wt (KG), Value (USD) (no USD on row or total values). **Repacked** on that summary comes from Carrier Details (`repacked_items` / `repacked_weight`), not stock repacked fields.
+**First-page header** (`resources/views/Shipment/pdf/manifest.blade.php`): centered `[SHIPPING INSTRUCTION]` with the logo on its right, details box left (same width as the field grid; rows Service / Ref No. / Shipment handled by). Then Attn / Departure Port / Arrival Port / Shipment Mode / Pcs / Wt. / Dims / Deadline Date grid. Invoice / packing pages keep the existing party header. Manifest footer (every page): divider, then centered `{legal name} | E-mail | Phone` from Company settings (no `Shipped By:`), page number centered below it. Pre-alert PDF uses the same heading, with `Pre Arrival Notification` instead of `[SHIPPING INSTRUCTION]`, its own `(Revision N)` from the pre-alert version (not the manifest revision), and the same footer: divider, centered company line, page number centered below it. Pre-alert first details table: `Service: {service} / {additional service}`, `{company} Ref. No.`, `Customer's PO No.` (`customer_reference`), `Shipment arranged by: {legal name}`, `{company} account handler:` (shipment account manager name). Documents list and download name use `Pre Arrival Notification` (`Pre Arrival Notification {revision}` after the first). Pre-alert page 2 repeats that details table and adds the service reference row (`AWB` / `B/L` / `CMR`) in the same table. Pre-alert PDF vessel heading on both pages is `Master of Vessel {NAME} IN TRANSIT` (mail still uses `M/V {name} in transit`). Pre-alert page 2 cargo table matches the Shipping Invoice table: Stock number, PO Number, Supplier name, Pieces, Wt (KG), Value (USD) (no USD on row or total values). **Repacked** on that summary comes from Carrier Details (`repacked_items` / `repacked_weight`), not stock repacked fields.
 
 Pre-alert generation still requires service details to be present (`ShipmentPreAlertPdfBuilder::shipmentHasServiceDetails()`).
 
@@ -1082,6 +1083,61 @@ Route `billing.invoicing.consolidated-print?job_no[]=…` → `ConsolidatedProfo
 **Mapper:** `app/Services/InvoicingShipmentRowMapper.php`
 
 **Tests:** `tests/Feature/Billing/`
+
+---
+
+## 12e. White-label Installer & Branding
+
+App har customer ke liye alag copy + alag DB (single-tenant) mein install hota hai. **Kahin bhi company name / logo / email / invoice prefix hardcode mat karo.**
+
+### Branding — single source
+
+| Need | Use |
+|---|---|
+| Display name / legal name | `Branding::name()` / `Branding::legalName()` (`CompanyAddress::name()` for PDF/footer party line) |
+| Address, phone, email, website | `Branding::addressLines()`, `phone()`, `email()`, `website()` |
+| Logo in HTML / PDF / mail | `LogoHelper::imgTag()` / `pdfImgTag()` (base64, text fallback) · URL: `Branding::logoUrl()` · route `branding.logo` |
+| Short label ("MC REF", "MC Assistant") | `Branding::initials()` (camelCase aware: `MarineCaddie` → `MC`) |
+| Proforma number prefix | `Branding::proformaPrefix()` (Settings field, fallback `initials-`) — `ProformaNumberGenerator` uses it |
+| Bank details + invoice notes | `ProformaInvoiceBankDetails::toArray()` |
+| Mail sender fallback | `Branding::mailFromAddress()` |
+
+Data: single row `company_settings` (`CompanySettingsRepository`, cached `company_settings.v1`; `save()` flushes cache). Admin edit: **Settings → Company settings** (`settings.company.edit`).
+
+- JS globals: `window.AppUi*` (not brand-named). CSS logo class: `.app-logo`.
+- `tests/Unit/BrandingGuardTest` fails if a legacy brand string appears in `app/`, `resources/`, `config/`, `routes/`, `database/seeders/`.
+
+### Install state & installer
+
+| Item | Detail |
+|---|---|
+| Lock file | `config('app.install_lock')` (default `storage/app/installed.lock`; tests: `tests/Support/installed.lock`) — `Installation::isInstalled()` |
+| Not installed | `RedirectIfNotInstalled` (global) → file session/cache, generates `APP_KEY`, redirects everything to `/install` |
+| Web wizard | `/install` (`routes/install.php`, `EnsureNotInstalled` → 404 after install): requirements → company + logo → DB (test connection; `CREATE DATABASE` if allowed, else use hPanel DB) → admin → install |
+| CLI | `php artisan app:install` (same `InstallerService`) |
+| Existing install (production upgrade) | `php artisan migrate --force && php artisan app:install --mark-installed` — creates settings row (OTP on) + lock, and keeps the current proforma prefix from the latest invoice |
+| `.env` writes | `EnvironmentWriter` only (validated keys, quoted values, no newline injection; atomic write, in-place fallback when only `.env` is writable) |
+| Pre-install URL | `Installation::detectAppUrl()` (from `SCRIPT_NAME`, subfolder safe) |
+| Handoff install | `POST /install/handoff` (CSRF-exempt, throttled, 404 after install) — `InstallHandoff` reads the encrypted one-time file left by the master setup, runs `InstallerService`, then removes it |
+
+### Master setup (one URL → new company folder)
+
+A copy of this project with `APP_MODE=master` serves **only** `/master` (password login) — no DB, no portal routes (`routes/master.php` returns early in normal mode; `RedirectIfNotInstalled` sends every other path to `/master`).
+
+| Item | Detail |
+|---|---|
+| Flow | `/master` wizard (same `install.wizard` view + folder name) → `SiteProvisioner`: DB test/create → `ProjectCopier` copies an allow-list (`app`, `vendor`, `public`, …; never `.env`, `.git`, `tests`, `node_modules`, logs, uploads, caches, symlinks) into a hidden staging folder → new `.env` (APP_KEY, APP_URL, `APP_ENV=production`) → front controllers patched for the URL prefix → encrypted handoff → rename to final folder → browser auto-POSTs the token to `{new}/install/handoff` → branded login |
+| Config (`config/master.php`) | `MASTER_PASSWORD_HASH` (`php artisan master:password`), `MASTER_SOURCE_PATH` (default: master's own code), `MASTER_TARGET_ROOT` (default: parent folder), `MASTER_TARGET_URL` (default: master URL without its folder) |
+| Security | Password (bcrypt) + `throttle:5,1` + idle timeout; folder regex `^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$` + reserved names + must not exist; handoff = AES-256-GCM, key from a 64-hex token sent only in the POST body, 30-min TTL, file `0600`; failed copy removes only its own staging folder |
+| Hosting | Target root must be writable by PHP and equal `DOCUMENT_ROOT` + URL path (preflight check "Folder matches web address"). Hostinger: master in `public_html/setup`, customers in `public_html/<folder>`; create the DB in hPanel first when `CREATE DATABASE` is denied |
+| Registry | `storage/app/master/sites.json` (company, folder, URL, DB name — no secrets), listed under the wizard |
+
+### OTP & live hosts
+
+- Fresh install: OTP **off**. Enable only after a successful **test email** (Settings page) — prevents lockout. `OtpPolicy::shouldBypass()` is the single check.
+- Live-host guards (never expose local OTP, block destructive artisan commands) use `APP_LIVE_HOSTS` (comma list, `*.domain` wildcard) via `LiveHosts::matches()`. Production `.env`: `APP_LIVE_HOSTS=*.marinecaddie.com`.
+
+**Tests:** `tests/Feature/Install/`, `tests/Feature/Master/MasterSetupTest.php`, `tests/Feature/Settings/CompanySettingsTest.php`, `tests/Unit/BrandingGuardTest.php`
 
 ---
 
@@ -1358,6 +1414,8 @@ composer install --no-dev --optimize-autoloader
 php artisan migrate --force
 php artisan config:cache && php artisan route:cache && php artisan view:cache
 ```
+
+**One-time (first deploy of the white-label branch):** `php artisan app:install --mark-installed`, add `APP_LIVE_HOSTS=*.marinecaddie.com` to `.env`, then fill address / bank / logo in **Settings → Company settings** (§12e).
 
 ### Cron (Hostinger hPanel)
 

@@ -3,16 +3,15 @@
 namespace App\Services;
 
 use App\Models\ProformaInvoice;
+use App\Support\Branding;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
 class ProformaNumberGenerator
 {
-    private const PREFIX = 'MC-AE';
-
     public static function prefix(): string
     {
-        return self::PREFIX;
+        return Branding::proformaPrefix();
     }
 
     public function financialYearLabel(?CarbonInterface $date = null): string
@@ -71,6 +70,6 @@ class ProformaNumberGenerator
 
     private function formatNumber(string $financialYearLabel, int $sequence): string
     {
-        return sprintf('%s%s-%04d', self::PREFIX, $financialYearLabel, $sequence);
+        return sprintf('%s%s-%04d', self::prefix(), $financialYearLabel, $sequence);
     }
 }

@@ -26,11 +26,11 @@
     @push('scripts')
         <script>
             (function () {
-                if (window.MarineCaddieInitListFilterToggle) {
+                if (window.AppUiInitListFilterToggle) {
                     return;
                 }
 
-                window.MarineCaddieInitListFilterToggle = function () {
+                window.AppUiInitListFilterToggle = function () {
                     $(document).on('click', '.list-filters-toggle', function () {
                         var bodyClass = $(this).data('bodyClass') || 'list-filters-open';
                         $('body').toggleClass(bodyClass);
@@ -40,7 +40,7 @@
                     });
                 };
 
-                $(document).ready(window.MarineCaddieInitListFilterToggle);
+                $(document).ready(window.AppUiInitListFilterToggle);
             })();
         </script>
     @endpush

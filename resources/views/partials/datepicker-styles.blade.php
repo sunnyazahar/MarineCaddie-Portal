@@ -1,6 +1,6 @@
 {{-- Shared jQuery UI datepicker theme — loaded after page styles so all calendars match --}}
 <style>
-    /* MarineCaddie shared calendar (readable type, brand sky/teal) */
+    /* Shared calendar (readable type, brand sky/teal) */
     .ui-datepicker {
         background: #fff !important;
         border: 1px solid #d6e3ee !important;

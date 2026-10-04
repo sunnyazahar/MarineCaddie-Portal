@@ -496,6 +496,9 @@
                                 <label>Party responsible</label>
                                 <select name="irregularities[{{ $irIndex }}][party_responsible]" class="form-control-sm-custom select2">
                                     <option></option>
+                                    @if (filled($irregularity->party_responsible) && ! in_array($irregularity->party_responsible, $partyResponsibleOptions, true))
+                                        <option selected>{{ $irregularity->party_responsible }}</option>
+                                    @endif
                                     @foreach ($partyResponsibleOptions as $option)
                                         <option {{ $irregularity->party_responsible === $option ? 'selected' : '' }}>{{ $option }}</option>
                                     @endforeach

@@ -6,6 +6,7 @@ use App\Models\Crr;
 use App\Models\ProformaInvoice;
 use App\Models\ProformaInvoiceLineItem;
 use App\Models\Shipment;
+use App\Repositories\Contracts\CompanySettingsRepositoryInterface;
 use App\Services\ProformaNumberGenerator;
 use Carbon\Carbon;
 use Tests\RegressionTestCase;
@@ -13,6 +14,13 @@ use Tests\RegressionTestCase;
 class ProformaInvoiceStoreTest extends RegressionTestCase
 {
     private const PAYMENT_TYPE = 'full_payment';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        app(CompanySettingsRepositoryInterface::class)->save(['company_name' => 'Test Company', 'proforma_prefix' => 'MC-AE']);
+    }
 
     public function test_preview_proforma_number_uses_financial_year_format(): void
     {

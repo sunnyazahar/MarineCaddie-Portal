@@ -27,7 +27,7 @@ class LoginOtpMail extends Mailable
         return new Envelope(
             from: new Address($fromAddress, $fromName),
             replyTo: [new Address($fromAddress, $fromName)],
-            subject: 'MarineCaddie login verification code',
+            subject: \App\Support\Branding::name() . ' login verification code',
         );
     }
 
@@ -41,7 +41,7 @@ class LoginOtpMail extends Mailable
             with: [
                 'otp' => $this->otp,
                 'expiresInMinutes' => $this->expiresInMinutes,
-                'logoPath' => public_path('files/assets/images/marinecaddie-logo.png'),
+                'logoPath' => \App\Support\Branding::logoPath(),
                 'webOtpHost' => $webOtpHost,
             ],
         );

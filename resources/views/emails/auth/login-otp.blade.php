@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
-    <title>MarineCaddie verification code</title>
+    <title>{{ \App\Support\Branding::name() }} verification code</title>
     <style>
         @media only screen and (max-width: 620px) {
             .email-shell {
@@ -36,7 +36,7 @@
 </head>
 <body style="margin:0; padding:0; background-color:#f3f6fa; color:#1e293b; font-family:Arial, Helvetica, sans-serif;">
     <div style="display:none; max-height:0; overflow:hidden; opacity:0;">
-        Use code {{ $otp }} to verify your MarineCaddie login.
+        Use code {{ $otp }} to verify your {{ \App\Support\Branding::name() }} login.
         @{{ $webOtpHost ?? 'localhost' }} #{{ $otp }}
     </div>
 
@@ -51,13 +51,13 @@
                                 if (! empty($logoPath) && is_file($logoPath) && isset($message)) {
                                     $logoSrc = $message->embed($logoPath);
                                 } elseif (! empty($logoPath) && is_file($logoPath)) {
-                                    $logoSrc = rtrim((string) config('app.url'), '/') . '/files/assets/images/marinecaddie-logo.png';
+                                    $logoSrc = route('branding.logo');
                                 }
                             @endphp
                             @if ($logoSrc !== '')
-                                <img src="{{ $logoSrc }}" alt="MarineCaddie" width="200" height="auto" style="display:block; margin:0 auto; width:200px; max-width:200px; height:auto; border:0; outline:none; text-decoration:none;">
+                                <img src="{{ $logoSrc }}" alt="{{ \App\Support\Branding::name() }}" width="200" height="auto" style="display:block; margin:0 auto; width:200px; max-width:200px; height:auto; border:0; outline:none; text-decoration:none;">
                             @else
-                                <div style="color:#0f2d55; font-size:22px; font-weight:700;">MarineCaddie</div>
+                                <div style="color:#0f2d55; font-size:22px; font-weight:700;">{{ \App\Support\Branding::name() }}</div>
                             @endif
                         </td>
                     </tr>
@@ -79,7 +79,7 @@
                                             Verify your identity
                                         </h1>
                                         <p style="margin:0; color:#64748b; font-size:16px; line-height:1.65;">
-                                            Enter this verification code to complete your secure MarineCaddie login.
+                                            Enter this verification code to complete your secure {{ \App\Support\Branding::name() }} login.
                                         </p>
 
                                         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:30px 0 24px;">
@@ -107,7 +107,7 @@
                     </tr>
                     <tr>
                         <td align="center" style="padding:22px 16px 0; color:#94a3b8; font-size:11px; line-height:1.6;">
-                            &copy; {{ date('Y') }} MarineCaddie. All rights reserved.
+                            &copy; {{ date('Y') }} {{ \App\Support\Branding::legalName() }}. All rights reserved.
                         </td>
                     </tr>
                 </table>

@@ -149,7 +149,7 @@ class ShipmentManifestPdfBuilder
         $createdAt = Carbon::now('Asia/Kolkata')->format('d.m.Y H:i') . ' IST';
         $handledBy = trim((string) ($shipment->creator?->name ?? 'System'));
 
-        $companyName = $departureParty['name'] ?: 'Marinetrans';
+        $companyName = $departureParty['name'] ?: \App\Support\Branding::name();
         $companyAddress = $departureParty['address_line'] ?: '—';
         $companyPhone = $departureParty['phone'] ?: '—';
         $companyEmail = $departureParty['email'] ?: '—';

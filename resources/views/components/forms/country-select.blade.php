@@ -108,7 +108,7 @@
     @push('scripts')
         <script>
             (function () {
-                if (window.MarineCaddieInitCountrySelect) {
+                if (window.AppUiInitCountrySelect) {
                     return;
                 }
 
@@ -182,7 +182,7 @@
                     return ($parent && $parent.length) ? $parent : $(document.body);
                 }
 
-                window.MarineCaddieInitCountrySelect = function (scope) {
+                window.AppUiInitCountrySelect = function (scope) {
                     var $scope = scope ? $(scope) : $(document);
 
                     $scope.find('[data-country-select]').each(function () {
@@ -262,7 +262,7 @@
                 };
 
                 $(document).ready(function () {
-                    window.MarineCaddieInitCountrySelect();
+                    window.AppUiInitCountrySelect();
                 });
             })();
         </script>

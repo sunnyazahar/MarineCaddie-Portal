@@ -534,7 +534,7 @@
             </div>
 
             <div class="page-footer">
-                <span style="font-size: 12px; font-weight: 500; color:#000000">© 2026 MarineCaddie, inc. All rights
+                <span style="font-size: 12px; font-weight: 500; color:#000000">© {{ date('Y') }} {{ \App\Support\Branding::legalName() }}. All rights
                     reserved. | <a href="#">Privacy Policy</a></span>
             </div>
         </div>
@@ -543,7 +543,7 @@
             <div class="overlay"></div>
 
             <div class="visual-content">
-                <h1 class="welcome-title">Secure access to <b>MarineCaddie</b></h1>
+                <h1 class="welcome-title">Secure access to <b>{{ \App\Support\Branding::name() }}</b></h1>
                 <div class="separator"></div>
                 <p class="welcome-text">
                     We’ve added an extra verification step to protect your shipments, stock, and billing data.

@@ -37,7 +37,7 @@
             animation: loginFadeUp 0.55s ease both;
         }
 
-        .login-panel--signin .login-brand .marinecaddie-logo {
+        .login-panel--signin .login-brand .app-logo {
             max-height: 78px !important;
             max-width: 240px !important;
             filter: drop-shadow(0 8px 18px rgba(14, 29, 74, 0.1));
@@ -226,6 +226,8 @@
 
                     @if (session('status'))
                         <div class="login-alert-success">{{ session('status') }}</div>
+                    @elseif (request()->query('installed') === '1')
+                        <div class="login-alert-success">Setup complete. Log in with the admin email and password you just created.</div>
                     @endif
 
                     <form id="login-form" method="POST" action="{{ route('login') }}">
@@ -276,12 +278,12 @@
 
                 <p class="login-secure-note">
                     <i class="ti-lock" aria-hidden="true"></i>
-                    Secured login · OTP verification enabled
+                    {{ \App\Support\Branding::otpEnabled() ? 'Secured login · OTP verification enabled' : 'Secured login' }}
                 </p>
             </div>
 
             <div class="login-footer">
-                © {{ date('Y') }} MarineCaddie, Inc. All rights reserved.
+                © {{ date('Y') }} {{ \App\Support\Branding::legalName() }}. All rights reserved.
                 <span aria-hidden="true"> · </span>
                 <a href="#">Privacy policy</a>
             </div>
@@ -291,13 +293,15 @@
             <div class="login-hero-overlay"></div>
 
             <div class="login-hero-content">
-                <h2 class="login-hero-title">Welcome to <b>MarineCaddie</b></h2>
+                <h2 class="login-hero-title">Welcome to <b>{{ \App\Support\Branding::name() }}</b></h2>
                 <div class="login-hero-separator" aria-hidden="true"></div>
                 <p class="login-hero-text">
-                    MarineCaddie transforms logistics with smart, technology-driven solutions ensuring real-time visibility,
+                    Smart, technology-driven logistics: real-time visibility of shipments and stock,
                     efficient handling, and reliable delivery of your cargo worldwide.
                 </p>
-                <a href="https://www.marinecaddie.com/" class="btn-readmore" target="_blank" rel="noopener noreferrer">Read more ..</a>
+                @if ($companyWebsite = \App\Support\Branding::website())
+                    <a href="{{ $companyWebsite }}" class="btn-readmore" target="_blank" rel="noopener noreferrer">Read more ..</a>
+                @endif
             </div>
         </aside>
     </div>

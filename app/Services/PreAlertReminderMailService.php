@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\Hub;
 use App\Models\Office;
 use App\Models\Shipment;
+use App\Support\Branding;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
 
@@ -218,8 +219,8 @@ class PreAlertReminderMailService
         $sender = \App\Support\MailEnvelopeHelper::resolveShipmentSender(
             $senderName,
             $senderEmail,
-            $shipment->accountManager?->name ?? $shipment->creator?->name ?? 'Marinetrans',
-            $shipment->accountManager?->email ?? $shipment->creator?->email ?? config('mail.from.address', 'esea@marinetrans.net'),
+            $shipment->accountManager?->name ?? $shipment->creator?->name ?? Branding::name(),
+            $shipment->accountManager?->email ?? $shipment->creator?->email ?? Branding::mailFromAddress(),
         );
 
         return [
@@ -250,8 +251,9 @@ class PreAlertReminderMailService
         );
 
         return sprintf(
-            'Reminder:Outgoing shipment details / %s / MC REF: %s / %s to %s',
+            'Reminder:Outgoing shipment details / %s / %s REF: %s / %s to %s',
             $service,
+            Branding::initials(),
             $shipment->shipment_number,
             $departure,
             $destination
@@ -284,7 +286,7 @@ class PreAlertReminderMailService
             '',
             $senderName,
             $senderEmail,
-            'Marinecaddie',
+            Branding::name(),
         );
 
         return implode("\r\n", $lines);
@@ -300,8 +302,9 @@ class PreAlertReminderMailService
         );
 
         return sprintf(
-            'Delivery status request / %s/ MC REF: %s / %s to %s',
+            'Delivery status request / %s/ %s REF: %s / %s to %s',
             $service,
+            Branding::initials(),
             $shipment->shipment_number,
             $departure,
             $destination
@@ -332,7 +335,7 @@ class PreAlertReminderMailService
             '',
             $senderName,
             $senderEmail,
-            'Marincaddie',
+            Branding::name(),
         );
 
         return implode("\r\n", $lines);
@@ -382,7 +385,7 @@ class PreAlertReminderMailService
             '',
             $senderName,
             $senderEmail,
-            'Marinecaddie',
+            Branding::name(),
         );
 
         return implode("\r\n", $lines);

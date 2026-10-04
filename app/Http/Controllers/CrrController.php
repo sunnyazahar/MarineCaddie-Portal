@@ -429,7 +429,7 @@ class CrrController extends Controller
 
     /**
      * Excel (.xlsx) export for selected CRRs with styled header.
-     * Columns match the MarineCaddie stock Excel / PDF export template.
+     * Columns match the stock Excel / PDF export template.
      */
     public function exportStockListExcel(Request $request)
     {

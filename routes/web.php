@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/login/csrf', [LoginController::class, 'csrfToken'])->name('login.csrf');
+Route::get('/branding/logo', [App\Http\Controllers\BrandingController::class, 'logo'])->name('branding.logo');
 
 Auth::routes([
     'register' => false,
@@ -28,6 +29,11 @@ Route::middleware('admin')->group(function () {
     Route::post('/users', [App\Http\Controllers\UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
     Route::post('/users/{user}/unblock', [App\Http\Controllers\UserController::class, 'unblock'])->name('users.unblock');
+    Route::get('/settings/company', [App\Http\Controllers\CompanySettingsController::class, 'edit'])->name('settings.company.edit');
+    Route::post('/settings/company', [App\Http\Controllers\CompanySettingsController::class, 'update'])->name('settings.company.update');
+    Route::post('/settings/company/test-email', [App\Http\Controllers\CompanySettingsController::class, 'testEmail'])
+        ->middleware('throttle:5,1')
+        ->name('settings.company.test-email');
     });
 
 Route::middleware('billing')->group(function () {

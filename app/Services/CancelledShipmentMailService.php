@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Mail\CancelledShipmentMail;
 use App\Models\Contact;
 use App\Models\Shipment;
+use App\Support\Branding;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -182,7 +183,7 @@ class CancelledShipmentMailService
             $lines[] = $phone;
         }
         $lines[] = '';
-        $lines[] = 'Marinecaddie';
+        $lines[] = Branding::name();
 
         return implode("\r\n", $lines);
     }

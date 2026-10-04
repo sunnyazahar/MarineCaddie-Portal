@@ -52,13 +52,13 @@
     @push('scripts')
         <script>
             (function () {
-                if (window.MarineCaddieInitPortSelect) {
+                if (window.AppUiInitPortSelect) {
                     return;
                 }
 
-                window.MarineCaddiePortsApiUrl = @json(route('api.ports'));
+                window.AppUiPortsApiUrl = @json(route('api.ports'));
 
-                window.MarineCaddieNormalizePortCity = function (city) {
+                window.AppUiNormalizePortCity = function (city) {
                     city = String(city || '').trim();
                     if (!city) {
                         return '';
@@ -80,17 +80,17 @@
                     return city;
                 };
 
-                window.MarineCaddieFormatPortLabel = function (code, city) {
+                window.AppUiFormatPortLabel = function (code, city) {
                     code = String(code || '').trim();
                     if (!code) {
                         return '';
                     }
 
-                    city = window.MarineCaddieNormalizePortCity(city);
+                    city = window.AppUiNormalizePortCity(city);
                     return city ? (code + ', ' + city) : code;
                 };
 
-                window.MarineCaddieSetPortCodeSelect = function ($select, code) {
+                window.AppUiSetPortCodeSelect = function ($select, code) {
                     code = $.trim((code || '').toString());
                     if (!$select || !$select.length) {
                         return;
@@ -124,7 +124,7 @@
                         return;
                     }
 
-                    $.getJSON(window.MarineCaddiePortsApiUrl, { q: code })
+                    $.getJSON(window.AppUiPortsApiUrl, { q: code })
                         .done(function (data) {
                             var hit = (data.results || []).find(function (row) {
                                 return row.id === code || row.code === code;
@@ -132,7 +132,7 @@
 
                             if (hit) {
                                 applyOption(
-                                    hit.text || window.MarineCaddieFormatPortLabel(hit.code || code, hit.city)
+                                    hit.text || window.AppUiFormatPortLabel(hit.code || code, hit.city)
                                 );
                                 return;
                             }
@@ -144,13 +144,13 @@
                         });
                 };
 
-                window.MarineCaddieInitPortSelect = function () {
+                window.AppUiInitPortSelect = function () {
                     function formatPortResult(port) {
                         if (port.loading || !port.id) {
                             return port.text;
                         }
 
-                        var title = window.MarineCaddieFormatPortLabel(port.code || port.id, port.city);
+                        var title = window.AppUiFormatPortLabel(port.code || port.id, port.city);
                         if (!title) {
                             title = port.text;
                         }
@@ -173,7 +173,7 @@
                         }
 
                         if (port.code || port.city) {
-                            return window.MarineCaddieFormatPortLabel(port.code || port.id, port.city);
+                            return window.AppUiFormatPortLabel(port.code || port.id, port.city);
                         }
 
                         return port.text;
@@ -192,7 +192,7 @@
                             width: '100%',
                             minimumInputLength: 0,
                             ajax: {
-                                url: window.MarineCaddiePortsApiUrl,
+                                url: window.AppUiPortsApiUrl,
                                 dataType: 'json',
                                 delay: 200,
                                 data: function (params) {
@@ -210,7 +210,7 @@
                 };
 
                 $(document).ready(function () {
-                    setTimeout(window.MarineCaddieInitPortSelect, 0);
+                    setTimeout(window.AppUiInitPortSelect, 0);
                 });
             })();
         </script>

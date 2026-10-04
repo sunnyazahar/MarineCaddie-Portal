@@ -38,10 +38,10 @@ class ProformaInvoicePdfBuilder
             'document_title' => $proformaNo !== '' ? 'Invoice' : 'Invoice (Draft)',
             'proforma_display_no' => $proformaNo !== '' ? $proformaNo : '—',
             'sender' => [
-                'name' => strtoupper(CompanyAddress::NAME),
+                'name' => mb_strtoupper(CompanyAddress::name()),
                 'lines' => CompanyAddress::addressLines(),
-                'phone' => CompanyAddress::PHONE,
-                'email' => CompanyAddress::EMAIL,
+                'phone' => CompanyAddress::phone(),
+                'email' => CompanyAddress::email(),
             ],
             'bank_details' => ProformaInvoiceBankDetails::toArray(),
         ];

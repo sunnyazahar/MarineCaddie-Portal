@@ -4148,7 +4148,7 @@
                                                             </div>
                                                             <div class="form-group-custom">
                                                                 <label>Consignee</label>
-                                                                <textarea class="form-control" style="font-size: 11px; height: 100px;">Marinetrans Benelux B.V - Amsterdam Hub&#10;Changiweg 14&#10;1437 EP Rozenburg&#10;Netherlands</textarea>
+                                                                <textarea class="form-control" style="font-size: 11px; height: 100px;"></textarea>
                                                             </div>
                                                             <div class="form-group-custom">
                                                                 <label>Details</label>
@@ -4369,7 +4369,7 @@
                                                             <!-- Consignee Address Section -->
                                                             <div class="address-section">
                                                                 <div class="address-label">Consignee name</div>
-                                                                <div class="address-value">Marinetrans Benelux B.V - Amsterdam Hub</div>
+                                                                <div class="address-value">—</div>
                                                                 
                                                                 <a href="#" class="address-link">Delivery address shown on shipment label</a>
 
@@ -7159,8 +7159,8 @@
         var consigneePartyCodes = @json($consigneePartyCodes ?? []);
 
         function setPortCodeSelect($select, code) {
-            if (typeof window.MarineCaddieSetPortCodeSelect === 'function') {
-                window.MarineCaddieSetPortCodeSelect($select, code);
+            if (typeof window.AppUiSetPortCodeSelect === 'function') {
+                window.AppUiSetPortCodeSelect($select, code);
                 return;
             }
 
@@ -7589,7 +7589,7 @@
         var consequenceOptions = @json($consequenceOptions);
         var statusOptions = @json($statusOptions);
         var irregularityTypeOptionsHtml = '<option></option>' + irregularityTypeOptions.map(function(o) { return '<option>' + o + '</option>'; }).join('');
-        var partyResponsibleOptionsHtml = '<option></option>' + partyResponsibleOptions.map(function(o) { return '<option>' + o + '</option>'; }).join('');
+        var partyResponsibleOptionsHtml = '<option></option>' + partyResponsibleOptions.map(function(o) { return $('<option>').text(o).prop('outerHTML'); }).join('');
         var consequenceOptionsHtml = '<option></option>' + consequenceOptions.map(function(o) { return '<option>' + o + '</option>'; }).join('');
         var irregularityStatusOptionsHtml = '<option></option>' + statusOptions.map(function(o) { return '<option>' + o + '</option>'; }).join('');
 

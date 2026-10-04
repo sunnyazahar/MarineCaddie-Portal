@@ -16,7 +16,7 @@
                     <div class="login-card-head">
                         <h1 class="login-card-title">Set a new password</h1>
                         <p class="login-card-subtitle">
-                            Create a fresh password for your MarineCaddie account. Use a strong password that is easy for you to remember and hard for others to guess.
+                            Create a fresh password for your {{ \App\Support\Branding::name() }} account. Use a strong password that is easy for you to remember and hard for others to guess.
                         </p>
                     </div>
 
@@ -73,7 +73,7 @@
             </div>
 
             <div class="login-footer">
-                © {{ date('Y') }} MarineCaddie, Inc. All rights reserved.
+                © {{ date('Y') }} {{ \App\Support\Branding::legalName() }}. All rights reserved.
                 <span aria-hidden="true"> · </span>
                 <a href="#">Privacy policy</a>
             </div>
@@ -88,7 +88,7 @@
                     Password reset
                 </div>
                 <h2 class="login-hero-title">
-                    Securely reset your<br><span>MarineCaddie</span> password
+                    Securely reset your<br><span>{{ \App\Support\Branding::name() }}</span> password
                 </h2>
                 <p class="login-hero-text">
                     A secure password reset experience helps protect shipment, stock, billing, and user access across your daily operations.

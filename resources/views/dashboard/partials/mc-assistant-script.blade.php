@@ -44,6 +44,7 @@
         var $close = $('#mcAssistantClose');
         var $send = $('#mcAssistantSend');
         var storageKey = $.trim(String($shell.attr('data-storage-key') || 'mc-assistant:dashboard'));
+        var assistantLabel = $.trim(String($shell.attr('data-assistant-label') || 'Assistant'));
         var lookupUrl = @json(route('dashboard.assistant-lookup'));
         var assistantTestingEnabled = @json(app()->environment('testing'));
 
@@ -1512,7 +1513,7 @@
             }
 
             if (containsAdministrationEntityHint(query)) {
-                pushIf(scopeAllows('administration'), choose('MarineCaddie Dubai Office ka address batao', 'What is the address for MarineCaddie Dubai Office?'));
+                pushIf(scopeAllows('administration'), choose('Dubai Office ka address batao', 'What is the address for Dubai Office?'));
                 pushIf(scopeAllows('administration'), choose('CAMPBELL SHIPPING ka complete summary batao', 'Show the complete summary for customer CAMPBELL SHIPPING.'));
                 pushIf(scopeAllows('administration'), choose('sunnyazahar@gmail.com ka user role batao', 'What is the role for user sunnyazahar@gmail.com?'));
 
@@ -2232,7 +2233,7 @@
                 return detectResponseLanguage(message) === 'english' ? 'You' : 'Aap';
             }
 
-            return 'MC Assistant';
+            return escapeHtml(assistantLabel);
         }
 
         function appendMessageNode(role, label, body) {
@@ -5245,8 +5246,8 @@
                             ? '<code>What is the supplier for CN-72656522 stock</code>, <code>How many packages are in CN-72656522</code>, <code>Show linked shipments for CN-72656522</code>, <code>Show the complete summary for CN-72656522</code>.'
                             : '<code>CN-72656522 stock ka supplier batao</code>, <code>CN-72656522 me kitne packages hain</code>, <code>CN-72656522 ke linked shipments batao</code>, <code>CN-72656522 ka complete summary batao</code>.')
                             : (isEnglishResponse()
-                                ? '<code>How many stocks are linked to AZA-41267-0926</code>, <code>What is the status of AZA-41267-0926</code>, <code>Show details for AZA-41267-0926</code>, <code>Who changed the address for MarineCaddie Dubai Office</code>, <code>What is the role for user sunnyazahar@gmail.com</code>, <code>Show full details for DXB hub</code>, <code>What is the IMO for vessel ANGEL</code>.'
-                                : '<code>AZA-41267-0926 ka kitna stocks add hai</code>, <code>AZA-41267-0926 ka status batao</code>, <code>AZA-41267-0926 ka details batao</code>, <code>MarineCaddie Dubai Office ka address kisne change kiya</code>, <code>sunnyazahar@gmail.com ka user role batao</code>, <code>DXB hub ka full details batao</code>, <code>ANGEL vessel ka IMO batao</code>.'))
+                                ? '<code>How many stocks are linked to AZA-41267-0926</code>, <code>What is the status of AZA-41267-0926</code>, <code>Show details for AZA-41267-0926</code>, <code>Who changed the address for Dubai Office</code>, <code>What is the role for user sunnyazahar@gmail.com</code>, <code>Show full details for DXB hub</code>, <code>What is the IMO for vessel ANGEL</code>.'
+                                : '<code>AZA-41267-0926 ka kitna stocks add hai</code>, <code>AZA-41267-0926 ka status batao</code>, <code>AZA-41267-0926 ka details batao</code>, <code>Dubai Office ka address kisne change kiya</code>, <code>sunnyazahar@gmail.com ka user role batao</code>, <code>DXB hub ka full details batao</code>, <code>ANGEL vessel ka IMO batao</code>.'))
                         + '</p>'
             };
         }

@@ -7,7 +7,7 @@
 @source '../**/*.js';
 
 @theme {
-    /* MarineCaddie logo palette: Marine navy + Caddie sky + coral/orange accent */
+    /* Brand palette: navy + sky + coral/orange accent */
     --font-sans: 'Source Sans 3', 'Open Sans', ui-sans-serif, system-ui, sans-serif;
     --color-mc-ink: #0e1d4a;
     --color-mc-navy: #0e1d4a;
@@ -1097,7 +1097,7 @@ body.mc-sidebar-open .pcoded-overlay-box {
 }
 
 .header-navbar .navbar-logo .navbar-logo-link img,
-.header-navbar .navbar-logo img.marinecaddie-logo {
+.header-navbar .navbar-logo .app-logo {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -1391,7 +1391,7 @@ body.mc-sidebar-open .pcoded-overlay-box {
     }
 
     .header-navbar .navbar-logo .navbar-logo-link img,
-    .header-navbar .navbar-logo img.marinecaddie-logo {
+    .header-navbar .navbar-logo .app-logo {
         max-width: 100% !important;
         max-height: 100% !important;
     }

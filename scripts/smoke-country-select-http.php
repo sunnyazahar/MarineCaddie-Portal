@@ -72,7 +72,7 @@ foreach ($pages as $label => $path) {
 
     $html = $result['html'];
     check("{$label} country-select markup", str_contains($html, 'data-country-select="1"'));
-    check("{$label} init script", str_contains($html, 'MarineCaddieInitCountrySelect'));
+    check("{$label} init script", str_contains($html, 'AppUiInitCountrySelect'));
     check("{$label} flag option data", str_contains($html, 'data-flag-url') || str_contains($html, 'data-iso'));
     check("{$label} no inline formatCountry", ! preg_match('/function formatCountry\b|function formatFlag\b/', $html));
 

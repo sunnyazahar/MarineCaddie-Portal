@@ -1,4 +1,4 @@
-MarineCaddie login verification
+{{ \App\Support\Branding::name() }} login verification
 
 Your verification code is: {{ $otp }}
 
@@ -9,4 +9,4 @@ Do not share this code with anyone.
 
 If you did not attempt to sign in, you can ignore this email.
 
-© {{ date('Y') }} MarineCaddie
+© {{ date('Y') }} {{ \App\Support\Branding::legalName() }}

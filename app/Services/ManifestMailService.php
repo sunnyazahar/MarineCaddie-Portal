@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Shipment;
+use App\Support\Branding;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -171,8 +172,8 @@ class ManifestMailService
         $sender = \App\Support\MailEnvelopeHelper::resolveShipmentSender(
             $senderName,
             $senderEmail,
-            $shipment->creator?->name ?? 'Marinetrans',
-            $shipment->creator?->email ?? config('mail.from.address', 'esea@marinetrans.net'),
+            $shipment->creator?->name ?? Branding::name(),
+            $shipment->creator?->email ?? Branding::mailFromAddress(),
         );
 
         return [
@@ -196,7 +197,8 @@ class ManifestMailService
         );
 
         $subject = sprintf(
-            'MarineCaddie Shipping Instruction Ref. %s / Vessel: %s / %s to %s',
+            '%s Shipping Instruction Ref. %s / Vessel: %s / %s to %s',
+            Branding::name(),
             $shipment->shipment_number,
             $vessel,
             $service,
@@ -242,7 +244,7 @@ class ManifestMailService
             'With kind regards,',
             $senderName,
             $senderEmail,
-            'Marinecaddie',
+            Branding::name(),
         );
 
         return implode("\r\n", $lines);

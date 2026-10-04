@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\LoginActivityService;
+use App\Support\OtpPolicy;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 
@@ -62,8 +64,9 @@ class LoginController extends Controller
             'timezone' => $request->input('browser_timezone'),
         ]);
 
-        if ($this->shouldBypassOtp()) {
+        if (OtpPolicy::shouldBypass()) {
             $request->session()->put('otp_verified', true);
+            app(LoginActivityService::class)->record($request, $user);
 
             return redirect()->intended('/dashboard');
         }
@@ -71,16 +74,6 @@ class LoginController extends Controller
         $request->session()->forget('otp_verified');
 
         return redirect()->route('otp.show');
-    }
-
-    private function shouldBypassOtp(): bool
-    {
-        if (app()->environment('production')) {
-            return false;
-        }
-
-        return app()->environment(['local', 'localhost', 'development', 'testing'])
-            && (bool) config('app.local_otp_bypass', false);
     }
 
     public function csrfToken()

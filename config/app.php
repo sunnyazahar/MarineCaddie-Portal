@@ -81,6 +81,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Installer lock + live hosts
+    |--------------------------------------------------------------------------
+    |
+    | install_lock: file that marks the app as installed (relative paths are
+    | resolved from the project root). live_hosts: comma-separated host names
+    | (e.g. "portal.example.com,*.example.com") treated as live — on-screen OTP
+    | codes are never shown there and destructive DB commands are blocked.
+    | mode: "app" (normal portal) or "master" (only the master setup that
+    | creates new customer folders — see config/master.php).
+    |
+    */
+
+    'mode' => env('APP_MODE', 'app'),
+
+    'install_lock' => env('APP_INSTALL_LOCK', 'storage/app/installed.lock'),
+
+    'live_hosts' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('APP_LIVE_HOSTS', ''))
+    ))),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

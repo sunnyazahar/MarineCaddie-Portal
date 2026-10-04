@@ -11,6 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // On a fresh install customer_vessels is created later (2026_03_21_152100);
+        // 2026_03_21_152101 adds these columns there.
+        if (! Schema::hasTable('customer_vessels')) {
+            return;
+        }
+
         Schema::table('customer_vessels', function (Blueprint $table) {
             $table->unsignedBigInteger('contact_id')->after('customer_id')->nullable();
             $table->boolean('contact_stocklists')->default(false);

@@ -15,4 +15,4 @@ Changed by: {{ $changedByName }}
 
 Open stock: {{ $stockUrl }}
 
-This is an automated MarineCaddie notification for the vessel account manager.
+This is an automated {{ \App\Support\Branding::name() }} notification for the vessel account manager.

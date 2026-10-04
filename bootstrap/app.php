@@ -9,12 +9,20 @@ use Illuminate\Support\Facades\Auth;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
+        web: [
+            __DIR__ . '/../routes/master.php',
+            __DIR__ . '/../routes/install.php',
+            __DIR__ . '/../routes/web.php',
+        ],
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(\App\Http\Middleware\RedirectIfNotInstalled::class);
+
         $middleware->alias([
+            'install.pending' => \App\Http\Middleware\EnsureNotInstalled::class,
+            'master.auth' => \App\Http\Middleware\EnsureMasterAuthenticated::class,
             'otp.verified' => \App\Http\Middleware\EnsureOtpIsVerified::class,
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'billing' => \App\Http\Middleware\EnsureUserCanAccessBilling::class,
@@ -27,12 +35,27 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetSecurityHeaders::class,
         ]);
 
+        // Posted by the master setup page (different folder, no shared session); the
+        // one-time handoff token is the credential, and the route 404s once installed.
+        $middleware->validateCsrfTokens(except: ['install/handoff']);
+
         $middleware->redirectTo(
             guests: '/login',
             users: '/dashboard'
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontFlash([
+            'current_password',
+            'password',
+            'password_confirmation',
+            'db_password',
+            'admin_password',
+            'admin_password_confirmation',
+            'master_password',
+            'master_password_confirmation',
+        ]);
+
         $exceptions->render(function (TokenMismatchException $e, Request $request) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([

@@ -4,37 +4,32 @@ namespace App\Support;
 
 class LogoHelper
 {
-    /** @var array<string, string> */
-    private static array $cachedBase64 = [];
-
     /**
-     * Returns an <img> tag with the MarineCaddie logo embedded as base64.
-     * Works in DomPDF, browser HTML, and email clients that allow data URIs.
+     * Returns an <img> tag with the company logo embedded as base64 (works in
+     * DomPDF, browser HTML and mail clients that allow data URIs). Without an
+     * uploaded logo the company name is rendered as text instead.
      */
-    public static function imgTag(string $width = '180px', string $extraStyle = '', ?string $filename = null): string
+    public static function imgTag(string $width = '180px', string $extraStyle = ''): string
     {
-        $uri = self::base64DataUri($filename);
-
-        if ($uri === '') {
-            return '';
-        }
-
+        $uri = self::base64DataUri();
         $style = 'width:' . $width . '; max-width:' . $width . '; height:auto;';
         if ($extraStyle !== '') {
             $style .= ' ' . trim($extraStyle);
         }
 
-        return '<img src="' . $uri . '" alt="MarineCaddie" class="marinecaddie-logo" style="' . $style . '">';
+        if ($uri === '') {
+            return self::textLogo($width);
+        }
+
+        return '<img src="' . $uri . '" alt="' . e(Branding::name()) . '" class="app-logo" style="' . e($style) . '">';
     }
 
     /**
-     * Compact header logo (no tagline).
+     * Logo for the top navigation bar.
      */
     public static function headerImgTag(string $width = '160px', string $extraStyle = ''): string
     {
-        $tag = self::imgTag($width, $extraStyle, 'marinecaddie-header-logo.png');
-
-        return $tag !== '' ? $tag : self::imgTag($width, $extraStyle);
+        return self::imgTag($width, $extraStyle);
     }
 
     /**
@@ -46,22 +41,17 @@ class LogoHelper
     }
 
     /**
-     * Returns the full base64 data URI (data:image/png;base64,...).
+     * Returns the full base64 data URI ('' when no logo is uploaded).
      */
-    public static function base64DataUri(?string $filename = null): string
+    public static function base64DataUri(): string
     {
-        $filename = $filename ?: 'marinecaddie-logo.png';
+        return Branding::logoDataUri();
+    }
 
-        if (! isset(self::$cachedBase64[$filename])) {
-            $path = public_path('files/assets/images/' . $filename);
-
-            if (! file_exists($path)) {
-                self::$cachedBase64[$filename] = '';
-            } else {
-                self::$cachedBase64[$filename] = 'data:image/png;base64,' . base64_encode((string) file_get_contents($path));
-            }
-        }
-
-        return self::$cachedBase64[$filename];
+    private static function textLogo(string $width): string
+    {
+        return '<span class="app-logo app-logo-text" style="display:inline-block; max-width:' . e($width)
+            . '; font-weight:700; font-size:20px; line-height:1.2; color:#1f3b57; word-break:break-word;">'
+            . e(Branding::name()) . '</span>';
     }
 }

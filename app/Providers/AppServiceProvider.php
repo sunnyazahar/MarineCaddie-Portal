@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Support\Installation;
+use App\Support\LiveHosts;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -164,6 +166,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\ShipmentTransitStockRepositoryInterface::class,
             \App\Repositories\ShipmentTransitStockRepository::class,
         );
+        // Singleton: memoises the settings row for the whole request.
+        $this->app->singleton(
+            \App\Repositories\Contracts\CompanySettingsRepositoryInterface::class,
+            \App\Repositories\CompanySettingsRepository::class,
+        );
     }
 
     /**
@@ -172,7 +179,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Never allow migrate:fresh / db:wipe / schema:drop on production,
-        // marinecaddie hosts, or any non-local MySQL (e.g. Hostinger).
+        // configured live hosts, or any non-local MySQL (e.g. Hostinger).
         if ($this->shouldProhibitDestructiveDatabaseCommands()) {
             DB::prohibitDestructiveCommands();
         }
@@ -187,7 +194,13 @@ class AppServiceProvider extends ServiceProvider
             putenv('TEMP=' . $tmp);
         }
 
-        $appUrl = rtrim((string) config('app.url'), '/');
+        /** @var Request $request */
+        $request = request();
+
+        // Before install APP_URL is still the template value, so build links from the request.
+        $appUrl = Installation::isInstalled() || $this->app->runningInConsole()
+            ? rtrim((string) config('app.url'), '/')
+            : rtrim(Installation::detectAppUrl($request), '/');
         if ($appUrl !== '') {
             URL::forceRootUrl($appUrl);
         }
@@ -201,8 +214,6 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        /** @var Request $request */
-        $request = request();
         $forwardedProto = strtolower((string) $request->header('X-Forwarded-Proto', ''));
         $appUrlScheme = parse_url($appUrl, PHP_URL_SCHEME);
         $shouldForceHttps = in_array($forwardedProto, ['https', 'wss'], true)
@@ -243,8 +254,8 @@ class AppServiceProvider extends ServiceProvider
             return true;
         }
 
-        $appUrl = strtolower((string) config('app.url'));
-        if (str_contains($appUrl, 'marinecaddie.com')) {
+        $appHost = (string) parse_url((string) config('app.url'), PHP_URL_HOST);
+        if (LiveHosts::matches($appHost)) {
             return true;
         }
 

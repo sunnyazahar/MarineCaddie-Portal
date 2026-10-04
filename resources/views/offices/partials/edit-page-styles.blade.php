@@ -321,7 +321,10 @@
 
     #officeEditForm .office-pillar .form-control-custom,
     #officeEditForm .office-pillar .form-textarea-custom,
-    #officeEditForm .office-pillar .select-custom {
+    #officeEditForm .office-pillar .select-custom,
+    .office-form-controls .office-pillar .form-control-custom,
+    .office-form-controls .office-pillar .form-textarea-custom,
+    .office-form-controls .office-pillar .select-custom {
         width: 100%;
         border: 1px solid #d6e3ee;
         border-radius: 8px;
@@ -330,19 +333,24 @@
     }
 
     #officeEditForm .office-pillar .form-control-custom,
-    #officeEditForm .office-pillar .select-custom {
+    #officeEditForm .office-pillar .select-custom,
+    .office-form-controls .office-pillar .form-control-custom,
+    .office-form-controls .office-pillar .select-custom {
         height: var(--mc-control-height, 34px);
         padding: 0 10px;
     }
 
     #officeEditForm .office-pillar .form-control-custom:focus,
-    #officeEditForm .office-pillar .form-textarea-custom:focus {
+    #officeEditForm .office-pillar .form-textarea-custom:focus,
+    .office-form-controls .office-pillar .form-control-custom:focus,
+    .office-form-controls .office-pillar .form-textarea-custom:focus {
         outline: none;
         border-color: #0088c7;
         box-shadow: 0 0 0 3px rgba(0, 136, 199, 0.12);
     }
 
-    #officeEditForm .office-pillar .form-textarea-custom {
+    #officeEditForm .office-pillar .form-textarea-custom,
+    .office-form-controls .office-pillar .form-textarea-custom {
         padding: 8px 10px;
         min-height: 72px;
         resize: vertical;

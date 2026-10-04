@@ -168,7 +168,7 @@
 
 @php
     $partyHeader = function (string $docTitle) use ($titleLine, $shipperLine, $consigneeLine, $isOnBoardDelivery) {
-        $shipperHeading = ! empty($isOnBoardDelivery) ? 'MarineCaddie Agent:' : 'Shipper';
+        $shipperHeading = ! empty($isOnBoardDelivery) ? \App\Support\Branding::name() . ' Agent:' : 'Shipper';
         $consigneeHeading = ! empty($isOnBoardDelivery) ? 'Vessel Agent:' : 'Consignee';
 
         return '

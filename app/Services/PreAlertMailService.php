@@ -10,6 +10,7 @@ use App\Models\ShipmentOnBoardLeg;
 use App\Models\ShipmentReleaseLeg;
 use App\Models\ShipmentSeaLeg;
 use App\Models\ShipmentTruckLeg;
+use App\Support\Branding;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
@@ -182,8 +183,8 @@ class PreAlertMailService
         $sender = \App\Support\MailEnvelopeHelper::resolveShipmentSender(
             $senderName,
             $senderEmail,
-            $shipment->creator?->name ?? 'Marinetrans',
-            $shipment->creator?->email ?? config('mail.from.address', 'esea@marinetrans.net'),
+            $shipment->creator?->name ?? Branding::name(),
+            $shipment->creator?->email ?? Branding::mailFromAddress(),
         );
 
         return [
@@ -210,7 +211,8 @@ class PreAlertMailService
 
         if ($serviceReference !== null) {
             return sprintf(
-                'MarineCaddie Pre-alert Ref. %s / Vessel: %s / %s /%s/ From %s to %s',
+                '%s Pre-alert Ref. %s / Vessel: %s / %s /%s/ From %s to %s',
+                Branding::name(),
                 $shipment->shipment_number,
                 $vessel,
                 $service,
@@ -221,7 +223,8 @@ class PreAlertMailService
         }
 
         return sprintf(
-            'MarineCaddie Pre-alert Ref. %s / Vessel: %s / %s / From %s to %s',
+            '%s Pre-alert Ref. %s / Vessel: %s / %s / From %s to %s',
+            Branding::name(),
             $shipment->shipment_number,
             $vessel,
             $service,
@@ -290,7 +293,7 @@ class PreAlertMailService
         $lines[] = '';
         $lines[] = $senderName;
         $lines[] = $senderEmail;
-        $lines[] = 'Marinecaddie';
+        $lines[] = Branding::name();
 
         return implode("\r\n", $lines);
     }
@@ -389,7 +392,7 @@ class PreAlertMailService
         $lines[] = '';
         $lines[] = $senderName;
         $lines[] = $senderEmail;
-        $lines[] = 'Marinecaddie';
+        $lines[] = Branding::name();
 
         return implode("\r\n", $lines);
     }

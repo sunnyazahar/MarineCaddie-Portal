@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('proforma_invoices', 'payment_type')) {
+            return;
+        }
+
         Schema::table('proforma_invoices', function (Blueprint $table) {
             $table->string('payment_type', 32)->nullable()->after('einvoice_status');
         });

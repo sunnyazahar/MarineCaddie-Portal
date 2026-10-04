@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Services\LoginActivityService;
 use App\Mail\LoginOtpMail;
+use App\Support\LiveHosts;
+use App\Support\OtpPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -313,16 +315,16 @@ class OtpController extends Controller
 
     /**
      * Show the OTP on-screen only for true local/dev hosts.
-     * Never on portal.marinecaddie.com (even if APP_ENV is misconfigured).
+     * Never on a configured live host (APP_LIVE_HOSTS), even if APP_ENV is misconfigured.
      */
     private function shouldExposeLocalOtp(): bool
     {
-        if ($this->isLiveMarineCaddieHost((string) request()->getHost())) {
+        if (LiveHosts::matches((string) request()->getHost())) {
             return false;
         }
 
         $configuredHost = (string) (parse_url((string) config('app.url'), PHP_URL_HOST) ?: '');
-        if ($this->isLiveMarineCaddieHost($configuredHost)) {
+        if (LiveHosts::matches($configuredHost)) {
             return false;
         }
 
@@ -333,26 +335,9 @@ class OtpController extends Controller
         return app()->environment(['local', 'localhost', 'development', 'testing']);
     }
 
-    private function isLiveMarineCaddieHost(string $host): bool
-    {
-        $host = strtolower(trim($host));
-
-        if ($host === '' || $host === 'localhost' || $host === '127.0.0.1' || str_starts_with($host, '192.168.')) {
-            return false;
-        }
-
-        return $host === 'marinecaddie.com'
-            || str_ends_with($host, '.marinecaddie.com');
-    }
-
     private function shouldBypassOtp(): bool
     {
-        if (app()->environment('production')) {
-            return false;
-        }
-
-        return app()->environment(['local', 'localhost', 'development', 'testing'])
-            && (bool) config('app.local_otp_bypass', false);
+        return OtpPolicy::shouldBypass();
     }
 
     private function maskEmail(string $email): string

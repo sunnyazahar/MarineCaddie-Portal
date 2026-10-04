@@ -19,7 +19,7 @@
             margin: 0 0 18px;
         }
         .brand-logo-wrap { text-align: right; margin-bottom: 10px; }
-        .brand-logo-wrap .marinecaddie-logo {
+        .brand-logo-wrap .app-logo {
             width: 220px !important;
             max-width: 220px !important;
             height: auto !important;
@@ -313,8 +313,12 @@
                         @foreach ($sender['lines'] as $line)
                             <div class="party-line">{{ $line }}</div>
                         @endforeach
-                        <div class="sender-contact" style="margin-top: 6px;">Phone: {{ $sender['phone'] }}</div>
-                        <div class="sender-contact">Email: {{ $sender['email'] }}</div>
+                        @if ($sender['phone'] !== '')
+                            <div class="sender-contact" style="margin-top: 6px;">Phone: {{ $sender['phone'] }}</div>
+                        @endif
+                        @if ($sender['email'] !== '')
+                            <div class="sender-contact">Email: {{ $sender['email'] }}</div>
+                        @endif
                     </div>
                 </td>
             </tr>

@@ -326,7 +326,7 @@ class BillingController extends Controller
         $currencies = ['USD', 'EUR', 'SGD'];
         $ports = ['SIN', 'RTM', 'HKG', 'DXB', 'MOH', 'PRI', 'SUR', 'JEB', 'BOM', 'KUL'];
         $shippers = [
-            'MarineCaddie Shipping LLC',
+            \App\Support\Branding::legalName(),
             'Allseas Engineering BV',
             'Xt Management Ltd.',
             'Fleet Management Ltd.',

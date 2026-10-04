@@ -913,7 +913,7 @@ trait ManagesShipmentPersistence
                 'Billing discrepancy',
             ],
             'partyResponsibleOptions' => [
-                'Marinetrans',
+                \App\Support\Branding::name(),
                 'Departing Hub',
                 'Receiving Agent',
                 'Customer',

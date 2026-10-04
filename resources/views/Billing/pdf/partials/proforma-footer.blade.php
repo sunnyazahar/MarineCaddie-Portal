@@ -60,11 +60,13 @@
         </tr>
     </table>
 
-    <div class="remittance-notes">
-        <div class="remittance-notes-title">NOTE</div>
-        @foreach ($bank_details['notes'] as $note)
-            <div class="remittance-note-line">{{ $note }}</div>
-        @endforeach
-    </div>
+    @if (! empty($bank_details['notes']))
+        <div class="remittance-notes">
+            <div class="remittance-notes-title">NOTE</div>
+            @foreach ($bank_details['notes'] as $note)
+                <div class="remittance-note-line">{{ $note }}</div>
+            @endforeach
+        </div>
+    @endif
     <div class="footer-page-number"></div>
 </div>

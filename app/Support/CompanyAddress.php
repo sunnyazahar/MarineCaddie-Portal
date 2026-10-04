@@ -2,27 +2,33 @@
 
 namespace App\Support;
 
+/**
+ * Company address / contact block for PDFs and print views, read from
+ * Admin > Company Settings via {@see Branding}.
+ */
 class CompanyAddress
 {
-    public const NAME = 'MarineCaddie Shipping LLC';
+    public static function name(): string
+    {
+        return Branding::legalName();
+    }
 
-    public const LINE_1 = 'Unit No. 204 – 224, Al Safi 1';
+    public static function phone(): string
+    {
+        return (string) Branding::phone();
+    }
 
-    public const LINE_2 = 'Deira, Dubai, United Arab Emirates';
-
-    public const PHONE = '+971 50 5643375';
-
-    public const EMAIL = 'ops@marinecaddie.com';
+    public static function email(): string
+    {
+        return (string) Branding::email();
+    }
 
     /**
      * @return array<int, string>
      */
     public static function addressLines(): array
     {
-        return [
-            self::LINE_1,
-            self::LINE_2,
-        ];
+        return Branding::addressLines();
     }
 
     /**
@@ -31,30 +37,39 @@ class CompanyAddress
     public static function footerLeftLines(): array
     {
         return [
-            self::NAME,
+            self::name(),
             ...self::addressLines(),
         ];
     }
 
     public static function footerContactLine(): string
     {
-        return 'Phone ' . self::PHONE . ', Email ' . self::EMAIL;
+        $parts = [];
+
+        if (self::phone() !== '') {
+            $parts[] = 'Phone ' . self::phone();
+        }
+        if (self::email() !== '') {
+            $parts[] = 'Email ' . self::email();
+        }
+
+        return implode(', ', $parts);
     }
 
     public static function htmlBlock(): string
     {
-        return implode('<br>', [
-            e(self::NAME),
-            e(self::LINE_1 . ', ' . self::LINE_2),
-            e(self::footerContactLine()),
-        ]);
+        return implode('<br>', array_map('e', array_values(array_filter([
+            self::name(),
+            implode(', ', self::addressLines()),
+            self::footerContactLine(),
+        ]))));
     }
 
     public static function htmlBlockAddress(): string
     {
-        return implode('<br>', [
-            e(self::NAME),
-            e(self::footerContactLine()),
-        ]);
+        return implode('<br>', array_map('e', array_values(array_filter([
+            self::name(),
+            self::footerContactLine(),
+        ]))));
     }
 }

@@ -22,11 +22,11 @@
     @push('scripts')
         <script>
             (function () {
-                if (window.MarineCaddieResetMobileListFilters) {
+                if (window.AppUiResetMobileListFilters) {
                     return;
                 }
 
-                window.MarineCaddieResetMobileListFilters = function () {
+                window.AppUiResetMobileListFilters = function () {
                     if (!window.matchMedia || !window.matchMedia('(max-width: 991.98px)').matches) {
                         return;
                     }
@@ -50,10 +50,10 @@
                     });
                 };
 
-                $(document).ready(window.MarineCaddieResetMobileListFilters);
-                $(window).on('resize.marineCaddieMobileFilters', function () {
+                $(document).ready(window.AppUiResetMobileListFilters);
+                $(window).on('resize.appUiMobileFilters', function () {
                     if (window.matchMedia('(max-width: 991.98px)').matches) {
-                        window.MarineCaddieResetMobileListFilters();
+                        window.AppUiResetMobileListFilters();
                     }
                 });
             })();

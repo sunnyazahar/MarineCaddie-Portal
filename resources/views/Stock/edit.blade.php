@@ -1991,7 +1991,7 @@
             color: #fff !important;
         }
 
-        /* ========== MarineCaddie v2 visual polish (keep structure/IDs/classes intact) ========== */
+        /* ========== v2 visual polish (keep structure/IDs/classes intact) ========== */
         /* Shell page-body uses p-4/md:p-6/lg:p-7 — cancel so stock edit is full-bleed */
         .page-body:has(.stock-edit-wrapper) {
             padding: 0 !important;
@@ -5591,8 +5591,8 @@ function updatePackageSummary() {
                 }
             });
 
-            if (window.MarineCaddieInitCountrySelect) {
-                window.MarineCaddieInitCountrySelect($modal);
+            if (window.AppUiInitCountrySelect) {
+                window.AppUiInitCountrySelect($modal);
             }
 
             $('.modal-supplier-currency').each(function () {

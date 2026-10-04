@@ -1,18 +1,20 @@
 @php
     $assistantScope = $dashboard['assistant']['scope'] ?? [];
     $assistantStocksOnly = ($assistantScope['mode'] ?? null) === 'stocks-only';
+    $assistantLabel = \App\Support\Branding::initials() . ' Assistant';
 @endphp
 
 <div
     class="mc-assistant-shell"
     id="mcAssistantShell"
-    data-storage-key="mc-assistant:{{ auth()->id() ?? 'guest' }}:{{ $assistantScope['mode'] ?? 'dashboard' }}">
+    data-storage-key="mc-assistant:{{ auth()->id() ?? 'guest' }}:{{ $assistantScope['mode'] ?? 'dashboard' }}"
+    data-assistant-label="{{ $assistantLabel }}">
     <div class="mc-assistant-panel" id="mcAssistantPanel" data-role="mc-assistant" aria-hidden="true">
         <div class="mc-assistant-header">
             <div class="mc-assistant-header-copy">
                 <p class="mc-assistant-kicker" id="mcAssistantKicker">{{ $assistantStocksOnly ? 'Stock helper' : 'Dashboard helper' }}</p>
                 <div class="mc-assistant-heading-row">
-                    <h2 class="mc-assistant-title">MC Assistant</h2>
+                    <h2 class="mc-assistant-title">{{ $assistantLabel }}</h2>
                     <span class="mc-assistant-badge" id="mcAssistantBadge">View only</span>
                     <button
                         type="button"
@@ -43,7 +45,7 @@
                 <textarea
                     class="form-control mc-assistant-input"
                     id="mcAssistantInput"
-                    aria-label="MC assistant input"
+                    aria-label="{{ $assistantLabel }} input"
                     autocomplete="off"
                     spellcheck="false"
                     rows="1"></textarea>
@@ -70,7 +72,7 @@
                     class="mc-assistant-launcher__icon-image">
             </span>
             <span class="mc-assistant-launcher__copy">
-                <span class="mc-assistant-launcher__title">MC Assistant</span>
+                <span class="mc-assistant-launcher__title">{{ $assistantLabel }}</span>
                 <span class="mc-assistant-launcher__status" id="mcAssistantLauncherStatus">Details ready</span>
             </span>
             <span class="mc-assistant-launcher__toggle" id="mcAssistantLauncherToggle">Open</span>

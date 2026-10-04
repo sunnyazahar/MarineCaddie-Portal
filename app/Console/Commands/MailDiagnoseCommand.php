@@ -68,8 +68,9 @@ class MailDiagnoseCommand extends Command
         }
 
         try {
-            Mail::raw('MarineCaddie mail diagnose test at '.now()->toDateTimeString(), function ($message) use ($email) {
-                $message->to($email)->subject('MarineCaddie mail diagnose');
+            $brand = \App\Support\Branding::name();
+            Mail::raw($brand.' mail diagnose test at '.now()->toDateTimeString(), function ($message) use ($email, $brand) {
+                $message->to($email)->subject($brand.' mail diagnose');
             });
             $this->info("Test message accepted by mailer for {$email}.");
         } catch (\Throwable $e) {

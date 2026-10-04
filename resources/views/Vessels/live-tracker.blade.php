@@ -1337,7 +1337,7 @@
 
             <section class="tracker-hero-card">
                 <div class="tracker-hero-top">
-                    <span class="tracker-eyebrow">MarineCaddie public AIS lookup</span>
+                    <span class="tracker-eyebrow">{{ \App\Support\Branding::name() }} public AIS lookup</span>
 
                     <div class="tracker-hero-title-row">
                         <h1 class="tracker-hero-title">Search a vessel and review current position plus route details</h1>

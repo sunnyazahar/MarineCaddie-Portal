@@ -53,7 +53,7 @@ class VesselLiveTrackerService
         $portalMatch = $this->findPortalMatch($query);
         $warnings = [];
 
-        [$searchMatch, $lookupLabel] = $this->resolvePublicMatch($query, $portalMatch, $warnings);
+         [$searchMatch, $lookupLabel] = $this->resolvePublicMatch($query, $portalMatch, $warnings);
 
         $detail = null;
 
