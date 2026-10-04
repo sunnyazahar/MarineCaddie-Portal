@@ -213,17 +213,14 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // Static theme assets live in public/files. On hosts where the
-        // document root is the project folder, those URLs need /public.
-        $assetUrl = config('app.asset_url') ?: env('ASSET_URL') ?: $appUrl;
-        $assetUrl = rtrim((string) $assetUrl, '/');
+        // Asset URLs never expose /public: the web server maps them onto public/
+        // (root .htaccess locally, public_html/.htaccess on production).
+        $assetUrl = rtrim((string) (config('app.asset_url') ?: $appUrl), '/');
 
-        if ($assetUrl !== '' && ! str_ends_with(strtolower($assetUrl), '/public')) {
-            $assetUrl .= '/public';
+        if ($assetUrl !== '') {
+            config(['app.asset_url' => $assetUrl]);
+            URL::useAssetOrigin($assetUrl);
         }
-
-        config(['app.asset_url' => $assetUrl]);
-        URL::useAssetOrigin($assetUrl);
 
         View::composer('*', function ($view) {
             $user = auth()->user();

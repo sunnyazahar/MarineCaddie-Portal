@@ -60,8 +60,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Prefixed onto generated asset paths. Leave null to use APP_URL.
-    | If the web host document root is the project folder (not public/),
-    | set ASSET_URL / APP_URL to include "/public" so CSS/JS resolve.
+    | Do not add "/public": the web server rewrites asset URLs into public/.
     |
     */
 
