@@ -335,7 +335,13 @@
         function normalizeAssistantTypos(value) {
             return String(value || '')
                 .replace(/\badress\b/g, 'address')
-                .replace(/\baddres\b/g, 'address');
+                .replace(/\baddres\b/g, 'address')
+                .replace(/\b(?:detials|deatils|detils)\b/g, 'details')
+                .replace(/\b(?:detial|deatil)\b/g, 'detail')
+                .replace(/\b(?:staus|stauts|statsu)\b/g, 'status')
+                .replace(/\b(?:custmer|cusotmer|costumer)\b/g, 'customer')
+                .replace(/\b(?:suplier|supllier|suppiler)\b/g, 'supplier')
+                .replace(/\b(?:shipmnt|shipmet|shipemnt)\b/g, 'shipment');
         }
 
         function normalize(value) {
@@ -371,6 +377,35 @@
                 .replace(/'/g, '&#39;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;');
+        }
+
+        // Templates join a missing-value phrase ("abhi add nahi hai") with a trailing " hai", and values ending in "."
+        // with a closing "." — tidy those in text nodes only (an inert <template> never runs scripts or loads images).
+        function polishBotHtml(html) {
+            var template;
+            var walker;
+            var node;
+
+            if (! html || typeof document.createElement !== 'function') {
+                return html;
+            }
+
+            template = document.createElement('template');
+
+            if (! template.content || typeof document.createTreeWalker !== 'function') {
+                return html;
+            }
+
+            template.innerHTML = html;
+            walker = document.createTreeWalker(template.content, 4);
+
+            while ((node = walker.nextNode())) {
+                node.nodeValue = node.nodeValue
+                    .replace(/\bnahi (hain?) (?:hai|hain)\b/g, 'nahi $1')
+                    .replace(/([^.\s])\.\.(?!\.)/g, '$1.');
+            }
+
+            return template.innerHTML;
         }
 
         function formatText(text) {
@@ -432,6 +467,18 @@
             return (phrases || []).some(function (phrase) {
                 return containsIntentPhrase(text, phrase);
             });
+        }
+
+        // "last update kisne kiya", "who updated", "kisne badla": asker wants the person, in any word order.
+        function asksWhoLastUpdated(text) {
+            var normalizedText = normalize(text);
+
+            if (containsIntentPhrases(normalizedText, ['updated by', 'modified by', 'changed by', 'edited by'])) {
+                return true;
+            }
+
+            return /\b(kisne|kis ne|who|whom)\b/.test(normalizedText)
+                && /\b(update|updated|updates|modify|modified|modification|change|changed|changes|edit|edited|badla|badli|badlav)\b/.test(normalizedText);
         }
 
         function containsAdministrationEntityHint(text) {
@@ -581,8 +628,41 @@
             };
         }
 
+        var actionVerbPattern = '(?:delete|remove|cancel|create|add|update|edit|change|modify|set|mark|accept|reject|approve|deactivate|activate|disable|enable|archive|unarchive|restore|assign|unassign|reassign|rename|close|reopen|complete|deliver|transit|upload|save|submit)';
+        var englishActionLeadPattern = new RegExp(
+            '(?:^|\\b(?:please|pls|kindly|can you|could you|would you|will you|i want to|i need to|want to|need to|help me|go ahead and|bhai|zara|yaar|hey|quick question)\\s+)'
+            + actionVerbPattern
+            + '\\s+(\\S+)(.*)$'
+        );
+        var hinglishActionPattern = new RegExp(
+            '\\b(?:' + actionVerbPattern.slice(3, -1) + '|cancelled|completed|delivered|updated|active|inactive|band|chalu|naya|nayi|new)\\b'
+            + '(?:\\s+\\S+){0,4}?\\s+(?:kar(?:o|do|de|dena|dijiye|na)?|kijiye)\\b'
+            + '(?!\\s+(?:diya|diye|di|liya|li|chuka|chuki|chuke|raha|rahi|rahe)\\b)'
+        );
+
+        // Imperative edits ("Mark shipment X as delivered", "stock X ka status completed kar do") that the
+        // fixed phrase list misses because the record sits between the verb and its target.
+        function hasImperativeActionIntent(text) {
+            var normalizedText = normalize(text);
+            var englishMatch = normalizedText.match(englishActionLeadPattern);
+
+            if (hinglishActionPattern.test(normalizedText)) {
+                return true;
+            }
+
+            if (! englishMatch) {
+                return false;
+            }
+
+            if (/^(?:summary|details?|info|information|record|records|history|log|logs|date|dates|by)$/.test(englishMatch[1])) {
+                return false;
+            }
+
+            return ! (/^(?:on|of|for|about|regarding)$/.test(englishMatch[1]) && ! /\bto\b/.test(englishMatch[2]));
+        }
+
         function isReadOnlyActionRequest(text) {
-            if (! containsIntentPhrases(text, [
+            if (! hasImperativeActionIntent(text) && ! containsIntentPhrases(text, [
                 'create',
                 'save crr',
                 'save shipment',
@@ -601,7 +681,35 @@
                 'new crr',
                 'new shipment',
                 'bana do',
-                'banao'
+                'banao',
+                'update kar',
+                'update karo',
+                'edit kar',
+                'edit karo',
+                'delete kar',
+                'delete karo',
+                'hata do',
+                'hatao',
+                'mita do',
+                'change kar do',
+                'change karo',
+                'badal do',
+                'badlo',
+                'set kar',
+                'cancel kar',
+                'complete kar do',
+                'delivered kar',
+                'deliver kar do',
+                'transit kar',
+                'accept kar',
+                'mark as',
+                'mark it as',
+                'change status',
+                'change the status',
+                'set status',
+                'set the status',
+                'update the status',
+                'status update kar'
             ])) {
                 return false;
             }
@@ -632,7 +740,9 @@
                 return false;
             }
 
-            if (! queryHasCountIntent(normalizedText)) {
+            // "shipments created in the last 90 days" asks for a count even without "how many".
+            if (! queryHasCountIntent(normalizedText)
+                && ! /\b(?:last|past|previous|pichle|pichhle|beete|pichale)\s+\d+\s+(?:day|days|din)\b|\b(?:today|aaj|this month|is mahine|iss mahine)\b/.test(normalizedText)) {
                 return false;
             }
 
@@ -647,6 +757,14 @@
                 'create hue',
                 'create huye',
                 'create kiya',
+                'bane',
+                'bana',
+                'bani',
+                'banaye',
+                'banaya',
+                'banai',
+                'add hue',
+                'add huye',
                 'new shipment',
                 'new shipments',
                 'added shipment',
@@ -712,7 +830,76 @@
 
         function isCancelledShipmentSummaryRequest(text) {
             return containsIntentPhrases(text, ['cancelled shipment', 'cancelled shipments', 'canceled shipment', 'canceled shipments'])
-                || (containsIntentPhrases(text, ['cancelled', 'canceled']) && containsIntentPhrases(text, ['shipment', 'shipments']));
+                || (containsIntentPhrases(text, ['cancelled', 'canceled', 'cancel hue', 'cancel hui', 'cancel hua', 'cancel huye', 'cancel kiye', 'cancel ho']) && containsIntentPhrases(text, ['shipment', 'shipments']));
+        }
+
+        var kpiCountCatalog = [
+            { key: 'unacceptedStocks', scope: 'stockFollowUps', phrases: ['unaccepted', 'not accepted', 'accept nahi', 'accepted nahi', 'acceptance pending', 'awaiting acceptance', 'pending acceptance', 'pending accept'], en: ['stock awaiting acceptance', 'stocks awaiting acceptance'], hi: ['stock acceptance ke liye pending', 'stocks acceptance ke liye pending'] },
+            { key: 'pickupQueue', scope: 'stocks', phrases: ['pickup queue', 'pick up queue', 'pickup pending', 'pick up pending'], en: ['stock in the pickup queue', 'stocks in the pickup queue'], hi: ['stock pickup queue me', 'stocks pickup queue me'] },
+            { key: 'urgentStocks', scope: 'stocks', phrases: ['urgent stock', 'urgent stocks'], en: ['urgent stock', 'urgent stocks'], hi: ['urgent stock', 'urgent stocks'] },
+            { key: 'activeStocks', scope: 'stocks', phrases: ['active stock', 'active stocks'], en: ['active stock', 'active stocks'], hi: ['active stock', 'active stocks'] },
+            { key: 'activeShipments', scope: 'shipments', phrases: ['active shipment', 'active shipments'], en: ['active shipment', 'active shipments'], hi: ['active shipment', 'active shipments'] },
+            { key: 'overdueArrivals', scope: 'overdueShipments', phrases: ['overdue', 'late arrival', 'late arrivals', 'past deadline', 'late shipment', 'late shipments'], en: ['overdue arrival', 'overdue arrivals'], hi: ['overdue arrival', 'overdue arrivals'] },
+            { key: 'preAlertsDue', scope: 'shipments', phrases: ['pre alert', 'pre alerts', 'pre-alert', 'pre-alerts', 'prealert', 'prealerts'], en: ['pre-alert due', 'pre-alerts due'], hi: ['pre-alert due', 'pre-alerts due'] },
+            { key: 'openIrregularities', scope: 'shipments', phrases: ['irregularity', 'irregularities', 'open issue', 'open issues'], en: ['open irregularity', 'open irregularities'], hi: ['open irregularity', 'open irregularities'] },
+            { key: 'remindersToday', scope: 'shipments', phrases: ['reminder', 'reminders'], en: ['reminder sent today', 'reminders sent today'], hi: ['reminder aaj bheja gaya', 'reminders aaj bheje gaye'] }
+        ];
+
+        // Dashboard KPI counts ("kitne stocks accept nahi hue", "how many open irregularities").
+        function detectKpiCountRequest(text) {
+            var normalizedText = normalize(text);
+            var kpis = assistantData.kpis || {};
+
+            if (! normalizedText || ! queryHasCountIntent(normalizedText) || extractLookupTerms(text).length > 0) {
+                return null;
+            }
+
+            for (var index = 0; index < kpiCountCatalog.length; index += 1) {
+                var entry = kpiCountCatalog[index];
+
+                if (typeof kpis[entry.key] !== 'undefined' && containsIntentPhrases(normalizedText, entry.phrases)) {
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
+        function stockStatusCountEntries() {
+            return (assistantData.stockStatuses || []).filter(function (item) {
+                return item && hasValue(item.label);
+            });
+        }
+
+        function detectStockStatusCountRequest(text) {
+            var normalizedText = normalize(text);
+            var stockMentions;
+            var matched = null;
+
+            if (! normalizedText || ! queryHasCountIntent(normalizedText) || extractLookupTerms(text).length > 0) {
+                return null;
+            }
+
+            stockMentions = (normalizedText.match(/\b(?:stock|stocks|crr|crrs)\b/g) || []).length;
+
+            if (! stockMentions) {
+                return null;
+            }
+
+            stockStatusCountEntries().forEach(function (entry) {
+                var label = normalize(entry.label);
+
+                // The "Stock" status shares its name with the record type: "kitne stock Stock me hain".
+                if (label === 'stock' ? stockMentions < 2 : ! containsIntentPhrase(normalizedText, label)) {
+                    return;
+                }
+
+                if (! matched || label.length > normalize(matched.label).length) {
+                    matched = entry;
+                }
+            });
+
+            return matched;
         }
 
         function shipmentStatusSummaryEntries() {
@@ -781,13 +968,21 @@
                 'carrier details',
                 'cmr detail',
                 'cmr details',
-                'bill of lading'
+                'bill of lading',
+                'transport leg',
+                'transport legs',
+                'awb number',
+                'awb no',
+                'mawb number',
+                'mbl number',
+                'flight number',
+                'flight no'
             ])) {
                 return true;
             }
 
-            return containsIntentPhrases(normalizedText, ['flight', 'awb', 'mawb', 'mbl', 'carrier', 'leg', 'transport', 'cmr', 'bill of lading'])
-                && containsIntentPhrases(normalizedText, ['detail', 'details', 'summary', 'batao', 'dikhao']);
+            return containsIntentPhrases(normalizedText, ['flight', 'awb', 'mawb', 'mbl', 'carrier', 'leg', 'legs', 'transport', 'cmr', 'bill of lading'])
+                && containsIntentPhrases(normalizedText, ['detail', 'details', 'summary', 'batao', 'dikhao', 'number', 'kya', 'kaunsi', 'kaunsa', 'what', 'which', 'show', 'tell']);
         }
 
         function uniqueCompactValues(values) {
@@ -1011,7 +1206,30 @@
                 'all detail',
                 'all details',
                 'all field',
-                'all fields'
+                'all fields',
+                'complete info',
+                'complete information',
+                'full info',
+                'full information',
+                'all information',
+                'complete record',
+                'full record',
+                'full profile',
+                'everything about',
+                'tell me everything',
+                'puri detail',
+                'puri details',
+                'poori detail',
+                'poori details',
+                'puri jankari',
+                'poori jankari',
+                'saari jankari',
+                'sari jankari',
+                'saari details',
+                'sari details',
+                'sab jankari',
+                'puri information',
+                'saari information'
             ]);
         }
 
@@ -1027,7 +1245,16 @@
                 'information',
                 'describe',
                 'summarize',
-                'summarise'
+                'summarise',
+                'tell me about',
+                'about',
+                'jankari',
+                'jaankari',
+                'bare me',
+                'bare mein',
+                'baare me',
+                'baare mein',
+                'profile'
             ]);
         }
 
@@ -1312,7 +1539,9 @@
             });
             var candidateLabels = ((item && Array.isArray(item.quickFields) && item.quickFields.length)
                 ? item.quickFields
-                : administrationFields(item).map(function (field) {
+                : administrationFields(item).filter(function (field) {
+                    return ! field.onRequestOnly;
+                }).map(function (field) {
                     return field.label;
                 }))
                 .map(normalizedFieldLabel)
@@ -1805,28 +2034,48 @@
             return matchesExactIntent(text, ['service', 'services'])
                 || containsIntentPhrases(text, [
                     'service summary',
+                    'services summary',
+                    'service summery',
+                    'services summery',
+                    'service overview',
+                    'services overview',
+                    'services mix',
+                    'service wise',
+                    'service-wise',
                     'service mix',
                     'show service mix',
                     'shipment mix by service',
                     'service wise shipment mix',
-                    'service-wise shipment mix'
-                ]);
+                    'service-wise shipment mix',
+                    'services ka summary',
+                    'service ka summary'
+                ])
+                || (containsIntentPhrases(text, ['service', 'services'])
+                    && containsIntentPhrases(text, ['most', 'most used', 'sabse zyada', 'sabse jyada', 'top', 'popular', 'breakdown']));
         }
 
         function isShipmentSummaryRequest(text) {
+            // "<agent> show pre alert" asks for the agent's "Show pre alert" setting.
+            var asksPreAlertSetting = containsIntentPhrases(text, ['show pre alert', 'show prealert']) && languageTokens(text).length > 3;
+
+            if ((containsIntentPhrases(text, ['pre alert', 'pre-alert', 'pre alerts', 'pre-alerts', 'irregularity', 'irregularities'])
+                && ! asksPreAlertSetting
+                && ! hasCompanyNameWord(text))) {
+                return true;
+            }
+
             return matchesExactIntent(text, ['shipment', 'shipments'])
                 || containsIntentPhrases(text, [
                     'shipment summary',
+                    'shipments summary',
                     'shipment summaries',
                     'shipment overview',
+                    'shipments overview',
                     'shipment details',
                     'show shipment summary',
                     'show shipments',
                     'all shipments',
                     'active shipments',
-                    'pre alert',
-                    'pre-alert',
-                    'irregularit',
                     'shipment ka',
                     'shipment batao'
                 ]);
@@ -1836,8 +2085,10 @@
             return matchesExactIntent(text, ['stock', 'stocks', 'crr'])
                 || containsIntentPhrases(text, [
                     'stock summary',
+                    'stocks summary',
                     'stock summaries',
                     'stock overview',
+                    'stocks overview',
                     'stock details',
                     'show stock summary',
                     'show stocks',
@@ -1968,7 +2219,11 @@
                 return false;
             }
 
-            return containsIntentPhrases(raw, [
+            return hasCompanyNameWord(raw);
+        }
+
+        function hasCompanyNameWord(text) {
+            return containsIntentPhrases(text, [
                 'shipping',
                 'services',
                 'cargo',
@@ -2112,7 +2367,11 @@
                 return false;
             }
 
-            if (response && (response.kind === 'read-only' || response.kind === 'out-of-scope')) {
+            if (response && (response.kind === 'read-only' || response.kind === 'out-of-scope' || response.kind === 'kpi-count' || response.kind === 'stock-status-count')) {
+                return false;
+            }
+
+            if (response && response.fromContext && (isDetailResponse(response) || response.kind === 'sensitive-lookup-blocked')) {
                 return false;
             }
 
@@ -2291,6 +2550,10 @@
             var body = settings.useProvidedBody
                 ? String(settings.providedBody == null ? '' : settings.providedBody)
                 : (isHtml ? String(message == null ? '' : message) : formatText(message));
+
+            if (role === 'bot' && ! settings.useProvidedBody) {
+                body = polishBotHtml(body);
+            }
 
             if (role === 'user') {
                 rememberAskedQuestion(message);
@@ -2572,7 +2835,7 @@
                 return true;
             }
 
-            if (containsAny(normalizedText, [
+            if (containsIntentPhrases(normalizedText, [
                 'overdue',
                 'late arrival',
                 'past deadline',
@@ -2596,6 +2859,28 @@
             return containsAny(normalizedText, ['overview', 'dashboard', 'snapshot', 'kpi', 'metrics', 'everything', 'overall', 'sab kuch']);
         }
 
+        // "stock X ka status aur supplier batao": the second clause only names a field of
+        // the record in the first clause, so it must not become a separate question.
+        var fieldContinuationFillers = ['batao', 'bata', 'bataiye', 'do', 'dena', 'kya', 'hai', 'h', 'hain', 'kaun', 'kaunsa', 'kaunsi', 'konsa', 'ka', 'ki', 'ke', 'the', 'its', 'what', 'is', 'are', 'show', 'tell', 'me', 'please', 'bhi', 'also', 'uska', 'uski', 'iska', 'iski'];
+
+        function isFieldContinuationClause(part) {
+            var normalizedPart = normalize(part);
+
+            if (! normalizedPart || extractLookupTerms(part).length > 0 || looksLikeAdministrationNameQuery(part) || isReadOnlyActionRequest(normalizedPart)) {
+                return false;
+            }
+
+            if (containsAny(normalizedPart, ['overview', 'dashboard', 'summary', 'overdue', 'follow up', 'kpi', 'how many', 'kitne', 'kitni', 'help', 'madad'])) {
+                return false;
+            }
+
+            var contentTokens = normalizedPart.split(/\s+/).filter(function (token) {
+                return token && fieldContinuationFillers.indexOf(token) === -1;
+            });
+
+            return contentTokens.length > 0 && contentTokens.length <= 3;
+        }
+
         function splitStandaloneQuestionSegments(text) {
             var segments = [];
 
@@ -2609,7 +2894,9 @@
                         .map(cleanAssistantClause)
                         .filter(Boolean);
 
-                    if (parts.length > 1 && parts.every(looksLikeStandaloneAssistantClause)) {
+                    if (parts.length > 1
+                        && parts.every(looksLikeStandaloneAssistantClause)
+                        && ! (parts.some(function (part) { return extractLookupTerms(part).length > 0; }) && parts.some(isFieldContinuationClause))) {
                         segments = segments.concat(parts);
                         return;
                     }
@@ -3280,6 +3567,46 @@
             };
         }
 
+        function renderKpiCount(entry) {
+            var total = Number((assistantData.kpis || {})[entry.key] || 0);
+            var label = total === 1 ? choose(entry.hi[0], entry.en[0]) : choose(entry.hi[1], entry.en[1]);
+            var extra = '';
+
+            if (entry.key === 'overdueArrivals' && overdueShipments.length) {
+                extra = shipmentList(overdueShipments.slice(0, 6), choose('Late ya overdue arrivals', 'Late or overdue arrivals'), '');
+            } else if (entry.key === 'unacceptedStocks' && stockFollowUps.length) {
+                extra = stockList(stockFollowUps.slice(0, 6), choose('Stocks jin par follow-up chahiye', 'Stocks that need follow-up'), '');
+            }
+
+            return {
+                kind: 'kpi-count',
+                status: choose('Count ready', 'Count ready'),
+                html: '' +
+                    '<strong>' + escapeHtml(choose('Dashboard count', 'Dashboard count')) + '</strong>' +
+                    '<p>' + escapeHtml(choose(
+                        'Abhi ' + formatNumber(total) + ' ' + label + ' ' + countVerb(total, 'hai', 'hain') + '.',
+                        'There ' + countVerb(total, 'is', 'are') + ' ' + formatNumber(total) + ' ' + label + ' right now.'
+                    )) + '</p>' +
+                    extra
+            };
+        }
+
+        function renderStockStatusCount(entry) {
+            var total = Number(entry && entry.value || 0);
+            var label = $.trim(String(entry && entry.label || ''));
+
+            return {
+                kind: 'stock-status-count',
+                status: choose('Count ready', 'Count ready'),
+                html: '' +
+                    '<strong>' + escapeHtml(choose(label + ' stock count', label + ' stock count')) + '</strong>' +
+                    '<p>' + escapeHtml(choose(
+                        'Abhi ' + describeCount(total, 'stock', 'stocks') + ' ' + label + ' status me ' + countVerb(total, 'hai', 'hain') + '.',
+                        'There ' + countVerb(total, 'is', 'are') + ' ' + describeCount(total, 'stock', 'stocks') + ' with status ' + label + ' right now.'
+                    )) + '</p>'
+            };
+        }
+
         function renderCancelledShipmentSummary() {
             var total = Number((assistantData.kpis || {}).cancelledShipments || 0);
             var recentCancelled = shipments.filter(function (item) {
@@ -3293,7 +3620,7 @@
                     '<strong>' + escapeHtml(choose('Cancelled shipment summary', 'Cancelled shipment summary')) + '</strong>' +
                     '<p>' + escapeHtml(choose(
                         'Hamare system me total ' + formatNumber(total) + ' cancelled shipments hain.',
-                        'There are ' + formatNumber(total) + ' cancelled shipments in the system.'
+                        'There ' + countVerb(total, 'is', 'are') + ' ' + describeCount(total, 'cancelled shipment', 'cancelled shipments') + ' in the system.'
                     )) + '</p>' +
                     (recentCancelled.length
                         ? shipmentList(
@@ -3465,12 +3792,13 @@
         function renderShipmentTransportDetail(item, matchedLeg) {
             var heading = transportHeadingText(item);
             var serviceText = joinMeaningful([item.service, item.additionalService], ' / ');
+            var englishServiceText = serviceText || displayValue(item.service, 'shipment service', 'shipment service');
             var legs = matchedLeg ? [matchedLeg] : (Array.isArray(item.transportLegs) ? item.transportLegs : []);
             var legCount = Number(legs.length);
             var introLines = [
                 choose(
                     'Yeh ' + (serviceText || displayValue(item.service, 'shipment service')) + ' shipment hai. Route ' + displayValue(item.departurePort) + ' se ' + displayValue(item.consigneePort) + ' tak dikh raha hai.',
-                    'This is a ' + (serviceText || displayValue(item.service, 'shipment service', 'shipment service')) + ' shipment. The route runs from ' + displayValue(item.departurePort) + ' to ' + displayValue(item.consigneePort) + '.'
+                    'This is ' + (/^[aeiou]/i.test(englishServiceText) ? 'an ' : 'a ') + englishServiceText + ' shipment. The route runs from ' + displayValue(item.departurePort) + ' to ' + displayValue(item.consigneePort) + '.'
                 ),
                 choose(
                     'Current status ' + displayValue(item.status) + ' hai. Customer ' + displayValue(item.customer) + ' hai aur receiver ' + displayValue(item.consignee) + ' hai.',
@@ -3555,7 +3883,17 @@
         }
 
         function looksLikeSensitiveCredentialRequest(text) {
-            return containsIntentPhrases(text, ['password', 'pass word', 'passcode', 'credential', 'credentials', 'secret code']);
+            if (containsIntentPhrases(text, [
+                'password', 'pass word', 'passcode', 'credential', 'credentials', 'secret code', 'secret key',
+                'one time password', 'verification code', 'login code', 'api key', 'api token', 'access token',
+                'remember token', 'private key'
+            ])) {
+                return true;
+            }
+
+            // "OTP blocked / OTP status" is a normal user field; any other OTP mention asks for the code itself.
+            return containsIntentPhrase(text, 'otp')
+                && ! containsIntentPhrases(text, ['otp status', 'otp lock', 'otp locked', 'otp block', 'otp blocked']);
         }
 
         function renderSensitiveLookupResponse(type, reason, item) {
@@ -3709,10 +4047,14 @@
                 'customer', 'customers', 'contact', 'contacts', 'vessel', 'vessels', 'user', 'users',
                 'portal user', 'portal users', 'login user', 'login users',
                 'record', 'records', 'detail', 'details', 'summary', 'summery', 'overview',
-                'info', 'information', 'complete', 'full',
+                'info', 'information', 'complete', 'full', 'profile', 'everything', 'all',
+                'jankari', 'jaankari', 'puri', 'poori', 'pura', 'poora', 'saari', 'sari', 'sab',
+                'bare', 'baare', 'about', 'regarding',
                 'what', 'who', 'which', 'when', 'where', 'is', 'are', 'how many', 'count', 'number of',
                 'kitna', 'kitne', 'kitni', 'kisne', 'kis', 'kon', 'kaun',
-                'show', 'tell', 'give', 'batao', 'dikhao', 'please',
+                'show', 'tell', 'give', 'batao', 'bata', 'dikhao', 'do', 'dena', 'please', 'pls',
+                'can you', 'could you', 'i want', 'i need', 'a', 'an', 'of', 'for', 'on',
+                'bhai', 'zara', 'yaar', 'hey', 'quick question',
                 'iska', 'iski', 'iske', 'uska', 'uski', 'uske', 'inka', 'inki', 'inke', 'unka', 'unki', 'unke',
                 'its', 'this', 'that', 'same',
                 'ka', 'ke', 'ki', 'ko', 'me', 'mein', 'hai', 'hain', 'tha', 'the', 'kya'
@@ -3722,6 +4064,33 @@
             });
 
             return cleaned.replace(/\s+/g, ' ').trim();
+        }
+
+        // "CAMPBELL SHIPPING customer details" asks for the whole record, not the "Customer name" field.
+        function isWholeAdministrationRecordRequest(type, text) {
+            var ownTypeWords = {
+                office: ['office', 'offices'],
+                hub: ['hub', 'hubs'],
+                agent: ['agent', 'agents'],
+                supplier: ['supplier', 'suppliers'],
+                customer: ['customer', 'customers'],
+                contact: ['contact', 'contacts'],
+                vessel: ['vessel', 'vessels'],
+                user: ['user', 'users']
+            };
+            var otherTypeWords = [];
+
+            if (! text || ! isGenericRecordSummaryRequest(text)) {
+                return false;
+            }
+
+            Object.keys(ownTypeWords).forEach(function (key) {
+                if (key !== type) {
+                    otherTypeWords = otherTypeWords.concat(ownTypeWords[key]);
+                }
+            });
+
+            return ! containsIntentPhrases(text, otherTypeWords) && administrationIntentRemainder(text) === '';
         }
 
         function administrationIntentSuggestsSpecificField(item, text) {
@@ -3959,6 +4328,24 @@
             };
         }
 
+        // Same verb-based history phrasing the lookup endpoint accepts ("who last updated", "kisne badla", "kab update hua").
+        function changeLogAsksWho(text) {
+            var normalizedText = normalize(text);
+
+            return /\bwho\s+(?:\S+\s+){0,2}(?:changed|modified|updated|edited)\b/.test(normalizedText)
+                || /\b(?:last|latest|recently)\s+(?:changed|modified|updated|edited)\s+by\b/.test(normalizedText)
+                || /\bkisne\b(?:\s+\S+){0,4}?\s+(?:change|changed|update|updated|modify|modified|edit|edited|badla|badli|badle|badal)\b/.test(normalizedText);
+        }
+
+        function changeLogAsksWhen(text) {
+            var normalizedText = normalize(text);
+            var verbs = '(?:change|changed|update|updated|modify|modified|edit|edited|badla|badli|badle|badal)';
+
+            return /\bwhen\s+(?:was|were|did)\b.*\b(?:changed|modified|updated|edited)\b/.test(normalizedText)
+                || new RegExp('\\bkab\\b(?:\\s+\\S+){0,3}?\\s+' + verbs + '\\s+(?:hua|hui|hue|kiya|ki|kiye|kia)\\b').test(normalizedText)
+                || new RegExp('\\b' + verbs + '\\s+kab\\b').test(normalizedText);
+        }
+
         function renderChangeLogFieldResponse(item, text) {
             var logs = changeLogEntries(item);
             var latest = latestChangeLogEntry(item);
@@ -4004,7 +4391,7 @@
                 )) + '</p>' + section(choose('Matching changes', 'Matching changes'), renderChangeLogEntries(logs)));
             }
 
-            if (latest && matchesIntent(text, [
+            if (latest && (changeLogAsksWho(text) || matchesIntent(text, [
                 'changed by',
                 'who changed',
                 'who modified',
@@ -4014,7 +4401,7 @@
                 'kisne change kiya',
                 'kisne modify kiya',
                 'kisne update kiya'
-            ])) {
+            ]))) {
                 push('changed-by', '<p>' + escapeHtml(hasValue(latest.userName)
                     ? choose(
                         'Latest matching change ' + displayValue(latest.userName) + ' ne kiya tha.'
@@ -4063,20 +4450,22 @@
             ], ['last modification field', 'last changed field', 'last modified field', 'changed by', 'who changed', 'who modified'])) {
                 push('latest-change', '<p>' + escapeHtml(choose(
                     'Latest matching change ' + displayValue(latest.title, 'change entry', 'change entry')
+                        + (hasValue(latest.userName) ? ' (' + displayValue(latest.userName) + ' ne, ' + displayValue(latest.date) + ')' : '')
                         + (hasValue(latest.description) ? ' tha. Details: ' + latest.description + '.' : ' tha.'),
                     'The latest matching change was ' + displayValue(latest.title, 'a saved change entry', 'a saved change entry')
+                        + (hasValue(latest.userName) ? ' (by ' + displayValue(latest.userName) + ' on ' + displayValue(latest.date) + ')' : '')
                         + (hasValue(latest.description) ? '. Details: ' + latest.description + '.' : '.')
                 )) + '</p>');
             }
 
-            if (latest && matchesIntent(text, [
+            if (latest && (changeLogAsksWhen(text) || matchesIntent(text, [
                 'when changed',
                 'change date',
                 'last change date',
                 'latest change date',
                 'kab change hua',
                 'change kab hua'
-            ])) {
+            ]))) {
                 push('date', '<p>' + escapeHtml(choose(
                     'Latest matching change ' + displayValue(latest.date) + ' par hua tha.',
                     'The latest matching change happened on ' + displayValue(latest.date) + '.'
@@ -4110,7 +4499,9 @@
         }
 
         function renderAdministrationSection(sectionData) {
-            var fields = Array.isArray(sectionData && sectionData.fields) ? sectionData.fields : [];
+            var fields = (Array.isArray(sectionData && sectionData.fields) ? sectionData.fields : []).filter(function (field) {
+                return ! (field && field.onRequestOnly);
+            });
 
             if (! fields.length) {
                 return '';
@@ -4197,22 +4588,49 @@
             );
         }
 
+        function sameNameRecordsNote(type, item) {
+            var others = item && Array.isArray(item.sameNameRecords) ? item.sameNameRecords.filter(Boolean) : [];
+
+            if (! others.length) {
+                return '';
+            }
+
+            var entityLabel = administrationEntityLabel(type, item).toLowerCase();
+            var list = others.join('; ');
+
+            return '<p class="mc-assistant-note">' + escapeHtml(choose(
+                'Note: same name ke ' + others.length + ' aur ' + entityLabel + ' record bhi hain (' + list + '). Kisi aur record ka answer chahiye to code, city ya email ke saath puchhiye.',
+                'Note: ' + others.length + ' other ' + entityLabel + ' record(s) share this name (' + list + '). Ask with the code, city, or email for a different one.'
+            )) + '</p>';
+        }
+
         function responseForAdministrationQuery(type, item, query) {
+            var response = administrationQueryResponse(type, item, query);
+            var note = sameNameRecordsNote(type, item);
+
+            if (response && note && typeof response.html === 'string') {
+                response.html += note;
+            }
+
+            return response;
+        }
+
+        function administrationQueryResponse(type, item, query) {
             var normalizedQuery = $.trim(String(query || ''));
             var isExactRecordLookup = administrationQueryMatchesIdentity(item, normalizedQuery);
             var fieldIntentText = administrationIntentText(item, normalizedQuery);
 
-            if (! isFullRecordRequest(normalizedQuery)) {
+            if (looksLikeSensitiveCredentialRequest(fieldIntentText || normalizedQuery)) {
+                return renderSensitiveLookupResponse(type, 'credentials', item);
+            }
+
+            if (! isFullRecordRequest(normalizedQuery) && ! isWholeAdministrationRecordRequest(type, fieldIntentText)) {
                 var fieldResponse = fieldIntentText
                     ? renderAdministrationFieldResponse(type, item, fieldIntentText)
                     : null;
 
                 if (fieldResponse) {
                     return fieldResponse;
-                }
-
-                if (looksLikeSensitiveCredentialRequest(fieldIntentText || normalizedQuery)) {
-                    return renderSensitiveLookupResponse(type, 'credentials', item);
                 }
 
                 if (administrationIntentSuggestsSpecificField(item, fieldIntentText)) {
@@ -4227,51 +4645,84 @@
             return renderAdministrationDetail(type, item);
         }
 
+        // Short follow-ups without a pronoun ("What is the email?", "supplier kaun hai?", "and the customer?")
+        // still refer to the record answered last, as long as they do not ask for a list, count or another record.
+        function isEllipticalFollowUpQuery(query) {
+            var normalizedText = normalize(query);
+
+            if (! normalizedText || ! lastLookupContext() || extractLookupTerms(query).length > 0) {
+                return false;
+            }
+
+            if (normalizedText.split(/\s+/).length > 8 || looksLikeAdministrationNameQuery(query)) {
+                return false;
+            }
+
+            return ! (
+                isCancelledShipmentSummaryRequest(normalizedText) ||
+                detectShipmentCreationCountWindow(normalizedText) ||
+                detectShipmentStatusSummaryRequest(query) ||
+                isServiceSummaryRequest(query) ||
+                isShipmentSummaryRequest(query) ||
+                isStockSummaryRequest(query) ||
+                containsIntentPhrases(normalizedText, [
+                    'shipments', 'stocks', 'offices', 'hubs', 'agents', 'suppliers', 'customers', 'contacts', 'vessels', 'users',
+                    'overview', 'dashboard', 'overdue', 'follow up', 'followup', 'all', 'list', 'active', 'urgent'
+                ])
+            );
+        }
+
+        function contextualResponseForType(type, item, query) {
+            if (type === 'shipment') {
+                return scopeAllows('shipments') ? responseForShipmentQuery(item, query) : renderScopeBlockedResponse('shipment');
+            }
+
+            if (type === 'stock') {
+                return scopeAllows('stocks') ? responseForStockQuery(item, query) : renderScopeBlockedResponse('stock');
+            }
+
+            if (type === 'change_log') {
+                return scopeAllows('administration') ? responseForChangeLogQuery(item, query) : renderScopeBlockedResponse('change_log');
+            }
+
+            if (['office', 'hub', 'agent', 'supplier', 'customer', 'contact', 'vessel', 'user'].indexOf(type) !== -1) {
+                return scopeAllows('administration') ? responseForAdministrationQuery(type, item, query) : renderScopeBlockedResponse(type);
+            }
+
+            return null;
+        }
+
+        function markContextualResponse(response) {
+            if (response && typeof response === 'object') {
+                response.fromContext = true;
+            }
+
+            return response;
+        }
+
         function responseForContextualQuery(query) {
             var context = lastLookupContext();
             var type;
             var item;
+            var response;
 
-            if (! context || ! queryUsesLastLookupContext(query)) {
+            if (! context) {
                 return null;
             }
 
-            type = context.type;
-            item = context.item;
-
-            if (type === 'shipment') {
-                if (! scopeAllows('shipments')) {
-                    return renderScopeBlockedResponse('shipment');
+            if (! queryUsesLastLookupContext(query)) {
+                if (! isEllipticalFollowUpQuery(query)) {
+                    return null;
                 }
 
-                return responseForShipmentQuery(item, query);
+                response = contextualResponseForType(context.type, context.item, query);
+
+                return response && /-(?:field-detail|compound-detail|transport-detail)$|^sensitive-lookup-blocked$/.test(String(response.kind || ''))
+                    ? markContextualResponse(response)
+                    : null;
             }
 
-            if (type === 'stock') {
-                if (! scopeAllows('stocks')) {
-                    return renderScopeBlockedResponse('stock');
-                }
-
-                return responseForStockQuery(item, query);
-            }
-
-            if (type === 'change_log') {
-                if (! scopeAllows('administration')) {
-                    return renderScopeBlockedResponse('change_log');
-                }
-
-                return responseForChangeLogQuery(item, query);
-            }
-
-            if (['office', 'hub', 'agent', 'supplier', 'customer', 'contact', 'vessel', 'user'].indexOf(type) !== -1) {
-                if (! scopeAllows('administration')) {
-                    return renderScopeBlockedResponse(type);
-                }
-
-                return responseForAdministrationQuery(type, item, query);
-            }
-
-            return null;
+            return markContextualResponse(contextualResponseForType(context.type, context.item, query));
         }
 
         function responseForChangeLogQuery(item, query) {
@@ -4296,7 +4747,7 @@
             var wantsList = queryHasListIntent(text);
             var consigneeNamePhrases = ['consignee', 'consignee name', 'receiver', 'receiver name', 'consigenee', 'consigenee name'];
             var consigneeAddressPhrases = ['consignee address', 'receiver address', 'consigenee address', 'address'];
-            var consigneePortPhrases = ['consignee port', 'consigenee port', 'destination port', 'port code', 'to port'];
+            var consigneePortPhrases = ['consignee port', 'consigenee port', 'destination port', 'port code', 'to port', 'port of discharge', 'discharge port'];
             var consigneeNotePhrases = ['consignee note', 'receiver note', 'comments to consignee', 'consigenee note', 'comments to consigenee'];
             var consigneeEmailPhrases = ['email', 'mail id', 'email address'];
             var consigneeContactPhrases = ['contact person', 'contact name', 'attn', 'attention person'];
@@ -4448,7 +4899,9 @@
                 ) + '</p>');
             }
 
-            if (matchesIntent(text, [
+            var asksShipmentUpdater = asksWhoLastUpdated(text);
+
+            if (asksShipmentUpdater || matchesIntent(text, [
                 'updated by',
                 'last updated by',
                 'modified by',
@@ -4520,7 +4973,7 @@
                 push('account-manager', '<p>' + escapeHtml(choose('Is shipment ka account manager ' + displayValue(item.accountManager) + ' hai.', 'The account manager for this shipment is ' + displayValue(item.accountManager) + '.')) + '</p>');
             }
 
-            if (matchesIntent(text, ['last update', 'updated at', 'update kab hua', 'kab update hua', 'last modified at', 'last modified on', 'last modification kab hua'])) {
+            if (! asksShipmentUpdater && matchesIntent(text, ['last update', 'updated at', 'update kab hua', 'kab update hua', 'last modified at', 'last modified on', 'last modification kab hua'])) {
                 push('updated-at', '<p>' + escapeHtml(choose('Is shipment ka last update ' + displayValue(item.updatedAt) + ' par hua tha.', 'The last update for this shipment was on ' + displayValue(item.updatedAt) + '.')) + '</p>');
             }
 
@@ -4532,7 +4985,7 @@
                     + '</p>');
             }
 
-            if (matchesIntent(text, ['departure port', 'origin port', 'from port'])) {
+            if (matchesIntent(text, ['departure port', 'origin port', 'from port', 'port of loading', 'loading port'])) {
                 push('departure-port', '<p>' + escapeHtml(choose('Is shipment ka departure port ' + displayValue(item.departurePort) + ' hai.', 'The departure port for this shipment is ' + displayValue(item.departurePort) + '.')) + '</p>');
             }
 
@@ -4571,6 +5024,17 @@
                 push('eta', '<p>' + escapeHtml(choose('Is shipment ka vessel ETA ' + displayValue(item.vesselEta) + ' hai.', 'The vessel ETA for this shipment is ' + displayValue(item.vesselEta) + '.')) + '</p>');
             }
 
+            if (! seen.eta && ! seen['deadline-arrival'] && containsIntentPhrases(text, [
+                'kab deliver', 'kab delivery', 'delivery kab', 'kab pahunch', 'kab pohanch', 'kab aayega', 'kab aaega', 'kab milega',
+                'when will it arrive', 'when will it be delivered', 'when will this be delivered', 'when will shipment arrive',
+                'when will the shipment arrive', 'when does it arrive', 'arrival date', 'arrive kab'
+            ])) {
+                push('delivery-timing', '<p>' + escapeHtml(choose(
+                    'Is shipment ki deadline arrival date ' + displayValue(item.deadlineArrival, 'abhi add nahi') + ' hai aur vessel ETA ' + displayValue(item.vesselEta, 'abhi add nahi') + ' hai.',
+                    'The deadline arrival date for this shipment is ' + displayValue(item.deadlineArrival) + ' and the vessel ETA is ' + displayValue(item.vesselEta) + '.'
+                )) + '</p>');
+            }
+
             if (matchesIntent(text, ['vessel etd', 'etd'])) {
                 push('etd', '<p>' + escapeHtml(choose('Is shipment ka vessel ETD ' + displayValue(item.vesselEtd) + ' hai.', 'The vessel ETD for this shipment is ' + displayValue(item.vesselEtd) + '.')) + '</p>');
             }
@@ -4579,7 +5043,7 @@
                 push('pre-alert-reminder', '<p>' + escapeHtml(choose('Is shipment ka pre-alert reminder ' + displayValue(item.preAlertReminder) + ' par set hai.', 'The pre-alert reminder for this shipment is set for ' + displayValue(item.preAlertReminder) + '.')) + '</p>');
             }
 
-            if (matchesIntent(text, ['customer reference', 'reference'], ['awb', 'mawb', 'mbl', 'bill of lading'])) {
+            if (matchesIntent(text, ['customer reference', 'reference', 'customer ref', 'cust ref', 'ref number', 'ref no'], ['awb', 'mawb', 'mbl', 'bill of lading'])) {
                 push('customer-reference', '<p>' + escapeHtml(choose('Is shipment ka customer reference ' + displayValue(item.customerReference) + ' hai.', 'The customer reference for this shipment is ' + displayValue(item.customerReference) + '.')) + '</p>');
             }
 
@@ -4591,11 +5055,11 @@
                     + '</p>');
             }
 
-            if (matchesIntent(text, ['customer'], ['customer reference'])) {
+            if (matchesIntent(text, ['customer', 'client'], ['customer reference', 'customer ref'])) {
                 push('customer', '<p>' + escapeHtml(choose('Is shipment ka customer ' + displayValue(item.customer) + ' hai.', 'The customer for this shipment is ' + displayValue(item.customer) + '.')) + '</p>');
             }
 
-            if (matchesIntent(text, ['vessel'], ['vessel eta', 'vessel etd', 'vessel detail', 'vessel details'])) {
+            if (matchesIntent(text, ['vessel', 'ship', 'ship name'], ['vessel eta', 'vessel etd', 'vessel detail', 'vessel details'])) {
                 push('vessel', '<p>' + escapeHtml(choose('Is shipment ka vessel ' + displayValue(item.vessel) + ' hai.', 'The vessel for this shipment is ' + displayValue(item.vessel) + '.')) + '</p>');
             }
 
@@ -4667,7 +5131,7 @@
                     + '</p>');
             }
 
-            if (matchesIntent(text, ['instruction', 'instructions', 'visibility', 'hide', 'show'], ['flight detail', 'flight details'])) {
+            if (matchesIntent(text, ['instruction', 'instructions', 'visibility', 'hidden', 'hide', 'show or hide', 'shown or hidden'], ['flight detail', 'flight details'])) {
                 push('instruction-visibility', '<p>'
                     + escapeHtml(choose(
                         'Destination instruction: ' + (item.skipInstructionDestination ? 'hide rakha gaya hai' : 'dikhaya jayega') + '. '
@@ -4829,8 +5293,9 @@
                         item.linkedShipments && item.linkedShipments.length
                             ? choose('Yeh stock in shipments se linked hai: ' + item.linkedShipments.join(', ') + '.', 'This stock is linked to these shipments: ' + item.linkedShipments.join(', ') + '.')
                             : choose('Yeh stock abhi kisi shipment se linked nahi hai.', 'This stock is not linked to any shipment right now.'),
-                        choose('Last update ' + displayValue(item.updatedAt) + ' par hua tha.', 'The last update was on ' + displayValue(item.updatedAt) + '.')
-                    ])
+                        choose('Last update ' + displayValue(item.updatedAt) + ' par hua tha.', 'The last update was on ' + displayValue(item.updatedAt) + '.'),
+                        stockHistoryText(item)
+                    ].filter(Boolean))
             };
         }
 
@@ -4841,7 +5306,8 @@
             var wantsList = queryHasListIntent(text);
             var linkedShipments = item.linkedShipments && item.linkedShipments.length
                 ? item.linkedShipments.join(', ')
-                : 'abhi koi linked shipment nahi hai';
+                : choose('abhi koi linked shipment nahi hai', 'none yet');
+            var whichShipmentPhrases = ['kis shipment', 'kaun se shipment', 'kaunse shipment', 'kaun si shipment', 'kaunsi shipment', 'konsi shipment', 'konse shipment', 'which shipment', 'what shipment', 'shipment me hai', 'shipment mein hai', 'in which shipment'];
             var poNumbers = splitAssistantValues(item && item.poNumber);
             var poNumberText = poNumbers.length
                 ? poNumbers.join(', ')
@@ -4916,7 +5382,7 @@
                 )) + '</p>');
             }
 
-            if (containsIntentPhrases(text, ['shipment number', 'shipment numbers', 'linked shipment', 'linked shipments', 'shipment list']) || (containsIntentPhrases(text, ['shipment', 'shipments']) && wantsList)) {
+            if (containsIntentPhrases(text, ['shipment number', 'shipment numbers', 'linked shipment', 'linked shipments', 'shipment list'].concat(whichShipmentPhrases)) || (containsIntentPhrases(text, ['shipment', 'shipments']) && wantsList)) {
                 push('shipment-list', '<p>' + escapeHtml(choose('Is stock ke linked shipment numbers ye hain: ' + linkedShipments + '.', 'The linked shipment numbers for this stock are: ' + linkedShipments + '.')) + '</p>');
             }
 
@@ -4930,11 +5396,76 @@
                 );
             }
 
-            if (matchesIntent(text, ['last update', 'last updated', 'updated at', 'when was stock', 'when was this stock updated', 'update kab hua', 'kab update hua'])) {
+            if (matchesIntent(text, ['weight', 'total weight', 'wajan', 'vajan', 'wazan', 'kg'])) {
+                push('weight', '<p>' + escapeHtml(choose(
+                    'Is stock ka total weight ' + (hasValue(item.weight) ? item.weight + ' kg' : 'abhi add nahi') + ' hai.',
+                    'The total weight of this stock is ' + (hasValue(item.weight) ? item.weight + ' kg' : 'not added yet') + '.'
+                )) + '</p>');
+            }
+
+            if (matchesIntent(text, ['cbm', 'volume', 'total cbm'])) {
+                push('cbm', '<p>' + escapeHtml(choose(
+                    'Is stock ka total CBM ' + (hasValue(item.cbm) ? item.cbm : 'abhi add nahi') + ' hai.',
+                    'The total CBM of this stock is ' + (hasValue(item.cbm) ? item.cbm : 'not added yet') + '.'
+                )) + '</p>');
+            }
+
+            if (asksWhoLastUpdated(text)) {
+                push('updated-by', '<p>' + escapeHtml(stockUpdatedByText(item)) + '</p>');
+            } else if (matchesIntent(text, ['last update', 'last updated', 'updated at', 'when was stock', 'when was this stock updated', 'update kab hua', 'kab update hua'])) {
                 push('updated-at', '<p>' + escapeHtml(choose('Is stock ka last update ' + displayValue(item.updatedAt) + ' par hua tha.', 'The last update for this stock was on ' + displayValue(item.updatedAt) + '.')) + '</p>');
             }
 
             return blocks;
+        }
+
+        // The person comes from the latest stock change-log entry. Record saves without a
+        // log entry (system / transit updates) only move updatedAt, so that time is shown separately.
+        function stockUpdatedByText(item) {
+            if (! hasValue(item && item.updatedBy)) {
+                return choose(
+                    'Is stock ka last update kisne kiya, ye saved change log me available nahi hai. Record ka last update ' + displayValue(item && item.updatedAt) + ' par hua tha.',
+                    'Who made the last update to this stock is not available in the saved change log. The record was last updated on ' + displayValue(item && item.updatedAt) + '.'
+                );
+            }
+
+            var label = hasValue(item.lastModificationLabel) ? ' (' + item.lastModificationLabel + ')' : '';
+            var sentence = choose(
+                'Is stock ka last logged change ' + item.updatedBy + ' ne ' + displayValue(item.lastModificationAt) + ' par kiya tha' + label + '.',
+                'The last logged change to this stock was made by ' + item.updatedBy + ' on ' + displayValue(item.lastModificationAt) + label + '.'
+            );
+
+            if (hasValue(item.updatedAt) && hasValue(item.lastModificationAt) && item.updatedAt !== item.lastModificationAt) {
+                sentence += ' ' + choose(
+                    'Record ka last update ' + item.updatedAt + ' par hua tha, lekin us update ki alag change log entry saved nahi hai.',
+                    'The record itself was last updated on ' + item.updatedAt + ', but that update has no separate change log entry.'
+                );
+            }
+
+            return sentence;
+        }
+
+        // Transit keeps the stock number on the destination stock; the answer is for the
+        // latest (live) row, older rows are listed so hub / status / shipment are not misread.
+        function stockHistoryText(item) {
+            var history = Array.isArray(item && item.history) ? item.history : [];
+
+            if (! history.length) {
+                return '';
+            }
+
+            var rows = history.map(function (row) {
+                return [
+                    displayValue(row.hubAgent),
+                    displayValue(row.status, 'Unknown'),
+                    Array.isArray(row.linkedShipments) && row.linkedShipments.length ? row.linkedShipments.join(', ') : ''
+                ].filter(Boolean).join(' · ');
+            }).join('; ');
+
+            return choose(
+                'Is stock number ke ' + describeCount(history.length, 'aur record', 'aur records') + ' bhi ' + countVerb(history.length, 'hai', 'hain') + ' (transit history): ' + rows + '. Upar ka answer latest record ka hai.',
+                'This stock number also has ' + describeCount(history.length, 'earlier record', 'earlier records') + ' (transit history): ' + rows + '. The answer above is for the latest record.'
+            );
         }
 
         function renderStockFieldResponse(item, text) {
@@ -4942,6 +5473,11 @@
 
             if (! blocks.length) {
                 return null;
+            }
+
+            if (stockHistoryText(item) && (matchesIntent(text, ['status', 'hub agent', 'hub/agent', 'hub', 'agent'], ['acceptance status'])
+                || containsIntentPhrases(text, ['shipment', 'shipments', 'linked shipment', 'linked shipments', 'kis shipment', 'kaunsi shipment', 'which shipment']))) {
+                blocks.push('<p>' + escapeHtml(stockHistoryText(item)) + '</p>');
             }
 
             return renderRequestedFieldResponse(
@@ -5311,6 +5847,24 @@
                 }, input);
             }
 
+            var kpiCount = detectKpiCountRequest(input);
+            if (kpiCount) {
+                if (! scopeAllows(kpiCount.scope)) {
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse(kpiCount.scope === 'stocks' || kpiCount.scope === 'stockFollowUps' ? 'stock' : 'shipment'), input);
+                }
+
+                return decorateResponseWithRelatedQuestions(renderKpiCount(kpiCount), input);
+            }
+
+            var stockStatusCount = detectStockStatusCountRequest(input);
+            if (stockStatusCount) {
+                if (! scopeAllows('stocks')) {
+                    return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('stock'), input);
+                }
+
+                return decorateResponseWithRelatedQuestions(renderStockStatusCount(stockStatusCount), input);
+            }
+
             var matchedShipment = findShipmentByNumber(input);
             if (matchedShipment) {
                 if (! scopeAllows('shipments')) {
@@ -5356,7 +5910,8 @@
                 return decorateResponseWithRelatedQuestions(renderSearchResults(input), input);
             }
 
-            if (containsAny(normalized, ['overdue', 'late arrival', 'past deadline', 'late', 'delay', 'der'])) {
+            // Word-level match: "calculate" / "enable reader" must not open the overdue list.
+            if (containsIntentPhrases(normalized, ['overdue', 'late arrival', 'late arrivals', 'past deadline', 'late', 'delay', 'delayed', 'der'])) {
                 if (! scopeAllows('overdueShipments')) {
                     return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('shipment'), input);
                 }
@@ -5364,7 +5919,7 @@
                 return decorateResponseWithRelatedQuestions(renderOverdueShipments(), input);
             }
 
-            if (containsAny(normalized, ['follow up', 'follow-up', 'followup', 'unaccepted', 'awaiting acceptance', 'pickup queue', 'pending accept'])) {
+            if (containsAny(normalized, ['follow up', 'follow-up', 'followup', 'unaccepted', 'awaiting acceptance', 'pickup queue', 'pending accept', 'accept nahi', 'not accepted'])) {
                 if (! scopeAllows('stockFollowUps')) {
                     return decorateResponseWithRelatedQuestions(renderScopeBlockedResponse('stock'), input);
                 }

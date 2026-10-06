@@ -24,12 +24,25 @@ use App\Support\PackageVolumeMetrics;
 use App\Support\ListSearch;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class OperationsDashboardService
 {
+    /** Too common in company names to identify a record on their own. */
+    private const ASSISTANT_GENERIC_COMPANY_WORDS = [
+        'logistics', 'shipping', 'marine', 'maritime', 'services', 'service', 'cargo', 'ltd', 'limited', 'pvt', 'private',
+        'group', 'company', 'trading', 'global', 'international', 'pte', 'llc', 'inc', 'corp', 'gmbh', 'freight', 'forwarding',
+    ];
+
+    private const ASSISTANT_RECORD_TYPE_WORDS = [
+        'office', 'hub', 'agent', 'supplier', 'customer', 'contact', 'vessel', 'user', 'stock', 'shipment',
+    ];
+
+    private bool $lastAdministrationMatchedPrimary = false;
+
     public function __construct(
         private OperationsDashboardRepositoryInterface $dashboardRepository,
     ) {}
@@ -232,7 +245,7 @@ class OperationsDashboardService
 
     public function assistantLookup(User $user, string $query): array
     {
-        $query = trim($query);
+        $query = $this->normalizeAssistantQueryTypos(trim($query));
         $scope = $this->assistantScope($user);
 
         if ($query === '') {
@@ -256,13 +269,28 @@ class OperationsDashboardService
                 return $this->assistantLookupScopeBlocked($scope, $explicitTargets[0]);
             }
 
+            $explicitRecordTargets = array_values(array_diff($this->assistantAdministrationTargets($allowedExplicitTargets), ['change_log']));
+
             foreach ($allowedExplicitTargets as $target) {
+                if (in_array($target, $explicitRecordTargets, true)) {
+                    continue;
+                }
+
                 $match = $this->assistantLookupMatch($target, $user, $query, $scope);
 
                 if ($match !== null) {
                     return $match;
                 }
             }
+
+            if ($explicitRecordTargets !== []) {
+                $match = $this->assistantExplicitAdministrationLookupMatch($query, $explicitRecordTargets, $allowedTargets, $scope);
+
+                if ($match !== null) {
+                    return $match;
+                }
+            }
+
         }
 
         $orderedTargets = $this->assistantLookupTargets($query);
@@ -274,6 +302,14 @@ class OperationsDashboardService
             if ($match !== null) {
                 return $match;
             }
+        }
+
+        // "status of shipment QQQ-12345-0101": an unknown shipment/stock number is a
+        // miss, not a reason to suffix-match "12345" against contacts or users.
+        if (array_intersect($explicitTargets, ['shipment', 'stock']) !== []
+            && $this->assistantAdministrationTargets($explicitTargets) === []
+            && preg_match('/\b[a-z]{2,6}-\d{3,}(?:-\d+)*\b/i', $query) === 1) {
+            return $this->assistantLookupMiss($scope);
         }
 
         $administrationMatch = $this->assistantBestAdministrationLookupMatch($query, $remainingAllowedTargets, $scope);
@@ -546,7 +582,42 @@ class OperationsDashboardService
             return null;
         }
 
-        return $this->assistantLookupResponse($target, $item, $query, $scope);
+        $response = $this->assistantLookupResponse($target, $item, $query, $scope);
+
+        if ($target === 'stock' && $item instanceof Crr && ($response['matched'] ?? false) === true) {
+            $response['item']['history'] = $this->assistantStockHistory($user, $item);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Transit keeps the stock number on the destination stock, so one number can have
+     * several rows. The lookup answers from the newest (live) row; older rows are
+     * returned as history so the assistant can say where the stock was before.
+     */
+    private function assistantStockHistory(User $user, Crr $crr): array
+    {
+        if (blank($crr->stock_number)) {
+            return [];
+        }
+
+        $statusLabels = Crr::getStatusLabels();
+
+        return $this->visibleCrrs($user)
+            ->with('shipments')
+            ->where('stock_number', $crr->stock_number)
+            ->whereKeyNot($crr->getKey())
+            ->orderByDesc('id')
+            ->limit(10)
+            ->get()
+            ->map(fn (Crr $row) => [
+                'hubAgent' => $row->hub_code ?: ($row->hub_agent ?: '—'),
+                'status' => $statusLabels[$row->status] ?? 'Unknown',
+                'linkedShipments' => $row->shipments->pluck('shipment_number')->filter()->unique()->values()->all(),
+            ])
+            ->values()
+            ->all();
     }
 
     private function assistantLookupResponse(string $target, mixed $item, string $query, array $scope): array
@@ -555,6 +626,10 @@ class OperationsDashboardService
 
         if (($reason = $this->assistantSensitiveLookupReason($target, $query, $mappedItem)) !== null) {
             return $this->assistantLookupSensitiveBlocked($scope, $target, $reason);
+        }
+
+        if ($item instanceof Model && ($sameNameRecords = $this->assistantSameNameRecords($target, $item)) !== []) {
+            $mappedItem['sameNameRecords'] = $sameNameRecords;
         }
 
         return [
@@ -566,6 +641,56 @@ class OperationsDashboardService
             'blockedReason' => null,
             'scope' => $scope,
         ];
+    }
+
+    /**
+     * Other records of the same type that share the answered record's name, so the
+     * assistant can say the answer is one of several and how to tell them apart.
+     *
+     * @return list<string>
+     */
+    private function assistantSameNameRecords(string $target, Model $item): array
+    {
+        $config = match ($target) {
+            'office' => [Office::class, 'office_name', ['office_short_name', 'city']],
+            'hub' => [Hub::class, 'hub_name', ['code', 'city']],
+            'agent' => [Agent::class, 'agent_name', ['code', 'city']],
+            'supplier' => [Supplier::class, 'supplier_name', ['city', 'email']],
+            'customer' => [Customer::class, 'customer_name', ['customer_number', 'email']],
+            'contact' => [Contact::class, 'name', ['email', 'phone_number']],
+            'vessel' => [CustomerVessel::class, 'vessel', ['vessel_imo', 'customer_vessel_code']],
+            'user' => [User::class, 'name', ['email']],
+            default => null,
+        };
+
+        if ($config === null) {
+            return [];
+        }
+
+        [$modelClass, $nameColumn, $identifierColumns] = $config;
+        $name = trim((string) $item->getAttribute($nameColumn));
+
+        if ($name === '') {
+            return [];
+        }
+
+        return $modelClass::query()
+            ->where($nameColumn, $name)
+            ->whereKeyNot($item->getKey())
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get(array_merge(['id'], $identifierColumns))
+            ->map(function (Model $record) use ($identifierColumns, $target): string {
+                $parts = collect($identifierColumns)
+                    ->map(fn (string $column) => trim((string) $record->getAttribute($column)))
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                return $parts !== [] ? implode(' · ', $parts) : ucfirst($target) . ' #' . $record->getKey();
+            })
+            ->values()
+            ->all();
     }
 
     /**
@@ -603,11 +728,17 @@ class OperationsDashboardService
     {
         $bestCandidate = null;
 
+        $fieldTypes = $this->assistantAdministrationFieldOwnerTypes($query);
+
         foreach ($this->assistantAdministrationTargets($targets) as $target) {
             $candidate = $this->assistantAdministrationCandidateForTarget($target, $query);
 
             if ($candidate === null) {
                 continue;
+            }
+
+            if (in_array($target, $fieldTypes, true)) {
+                $candidate['score'] += 100;
             }
 
             if ($bestCandidate === null || $candidate['score'] > $bestCandidate['score']) {
@@ -620,6 +751,101 @@ class OperationsDashboardService
         }
 
         return $this->assistantLookupResponse($bestCandidate['type'], $bestCandidate['record'], $query, $scope);
+    }
+
+    /**
+     * The record type named in the question wins ties and fuzzy matches, but a
+     * record of another type whose exact name is in the question beats a weak
+     * explicit match ("Marinetrans Benelux B.V - Amsterdam Hub" is a supplier).
+     *
+     * @param  list<string>  $explicitTargets
+     * @param  list<string>  $allowedTargets
+     */
+    private function assistantExplicitAdministrationLookupMatch(string $query, array $explicitTargets, array $allowedTargets, array $scope): ?array
+    {
+        $explicitBonus = 300;
+        $fieldTypes = $this->assistantAdministrationFieldOwnerTypes($query);
+        $best = null;
+
+        foreach ($explicitTargets as $target) {
+            $candidate = $this->assistantAdministrationCandidateForTarget($target, $query);
+
+            if ($candidate !== null && ($best === null || $candidate['score'] > $best['score'])) {
+                $best = $candidate;
+            }
+        }
+
+        // An exact own-name match on the named type needs no wider (heavier) search.
+        // A match on another field (vessel manager "Eleni Georgiou") still lets a
+        // record whose own name is in the question compete.
+        $bestIsOwnName = $best !== null && $best['score'] >= 5000 && $best['matchedPrimary'];
+
+        if (! $bestIsOwnName) {
+            $otherTargets = array_values(array_diff(
+                array_diff($this->assistantAdministrationTargets($allowedTargets), ['change_log']),
+                $explicitTargets
+            ));
+            $bestOther = null;
+
+            foreach ($otherTargets as $target) {
+                $candidate = $this->assistantAdministrationCandidateForTarget($target, $query);
+
+                $ownsField = in_array($target, $fieldTypes, true);
+
+                // Besides exact names, a record whose own name is in the question and
+                // whose type owns the asked field ("linked vessels of con") may compete.
+                if ($candidate === null || ($candidate['score'] < 5000 && ! ($candidate['matchedPrimary'] && $ownsField))) {
+                    continue;
+                }
+
+                if ($ownsField) {
+                    $candidate['score'] += 100;
+                }
+
+                if ($bestOther === null || $candidate['score'] > $bestOther['score']) {
+                    $bestOther = $candidate;
+                }
+            }
+
+            $otherWins = $bestOther !== null && (
+                $best === null
+                || $bestOther['score'] > $best['score'] + $explicitBonus
+                || ($bestOther['matchedPrimary'] && ! $best['matchedPrimary'])
+            );
+
+            if ($otherWins) {
+                $best = $bestOther;
+            }
+        }
+
+        return $best !== null
+            ? $this->assistantLookupResponse($best['type'], $best['record'], $query, $scope)
+            : null;
+    }
+
+    /**
+     * Record types that own a field the question names, used only to break name
+     * ties between same-named records ("Shagir Mohammed assigned hubs" is the user).
+     *
+     * @return list<string>
+     */
+    private function assistantAdministrationFieldOwnerTypes(string $query): array
+    {
+        $normalized = $this->normalizeSearchText($query);
+        $types = [];
+        $fieldWords = [
+            'user' => ['assigned office', 'assigned offices', 'assigned hub', 'assigned hubs', 'assigned agent', 'assigned agents', 'assigned supplier', 'assigned suppliers', 'role', 'otp', 'username', 'login'],
+            'contact' => ['main contact', 'cc enabled', 'is cc enabled', 'reply to email', 'linked record', 'linked record type', 'linked record name', 'linked vessels'],
+            'vessel' => ['imo', 'vessel name alias', 'vessel type', 'financially blocked', 'sanction blocked', 'pre payment only', 'not in transit', 'contact stocklists', 'contact pre alerts', 'contact offers'],
+        ];
+
+        foreach ($fieldWords as $type => $phrases) {
+            if ($this->queryHasAssistantKeyword($normalized, $phrases)) {
+                $types[] = $type;
+            }
+        }
+
+        return $types;
     }
 
     private function assistantSensitiveLookupReason(string $target, string $query, array $item): ?string
@@ -660,12 +886,20 @@ class OperationsDashboardService
 
     private function assistantHasSensitiveCredentialIntent(string $query): bool
     {
-        return preg_match('/\b(pass\s*word|passcode|credential(?:s)?|secret\s+code)\b/u', Str::lower($query)) === 1;
+        $query = Str::lower($query);
+
+        if (preg_match('/\b(pass\s*word|passcode|credential(?:s)?|secret\s+(?:code|key)|one\s+time\s+password|verification\s+code|login\s+code|api\s+(?:key|token)|access\s+token|remember\s+token|private\s+key)\b/u', $query) === 1) {
+            return true;
+        }
+
+        // "OTP blocked / OTP status" is a normal user field; any other OTP mention asks for the code itself.
+        return preg_match('/\botp\b(?!\s+(?:status|lock|locked|block|blocked))/u', $query) === 1;
     }
 
     private function assistantAdministrationCandidateForTarget(string $target, string $query): ?array
     {
         $score = null;
+        $this->lastAdministrationMatchedPrimary = false;
 
         $record = match ($target) {
             'office' => $this->findAssistantOfficeRecord($query, $score),
@@ -688,6 +922,7 @@ class OperationsDashboardService
             'type' => $target,
             'record' => $record,
             'score' => $score,
+            'matchedPrimary' => $target !== 'change_log' && $this->lastAdministrationMatchedPrimary,
         ];
     }
 
@@ -900,7 +1135,8 @@ class OperationsDashboardService
 
     private function mapAssistantStock(Crr $crr): array
     {
-        $crr->loadMissing(['customerVessel.customer', 'packages', 'shipments']);
+        $crr->loadMissing($this->assistantStockRelations());
+        $latestLog = $crr->latestChangeLog;
 
         return [
             'id' => (int) $crr->id,
@@ -925,6 +1161,12 @@ class OperationsDashboardService
                 ->values()
                 ->all(),
             'packageCount' => (int) $crr->packages->count(),
+            'weight' => $crr->packages->isNotEmpty()
+                ? $this->formatDecimal((float) $crr->packages->sum('weight'), 2)
+                : null,
+            'cbm' => $crr->packages->isNotEmpty()
+                ? $this->formatCbm((float) $crr->packages->sum('cbm'))
+                : null,
             'packageDetails' => $crr->packages
                 ->values()
                 ->map(function ($package) use ($crr) {
@@ -954,6 +1196,9 @@ class OperationsDashboardService
                 })
                 ->all(),
             'updatedAt' => $this->formatDateTime($crr->updated_at),
+            'updatedBy' => $this->normalizeText($latestLog?->user?->name),
+            'lastModificationLabel' => $this->normalizeText($latestLog?->title),
+            'lastModificationAt' => $latestLog !== null ? $this->formatDateTime($latestLog->created_at) : null,
         ];
     }
 
@@ -1525,8 +1770,9 @@ class OperationsDashboardService
                 $this->assistantField('phone_number', 'Phone number', $user->phone_number, ['phone', 'mobile']),
                 $this->assistantField('role', 'Role', $user->role, ['user role', 'access role', 'user type', 'type']),
                 $this->assistantField('status', 'Status', $user->is_active ? 'Active' : 'Inactive', ['active status']),
-                $this->assistantField('otp_blocked', 'OTP blocked', $this->assistantBooleanText($isOtpBlocked), ['otp status', 'otp lock', 'blocked']),
-                $this->assistantField('otp_blocked_until', 'OTP blocked until', $isOtpBlocked ? $this->formatDateTime($user->otp_blocked_until) : null, ['blocked until', 'otp blocked until', 'otp lock until']),
+                // OTP lock state is answered only when asked for directly, never in summaries.
+                $this->assistantField('otp_blocked', 'OTP blocked', $this->assistantBooleanText($isOtpBlocked), ['otp status', 'otp lock', 'blocked']) + ['onRequestOnly' => true],
+                $this->assistantField('otp_blocked_until', 'OTP blocked until', $isOtpBlocked ? $this->formatDateTime($user->otp_blocked_until) : null, ['blocked until', 'otp blocked until', 'otp lock until']) + ['onRequestOnly' => true],
             ]),
             $this->assistantSection('Assignments', [
                 $this->assistantField(
@@ -1667,6 +1913,22 @@ class OperationsDashboardService
                 'score' => $this->assistantChangeLogScore($entry, $phrases, $tokens, $normalizedQuery),
             ];
         });
+        $anchored = $this->assistantChangeLogRecordAnchor($ranked, $normalizedQuery);
+
+        if ($anchored !== null) {
+            $refined = $this->refineAssistantChangeLogMatches($anchored, $anchored, $logs, $normalizedQuery);
+            $score = max(200, (int) $anchored->max('score'));
+
+            return $this->buildAssistantChangeLogSummary(
+                $refined['matches']->pluck('log')->take(8)->values(),
+                $query,
+                $window,
+                $score,
+                $refined['matches']->count(),
+                $refined['context']
+            );
+        }
+
         $matched = $ranked
             ->filter(fn (array $candidate) => $candidate['score'] >= 130)
             ->sort(function (array $left, array $right): int {
@@ -1687,16 +1949,19 @@ class OperationsDashboardService
 
         if ($matched->isNotEmpty()) {
             $score = (int) $matched->first()['score'];
+            $allMatched = $matched;
             $matched = $matched
                 ->filter(fn (array $candidate) => $candidate['score'] >= max(130, $score - 120))
                 ->values();
+            $refined = $this->refineAssistantChangeLogMatches($matched, $allMatched, $logs, $normalizedQuery);
 
             return $this->buildAssistantChangeLogSummary(
-                $matched->pluck('log')->take(8)->values(),
+                $refined['matches']->pluck('log')->take(8)->values(),
                 $query,
                 $window,
                 $score,
-                $matched->count()
+                $refined['matches']->count(),
+                $refined['context']
             );
         }
 
@@ -1711,7 +1976,8 @@ class OperationsDashboardService
         string $query,
         ?array $window = null,
         int $score = 0,
-        ?int $totalMatches = null
+        ?int $totalMatches = null,
+        ?string $contextOverride = null
     ): array
     {
         $entries = $logs
@@ -1726,7 +1992,7 @@ class OperationsDashboardService
         $uniqueUsers = $entries->pluck('userName')->filter()->unique()->values()->all();
         $uniqueFields = $entries->pluck('field')->filter()->unique()->values()->all();
         $subjectName = $this->assistantChangeLogSubjectName($entries, $window);
-        $contextLabel = $this->assistantChangeLogContextLabel($entries, $window, $query);
+        $contextLabel = $contextOverride ?? $this->assistantChangeLogContextLabel($entries, $window, $query);
         $dateRange = $latest !== null && $earliest !== null
             ? $earliest['date'] . ' to ' . $latest['date']
             : ($window['human'] ?? null);
@@ -1783,6 +2049,186 @@ class OperationsDashboardService
         $payload['score'] = $score;
 
         return $payload;
+    }
+
+    /**
+     * When the question spells out a record name ("agent LM MARINE SERVICES ka
+     * un locode kisne change kiya"), pin the answer to that record's logs (newest
+     * first) instead of letting field/entity word overlap pick another record.
+     * Names that are also user names only anchor when the record type is named,
+     * so "what did Imam change" still searches by user.
+     */
+    private function assistantChangeLogRecordAnchor(Collection $ranked, string $normalizedQuery): ?Collection
+    {
+        $query = ' ' . $normalizedQuery . ' ';
+        $queryWithoutDots = ' ' . trim(preg_replace('/\s+/u', ' ', str_replace('.', ' ', $normalizedQuery)) ?? '') . ' ';
+        $entityTypes = $this->assistantChangeLogEntityTypes();
+        $typeWords = collect($entityTypes)->map(fn ($label) => $this->normalizeSearchText($label))->all();
+        $ignoredNames = array_merge(array_values($typeWords), ['contact', 'vessel', 'user', 'agent', 'hub', 'office', 'supplier', 'customer']);
+        $baseName = fn (string $recordName): string => $this->normalizeSearchText(
+            trim(preg_replace('/\s*\([^)]*\)$/u', '', explode(' · ', $recordName)[0]) ?? '')
+        );
+        $byName = $ranked->groupBy(fn (array $candidate) => $baseName((string) ($candidate['entry']['recordName'] ?? '')));
+        $best = null;
+
+        foreach ($byName->keys() as $name) {
+            $name = (string) $name;
+            $plainName = trim(preg_replace('/\s+/u', ' ', str_replace('.', ' ', $name)) ?? '');
+
+            if (mb_strlen($plainName) < 3 || in_array($name, $ignoredNames, true) || preg_match('/^#\d+$/', $name) === 1) {
+                continue;
+            }
+
+            if (! str_contains($query, ' ' . $name . ' ') && ! str_contains($queryWithoutDots, ' ' . $plainName . ' ')) {
+                continue;
+            }
+
+            if ($best === null || mb_strlen($name) > mb_strlen($best)) {
+                $best = $name;
+            }
+        }
+
+        if ($best === null) {
+            return null;
+        }
+
+        $candidates = $byName->get($best)->values();
+        $userNames = $ranked->map(fn (array $candidate) => $this->normalizeSearchText($candidate['entry']['userName'] ?? ''))->filter()->unique();
+
+        if ($userNames->contains($best)) {
+            $namesType = $candidates->contains(function (array $candidate) use ($entityTypes, $query): bool {
+                $label = $this->normalizeSearchText($entityTypes[$candidate['log']->loggable_type] ?? '');
+
+                return $label !== '' && collect(explode(' ', $label))->contains(fn ($word) => str_contains($query, ' ' . $word . ' '));
+            });
+
+            if (! $namesType) {
+                return null;
+            }
+        }
+
+        // "Azahar ne CAMPBELL SHIPPING me last changes kya kiye": keep only that user's logs.
+        $queryWithoutRecord = str_replace(' ' . $best . ' ', ' ', $query);
+        $namedUsers = $candidates
+            ->map(fn (array $candidate) => $this->normalizeSearchText($candidate['entry']['userName'] ?? ''))
+            ->filter(fn (string $userName) => mb_strlen($userName) >= 3 && str_contains($queryWithoutRecord, ' ' . $userName . ' '))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($namedUsers !== []) {
+            $byUser = $candidates
+                ->filter(fn (array $candidate) => in_array($this->normalizeSearchText($candidate['entry']['userName'] ?? ''), $namedUsers, true))
+                ->values();
+
+            if ($byUser->isNotEmpty()) {
+                return $byUser;
+            }
+        }
+
+        return $candidates;
+    }
+
+    /**
+     * Narrow ranked change logs to the record type and field the question names
+     * ("who changed the address for X office"), so the answer never reports a
+     * different field or a same-named record of another type.
+     *
+     * @return array{matches: Collection, context: ?string}
+     */
+    private function refineAssistantChangeLogMatches(Collection $matched, Collection $allMatched, Collection $allLogs, string $normalizedQuery): array
+    {
+        $intent = ' ' . $normalizedQuery . ' ';
+        $topRecordName = $this->normalizeSearchText($matched->first()['entry']['recordName'] ?? '');
+
+        if ($topRecordName !== '') {
+            $intent = str_replace(' ' . $topRecordName . ' ', ' ', $intent);
+        }
+
+        $containsWord = fn (string $haystack, string $needle): bool => $needle !== ''
+            && preg_match('/(^|\s)' . preg_quote($needle, '/') . '(\s|$)/u', $haystack) === 1;
+
+        $typeWords = [
+            Office::class => ['office', 'offices'],
+            Hub::class => ['hub', 'hubs'],
+            Agent::class => ['agent', 'agents'],
+            Supplier::class => ['supplier', 'suppliers'],
+            Customer::class => ['customer', 'customers'],
+            CustomerVessel::class => ['vessel', 'vessels'],
+            Contact::class => ['contact', 'contacts'],
+        ];
+        $requestedTypes = collect($typeWords)
+            ->filter(fn (array $words) => collect($words)->contains(fn ($word) => $containsWord($intent, $word)))
+            ->keys()
+            ->all();
+
+        $recordLabel = $this->normalizeText($matched->first()['entry']['recordName'] ?? null);
+
+        if ($requestedTypes !== []) {
+            $isRequestedType = fn (array $candidate) => in_array($candidate['log']->loggable_type, $requestedTypes, true);
+            $byType = $matched->filter($isRequestedType)->values();
+
+            if ($byType->isEmpty()) {
+                $byType = $allMatched->filter($isRequestedType)->values();
+            }
+
+            if ($byType->isEmpty()) {
+                return [
+                    'matches' => $byType,
+                    'context' => trim(($recordLabel ? $recordLabel . ' ' : '') . '(' . implode(', ', array_map(
+                        fn ($class) => $this->assistantChangeLogEntityTypes()[$class] ?? class_basename($class),
+                        $requestedTypes
+                    )) . ')'),
+                ];
+            }
+
+            $matched = $byType;
+        }
+
+        $knownFields = $allLogs
+            ->map(fn (AdministrationChangeLog $log) => $this->normalizeSearchText($this->assistantChangeLogFieldLabel($log)))
+            ->filter()
+            ->unique()
+            ->sortByDesc(fn ($field) => mb_strlen($field))
+            ->values();
+        $requestedFields = [];
+
+        // A type word only names the record when it is the matched record's own type;
+        // otherwise it is a field ("customer X ka vessel / contact kisne update kiya").
+        $matchedTypes = $matched->map(fn (array $candidate) => $candidate['log']->loggable_type)->unique()->all();
+        $allTypeWords = collect($typeWords)->only($matchedTypes)->flatten()->all();
+
+        foreach ($knownFields as $field) {
+            // "country" / "company" should match the stored "Country Id" / "Company Id" field labels too.
+            $spokenField = preg_replace('/\s+id$/u', '', $field) ?: $field;
+
+            if (in_array($field, $allTypeWords, true) || in_array($spokenField, $allTypeWords, true)
+                || (! $containsWord($intent, $field) && ! $containsWord($intent, $spokenField))) {
+                continue;
+            }
+
+            if (collect($requestedFields)->contains(fn ($longer) => $containsWord(' ' . $longer . ' ', $field))) {
+                continue;
+            }
+
+            $requestedFields[] = $field;
+        }
+
+        if ($requestedFields === []) {
+            return ['matches' => $matched, 'context' => null];
+        }
+
+        $byField = $matched
+            ->filter(fn (array $candidate) => in_array($this->normalizeSearchText($candidate['entry']['field'] ?? ''), $requestedFields, true))
+            ->values();
+        $fieldLabel = implode(', ', array_map(fn ($field) => Str::title($field), $requestedFields));
+
+        return [
+            'matches' => $byField,
+            'context' => $byField->isEmpty()
+                ? trim(($recordLabel ? $recordLabel . ' ' : '') . '(' . $fieldLabel . ')')
+                : null,
+        ];
     }
 
     private function mapAssistantChangeLogEntry(AdministrationChangeLog $log): array
@@ -1993,7 +2439,26 @@ class OperationsDashboardService
             'change hua',
             'change kab hua',
             'changed by',
-        ]);
+        ]) || $this->assistantAsksWhoOrWhenChanged($normalized);
+    }
+
+    /**
+     * "Who last updated the email for X", "when was the address of X changed", "X ka email kisne badla",
+     * "X ka address kab update hua" — history questions phrased around the verb instead of "change log".
+     */
+    private function assistantAsksWhoOrWhenChanged(string $normalized): bool
+    {
+        $editVerbs = '(?:changed|modified|updated|edited)';
+        $hinglishEditVerbs = '(?:change|changed|update|updated|modify|modified|edit|edited|badla|badli|badle|badal)';
+
+        return preg_match('/\bwho\s+(?:\S+\s+){0,2}' . $editVerbs . '\b/u', $normalized) === 1
+            || preg_match('/\b(?:last|latest|recently)\s+' . $editVerbs . '\s+by\b/u', $normalized) === 1
+            || preg_match('/\bwhen\s+(?:was|were|did)\b.*\b' . $editVerbs . '\b/u', $normalized) === 1
+            || preg_match('/\bwhat\s+(?:did|has|have)\s+(?:\S+\s+){1,3}' . $hinglishEditVerbs . '\b/u', $normalized) === 1
+            || preg_match('/\b\S+\s+ne\s+(?:\S+\s+){0,2}kya\s+' . $hinglishEditVerbs . '\b/u', $normalized) === 1
+            || preg_match('/\bkisne\b(?:\s+\S+){0,4}?\s+' . $hinglishEditVerbs . '\b/u', $normalized) === 1
+            || preg_match('/\bkab\b(?:\s+\S+){0,3}?\s+' . $hinglishEditVerbs . '\s+(?:hua|hui|hue|kiya|ki|kiye|kia)\b/u', $normalized) === 1
+            || preg_match('/\b' . $hinglishEditVerbs . '\s+kab\s+(?:hua|hui|hue|kiya|ki|kiye|kia)\b/u', $normalized) === 1;
     }
 
     /**
@@ -2373,7 +2838,7 @@ class OperationsDashboardService
                 $contact->phone_number,
                 $contact->description,
                 $contact->reply_to_email,
-                $contact->status,
+                $this->assistantActivationStatusText($contact->status),
                 $contact->category,
                 $this->contactParentName($contact),
                 $this->contactParentLabel($contact),
@@ -2434,6 +2899,7 @@ class OperationsDashboardService
     {
         $candidate = $this->bestAdministrationRecordCandidate($records, $query, $searchableValues);
         $score = $candidate['score'] ?? null;
+        $this->lastAdministrationMatchedPrimary = $candidate['matchedPrimary'] ?? false;
 
         return $candidate['record'] ?? null;
     }
@@ -2449,6 +2915,7 @@ class OperationsDashboardService
         return [
             'record' => $candidate['record'],
             'score' => $candidate['exactScore'] > 0 ? $candidate['exactScore'] : $candidate['score'],
+            'matchedPrimary' => $candidate['matchedPrimary'] ?? false,
         ];
     }
 
@@ -2462,10 +2929,13 @@ class OperationsDashboardService
             ->all();
         $tokens = $this->assistantAdministrationLookupTokens($query);
         $requiresFullTokenCoverage = count($tokens) >= 2;
+        $queryWordTokens = $this->searchWordTokens($this->normalizeSearchText($query));
 
-        return $records->map(function ($record) use ($phrases, $tokens, $searchableValues, $requiresFullTokenCoverage): ?array {
-            $values = collect($searchableValues($record))
-                ->flatten()
+        return $records->map(function ($record) use ($phrases, $tokens, $searchableValues, $requiresFullTokenCoverage, $queryWordTokens): ?array {
+            $rawValues = collect($searchableValues($record))->flatten();
+            $primaryValue = $this->normalizeText($rawValues->first());
+            $primaryName = $this->normalizeSearchText($primaryValue);
+            $values = $rawValues
                 ->map(fn ($value) => $this->normalizeText($value))
                 ->filter()
                 ->unique()
@@ -2487,6 +2957,11 @@ class OperationsDashboardService
 
             foreach ($phrases as $phrase) {
                 $phraseTokens = $this->searchWordTokens($phrase);
+
+                if (array_filter($phraseTokens, fn ($token) => mb_strlen($token) >= 2) === []) {
+                    continue;
+                }
+
                 $isStrongExactPhrase = count($phraseTokens) >= 2 || preg_match('/[\d@._-]/u', $phrase) === 1;
                 $structuredPhraseKey = $this->assistantStructuredAdministrationLookupKey($phrase);
 
@@ -2628,6 +3103,44 @@ class OperationsDashboardService
                 }
             }
 
+            // The record's own multi-word name written inside a field question
+            // ("CAMPBELL SHIPPING accounting user", "X ka zip code") is an exact match even
+            // when the field words are not stopwords.
+            $primaryTokens = $primaryName !== '' ? $this->searchWordTokens($primaryName) : [];
+
+            if (count($primaryTokens) >= 2 && mb_strlen($primaryName) >= 6 && array_diff($primaryTokens, $queryWordTokens) === []) {
+                $matchScore = 5000 + mb_strlen($primaryName);
+
+                if ($matchScore > $exactScore) {
+                    $exactScore = $matchScore;
+                    $exactMatchedValue = $primaryValue;
+                }
+            } elseif (count($primaryTokens) === 1
+                && mb_strlen($primaryName) >= 3
+                && in_array($primaryName, $queryWordTokens, true)
+                && in_array($primaryName, $tokens, true)
+                && ! in_array($primaryName, self::ASSISTANT_RECORD_TYPE_WORDS, true)) {
+                // Single-word names ("Azahar", "ANGEL") stay a normal-strength match, never exact.
+                $candidateScore = 500 + mb_strlen($primaryName);
+
+                if ($candidateScore > $score) {
+                    $score = $candidateScore;
+                    $bestMatchedValue = $primaryValue;
+                }
+            }
+
+            // A match on the record's own name beats the same text on a linked/parent value
+            // (an office's contact also carries the office name).
+            if ($primaryName !== '') {
+                if ($exactScore > 0 && $this->normalizeSearchText($exactMatchedValue) === $primaryName) {
+                    $exactScore += 50;
+                }
+
+                if ($score > 0 && $this->normalizeSearchText($bestMatchedValue) === $primaryName) {
+                    $score += 50;
+                }
+            }
+
             if ($exactScore === 0 && $score === 0) {
                 return null;
             }
@@ -2638,11 +3151,14 @@ class OperationsDashboardService
                 return null;
             }
 
+            $matchedValue = $this->normalizeText($exactMatchedValue ?? $bestMatchedValue ?? $values->first());
+
             return [
                 'record' => $record,
                 'score' => $score,
                 'exactScore' => $exactScore,
-                'matchedValue' => $this->normalizeText($exactMatchedValue ?? $bestMatchedValue ?? $values->first()),
+                'matchedValue' => $matchedValue,
+                'matchedPrimary' => $primaryName !== '' && $this->normalizeSearchText($matchedValue) === $primaryName,
             ];
         })->filter()->sort(function (array $left, array $right): int {
             if ($left['exactScore'] !== $right['exactScore']) {
@@ -3491,7 +4007,7 @@ class OperationsDashboardService
 
             if (! $isFocusedMultiWordPhrase) {
                 foreach ($meaningfulTokens as $token) {
-                    if (mb_strlen($token) >= 3) {
+                    if (mb_strlen($token) >= 3 && ! in_array($token, self::ASSISTANT_GENERIC_COMPANY_WORDS, true)) {
                         $phrases[$token] = $token;
                     }
                 }
@@ -3648,7 +4164,7 @@ class OperationsDashboardService
             $token = trim((string) $token);
             $token = trim($token, " \t\n\r\0\x0B.,:;!?()[]{}\"'");
 
-            if ($token === '' || isset($stopwords[$token])) {
+            if ($token === '' || isset($stopwords[$token]) || preg_match('/[\p{L}\p{N}]/u', $token) !== 1) {
                 continue;
             }
 
@@ -3682,10 +4198,12 @@ class OperationsDashboardService
             'adress', 'addres', 'users', 'username', 'usernames', 'portal', 'login', 'access', 'role', 'roles', 'otp',
             'blocked', 'assigned', 'assignment', 'assignments', 'administration', 'change', 'changes', 'changed', 'log',
             'logs', 'history', 'audit', 'activity', 'edit', 'edited', 'modify', 'modified', 'modification', 'latest',
-            'recent', 'recently', 'last', 'day', 'days', 'din',
+            'recent', 'recently', 'last', 'day', 'days', 'din', 'service', 'services', 'mix', 'overview',
             'first', 'mile', 'transport', 'delivery', 'documents', 'document', 'contacts', 'bank',
             'accounts', 'account', 'pricing', 'list', 'lists', 'everything', 'every', 'available', 'updated', 'update',
             'add', 'added', 'create', 'created', 'creator', 'kiya', 'kiye', 'kye', 'gaya', 'banaya', 'kisne', 'tha', 'thi', 'thein', 'theen', 'ne',
+            'hey', 'hi', 'hello', 'yaar', 'yar', 'bhai', 'zara', 'pls', 'plz', 'kindly', 'quick', 'question', 'could', 'would',
+            'you', 'bata', 'batana', 'dena', 'creation', 'date', 'at', 'linked', 'by',
         ];
 
         return array_fill_keys($words, true);
@@ -3706,6 +4224,25 @@ class OperationsDashboardService
             ->unique()
             ->values()
             ->all();
+    }
+
+    /**
+     * Keyword typos the dashboard assistant script also corrects, so both sides read the question the same way.
+     */
+    private function normalizeAssistantQueryTypos(string $query): string
+    {
+        return preg_replace(
+            [
+                '/\b(?:detials|deatils|detils)\b/iu',
+                '/\b(?:staus|stauts|statsu)\b/iu',
+                '/\b(?:custmer|cusotmer|costumer)\b/iu',
+                '/\b(?:suplier|supllier|suppiler)\b/iu',
+                '/\b(?:shipmnt|shipmet|shipemnt)\b/iu',
+                '/\b(?:adress|addres)\b/iu',
+            ],
+            ['details', 'status', 'customer', 'supplier', 'shipment', 'address'],
+            $query
+        ) ?? $query;
     }
 
     private function normalizeSearchText($value): string
@@ -4413,7 +4950,11 @@ class OperationsDashboardService
         $normalized = strtolower($query);
         $targets = [];
         $hasStructuredLookupIdentifier = $this->assistantHasStructuredLookupIdentifier($query);
-        $hasShipmentTarget = $this->queryHasAssistantKeyword($normalized, ['shipment', 'shipments', 'awb', 'mawb', 'mbl', 'flight', 'transport']);
+        // "Internal shipment" is a customer / vessel field, not a shipment record lookup.
+        $hasShipmentTarget = $this->queryHasAssistantKeyword(
+            preg_replace('/\binternal\s+shipments?\b/u', ' ', $normalized) ?? $normalized,
+            ['shipment', 'shipments', 'awb', 'mawb', 'mbl', 'flight', 'transport']
+        );
         $hasStockTarget = $this->queryHasAssistantKeyword($normalized, ['stock', 'stocks', 'crr']);
         $hasChangeLogTarget = $this->assistantHasAdministrationChangeLogIntent($normalized);
         $hasOfficeTarget = $this->queryHasAssistantKeyword($normalized, ['office', 'offices']);
@@ -4492,7 +5033,9 @@ class OperationsDashboardService
             $push('user');
         }
 
-        if (($this->assistantLooksLikePersonLookup($normalized) || $this->queryHasAssistantKeyword($normalized, ['contact', 'contacts']))
+        // "X ka contact person / contact pre alerts" names a field of X, not a contact record.
+        if (($this->assistantLooksLikePersonLookup($normalized)
+                || ($this->queryHasAssistantKeyword($normalized, ['contact', 'contacts']) && ! $contactFieldContextOnly))
             && ! ($contactFieldContextOnly && $hasOtherEntityTarget)) {
             $push('contact');
         }
@@ -4657,7 +5200,7 @@ class OperationsDashboardService
     {
         foreach ($this->assistantLookupTerms($query) as $term) {
             $baseQuery = $this->visibleCrrs($user)
-                ->with(['customerVessel.customer', 'packages', 'shipments'])
+                ->with($this->assistantStockRelations())
                 ->orderByDesc('id');
 
             $exact = (clone $baseQuery)
@@ -5068,7 +5611,7 @@ class OperationsDashboardService
      */
     private function assistantStockRelations(): array
     {
-        return ['customerVessel.customer', 'packages', 'shipments'];
+        return ['customerVessel.customer', 'packages', 'shipments', 'latestChangeLog.user:id,name'];
     }
 
 }

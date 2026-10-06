@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\JsonArrayCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 class Crr extends Model
@@ -361,6 +362,11 @@ class Crr extends Model
     public function changeLogs()
     {
         return $this->hasMany(CrrChangeLog::class)->orderByDesc('created_at');
+    }
+
+    public function latestChangeLog(): HasOne
+    {
+        return $this->hasOne(CrrChangeLog::class)->ofMany(['created_at' => 'max', 'id' => 'max']);
     }
 
     /**

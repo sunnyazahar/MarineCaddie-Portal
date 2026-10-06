@@ -1320,7 +1320,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringNotContainsString('mcAssistantQuickActions', $assistantView);
         $this->assertStringNotContainsString('mc-assistant-quick-actions', $assistantView);
         $this->assertStringNotContainsString('mc-assistant-detail-grid', $assistantView);
-        $this->assertStringContainsString('Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?', $assistantView);
+        $this->assertStringContainsString('id="mcAssistantInput"', $assistantView);
         $this->assertStringContainsString('Stock helper', $assistantView);
         $this->assertStringContainsString('For your role, only stock details and stock summaries are available here.', $assistantView);
         $this->assertStringContainsString('Open', $assistantView);
@@ -1333,7 +1333,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('--mc-assistant-launcher-height: 72px;', $assistantStyles);
         $this->assertStringContainsString('--mc-assistant-visual-offset: 0px;', $assistantStyles);
         $this->assertStringContainsString('--mc-assistant-screen-bottom: calc(var(--mc-assistant-bottom) + var(--mc-assistant-visual-offset));', $assistantStyles);
-        $this->assertStringContainsString('bottom: calc(var(--mc-assistant-screen-bottom) + var(--mc-assistant-launcher-height) + var(--mc-assistant-panel-gap));', $assistantStyles);
+        $this->assertStringContainsString('bottom: var(--mc-assistant-screen-bottom);', $assistantStyles);
         $this->assertStringContainsString('.mc-assistant-launcher__toggle', $assistantStyles);
         $this->assertStringContainsString('letter-spacing: 0.02em;', $assistantStyles);
         $this->assertStringContainsString('min-width: 64px;', $assistantStyles);
@@ -1344,8 +1344,8 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('font-size: 16px;', $assistantStyles);
         $this->assertStringContainsString('padding-bottom: 204px;', $assistantStyles);
         $this->assertStringContainsString('max-height: min(82dvh, calc(100dvh - 28px));', $assistantStyles);
-        $this->assertStringContainsString('--mc-assistant-bottom: max(72px, calc(env(safe-area-inset-bottom, 0px) + 14px));', $assistantStyles);
-        $this->assertStringContainsString('--mc-assistant-bottom: max(64px, calc(env(safe-area-inset-bottom, 0px) + 12px));', $assistantStyles);
+        $this->assertStringContainsString('--mc-assistant-bottom: max(0px, env(safe-area-inset-bottom, 0px));', $assistantStyles);
+        $this->assertStringContainsString('--mc-assistant-bottom: env(safe-area-inset-bottom, 0px);', $assistantStyles);
         $this->assertStringContainsString('env(safe-area-inset-bottom, 0px)', $assistantStyles);
         $this->assertStringContainsString('@media (max-width: 399.98px), (max-height: 720px)', $assistantStyles);
         $this->assertStringNotContainsString('shouldShowSuggestions', $assistantScript);
@@ -1360,7 +1360,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('function syncViewportOffset()', $assistantScript);
         $this->assertStringContainsString('activeElement.blur()', $assistantScript);
         $this->assertStringContainsString('$launcher[0].focus()', $assistantScript);
-        $this->assertStringContainsString("shellNode.style.setProperty('--mc-assistant-visual-offset', hiddenBottom + 'px');", $assistantScript);
+        $this->assertStringContainsString("shellNode.style.setProperty('--mc-assistant-visual-offset', keyboardLift + 'px');", $assistantScript);
         $this->assertStringContainsString('window.visualViewport', $assistantScript);
         $this->assertStringContainsString('normalizeAssistantTypos', $assistantScript);
         $this->assertStringContainsString('syncAssistantChrome', $assistantScript);
@@ -1411,7 +1411,7 @@ class MigratedBladeViewsTest extends RegressionTestCase
         $this->assertStringContainsString('Please be a bit more specific', $assistantScript);
         $this->assertStringContainsString('Complete summary for shipment', $assistantScript);
         $this->assertStringContainsString('Answer for shipment', $assistantScript);
-        $this->assertStringContainsString('Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?', $assistantScript);
+        $this->assertStringContainsString("$('#mcAssistantInput')", $assistantScript);
         $this->assertStringContainsString('For your role, I can only help with stock-related details here.', $assistantScript);
         $this->assertStringContainsString('MarineCaddie Dubai Office ka address kisne change kiya', $assistantScript);
         $this->assertStringContainsString('last changes', $assistantScript);

@@ -67,6 +67,7 @@ trait CreatesRegressionSchema
             $table->unsignedTinyInteger('otp_failed_attempts')->default(0);
             $table->timestamp('otp_blocked_until')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('countries', function (Blueprint $table) {
@@ -120,6 +121,7 @@ trait CreatesRegressionSchema
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('hubs', function (Blueprint $table) {
@@ -332,6 +334,7 @@ trait CreatesRegressionSchema
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('customers', function (Blueprint $table) {
@@ -398,6 +401,7 @@ trait CreatesRegressionSchema
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('customer_invoice_details', function (Blueprint $table) {

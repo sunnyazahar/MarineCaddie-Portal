@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Agent;
 use App\Models\AdministrationChangeLog;
 use App\Models\Crr;
+use App\Models\CrrChangeLog;
 use App\Models\Contact;
 use App\Models\Country;
 use App\Models\Customer;
@@ -55,7 +56,7 @@ class OperationsDashboardTest extends RegressionTestCase
         $this->assertSame(1, $dashboard['assistant']['shipmentCreationCounts']['30']);
         $this->assertCount(90, $dashboard['assistant']['shipmentCreationDaily']);
         $this->assertCount(1, $dashboard['overdueShipments']);
-        $this->assertSame('MC Assistant only shows details and summaries here. Create, update, and delete actions are not available.', $dashboard['assistant']['readOnly']);
+        $this->assertSame('', $dashboard['assistant']['readOnly']);
         $this->assertContains('SHIP-001', collect($dashboard['assistant']['shipments'])->pluck('number')->all());
         $this->assertContains('STK-001', collect($dashboard['assistant']['stocks'])->pluck('number')->all());
     }
@@ -268,11 +269,11 @@ class OperationsDashboardTest extends RegressionTestCase
         $this->assertStringContainsString('MC Assistant', $html);
         $this->assertStringContainsString('Ask in simple language about shipments, stocks, offices, hubs, agents, suppliers, customers, contacts, vessels, users, or administration change logs for a specific field, full details, or a dashboard overview.', $html);
         $this->assertStringContainsString('data-role="mc-assistant"', $html);
-        $this->assertStringContainsString('Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?', $html);
+        $this->assertStringContainsString('id="mcAssistantInput"', $html);
         $this->assertStringContainsString('Open', $html);
         $this->assertStringContainsString('Send', $html);
         $this->assertStringContainsString('Clear chat', $html);
-        $this->assertStringContainsString('mcAssistantClear', $html);
+        $this->assertStringContainsString('id="mcAssistantPanelClear"', $html);
         $this->assertNotFalse(strpos($html, 'id="styleSelector"'));
         $this->assertNotFalse(strpos($html, 'id="mcAssistantShell"'));
         $this->assertTrue(
@@ -294,7 +295,7 @@ class OperationsDashboardTest extends RegressionTestCase
         $this->assertStringContainsString('function scopeAllows(area)', $html);
         $this->assertStringContainsString('function isStockOnlyAssistant()', $html);
         $this->assertStringContainsString('function renderScopeBlockedResponse(scopeKey)', $html);
-        $this->assertStringContainsString('function renderShipmentTransportDetail(item)', $html);
+        $this->assertStringContainsString('function renderShipmentTransportDetail(item, matchedLeg)', $html);
         $this->assertStringContainsString('function renderShipmentFieldResponse(item, text)', $html);
         $this->assertStringContainsString('function renderStockFieldResponse(item, text)', $html);
         $this->assertStringContainsString('function renderUnknownFieldResponse(type, item)', $html);
@@ -303,7 +304,7 @@ class OperationsDashboardTest extends RegressionTestCase
         $this->assertStringContainsString('function looksLikeSensitiveCredentialRequest(text)', $html);
         $this->assertStringContainsString('function renderSensitiveLookupResponse(type, reason, item)', $html);
         $this->assertStringContainsString('function containsAdministrationEntityHint(text)', $html);
-        $this->assertStringContainsString('function administrationIntentSuggestsSpecificField(text)', $html);
+        $this->assertStringContainsString('function administrationIntentSuggestsSpecificField(item, text)', $html);
         $this->assertStringContainsString('function renderAdministrationDetail(type, item)', $html);
         $this->assertStringContainsString('function renderAdministrationFieldResponse(type, item, text)', $html);
         $this->assertStringContainsString('function responseForAdministrationQuery(type, item, query)', $html);
@@ -331,7 +332,7 @@ class OperationsDashboardTest extends RegressionTestCase
         $this->assertStringContainsString('Please be a bit more specific', $html);
         $this->assertStringContainsString('Complete summary for shipment', $html);
         $this->assertStringContainsString('Answer for shipment', $html);
-        $this->assertStringContainsString('Example: Who changed the address for MarineCaddie Dubai Office or what is the role for user sunnyazahar@gmail.com?', $html);
+        $this->assertStringContainsString('id="mcAssistantInput"', $html);
         $this->assertStringContainsString('Ask in simple language about shipments, stocks, offices, hubs, agents, suppliers, customers, contacts, vessels, users, or administration change logs for a specific field, full details, or a dashboard overview.', $html);
         $this->assertStringContainsString('SHIP-RENDER', $html);
         $this->assertStringContainsString('STK-RENDER', $html);
@@ -1634,6 +1635,296 @@ class OperationsDashboardTest extends RegressionTestCase
         $englishOfficeAddressResponse->assertJsonPath('type', 'hub');
         $englishOfficeAddressResponse->assertJsonPath('item.name', 'MARINECADDIE SINGAPORE PTE LTD');
         $this->assertSame('—', $this->assistantFieldValue($englishOfficeAddressResponse, 'Office address'));
+    }
+
+    public function test_dashboard_assistant_lookup_ignores_generic_words_and_punctuation_only_queries(): void
+    {
+        $admin = $this->createAdminUser();
+
+        Contact::withoutEvents(fn () => Contact::create([
+            'name' => 'Antonis Panagopoulos',
+            'email' => 'spares@apa.example',
+            'description' => 'Technical and Commercial Services',
+            'status' => '1',
+        ]));
+        Contact::withoutEvents(fn () => Contact::create([
+            'name' => 'ct2',
+            'email' => 'ct2@test.example',
+            'status' => '1',
+        ]));
+
+        foreach (['services summary', "' OR 1=1 --", '1 --'] as $query) {
+            $response = $this->actingAsVerified($admin)
+                ->getJson(route('dashboard.assistant-lookup', ['q' => $query]));
+
+            $response->assertOk();
+            $response->assertJsonPath('matched', false);
+        }
+
+        $byName = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'Antonis Panagopoulos']));
+
+        $byName->assertOk();
+        $byName->assertJsonPath('matched', true);
+        $byName->assertJsonPath('type', 'contact');
+        $byName->assertJsonPath('item.name', 'Antonis Panagopoulos');
+    }
+
+    public function test_dashboard_assistant_change_log_answers_only_the_asked_field_and_record_type(): void
+    {
+        $admin = $this->createAdminUser();
+        $nadia = User::factory()->create(['name' => 'Nadia Ops', 'role' => 'Operations', 'is_active' => true]);
+        $imam = User::factory()->create(['name' => 'Imam', 'role' => 'Operations', 'is_active' => true]);
+
+        $office = Office::withoutEvents(fn () => Office::create(['office_name' => 'MARINECADDIE SINGAPORE PTE LTD', 'status' => 'Active']));
+        $hub = Hub::withoutEvents(fn () => Hub::create(['hub_name' => 'MARINECADDIE SINGAPORE PTE LTD']));
+
+        AdministrationChangeLog::create([
+            'loggable_type' => Office::class,
+            'loggable_id' => $office->id,
+            'user_id' => $nadia->id,
+            'field' => 'email',
+            'title' => 'Email edited',
+            'created_at' => Carbon::parse('2026-09-09 10:30:00'),
+        ]);
+        AdministrationChangeLog::create([
+            'loggable_type' => Hub::class,
+            'loggable_id' => $hub->id,
+            'user_id' => $imam->id,
+            'field' => 'code_description',
+            'title' => 'Code Description edited',
+            'created_at' => Carbon::parse('2026-09-20 09:50:00'),
+        ]);
+        AdministrationChangeLog::create([
+            'loggable_type' => Hub::class,
+            'loggable_id' => $hub->id,
+            'user_id' => $nadia->id,
+            'field' => 'address',
+            'title' => 'Address edited',
+            'created_at' => Carbon::parse('2026-09-01 08:00:00'),
+        ]);
+
+        $officeAddress = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'who changed the address for MARINECADDIE SINGAPORE PTE LTD office']));
+
+        $officeAddress->assertOk();
+        $officeAddress->assertJsonPath('type', 'change_log');
+        $officeAddress->assertJsonPath('item.matchedCount', 0);
+        $officeAddress->assertJsonPath('item.identifier', 'MARINECADDIE SINGAPORE PTE LTD (Address)');
+
+        $officeEmail = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'who changed the email for MARINECADDIE SINGAPORE PTE LTD office']));
+
+        $officeEmail->assertOk();
+        $officeEmail->assertJsonPath('item.matchedCount', 1);
+        $officeEmail->assertJsonPath('item.logs.0.field', 'Email');
+        $officeEmail->assertJsonPath('item.logs.0.userName', 'Nadia Ops');
+
+        $hubAddress = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'MARINECADDIE SINGAPORE PTE LTD hub ka address kisne change kiya']));
+
+        $hubAddress->assertOk();
+        $hubAddress->assertJsonPath('item.matchedCount', 1);
+        $hubAddress->assertJsonPath('item.logs.0.field', 'Address');
+        $hubAddress->assertJsonPath('item.logs.0.entityLabel', 'Hub');
+    }
+
+    public function test_dashboard_assistant_lookup_blocks_otp_code_but_allows_otp_blocked_status(): void
+    {
+        $admin = $this->createAdminUser();
+
+        User::factory()->create([
+            'name' => 'Azahar',
+            'email' => 'sunnyazahar@gmail.com',
+            'role' => 'Admin',
+            'is_active' => true,
+        ]);
+
+        foreach (['show me the otp of user sunnyazahar@gmail.com', 'sunnyazahar@gmail.com ka api key batao'] as $query) {
+            $blocked = $this->actingAsVerified($admin)
+                ->getJson(route('dashboard.assistant-lookup', ['q' => $query]));
+
+            $blocked->assertOk();
+            $blocked->assertJsonPath('sensitiveBlocked', true);
+            $blocked->assertJsonPath('item', null);
+        }
+
+        $status = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'is user sunnyazahar@gmail.com otp blocked']));
+
+        $status->assertOk();
+        $status->assertJsonPath('matched', true);
+        $status->assertJsonPath('type', 'user');
+        $this->assertSame('No', $this->assistantFieldValue($status, 'OTP blocked'));
+
+        $otpFields = collect($status->json('item.fields'))->whereIn('key', ['otp_blocked', 'otp_blocked_until']);
+        $this->assertCount(2, $otpFields);
+        $this->assertTrue($otpFields->every(fn (array $field) => ($field['onRequestOnly'] ?? false) === true));
+        $this->assertFalse(collect($status->json('item.fields'))->firstWhere('key', 'role')['onRequestOnly'] ?? false);
+    }
+
+    public function test_dashboard_assistant_stock_payload_includes_total_weight_and_cbm(): void
+    {
+        $admin = $this->createAdminUser();
+        $stock = $this->createCrr('DXB-42295522', ['status' => Crr::STATUS_ACTIVE]);
+        $stock->packages()->createMany([
+            ['weight' => 11, 'cbm' => 0.5],
+            ['weight' => 4.25, 'cbm' => 0.25],
+        ]);
+        $this->createCrr('DXB-EMPTY-1', ['status' => Crr::STATUS_ACTIVE]);
+
+        $response = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'stock DXB-42295522 weight']));
+
+        $response->assertOk();
+        $response->assertJsonPath('type', 'stock');
+        $response->assertJsonPath('item.weight', '15.25');
+        $this->assertNotNull($response->json('item.cbm'));
+
+        $empty = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'DXB-EMPTY-1']));
+
+        $empty->assertJsonPath('item.weight', null);
+        $empty->assertJsonPath('item.cbm', null);
+    }
+
+    public function test_dashboard_assistant_lookup_matches_single_word_names_despite_filler_words(): void
+    {
+        $admin = $this->createAdminUser();
+        User::factory()->create(['name' => 'Azahar', 'email' => 'azahar@test.example', 'role' => 'Operations', 'is_active' => true]);
+        Contact::withoutEvents(fn () => Contact::create(['name' => 'contact', 'email' => 'cont@test.example', 'status' => '1']));
+
+        foreach (['hey, Azahar last update', 'zara azahar ka role kya hai'] as $query) {
+            $response = $this->actingAsVerified($admin)
+                ->getJson(route('dashboard.assistant-lookup', ['q' => $query]));
+
+            $response->assertOk();
+            $response->assertJsonPath('matched', true);
+            $response->assertJsonPath('type', 'user');
+            $response->assertJsonPath('item.name', 'Azahar');
+        }
+
+        $typeWordName = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'What is the email of contact Atlantis Moon Base?']));
+
+        $typeWordName->assertOk();
+        $typeWordName->assertJsonPath('matched', false);
+    }
+
+    public function test_dashboard_assistant_lookup_prefers_contact_own_name_over_vessel_manager_field(): void
+    {
+        $admin = $this->createAdminUser();
+        $customer = Customer::withoutEvents(fn () => Customer::create(['customer_name' => 'Hellenic Ship Mgmt', 'email' => 'ops@hellenic.example']));
+        $contact = Contact::withoutEvents(fn () => Contact::create([
+            'customer_id' => $customer->id,
+            'name' => 'Eleni Georgiou',
+            'email' => 'eleni@hellenic.example',
+            'status' => '1',
+        ]));
+        CustomerVessel::withoutEvents(fn () => CustomerVessel::create([
+            'customer_id' => $customer->id,
+            'vessel' => 'MSC MICHIGAN VII',
+            'vessel_imo' => '9399014',
+            'manager' => 'Eleni Georgiou',
+            'contact_id' => $contact->id,
+        ]));
+
+        $response = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'Can you give me the linked vessels of Eleni Georgiou?']));
+
+        $response->assertOk();
+        $response->assertJsonPath('type', 'contact');
+        $response->assertJsonPath('item.name', 'Eleni Georgiou');
+    }
+
+    public function test_dashboard_assistant_lookup_treats_unknown_shipment_number_and_generic_company_word_as_miss(): void
+    {
+        $admin = $this->createAdminUser();
+        Contact::withoutEvents(fn () => Contact::create(['name' => 'ct1', 'email' => 'ct1@test.example', 'phone_number' => '9812345', 'status' => '1']));
+        Supplier::withoutEvents(fn () => Supplier::create(['supplier_name' => 'GUMA TECH', 'email' => 'sales@gumalogistics.example']));
+
+        foreach (['What is the status of shipment QQQ-12345-0101?', 'contact Zebra Quantum Logistics ka email kya hai'] as $query) {
+            $response = $this->actingAsVerified($admin)
+                ->getJson(route('dashboard.assistant-lookup', ['q' => $query]));
+
+            $response->assertOk();
+            $response->assertJsonPath('matched', false);
+        }
+    }
+
+    public function test_dashboard_assistant_lookup_lists_same_name_records_and_stock_transit_history(): void
+    {
+        $admin = $this->createAdminUser();
+        Hub::withoutEvents(fn () => Hub::create(['hub_name' => 'SAF GLOBAL MARITIME PVT LTD', 'code' => 'BOM', 'city' => 'Mumbai', 'email' => 'bom@saf.example']));
+        Hub::withoutEvents(fn () => Hub::create(['hub_name' => 'SAF GLOBAL MARITIME PVT LTD', 'code' => 'DEL', 'city' => 'New Delhi', 'email' => 'del@saf.example']));
+
+        $hub = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'hub SAF GLOBAL MARITIME PVT LTD email']));
+
+        $hub->assertOk();
+        $hub->assertJsonPath('type', 'hub');
+        $this->assertCount(1, $hub->json('item.sameNameRecords'));
+
+        $this->createCrr('DXB-55500011', ['status' => Crr::STATUS_COMPLETED]);
+        $this->createCrr('DXB-55500011', ['status' => Crr::STATUS_ACTIVE]);
+
+        $stock = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'DXB-55500011 status']));
+
+        $stock->assertOk();
+        $stock->assertJsonPath('type', 'stock');
+        $this->assertCount(1, $stock->json('item.history'));
+        $this->assertNull($stock->json('item.sameNameRecords'));
+    }
+
+    public function test_dashboard_assistant_stock_payload_includes_last_logged_updater(): void
+    {
+        $admin = $this->createAdminUser();
+        $nadia = User::factory()->create(['name' => 'Nadia Ops', 'role' => 'Operations', 'is_active' => true]);
+        $azahar = User::factory()->create(['name' => 'Azahar', 'role' => 'Operations', 'is_active' => true]);
+        $stock = $this->createCrr('DXB-42295522', ['status' => Crr::STATUS_ACTIVE]);
+        $this->createCrr('DXB-NOLOG-1', ['status' => Crr::STATUS_ACTIVE]);
+
+        CrrChangeLog::create(['crr_id' => $stock->id, 'user_id' => $nadia->id, 'title' => 'Supplier edited', 'created_at' => Carbon::parse('2026-09-28 10:00:00')]);
+        CrrChangeLog::create(['crr_id' => $stock->id, 'user_id' => $nadia->id, 'title' => 'Customs value edited', 'created_at' => Carbon::parse('2026-09-29 14:32:14')]);
+        CrrChangeLog::create(['crr_id' => $stock->id, 'user_id' => $azahar->id, 'title' => 'Customs value USD edited', 'created_at' => Carbon::parse('2026-09-29 14:32:14')]);
+
+        $response = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'DXB-42295522 ko last update kisne kiya tha?']));
+
+        $response->assertOk();
+        $response->assertJsonPath('type', 'stock');
+        $response->assertJsonPath('item.updatedBy', 'Azahar');
+        $response->assertJsonPath('item.lastModificationLabel', 'Customs value USD edited');
+        $this->assertNotNull($response->json('item.lastModificationAt'));
+
+        $noLog = $this->actingAsVerified($admin)
+            ->getJson(route('dashboard.assistant-lookup', ['q' => 'DXB-NOLOG-1 last update kisne kiya']));
+
+        $noLog->assertJsonPath('type', 'stock');
+        $noLog->assertJsonPath('item.updatedBy', null);
+    }
+
+    public function test_dashboard_assistant_script_ships_intent_and_grammar_fixes(): void
+    {
+        $admin = $this->createAdminUser();
+        $html = $this->actingAsVerified($admin)->get(route('dashboard'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('function polishBotHtml(html)', $html);
+        $this->assertStringContainsString('function isWholeAdministrationRecordRequest(type, text)', $html);
+        $this->assertStringContainsString("'services summary'", $html);
+        $this->assertStringContainsString("'kis shipment'", $html);
+        $this->assertStringContainsString("'delivered kar'", $html);
+        $this->assertStringContainsString("'kab deliver'", $html);
+        $this->assertStringContainsString("'banaye'", $html);
+        $this->assertStringContainsString("containsIntentPhrase(text, 'otp')", $html);
+        $this->assertStringContainsString('function sameNameRecordsNote(type, item)', $html);
+        $this->assertStringContainsString('function stockHistoryText(item)', $html);
+        $this->assertStringContainsString('function detectKpiCountRequest(text)', $html);
+        $this->assertStringContainsString('function isFieldContinuationClause(part)', $html);
+        $this->assertStringContainsString('function asksWhoLastUpdated(text)', $html);
+        $this->assertStringContainsString('function stockUpdatedByText(item)', $html);
+        $this->assertStringContainsString('return ! (field && field.onRequestOnly);', $html);
     }
 
     private function createCrr(string $stockNumber, array $attributes = []): Crr
