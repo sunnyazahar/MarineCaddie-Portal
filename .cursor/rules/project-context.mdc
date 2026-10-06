@@ -65,6 +65,15 @@ AJAX response must return: `{ html, pagination, total }`.
 - **Code, files, DB, storage, git — kuch bhi apne aap delete mat karo.** Pehle user ko batao kya delete hoga + uska impact (pages/features/data/reversible?), confirmation lo, tab delete karo.
 - Full detail: `.cursor/rules/no-delete-without-confirmation.mdc`
 
+## Production DB (HARD — user instruction)
+- **Production per migration / DELETE / UPDATE / INSERT (koi bhi DB write) apni marzi se bhool kar bhi nahi** — SSH, tinker, artisan, Hostinger MCP, phpMyAdmin, ya local se jab `.env` production DB par ho. Sirf read-only `SELECT` allowed.
+- Write zaroori lage → exact query + rows count + impact batao, confirm lo.
+- Full detail: `.cursor/rules/no-production-db-writes.mdc`
+
+## Server credentials (HARD — user instruction)
+- **Server credentials / details confidential — kahin bhi kisi se share nahi**: repo (public), docs, rules, commits, chat replies, logs, subagents, web/external services. Sirf `DEPLOY.local.md` (gitignored) + server `.env` (600).
+- Full detail: `.cursor/rules/server-credentials-confidential.mdc`
+
 ## Git Rules
 - **Bina user ke kehne push mat karo** — changes dikhao, push tab karo jab user bole
 - `git reset --hard`, `git clean`, `git checkout -- <file>`, `git stash drop`, branch delete — sirf user confirm karne ke baad

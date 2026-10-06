@@ -1,0 +1,28 @@
+---
+description: Never run migrations or INSERT/UPDATE/DELETE (any DB write) on production on your own
+alwaysApply: true
+---
+
+# Production DB = apni marzi se koi write nahi
+
+**Hard rule (user ka instruction):** Production per **migration, DELETE, UPDATE** (aur koi bhi DB write) **apni marzi se bhool kar bhi nahi** chalana.
+
+## Production kya hai
+- `portal.marinecaddie.com` ka live DB, Hostinger server (SSH), `marinecaddie.com` marketing site ka DB
+- Local `.env` / koi bhi connection jo production DB host par point kare — chalane se pehle `DB_HOST` / `DB_DATABASE` check karo
+
+## Kya mana hai (bina user ke us specific command ke liye "haan" ke)
+- `php artisan migrate`, `migrate:*`, `db:seed`, `schema:dump --prune`, `db:wipe`
+- SQL `INSERT`, `UPDATE`, `DELETE`, `REPLACE`, `TRUNCATE`, `ALTER`, `DROP`, `CREATE`
+- Tinker / scripts / queue jobs / artisan commands jo `save()`, `update()`, `create()`, `delete()`, `forceDelete()`, `increment()`, `sync()`, `attach()`, `detach()` chalayein
+- Hostinger MCP / phpMyAdmin / remote MySQL se koi bhi write
+- Local se "bas test" ke liye form submit / AJAX action jab local `.env` production DB par ho
+
+## Allowed
+- Read-only `SELECT` / count — sirf jab task ke liye zaroori ho, secrets/PII output mat karo
+- Local DB (`127.0.0.1` local database) aur PHPUnit (SQLite `:memory:`) par normal kaam
+
+## Agar production write zaroori lage
+1. Ruko — khud mat chalao
+2. User ko batao: exact command/query, kaun si rows (count ke saath), impact, reversible hai ya nahi, backup plan
+3. AskQuestion se confirm lo — confirm ke baad bhi user ko command khud chalane ka option do

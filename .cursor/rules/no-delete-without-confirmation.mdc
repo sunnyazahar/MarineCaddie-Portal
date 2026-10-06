@@ -23,5 +23,6 @@ alwaysApply: true
 
 ## Dhyan rahe
 - `.env` production DB ki taraf point karta hai — DB delete ka impact **live data** par hoga, ye clearly batao
+- Production per migration / UPDATE / INSERT bhi apni marzi se nahi — `.cursor/rules/no-production-db-writes.mdc`
 - Chhote refactor mein bhi agar koi existing symbol/file hat raha hai to pehle poochho
 - Sirf apne banaye temporary files (jo isi session mein khud banaye, jaise probe scripts) cleanup ke liye allowed hain — lekin user ko report mein batao

@@ -1381,6 +1381,8 @@ type-hints referencing the class
 
 Host, SSH user, paths and exact commands: **`DEPLOY.local.md`** (gitignored — never commit server details, the repo is public).
 
+**Server credentials are confidential (HARD — user instruction):** host/IP, port, SSH user/key, account ID, DB name/user/password and every `.env` value are never shared anywhere — not in the repo, docs, rules, commit/PR messages, chat replies, logs, screenshots, subagent prompts or external services. Grep `git diff --cached` for them before every commit. Detail: `.cursor/rules/server-credentials-confidential.mdc`.
+
 ### Layout
 
 - App = git checkout **outside** the web root; web root exposes only `laravel/public` (symlink) with an `.htaccess` that serves static files from it and routes everything else to `public/index.php`.
@@ -1397,6 +1399,8 @@ chmod 600 .env bootstrap/cache/config.php
 ```
 
 **Secrets on the server:** `.env` and the cached `bootstrap/cache/config.php` (holds every `.env` value, rewritten as 644 by each `config:cache`) must stay **600**. The web root `.htaccess` returns 403 for every dotfile path (except `.well-known`); `APP_DEBUG=false` on production.
+
+**Production DB writes (HARD — user instruction):** the agent never runs migrations, `INSERT` / `UPDATE` / `DELETE` or any other write on a production DB (portal or marketing site) on its own — not via SSH, tinker, artisan, Hostinger MCP, phpMyAdmin, or localhost while `.env` points at production. Read-only `SELECT` only. If a write is needed: show the exact query, affected row count, impact and rollback, and wait for the user's confirmation. Detail: `.cursor/rules/no-production-db-writes.mdc`.
 
 **Migrations:** the production DB was imported manually; its `migrations` table is out of sync with the schema (columns exist, rows missing). **Never run `php artisan migrate` there** without checking each pending migration against the real columns first.
 
