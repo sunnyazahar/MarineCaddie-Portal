@@ -175,7 +175,10 @@ Login (email + password)
 
 - Login does not require browser geolocation; users can sign in without sharing location.
 - CSRF token refresh on submit via `/login/csrf`.
-- Inactive users (`is_active = 0`) cannot log in.
+- Inactive users (`is_active = 0`) cannot log in — by **any** path. The `users` auth provider is `active-eloquent` (`config/auth.php`, registered in `AppServiceProvider::boot()`), which adds `where is_active = 1` to every auth lookup: password login, existing session, "remember me" cookie and password-reset auto-login. Deactivating a user therefore ends their sessions on the next request. Do not switch the driver back to plain `eloquent`.
+- Credentials are looked up only through Laravel's provider (query bindings — never a raw query) and validated as `string` (`email` max 255, `password` max 1024), so arrays / JSON operators / oversized payloads are rejected with 422.
+- Wrong password, unknown email and inactive user all return the same error (no account enumeration). Login is throttled (5/min per IP + per email); OTP locks for 30 min after 5 wrong codes.
+- Guarded by `tests/Feature/Auth/LoginSecurityTest.php` (SQL-injection payloads, type juggling, OTP gate on every protected GET route, deactivated-user session / remember-me / password-reset).
 
 ### Local OTP bypass (QA only)
 
@@ -1116,9 +1119,23 @@ Model::create($request->all());
 ```php
 use App\Rules\ValidPdfUpload;
 
-'file'    => ValidPdfUpload::rules(10240, required: true), // required|file|mimes:pdf|max:10240 + ValidPdfUpload
+'file'    => ValidPdfUpload::rules(10240, required: true), // bail|ValidPdfUpload(10240)|required|file|mimes:pdf|max:10240
 'files.*' => ValidPdfUpload::rules(20480),
 ```
+
+`bail` + the rule first means the user gets **one** message naming the file (`"x.docx" is not a PDF…`, `"x.pdf" is not a valid PDF file.`, `"x.pdf" is larger than the 20 MB limit.`) instead of Laravel's generic `The file field must be a file of type: pdf. (and 1 more error)`.
+
+**Showing upload / AJAX errors (JS):** use the global helpers from `partials/common-assets-scripts` — never `alert(xhr.responseJSON.message)` (that shows only the "(and N more errors)" summary):
+
+```js
+error: function (xhr) {
+    window.mcShowErrors('Upload failed', window.mcAjaxErrorMessages(xhr, 'Could not upload "' + file.name + '".'));
+}
+// client-side rejects: collect messages, then one call
+if (rejected.length) { window.mcShowErrors('Attachment not added', rejected); }
+```
+
+`mcAjaxErrorMessages` returns every validation message (then `message` / `error`, 413 / 419 text, fallback); `mcShowErrors` shows one SweetAlert (text escaped, one per line) and merges errors raised while it is still open.
 
 `ValidPdfUpload` blocks renamed files (e.g. a PNG/EXE renamed to `.pdf`): `.pdf` extension + `application/pdf` content (both ways), a real `%PDF-1.x/2.x` header, `%%EOF` trailer (not truncated), and no `/JavaScript`, `/JS`, `/Launch`, `/RichMedia` in object dictionaries (incl. `#xx`-obfuscated names and FlateDecode object streams). Page/image streams are skipped, so it causes no false rejections. Front-end inputs use `accept="application/pdf,.pdf"` + a client-side `.pdf` check (UX only — the server rule is the authority). Guarded by `tests/Unit/ValidPdfUploadTest.php`, which also fails if any `mimes:` rule in `app/` allows pdf/doc/xls/eml/msg/zip directly.
 

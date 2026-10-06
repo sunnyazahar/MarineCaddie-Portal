@@ -7,8 +7,8 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\UploadedFile;
 
 /**
- * Rejects fake or dangerous PDFs. Applies when the file is named *.pdf or its
- * content is PDF; other types pass through (`mimes:pdf` in rules() rejects them).
+ * Accepts genuine PDFs only (rejects other types, fake or dangerous PDFs and
+ * oversized files), with one user-facing message that names the file.
  */
 class ValidPdfUpload implements ValidationRule
 {
@@ -20,16 +20,21 @@ class ValidPdfUpload implements ValidationRule
     /** PDF names that run scripts or open external content when viewed. */
     private const ACTIVE_CONTENT = '~/(?:JavaScript|JS|Launch|RichMedia)(?=[\s/\[\]<>(){}%]|$)~';
 
+    public function __construct(private ?int $maxKilobytes = null) {}
+
     /**
      * Standard rules for every document/attachment upload (the application accepts PDF only).
+     * `bail` + this rule first: the user gets one clear message naming the file instead of
+     * generic "The file field must be..." errors; mimes/max stay as a backstop.
      *
      * @return array<int, mixed>
      */
     public static function rules(int $maxKilobytes, bool $required = false): array
     {
         return array_merge(
+            ['bail', new self($maxKilobytes)],
             $required ? ['required'] : [],
-            ['file', 'mimes:pdf', 'max:' . $maxKilobytes, new self()]
+            ['file', 'mimes:pdf', 'max:' . $maxKilobytes]
         );
     }
 
@@ -39,15 +44,23 @@ class ValidPdfUpload implements ValidationRule
             return;
         }
 
+        $name = '"' . $value->getClientOriginalName() . '"';
         $namedPdf = strtolower((string) $value->getClientOriginalExtension()) === 'pdf';
         $contentIsPdf = $value->getMimeType() === 'application/pdf';
 
         if (! $namedPdf && ! $contentIsPdf) {
+            $fail($name . ' is not a PDF. Only PDF files can be uploaded.');
+
+            return;
+        }
+
+        if ($this->maxKilobytes !== null && (int) $value->getSize() > $this->maxKilobytes * 1024) {
+            $fail($name . ' is larger than the ' . $this->formatLimit($this->maxKilobytes) . ' limit.');
+
             return;
         }
 
         $data = @file_get_contents((string) $value->getRealPath());
-        $name = '"' . $value->getClientOriginalName() . '"';
 
         if ($namedPdf !== $contentIsPdf || ! is_string($data) || ! $this->hasPdfStructure($data)) {
             $fail($name . ' is not a valid PDF file.');
@@ -58,6 +71,17 @@ class ValidPdfUpload implements ValidationRule
         if ($this->containsActiveContent($data)) {
             $fail($name . ' contains active content (scripts or launch actions) and cannot be uploaded.');
         }
+    }
+
+    private function formatLimit(int $kilobytes): string
+    {
+        if ($kilobytes < 1024) {
+            return $kilobytes . ' KB';
+        }
+
+        return $kilobytes % 1024 === 0
+            ? ($kilobytes / 1024) . ' MB'
+            : round($kilobytes / 1024, 1) . ' MB';
     }
 
     private function hasPdfStructure(string $data): bool

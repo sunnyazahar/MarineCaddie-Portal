@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\EloquentUserProvider;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\DB;
@@ -176,6 +178,13 @@ class AppServiceProvider extends ServiceProvider
         if ($this->shouldProhibitDestructiveDatabaseCommands()) {
             DB::prohibitDestructiveCommands();
         }
+
+        // Deactivated users must not authenticate by any path: password login,
+        // existing session, "remember me" cookie or password-reset auto-login.
+        Auth::provider('active-eloquent', function ($app, array $config) {
+            return (new EloquentUserProvider($app['hash'], $config['model']))
+                ->withQuery(fn ($query) => $query->where('is_active', true));
+        });
 
         $tmp = storage_path('framework/tmp');
         if (! is_dir($tmp)) {

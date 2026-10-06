@@ -38,7 +38,26 @@ class ValidPdfUploadTest extends TestCase
         );
 
         $this->assertTrue($validator->fails());
-        $this->assertContains('"invoice.pdf" is not a valid PDF file.', $validator->errors()->get('file'));
+        $this->assertSame(['"invoice.pdf" is not a valid PDF file.'], $validator->errors()->get('file'));
+    }
+
+    public function test_non_pdf_gets_one_message_naming_the_file(): void
+    {
+        $this->assertSame(
+            ['"report.docx" is not a PDF. Only PDF files can be uploaded.'],
+            $this->errors($this->upload("PK\x03\x04fake-office-document", 'report.docx'))
+        );
+    }
+
+    public function test_oversized_pdf_gets_one_message_with_the_limit(): void
+    {
+        $this->assertSame(
+            ['"big.pdf" is larger than the 2 KB limit.'],
+            $this->errors($this->upload($this->realPdf() . str_repeat(' ', 4096), 'big.pdf'), 2)
+        );
+        $formatLimit = new \ReflectionMethod(ValidPdfUpload::class, 'formatLimit');
+        $this->assertSame('20 MB', $formatLimit->invoke(new ValidPdfUpload(), 20480));
+        $this->assertSame('5 MB', $formatLimit->invoke(new ValidPdfUpload(), 5120));
     }
 
     public function test_image_renamed_to_pdf_is_rejected_even_when_image_types_are_allowed(): void
@@ -132,6 +151,17 @@ class ValidPdfUploadTest extends TestCase
             ['file' => $file],
             ['file' => ValidPdfUpload::rules(10240, required: true)]
         )->passes();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function errors(UploadedFile $file, int $maxKilobytes = 10240): array
+    {
+        return Validator::make(
+            ['file' => $file],
+            ['file' => ValidPdfUpload::rules($maxKilobytes, required: true)]
+        )->errors()->get('file');
     }
 
     private function upload(string $contents, string $clientName): UploadedFile

@@ -38,6 +38,83 @@
 
             return $.ajax(settings);
         };
+
+        /**
+         * Every message from a failed AJAX call: all Laravel validation errors
+         * (not just the "(and N more errors)" summary), then message/error, then fallback.
+         */
+        window.mcAjaxErrorMessages = function (xhr, fallbackMessage) {
+            var json = (xhr && xhr.responseJSON) || null;
+            var messages = [];
+
+            if (json && json.errors && typeof json.errors === 'object') {
+                $.each(json.errors, function (field, fieldMessages) {
+                    $.each([].concat(fieldMessages), function (i, message) {
+                        if (typeof message === 'string' && message !== '') {
+                            messages.push(message);
+                        }
+                    });
+                });
+            }
+
+            if (!messages.length && json) {
+                var single = json.message || json.error;
+                if (typeof single === 'string' && single !== '') {
+                    messages.push(single);
+                }
+            }
+
+            if (!messages.length && xhr) {
+                if (xhr.status === 413) {
+                    messages.push('The file is too large to upload.');
+                } else if (xhr.status === 419) {
+                    messages.push('Your session has expired. Please refresh the page and try again.');
+                }
+            }
+
+            if (!messages.length) {
+                messages.push(fallbackMessage || 'Something went wrong. Please try again.');
+            }
+
+            return $.grep(messages, function (message, index) {
+                return $.inArray(message, messages) === index;
+            });
+        };
+
+        var mcOpenErrorMessages = null;
+
+        /**
+         * Error SweetAlert (text is escaped by SweetAlert; one message per line).
+         * Errors raised while one is still open (e.g. several files rejected at once)
+         * are added to it instead of replacing it.
+         */
+        window.mcShowErrors = function (title, messages) {
+            messages = $.grep([].concat(messages || []), function (message) {
+                return typeof message === 'string' && message !== '';
+            });
+            if (!messages.length) {
+                return;
+            }
+
+            if (typeof swal !== 'function') {
+                alert(messages.join('\n'));
+                return;
+            }
+
+            var stillOpen = mcOpenErrorMessages !== null && $('.sweet-alert').hasClass('visible');
+            var combined = (stillOpen ? mcOpenErrorMessages : []).concat(messages);
+            mcOpenErrorMessages = $.grep(combined, function (message, index) {
+                return $.inArray(message, combined) === index;
+            });
+
+            swal({
+                title: title || 'Error',
+                text: mcOpenErrorMessages.join('\n'),
+                type: 'error'
+            }, function () {
+                mcOpenErrorMessages = null;
+            });
+        };
     })(jQuery);
 </script>
 

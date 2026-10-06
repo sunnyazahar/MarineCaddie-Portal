@@ -264,14 +264,16 @@ $(document).on('change', '#reminder-attachment-input', function() {
         return;
     }
 
+    var rejected = [];
+
     Array.prototype.forEach.call(this.files || [], function(file, index) {
         if (!/\.pdf$/i.test(file.name)) {
-            alert('Only PDF files are allowed: ' + file.name);
+            rejected.push('"' + file.name + '" is not a PDF. Only PDF files can be uploaded.');
             return;
         }
 
         if (file.size > 20 * 1024 * 1024) {
-            alert(file.name + ' is larger than the 20MB limit.');
+            rejected.push('"' + file.name + '" is larger than the 20 MB limit.');
             return;
         }
 
@@ -287,6 +289,9 @@ $(document).on('change', '#reminder-attachment-input', function() {
 
     renderReminderAttachments();
     this.value = '';
+    if (rejected.length) {
+        window.mcShowErrors('Attachment not added', rejected);
+    }
 });
 
 $(document).on('click', '#reminder-attach-previews .compose-attach-remove', function() {
@@ -451,7 +456,10 @@ $(document).on('click', '#reminder-mail-send', function() {
             }
         })
         .fail(function(xhr) {
-            alert((xhr.responseJSON && xhr.responseJSON.message) || 'Could not send email. Please try again.');
+            window.mcShowErrors(
+                'Email not sent',
+                window.mcAjaxErrorMessages(xhr, 'Could not send email. Please try again.')
+            );
         })
         .always(function() {
             $modal.removeClass('compose-sending');

@@ -6436,11 +6436,16 @@
             }
 
             pendingManifestMail.attachments = pendingManifestMail.attachments || [];
+            var rejected = [];
 
             Array.prototype.forEach.call(files, function(file, index) {
                 var isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
                 if (!isPdf) {
-                    alert('Only PDF files are allowed: ' + file.name);
+                    rejected.push('"' + file.name + '" is not a PDF. Only PDF files can be uploaded.');
+                    return;
+                }
+                if (file.size > 20 * 1024 * 1024) {
+                    rejected.push('"' + file.name + '" is larger than the 20 MB limit.');
                     return;
                 }
                 var objectUrl = URL.createObjectURL(file);
@@ -6468,6 +6473,9 @@
 
             renderComposeAttachments(pendingManifestMail.attachments);
             this.value = '';
+            if (rejected.length) {
+                window.mcShowErrors('Attachment not added', rejected);
+            }
         });
 
         $(document).on('click', '#compose-mail-discard', function() {
@@ -6593,9 +6601,10 @@
                     }
                 })
                 .fail(function(xhr) {
-                    var message = (xhr.responseJSON && xhr.responseJSON.message)
-                        || 'Could not send email. Please try again.';
-                    alert(message);
+                    window.mcShowErrors(
+                        'Email not sent',
+                        window.mcAjaxErrorMessages(xhr, 'Could not send email. Please try again.')
+                    );
                 })
                 .always(function() {
                     $modal.removeClass('compose-sending');
@@ -8975,13 +8984,21 @@
             if (!files || files.length === 0) {
                 return;
             }
+            var rejected = [];
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
                 if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-                    alert('Only PDF files are allowed.');
+                    rejected.push('"' + file.name + '" is not a PDF. Only PDF files can be uploaded.');
+                    continue;
+                }
+                if (file.size > 20 * 1024 * 1024) {
+                    rejected.push('"' + file.name + '" is larger than the 20 MB limit.');
                     continue;
                 }
                 uploadShipmentDocument(file);
+            }
+            if (rejected.length) {
+                window.mcShowErrors('Upload failed', rejected);
             }
         }
 
@@ -9000,13 +9017,10 @@
                     appendShipmentDocumentItem(response);
                 },
                 error: function(xhr) {
-                    var message = 'Failed to upload document.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        message = xhr.responseJSON.message;
-                    } else if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.file) {
-                        message = xhr.responseJSON.errors.file[0];
-                    }
-                    alert(message);
+                    window.mcShowErrors(
+                        'Upload failed',
+                        window.mcAjaxErrorMessages(xhr, 'Could not upload "' + file.name + '". Please try again.')
+                    );
                 }
             });
         }
