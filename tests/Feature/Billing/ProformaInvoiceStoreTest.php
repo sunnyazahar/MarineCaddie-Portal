@@ -12,8 +12,6 @@ use Tests\RegressionTestCase;
 
 class ProformaInvoiceStoreTest extends RegressionTestCase
 {
-    private const PAYMENT_TYPE = 'full_payment';
-
     public function test_preview_proforma_number_uses_financial_year_format(): void
     {
         Carbon::setTestNow('2026-09-01 10:00:00');
@@ -61,7 +59,6 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
                 'shipment_id' => $shipment->id,
                 'proforma_date' => '15.03.2026',
                 'currency' => 'USD',
-                'payment_type' => self::PAYMENT_TYPE,
                 'line_items' => [[
                     'description' => 'Freight charges',
                     'qty' => '1',
@@ -112,6 +109,10 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
             'sequence_no' => 9,
             'client_ref_no' => 'OLD-REF',
             'currency' => 'USD',
+            'einvoice_status' => 'Sent',
+            'payment_type' => 'partial_payment',
+            'paid_amount' => '50.00',
+            'due_amount' => '150.00',
             'created_by' => $user->id,
         ]);
 
@@ -120,7 +121,11 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
                 'shipment_id' => $shipment->id,
                 'client_ref_no' => 'NEW-REF',
                 'currency' => 'EUR',
-                'payment_type' => 'partial_payment',
+                // Removed fields: must be ignored even if a client still posts them.
+                'einvoice_status' => 'Failed',
+                'payment_type' => 'full_payment',
+                'paid_amount' => '999.00',
+                'due_amount' => '0.00',
                 'line_items' => [[
                     'description' => 'Updated line',
                     'qty' => '1',
@@ -148,8 +153,11 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
 
         $invoice = ProformaInvoice::query()->where('shipment_id', $shipment->id)->first();
         $this->assertSame('NEW-REF', $invoice->client_ref_no);
-        $this->assertSame('partial_payment', $invoice->payment_type);
         $this->assertSame('EUR', $invoice->currency);
+        $this->assertSame('Sent', $invoice->einvoice_status);
+        $this->assertSame('partial_payment', $invoice->payment_type);
+        $this->assertSame('50.00', $invoice->paid_amount);
+        $this->assertSame('150.00', $invoice->due_amount);
         $this->assertSame('Updated line', $invoice->lineItems()->first()->description);
     }
 
@@ -179,8 +187,6 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
             'job_date' => '01.09.2026',
             'client_ref_no' => 'REF-STORE-1',
             'currency' => 'USD',
-            'payment_type' => self::PAYMENT_TYPE,
-            'paid_amount' => '200.00',
             'line_items' => [
                 [
                     'description' => 'Freight charges',
@@ -239,9 +245,10 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
         $this->assertSame(1, $invoice->sequence_no);
         $this->assertSame('REF-STORE-1', $invoice->client_ref_no);
         $this->assertSame('USD', $invoice->currency);
-        $this->assertSame(self::PAYMENT_TYPE, $invoice->payment_type);
-        $this->assertSame('200.00', $invoice->paid_amount);
-        $this->assertSame('0.00', $invoice->due_amount);
+        $this->assertNull($invoice->einvoice_status);
+        $this->assertNull($invoice->payment_type);
+        $this->assertNull($invoice->paid_amount);
+        $this->assertNull($invoice->due_amount);
 
         $lineItems = ProformaInvoiceLineItem::query()
             ->where('proforma_invoice_id', $invoice->id)
@@ -254,7 +261,7 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
         $this->assertSame('50.00', $lineItems[1]->amount);
     }
 
-    public function test_store_proforma_invoice_requires_payment_type(): void
+    public function test_store_proforma_invoice_does_not_require_payment_fields(): void
     {
         Carbon::setTestNow('2026-09-01 10:00:00');
 
@@ -288,8 +295,8 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
                     'sgst_amt' => '0.00',
                 ]],
             ])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['payment_type']);
+            ->assertOk()
+            ->assertJson(['success' => true, 'is_update' => false]);
     }
 
     public function test_proforma_number_increments_within_financial_year_and_resets_next_year(): void
@@ -349,7 +356,7 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
         $this->assertStringContainsString('Billed', $html);
     }
 
-    public function test_store_partial_payment_shows_partially_paid_in_list(): void
+    public function test_saved_invoice_without_payment_fields_is_listed_as_billed(): void
     {
         Carbon::setTestNow('2026-09-01 10:00:00');
 
@@ -365,8 +372,6 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
             ->postJson(route('billing.invoicing.store'), [
                 'shipment_id' => $shipment->id,
                 'currency' => 'USD',
-                'payment_type' => 'partial_payment',
-                'paid_amount' => '100.00',
                 'line_items' => [[
                     'description' => 'Freight charges',
                     'qty' => '1',
@@ -388,12 +393,11 @@ class ProformaInvoiceStoreTest extends RegressionTestCase
             ->assertOk()
             ->assertJson(['success' => true]);
 
-        $html = $this->actingAsVerified($user)
-            ->get(route('billing.invoicing'))
-            ->assertOk()
-            ->getContent();
+        $response = $this->actingAsVerified($user)
+            ->getJson(route('billing.invoicing', ['status' => ['Billed']]), ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk();
 
-        $this->assertStringContainsString('INV-PARTIAL-1', $html);
-        $this->assertStringContainsString('Partially paid', $html);
+        $this->assertStringContainsString('INV-PARTIAL-1', $response->json('html'));
+        $this->assertStringContainsString('invoicing-status-badge--billed', $response->json('html'));
     }
 }

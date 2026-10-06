@@ -38,11 +38,14 @@ class LogoHelper
     }
 
     /**
-     * Alias for imgTag — used in PDF templates.
+     * Logo for DomPDF templates: a small pre-scaled copy (2x the largest PDF
+     * display width) so each PDF stays light; falls back to the full logo.
      */
-    public static function pdfImgTag(string $width = '180px'): string
+    public static function pdfImgTag(string $width = '180px', string $extraStyle = ''): string
     {
-        return self::imgTag($width);
+        $tag = self::imgTag($width, $extraStyle, 'marinecaddie-logo-pdf.png');
+
+        return $tag !== '' ? $tag : self::imgTag($width, $extraStyle);
     }
 
     /**

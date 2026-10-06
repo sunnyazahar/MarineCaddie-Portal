@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Shipments;
 
+use App\Rules\ValidPdfUpload;
 use App\Services\PreAlertReminderMailService;
 use App\Services\ShipmentMailDispatchService;
 use Illuminate\Http\Request;
@@ -65,7 +66,7 @@ class ShipmentReminderController extends BaseShipmentController
             'subject' => ['required', 'string', 'max:500'],
             'body' => ['nullable', 'string'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
+            'files.*' => ValidPdfUpload::rules(20480),
         ]);
 
         $mailDispatchService->dispatchAfterResponse(
@@ -163,7 +164,7 @@ class ShipmentReminderController extends BaseShipmentController
             'subject' => ['required', 'string', 'max:500'],
             'body' => ['nullable', 'string'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
+            'files.*' => ValidPdfUpload::rules(20480),
         ]);
 
         $mailDispatchService->dispatchAfterResponse(
@@ -245,7 +246,7 @@ class ShipmentReminderController extends BaseShipmentController
             'subject' => ['required', 'string', 'max:500'],
             'body' => ['nullable', 'string'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
+            'files.*' => ValidPdfUpload::rules(20480),
         ]);
 
         $mailDispatchService->dispatchAfterResponse(

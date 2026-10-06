@@ -22,7 +22,8 @@
 
         .proforma-edit-card > .card-block {
             padding: 8px 12px 20px !important;
-            padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+            /* --proforma-footer-height is measured in JS: the fixed footer wraps to 2 rows on phones. */
+            padding-bottom: calc(var(--proforma-footer-height, 64px) + 12px + env(safe-area-inset-bottom, 0px)) !important;
         }
 
         .proforma-edit-body {
@@ -115,29 +116,6 @@
             text-align: right;
             margin: 0;
             line-height: 1.25;
-        }
-
-        .proforma-radio-group {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 16px;
-            min-height: 34px;
-        }
-
-        .proforma-radio-option {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #0e1d4a;
-            margin: 0;
-            cursor: pointer;
-        }
-
-        .proforma-radio-option input[type="radio"] {
-            margin: 0;
         }
 
         #proforma-edit-form .proforma-field-input .form-control {
@@ -494,27 +472,6 @@
             text-align: right;
             margin: 0;
             line-height: 1.2;
-        }
-
-        .proforma-net-payable-row .form-control {
-            flex: 0 0 120px;
-            width: 120px;
-            min-width: 120px;
-            height: 34px;
-            min-height: 34px;
-            padding: 0 10px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #1e3a5f;
-            border: 1px solid #d6e3ee;
-            border-radius: 8px;
-            text-align: right;
-            background: #fff;
-        }
-
-        .proforma-net-payable-row .form-control[] {
-            background: #f1f5f9;
-            color: #0e1d4a;
         }
 
         .proforma-net-payable-value {
@@ -1016,44 +973,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        <div class="proforma-field-row">
-                            <label for="einvoice_status">E-Invoice Status</label>
-                            <div class="proforma-field-input">
-                                <select id="einvoice_status" name="einvoice_status" class="form-control form-control-sm">
-                                    @foreach (['Pending', 'Generated', 'Sent', 'Failed'] as $status)
-                                        <option value="{{ $status }}" @selected($invoice['einvoice_status'] === $status)>{{ $status }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="proforma-field-row">
-                            <label>Payment</label>
-                            <div class="proforma-field-input">
-                                <div class="proforma-radio-group">
-                                    <label class="proforma-radio-option">
-                                        <input
-                                            type="radio"
-                                            name="payment_type"
-                                            value="partial_payment"
-                                            required
-                                            @checked(($invoice['payment_type'] ?? '') === 'partial_payment')
-                                        >
-                                        Partially payment
-                                    </label>
-                                    <label class="proforma-radio-option">
-                                        <input
-                                            type="radio"
-                                            name="payment_type"
-                                            value="full_payment"
-                                            @checked(($invoice['payment_type'] ?? '') === 'full_payment')
-                                        >
-                                        Full payment
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 </div>
@@ -1175,28 +1094,6 @@
                             <span class="proforma-net-payable-label">Net Payable Amount</span>
                             <span class="proforma-net-payable-value" id="proforma-net-payable">0.00</span>
                         </div>
-                        <div class="proforma-net-payable-row">
-                            <label class="proforma-net-payable-label" for="paid_amount">Paid Amount</label>
-                            <input
-                                type="text"
-                                id="paid_amount"
-                                name="paid_amount"
-                                class="form-control form-control-sm"
-                                value="{{ $invoice['paid_amount'] ?? '' }}"
-                                inputmode="decimal"
-                            >
-                        </div>
-                        <div class="proforma-net-payable-row" id="proforma-due-amount-row">
-                            <label class="proforma-net-payable-label" for="due_amount">Due Amount</label>
-                            <input
-                                type="text"
-                                id="due_amount"
-                                name="due_amount"
-                                class="form-control form-control-sm"
-                                value="{{ $invoice['due_amount'] ?? '' }}"
-                                
-                            >
-                        </div>
                     </div>
                 </div>
                 </div>
@@ -1242,6 +1139,18 @@
             var $proformaFooter = $('#proforma-form-actions');
             if ($proformaFooter.length && !$proformaFooter.parent().is('body')) {
                 $proformaFooter.appendTo('body');
+            }
+
+            if ($proformaFooter.length) {
+                var syncProformaFooterSpace = function() {
+                    document.documentElement.style.setProperty('--proforma-footer-height', $proformaFooter.outerHeight() + 'px');
+                };
+                syncProformaFooterSpace();
+                if (typeof window.ResizeObserver === 'function') {
+                    new ResizeObserver(syncProformaFooterSpace).observe($proformaFooter[0]);
+                } else {
+                    $(window).on('resize', syncProformaFooterSpace);
+                }
             }
 
             function initProformaSelect2($scope) {
@@ -1655,45 +1564,6 @@
                 $row.find('.line-igst-amt').val(formatAmount(vatAmt));
             }
 
-            function getNetPayableAmount() {
-                return parseAmount($('#proforma-net-payable').text());
-            }
-
-            function updateDueAmount() {
-                var netPayable = getNetPayableAmount();
-                var paid = parseAmount($('#paid_amount').val());
-                var due = Math.max(0, netPayable - paid);
-
-                $('#due_amount').val(formatAmount(due));
-            }
-
-            function syncPaymentTypeFromPaidAmount() {
-                var netPayable = getNetPayableAmount();
-                var paid = parseAmount($('#paid_amount').val());
-                var paymentType = $('input[name="payment_type"]:checked').val();
-
-                if (netPayable > 0 && paid >= netPayable) {
-                    $('input[name="payment_type"][value="full_payment"]').prop('checked', true);
-                } else if (paymentType === 'full_payment' && paid < netPayable) {
-                    $('input[name="payment_type"][value="partial_payment"]').prop('checked', true);
-                }
-
-                applyPaymentTypePaidAmount();
-            }
-
-            function applyPaymentTypePaidAmount() {
-                var paymentType = $('input[name="payment_type"]:checked').val();
-                var $dueRow = $('#proforma-due-amount-row');
-
-                if (paymentType === 'full_payment') {
-                    $dueRow.hide();
-                    $('#due_amount').val(formatAmount(0));
-                } else {
-                    $dueRow.show();
-                    updateDueAmount();
-                }
-            }
-
             function updateSubtotals() {
                 var totalAmount = 0;
                 var totalNonTaxable = 0;
@@ -1712,7 +1582,6 @@
                 $('#proforma-subtotal-taxable').text(formatAmount(totalTaxable));
                 $('#proforma-subtotal-vat').text(formatAmount(totalVat));
                 $('#proforma-net-payable').text(formatAmount(totalNonTaxable + totalTaxable + totalVat));
-                syncPaymentTypeFromPaidAmount();
             }
 
             function reindexLineItemNames() {
@@ -1860,14 +1729,6 @@
             initProformaSelect2($('#proforma-edit-form'));
             updateSubtotals();
 
-            $('#paid_amount').on('input change', function() {
-                syncPaymentTypeFromPaidAmount();
-            });
-
-            $('input[name="payment_type"]').on('change', function() {
-                applyPaymentTypePaidAmount();
-            });
-
             function setProformaSavedState(isSaved) {
                 proformaIsSaved = !!isSaved;
                 var $generate = $('#proforma-generate-invoice');
@@ -1899,23 +1760,7 @@
                 return message;
             }
 
-            function validatePaymentTypeSelection() {
-                if ($('input[name="payment_type"]:checked').length === 0) {
-                    swal('Required', 'Please select Partially payment or Full payment.', 'warning');
-                    return false;
-                }
-
-                return true;
-            }
-
             function submitProformaInvoice(options) {
-                if (!validatePaymentTypeSelection()) {
-                    if (options.onError) {
-                        options.onError();
-                    }
-                    return;
-                }
-
                 var formData = $('#proforma-edit-form').serializeArray();
 
                 if (options.previewProformaNo) {
@@ -1968,10 +1813,6 @@
                     return;
                 }
 
-                if (!validatePaymentTypeSelection()) {
-                    return;
-                }
-
                 $button.prop('disabled', true);
 
                 $.get('{{ route('billing.invoicing.preview-proforma-number') }}', {
@@ -2014,10 +1855,6 @@
 
             $('#proforma-update-invoice').on('click', function() {
                 if (!proformaIsSaved) {
-                    return;
-                }
-
-                if (!validatePaymentTypeSelection()) {
                     return;
                 }
 

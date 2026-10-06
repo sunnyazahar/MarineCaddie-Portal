@@ -157,7 +157,7 @@
                 <div class="report-customer">CUSTOMER NAME: {{ $reportCustomerName }}</div>
             </td>
             <td class="logo-container">
-                {!! \App\Support\LogoHelper::imgTag('160px') !!}
+                {!! \App\Support\LogoHelper::pdfImgTag('160px') !!}
             </td>
         </tr>
     </table>

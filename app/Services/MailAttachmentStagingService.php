@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class MailAttachmentStagingService
 {
     private const DISK = 'private';
-    private const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'webp'];
+    private const ALLOWED_EXTENSIONS = ['pdf'];
 
     /**
      * @return array<int, array{path: string, filename: string, mime: string}>

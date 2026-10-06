@@ -70,7 +70,7 @@
                 <td class="si-page-title">Pre Arrival Notification</td>
                 <td class="si-logo-cell">
                     <div class="brand-logo">
-                        ' . \App\Support\LogoHelper::imgTag('190px') . '
+                        ' . \App\Support\LogoHelper::pdfImgTag('190px') . '
                     </div>
                 </td>
             </tr>
@@ -196,7 +196,7 @@
             <td class="si-page-title"></td>
             <td class="si-logo-cell">
                 <div class="brand-logo">
-                    {!! \App\Support\LogoHelper::imgTag('190px') !!}
+                    {!! \App\Support\LogoHelper::pdfImgTag('190px') !!}
                 </div>
             </td>
         </tr>

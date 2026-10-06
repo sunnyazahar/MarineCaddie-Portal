@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Shipments;
 
+use App\Rules\ValidPdfUpload;
 use App\Services\CombinedPoPdfService;
 use App\Services\ManifestMailService;
 use App\Services\PreAlertMailService;
@@ -195,7 +196,7 @@ class ShipmentMailController extends BaseShipmentController
             'document_ids' => ['nullable'],
             'exclude_attachments' => ['nullable'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
+            'files.*' => ValidPdfUpload::rules(20480),
         ]);
 
         $mailDispatchService->dispatchAfterResponse(
@@ -413,7 +414,7 @@ class ShipmentMailController extends BaseShipmentController
             'document_ids' => ['nullable'],
             'exclude_attachments' => ['nullable'],
             'files' => ['nullable', 'array'],
-            'files.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg'],
+            'files.*' => ValidPdfUpload::rules(20480),
         ]);
 
         $mailDispatchService->dispatchAfterResponse(

@@ -335,7 +335,7 @@ trait ManagesShipmentPersistence
             }
 
             $extension = strtolower((string) $file->getClientOriginalExtension());
-            if (! in_array($extension, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'webp'], true)) {
+            if ($extension !== 'pdf') {
                 continue;
             }
 

@@ -306,7 +306,7 @@
                 </td>
                 <td class="header-right">
                     <div class="brand-logo-wrap">
-                        {!! \App\Support\LogoHelper::imgTag('220px', 'display:inline-block;') !!}
+                        {!! \App\Support\LogoHelper::pdfImgTag('220px', 'display:inline-block;') !!}
                     </div>
                     <div class="sender-block">
                         <div class="party-name">{{ $sender['name'] }}</div>
@@ -327,7 +327,7 @@
         @if ($show_consolidation_summary_table ?? false)
             <div class="consolidated-po-row">
                 <span class="consolidated-po-label">Customer PO No.</span>
-                <span class="consolidated-po-value">{{ $invoice['client_ref_no'] ?? '—' }}</span>
+                <span class="consolidated-po-value">{{ trim((string) ($invoice['client_ref_no'] ?? '')) !== '' ? $invoice['client_ref_no'] : '—' }}</span>
             </div>
             <table class="field-table consolidated-meta-table">
                 <tr>

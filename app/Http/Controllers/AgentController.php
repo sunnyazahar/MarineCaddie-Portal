@@ -8,6 +8,7 @@ use App\Repositories\Contracts\AgentRepositoryInterface;
 use App\Repositories\Contracts\AgentUserRepositoryInterface;
 use App\Repositories\Contracts\ContactRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Rules\ValidPdfUpload;
 use App\Services\UserNotificationService;
 use App\Support\CountryCache;
 use App\Support\PrivateDisk;
@@ -181,9 +182,9 @@ class AgentController extends Controller
                 // Files & arrays
                 'billing_exceptions'   => 'nullable|array',
                 'sop_documents'        => 'nullable|array',
-                'sop_documents.*'      => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
+                'sop_documents.*'      => ValidPdfUpload::rules(10240),
                 'pricing_documents'    => 'nullable|array',
-                'pricing_documents.*'  => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
+                'pricing_documents.*'  => ValidPdfUpload::rules(10240),
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $e->redirectTo(route('agents.edit', $id) . '#' . $activeTab);

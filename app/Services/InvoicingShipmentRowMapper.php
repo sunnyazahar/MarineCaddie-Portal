@@ -129,10 +129,6 @@ class InvoicingShipmentRowMapper
             'proforma_no' => '',
             'proforma_date' => now()->format('d.m.Y'),
             'job_no' => $row['job_no'],
-            'einvoice_status' => '',
-            'payment_type' => '',
-            'paid_amount' => '',
-            'due_amount' => '',
             'shipper_departure' => (string) ($shipment->departure ?: ''),
             'shipper_departure_display' => $row['shipper_name'],
             'consignee' => (string) ($shipment->consignee ?: ''),
@@ -225,10 +221,6 @@ class InvoicingShipmentRowMapper
             'gst_amount' => '',
             'net_invoice_amount' => $row['net_invoice_amount'],
             'status' => $this->resolveInvoicingStatus($shipment),
-            'einvoice_status' => (string) ($saved->einvoice_status ?: ''),
-            'payment_type' => (string) ($saved->payment_type ?: ''),
-            'paid_amount' => $this->formatDecimal($saved->paid_amount),
-            'due_amount' => $this->formatDecimal($saved->due_amount),
             'shipper_departure' => (string) ($saved->shipper ?: $shipment->departure ?: ''),
             'shipper_departure_display' => $shipperDisplay,
             'consignee' => (string) ($saved->consignee ?: $shipment->consignee ?: ''),
@@ -292,17 +284,7 @@ class InvoicingShipmentRowMapper
 
     private function resolveInvoicingStatus(Shipment $shipment): string
     {
-        $invoice = $shipment->proformaInvoice;
-
-        if ($invoice === null) {
-            return 'Ready for billing';
-        }
-
-        if ($invoice->payment_type === 'partial_payment') {
-            return 'Partially paid';
-        }
-
-        return 'Billed';
+        return $shipment->proformaInvoice === null ? 'Ready for billing' : 'Billed';
     }
 
     /**

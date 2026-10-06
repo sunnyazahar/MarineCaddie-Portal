@@ -200,7 +200,7 @@ class InvoicingTableColumnsTest extends RegressionTestCase
         $this->assertSame(1, $response->json('total'));
     }
 
-    public function test_invoicing_list_filters_by_partially_paid_status_via_ajax(): void
+    public function test_legacy_partial_payment_invoice_is_listed_as_billed(): void
     {
         $user = $this->createAdminUser();
 
@@ -230,20 +230,20 @@ class InvoicingTableColumnsTest extends RegressionTestCase
             'proforma_no' => 'MC-AE26-27-0102',
             'financial_year_label' => '26-27',
             'sequence_no' => 102,
-            'payment_type' => 'full_payment',
             'created_by' => $user->id,
         ]);
 
         $response = $this->actingAsVerified($user)
             ->getJson(route('billing.invoicing', [
-                'status' => ['Partially paid'],
+                'status' => ['Billed'],
             ]), ['X-Requested-With' => 'XMLHttpRequest']);
 
         $response->assertOk();
         $html = $response->json('html');
         $this->assertStringContainsString('MC-AE26-27-0101', $html);
-        $this->assertStringNotContainsString('MC-AE26-27-0102', $html);
-        $this->assertSame(1, $response->json('total'));
+        $this->assertStringContainsString('MC-AE26-27-0102', $html);
+        $this->assertStringNotContainsString('Partially paid', $html);
+        $this->assertSame(2, $response->json('total'));
     }
 
     public function test_invoicing_list_filters_by_invoice_no_and_shipment_no_via_ajax(): void
@@ -444,6 +444,7 @@ class InvoicingTableColumnsTest extends RegressionTestCase
         $response->assertOk();
         $this->assertStringStartsWith('%PDF', (string) $response->getContent());
         $this->assertStringContainsString('application/pdf', (string) $response->headers->get('content-type'));
+        $response->assertHeader('Content-Disposition', 'inline; filename="consolidated-invoice-PO-CONSOL-123.pdf"');
 
         $mergedPath = tempnam(sys_get_temp_dir(), 'mc_consol_pdf_');
         $this->assertNotFalse($mergedPath);
@@ -531,7 +532,8 @@ class InvoicingTableColumnsTest extends RegressionTestCase
             ->get(route('billing.invoicing.consolidated-print', [
                 'job_no' => ['INV-CONSOL-EMPTY-PO-A', 'INV-CONSOL-EMPTY-PO-B'],
             ]))
-            ->assertOk();
+            ->assertOk()
+            ->assertHeader('Content-Disposition', 'inline; filename="consolidated-invoice.pdf"');
     }
 
     public function test_consolidated_print_requires_generated_invoices(): void
@@ -649,6 +651,39 @@ class InvoicingTableColumnsTest extends RegressionTestCase
         $this->assertStringContainsString('id="proforma-generate-invoice"', $html);
         $this->assertStringContainsString('disabled', $html);
         $this->assertStringContainsString('id="proforma-update-invoice"', $html);
+    }
+
+    public function test_edit_page_has_no_einvoice_status_payment_or_paid_due_fields(): void
+    {
+        $user = $this->createAdminUser();
+
+        $shipment = Shipment::create([
+            'shipment_number' => 'INV-EDIT-NO-PAYMENT-1',
+            'status' => 'In process',
+            'service' => 'Airfreight',
+        ]);
+
+        ProformaInvoice::query()->create([
+            'shipment_id' => $shipment->id,
+            'proforma_no' => 'MC-AE26-27-0011',
+            'financial_year_label' => '26-27',
+            'sequence_no' => 11,
+            'einvoice_status' => 'Sent',
+            'payment_type' => 'partial_payment',
+            'paid_amount' => '10.00',
+            'due_amount' => '90.00',
+            'created_by' => $user->id,
+        ]);
+
+        $html = $this->actingAsVerified($user)
+            ->get(route('billing.invoicing.edit', ['proformaNo' => $shipment->shipment_number]))
+            ->assertOk()
+            ->assertSee('Net Payable Amount')
+            ->getContent();
+
+        foreach (['einvoice_status', 'E-Invoice Status', 'payment_type', 'Partially payment', 'Full payment', 'paid_amount', 'Paid Amount', 'due_amount', 'Due Amount'] as $removed) {
+            $this->assertStringNotContainsString($removed, $html, "Edit page must not contain {$removed}.");
+        }
     }
 
     public function test_edit_page_returns_404_for_cancelled_shipment(): void

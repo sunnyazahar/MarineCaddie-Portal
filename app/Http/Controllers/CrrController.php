@@ -6,6 +6,7 @@ use App\Models\Crr;
 use App\Models\CrrCost;
 use App\Models\CrrDocument;
 use App\Repositories\Contracts\CrrRepositoryInterface;
+use App\Rules\ValidPdfUpload;
 use App\Services\CrrAccountManagerNotifyService;
 use App\Services\CrrChangeLogService;
 use App\Services\LinkedStockShipmentManifestService;
@@ -750,7 +751,7 @@ class CrrController extends Controller
         $crr = $this->crrRepository->findOrFail((int) $id);
 
         $request->validate([
-            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
+            'file' => ValidPdfUpload::rules(10240, required: true),
         ]);
 
         if (!$request->hasFile('file')) {

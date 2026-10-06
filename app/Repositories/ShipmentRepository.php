@@ -594,27 +594,14 @@ class ShipmentRepository extends BaseRepository implements ShipmentRepositoryInt
         if ($billingStatuses) {
             $wantsBilled = in_array('Billed', $billingStatuses, true);
             $wantsReady = in_array('Ready for billing', $billingStatuses, true);
-            $wantsPartiallyPaid = in_array('Partially paid', $billingStatuses, true);
 
-            $query->where(function (Builder $statusQuery) use ($wantsBilled, $wantsReady, $wantsPartiallyPaid) {
+            $query->where(function (Builder $statusQuery) use ($wantsBilled, $wantsReady) {
                 if ($wantsReady) {
                     $statusQuery->orWhereDoesntHave('proformaInvoice');
                 }
 
                 if ($wantsBilled) {
-                    $statusQuery->orWhereHas('proformaInvoice', function (Builder $invoiceQuery) {
-                        $invoiceQuery->where(function (Builder $paymentQuery) {
-                            $paymentQuery
-                                ->where('payment_type', 'full_payment')
-                                ->orWhereNull('payment_type');
-                        });
-                    });
-                }
-
-                if ($wantsPartiallyPaid) {
-                    $statusQuery->orWhereHas('proformaInvoice', function (Builder $invoiceQuery) {
-                        $invoiceQuery->where('payment_type', 'partial_payment');
-                    });
+                    $statusQuery->orWhereHas('proformaInvoice');
                 }
             });
         }

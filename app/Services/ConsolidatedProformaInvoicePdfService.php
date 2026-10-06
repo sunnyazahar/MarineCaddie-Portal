@@ -43,8 +43,8 @@ class ConsolidatedProformaInvoicePdfService
         );
 
         $row = $this->invoicingShipmentRowMapper->mapCollection($shipments)->first();
-        $poSlug = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) ($row['client_ref_no'] ?? 'consolidated'));
-        $filename = 'consolidated-invoice-' . trim($poSlug, '-') . '.pdf';
+        $poSlug = trim((string) preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) ($row['client_ref_no'] ?? '')), '-.');
+        $filename = 'consolidated-invoice' . ($poSlug !== '' ? '-' . $poSlug : '') . '.pdf';
 
         return response($merged, 200, [
             'Content-Type' => 'application/pdf',

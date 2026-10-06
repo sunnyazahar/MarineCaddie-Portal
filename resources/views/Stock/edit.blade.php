@@ -3736,9 +3736,9 @@
 
                                             <div class="dropzone-placeholder" id="crr-dropzone">
                                                 <i class="ti-upload dropzone-icon"></i>
-                                                <div class="dropzone-text">Drag files here or click to browse</div>
+                                                <div class="dropzone-text">Drag PDF files here or click to browse</div>
                                                 </div>
-                                            <input type="file" id="crr-file-input" style="display: none;" multiple>
+                                            <input type="file" id="crr-file-input" accept="application/pdf,.pdf" style="display: none;" multiple>
                                             </div>
                                                 </div>
                                                 </div>
@@ -4742,6 +4742,10 @@ function updatePackageSummary() {
                 if (files.length === 0) return;
 
                 for (let i = 0; i < files.length; i++) {
+                    if (!files[i].name.toLowerCase().endsWith('.pdf')) {
+                        toastr.error('Only PDF files are allowed: ' + escapeHtml(files[i].name));
+                        continue;
+                    }
                     uploadFile(files[i]);
                 }
                 // Reset input
@@ -4821,8 +4825,9 @@ function updatePackageSummary() {
                         toastr.success('File uploaded successfully');
                     },
                     error: function (xhr) {
-                        const error = xhr.responseJSON ? xhr.responseJSON.error : 'Upload failed';
-                        toastr.error(error);
+                        const json = xhr.responseJSON || {};
+                        const fieldError = json.errors && json.errors.file ? json.errors.file[0] : null;
+                        toastr.error(escapeHtml(fieldError || json.error || json.message || 'Upload failed'));
                     }
                 });
             }

@@ -4839,7 +4839,7 @@
                     <p class="compose-attach-hint">Max. 32MB</p>
                     <div class="compose-attach-previews" id="compose-attach-previews"></div>
                     <p class="compose-attach-empty" id="compose-attach-empty" style="display:none;">No attachments</p>
-                    <input type="file" id="compose-attachment-input" multiple style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip">
+                    <input type="file" id="compose-attachment-input" multiple style="display:none;" accept="application/pdf,.pdf">
                 </div>
             </div>
             <div class="compose-footer">
@@ -6438,8 +6438,12 @@
             pendingManifestMail.attachments = pendingManifestMail.attachments || [];
 
             Array.prototype.forEach.call(files, function(file, index) {
-                var objectUrl = URL.createObjectURL(file);
                 var isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+                if (!isPdf) {
+                    alert('Only PDF files are allowed: ' + file.name);
+                    return;
+                }
+                var objectUrl = URL.createObjectURL(file);
                 var isImage = /^image\//.test(file.type) || /\.(png|jpe?g|gif|webp)$/i.test(file.name);
 
                 var localItem = {

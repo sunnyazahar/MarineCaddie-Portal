@@ -90,8 +90,8 @@ class ProformaInvoiceService
      */
     private function mapInvoiceAttributes(array $payload, array $numberData, int $userId, bool $isNew): array
     {
-        $paidDue = $this->mapPaidAndDueAmounts($payload);
-
+        // Legacy columns einvoice_status, payment_type, paid_amount, due_amount are not mapped,
+        // so updates never overwrite values already stored on existing invoices.
         $data = [
             'invoice_type' => $this->nullableString($payload['invoice_type'] ?? null),
             'shipper' => $this->nullableString($payload['shipper'] ?? null),
@@ -122,10 +122,6 @@ class ProformaInvoiceService
             'flight_date' => $this->parseDate($payload['flight_date'] ?? null),
             'vessel_name' => $this->nullableString($payload['vessel_name'] ?? null),
             'currency' => $this->nullableString($payload['currency'] ?? null),
-            'einvoice_status' => $this->nullableString($payload['einvoice_status'] ?? null),
-            'payment_type' => $this->nullableString($payload['payment_type'] ?? null),
-            'paid_amount' => $paidDue['paid_amount'],
-            'due_amount' => $paidDue['due_amount'],
             'created_by' => $userId,
         ];
 
@@ -136,53 +132,6 @@ class ProformaInvoiceService
         }
 
         return $data;
-    }
-
-    /**
-     * @param  array<string, mixed>  $payload
-     * @return array{paid_amount: string, due_amount: string}
-     */
-    private function mapPaidAndDueAmounts(array $payload): array
-    {
-        $netPayable = $this->calculateNetPayableFromLineItems($payload['line_items'] ?? []);
-        $paymentType = $this->nullableString($payload['payment_type'] ?? null);
-
-        if ($paymentType === 'full_payment') {
-            $paid = $netPayable;
-        } else {
-            $paid = (float) ($this->nullableDecimal($payload['paid_amount'] ?? null) ?? '0');
-        }
-
-        $due = max(0, $netPayable - $paid);
-
-        return [
-            'paid_amount' => number_format($paid, 2, '.', ''),
-            'due_amount' => number_format($due, 2, '.', ''),
-        ];
-    }
-
-    /**
-     * @param  mixed  $lineItems
-     */
-    private function calculateNetPayableFromLineItems(mixed $lineItems): float
-    {
-        if (! is_array($lineItems)) {
-            return 0.0;
-        }
-
-        $total = 0.0;
-
-        foreach ($lineItems as $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-
-            $total += (float) ($this->nullableDecimal($item['non_taxable'] ?? null) ?? '0');
-            $total += (float) ($this->nullableDecimal($item['taxable'] ?? null) ?? '0');
-            $total += (float) ($this->nullableDecimal($item['igst_amt'] ?? null) ?? '0');
-        }
-
-        return $total;
     }
 
     /**

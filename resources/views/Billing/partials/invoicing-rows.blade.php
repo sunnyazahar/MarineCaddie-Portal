@@ -36,7 +36,6 @@
                 $status = $row['status'] ?? '';
                 $statusBadgeClass = match ($status) {
                     'Billed' => 'invoicing-status-badge--billed',
-                    'Partially paid' => 'invoicing-status-badge--partial',
                     default => 'invoicing-status-badge--ready',
                 };
             @endphp

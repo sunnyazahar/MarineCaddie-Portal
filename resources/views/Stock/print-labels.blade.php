@@ -164,7 +164,7 @@
                     <td class="col-right">
                         <div class="brand">
                             <br><br>
-                            {!! \App\Support\LogoHelper::imgTag('52mm') !!}
+                            {!! \App\Support\LogoHelper::pdfImgTag('52mm') !!}
                         </div>
                     </td>
                 </tr>

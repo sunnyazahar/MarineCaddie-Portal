@@ -66,7 +66,7 @@
                     <p class="compose-attach-hint">Maximum 20MB per file</p>
                     <div class="compose-attach-previews" id="reminder-attach-previews"></div>
                     <input type="file" id="reminder-attachment-input" multiple style="display:none;"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip">
+                        accept="application/pdf,.pdf">
                 </div>
             </div>
             <div class="compose-footer">

@@ -1062,7 +1062,8 @@ Routes: `/billing/invoicing`, `/billing/invoicing/{proformaNo}/edit`, PDF print.
 | Invoicing list **Party name** | Linked stock customer `customer_name` (one customer per shipment) |
 | Billing Party | `customer.invoiceDetail.invoice_recipient_name` from any linked stock’s customer (same for all) |
 | Bill To Pos | `customer.invoiceAddress.country` from that customer’s Invoice details |
-| Invoicing list status | `partial_payment` → **Partially paid**; `full_payment` (or legacy null) → **Billed**; no proforma → **Ready for billing** |
+| Invoicing list status | Saved proforma → **Billed**; no proforma → **Ready for billing** (no "Partially paid" status/filter) |
+| Proforma edit fields | No E-Invoice Status, Payment (Partially/Full), Paid Amount or Due Amount fields. Columns `einvoice_status`, `payment_type`, `paid_amount`, `due_amount` stay in DB (legacy values) and are **never written** by `ProformaInvoiceService` |
 | Code | `InvoicingShipmentRowMapper` resolves via first linked CRR’s customer — no comma-joined multi-customer UI |
 
 Do not build invoicing edit/PDF fields assuming multiple customers per shipment unless product rules change.
@@ -1110,11 +1111,16 @@ Model::create($request->all());
 
 ### File uploads
 
-Always validate `mimes` and `max` size:
+**The application accepts PDF only** for every document / mail attachment upload (CRR, shipment, customer, agent, hub documents; manifest / pre-alert / reminder / invoice-request mail attachments). Only the customer **logo** stays image-only (`mimes:jpg,jpeg,png,webp`). Always use the shared rule set — never a hand-written `mimes` list:
 
 ```php
-'files.*' => 'nullable|file|max:20480|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,eml,msg',
+use App\Rules\ValidPdfUpload;
+
+'file'    => ValidPdfUpload::rules(10240, required: true), // required|file|mimes:pdf|max:10240 + ValidPdfUpload
+'files.*' => ValidPdfUpload::rules(20480),
 ```
+
+`ValidPdfUpload` blocks renamed files (e.g. a PNG/EXE renamed to `.pdf`): `.pdf` extension + `application/pdf` content (both ways), a real `%PDF-1.x/2.x` header, `%%EOF` trailer (not truncated), and no `/JavaScript`, `/JS`, `/Launch`, `/RichMedia` in object dictionaries (incl. `#xx`-obfuscated names and FlateDecode object streams). Page/image streams are skipped, so it causes no false rejections. Front-end inputs use `accept="application/pdf,.pdf"` + a client-side `.pdf` check (UX only — the server rule is the authority). Guarded by `tests/Unit/ValidPdfUploadTest.php`, which also fails if any `mimes:` rule in `app/` allows pdf/doc/xls/eml/msg/zip directly.
 
 ### Blade output
 
@@ -1262,6 +1268,13 @@ php artisan view:cache
 ### OPcache
 
 Enable on production PHP for faster bootstrap.
+
+### PDF size (DomPDF)
+
+- `config/dompdf.php` → `enable_font_subsetting` **must stay `true`** (off = full DejaVu Sans ~900 KB in every PDF; consolidated invoices repeat it per invoice → 2–5 MB).
+- Logo in any DomPDF template = `LogoHelper::pdfImgTag()` (small `marinecaddie-logo-pdf.png`, 460 px) — never `imgTag()` (full-size logo is for web pages).
+- No large images/backgrounds in PDF views; pre-scale any new image to ≤ 2× its printed width.
+- Guarded by `tests/Feature/PdfSizeTest.php`.
 
 ---
 

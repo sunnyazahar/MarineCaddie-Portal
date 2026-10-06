@@ -265,6 +265,11 @@ $(document).on('change', '#reminder-attachment-input', function() {
     }
 
     Array.prototype.forEach.call(this.files || [], function(file, index) {
+        if (!/\.pdf$/i.test(file.name)) {
+            alert('Only PDF files are allowed: ' + file.name);
+            return;
+        }
+
         if (file.size > 20 * 1024 * 1024) {
             alert(file.name + ' is larger than the 20MB limit.');
             return;

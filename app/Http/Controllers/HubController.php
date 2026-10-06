@@ -6,6 +6,7 @@ use App\Repositories\Contracts\ContactRepositoryInterface;
 use App\Repositories\Contracts\HubDocumentRepositoryInterface;
 use App\Repositories\Contracts\HubRepositoryInterface;
 use App\Repositories\Contracts\HubUserRepositoryInterface;
+use App\Rules\ValidPdfUpload;
 use App\Support\CountryCache;
 use App\Support\PrivateDisk;
 use Illuminate\Http\Request;
@@ -252,7 +253,7 @@ class HubController extends Controller
     public function uploadDocument(Request $request, $id)
     {
         $request->validate([
-            'file'          => 'required|file|mimes:pdf,doc,docx,jpg,png,xlsx,xls|max:5120',
+            'file'          => ValidPdfUpload::rules(5120, required: true),
             'document_type' => 'required|string|in:sop,pricing',
         ]);
 

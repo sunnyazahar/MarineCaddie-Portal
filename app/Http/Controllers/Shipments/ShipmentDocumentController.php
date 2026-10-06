@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shipments;
 
 use App\Models\ShipmentDocument;
+use App\Rules\ValidPdfUpload;
 use App\Services\ShipmentChangeLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +15,7 @@ class ShipmentDocumentController extends BaseShipmentController
         $shipment = $this->shipmentRepository->findOrFail((int) $id);
 
         $request->validate([
-            'file' => 'required|file|mimes:pdf|max:20480',
+            'file' => ValidPdfUpload::rules(20480, required: true),
         ]);
 
         $file = $request->file('file');

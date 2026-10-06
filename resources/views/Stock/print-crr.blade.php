@@ -184,7 +184,7 @@
     </div>
     <div class="header">
         <div class="header-col" style="width:100%; text-align: right;">
-            {!! \App\Support\LogoHelper::imgTag('180px') !!}
+            {!! \App\Support\LogoHelper::pdfImgTag('180px') !!}
         </div>
     </div>
     <div class="header" style="margin-top: 70px;">

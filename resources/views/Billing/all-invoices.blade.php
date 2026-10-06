@@ -144,11 +144,6 @@
             border: 1px solid #6ee7b7;
             color: #047857;
         }
-        .invoicing-status-badge--partial {
-            background-color: #eff6ff;
-            border: 1px solid #93c5fd;
-            color: #1d4ed8;
-        }
         .invoicing-row-actions {
             display: inline-flex;
             align-items: center;
@@ -587,7 +582,6 @@
                                         <span class="filter-label">Status</span>
                                         <select class="form-control filter-input searchable-filter-multiselect" multiple="multiple">
                                             <option value="Ready for billing">Ready for billing</option>
-                                            <option value="Partially paid">Partially paid</option>
                                             <option value="Billed">Billed</option>
                                         </select>
                                     </div>

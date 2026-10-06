@@ -7,6 +7,7 @@ use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+use App\Rules\ValidPdfUpload;
 use App\Support\CountryCache;
 use App\Services\AdministrationChangeLogService;
 use App\Repositories\Contracts\ContactRepositoryInterface;
@@ -94,7 +95,7 @@ class CustomerController extends Controller
             'main_account_manager' => 'required',
             'logo' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
             'sop_documents' => 'nullable|array',
-            'sop_documents.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
+            'sop_documents.*' => ValidPdfUpload::rules(10240),
         ]);
 
         DB::beginTransaction();
@@ -542,7 +543,7 @@ class CustomerController extends Controller
         $customer = $this->customerRepo->findOrFail($id);
 
         $request->validate([
-            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240',
+            'file' => ValidPdfUpload::rules(10240, required: true),
         ]);
 
         if (!$request->hasFile('file')) {
