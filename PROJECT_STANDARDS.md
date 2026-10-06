@@ -1393,7 +1393,10 @@ Host, SSH user, paths and exact commands: **`DEPLOY.local.md`** (gitignored — 
 git pull --ff-only origin feature/tailwind-v2
 composer install --no-dev -o --no-interaction --no-progress
 php artisan config:cache && php artisan route:cache && php artisan view:cache
+chmod 600 .env bootstrap/cache/config.php
 ```
+
+**Secrets on the server:** `.env` and the cached `bootstrap/cache/config.php` (holds every `.env` value, rewritten as 644 by each `config:cache`) must stay **600**. The web root `.htaccess` returns 403 for every dotfile path (except `.well-known`); `APP_DEBUG=false` on production.
 
 **Migrations:** the production DB was imported manually; its `migrations` table is out of sync with the schema (columns exist, rows missing). **Never run `php artisan migrate` there** without checking each pending migration against the real columns first.
 
